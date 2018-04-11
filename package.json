@@ -9,7 +9,11 @@
     "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {},
+  "dependencies": {
+    "scrypt": "^6.0.3",
+    "sqlite3": "^4.0.0",
+    "ws": "^5.1.1"
+  },
   "devDependencies": {
     "toad.js": "0.0.6",
     "ts-loader": "^4.2.0",

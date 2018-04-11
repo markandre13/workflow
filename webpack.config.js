@@ -20,6 +20,7 @@ module.exports = {
     minimize: true
   },
   output: {
+    library: "workflow",
     filename: "workflow.js",
     path: path.resolve(__dirname, "js")
   }

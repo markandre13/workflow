@@ -36,20 +36,20 @@
     </style>
     <div class="logon">
       <img style="grid-column-start: 1;" src="img/logo.svg" width="64" height="64" />
-      <div class="logon-text"><mvc-slot model="disclaimer"></mvc-slot></div>
+      <div class="logon-text"><toad-slot model="disclaimer"></toad-slot></div>
 
       <label class="logon-label" for="logon">Logon:</label>
-      <mvc-text class="logon-input" id="logon" model="logon" /></mvc-text>
+      <toad-text class="logon-input" id="logon" model="logon" /></toad-text>
 
       <label class="logon-label" for="password">Password:</label>
-      <mvc-text class="logon-input" id="password" model="password" /></mvc-text>
+      <toad-text class="logon-input" id="password" model="password" /></toad-text>
 
       <label class="logon-label" for="remember">
-        Remember me (for up to <mvc-slot model="lifetime">?</mvc-slot> days):
+        Remember me (for up to <toad-slot model="lifetime">?</toad-slot> days):
       </label>
-      <mvc-checkbox class="logon-input" id="remember" model="remember" /></mvc-checkbox>
+      <toad-checkbox class="logon-input" id="remember" model="remember" /></toad-checkbox>
 
-      <mvc-button class="logon-input" action="logon">Log on</mvc-button>
+      <toad-button class="logon-input" action="logon">Log on</toad-button>
       <div class="logon-text">
         Not a member? <a href="#">Sign up</a> for an account
       </div>
@@ -60,7 +60,7 @@
          mark / secret<br />
          gita / lovely
       </div>
-      <mvc-slot model="message" style="color: #f00"></mvc-slot>
+      <toad-slot model="message" style="color: #f00"></toad-slot>
     </template>
     
     <template id="homeScreen">
@@ -85,14 +85,14 @@
     
     <style>
       :root {
-        --mvc-font-family: "Trebuchet MS", Futura, Helvetica Neue, Helvetica, Arial, sans-serif;
-        --mvc-font-size: 12px;
-        --mvc-outline-color: #9eccfb;
-        --mvc-selection-color: #0069d4;
+        --toad-font-family: "Trebuchet MS", Futura, Helvetica Neue, Helvetica, Arial, sans-serif;
+        --toad-font-size: 12px;
+        --toad-outline-color: #9eccfb;
+        --toad-selection-color: #0069d4;
       }
       body {
-        font-family: var(--mvc-font-family);
-        font-size: var(--mvc-font-size);
+        font-family: var(--toad-font-family);
+        font-size: var(--toad-font-size);
       }
     
       .fatradiobutton {

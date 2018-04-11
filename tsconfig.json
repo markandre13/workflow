@@ -2,15 +2,15 @@
     "compilerOptions": {
         "outDir": "./js/",
         "target": "es6",
-        "module": "es6",
+        "module": "commonjs",
         "moduleResolution": "node",
+        "traceResolution": true,
         "strict": true,
         "allowJs": false,
         "noImplicitAny": true,
         "sourceMap": true
     },
-    "exclude": [
-        "node_modules",
-        "js"
+    "include": [
+        "src"
     ]
 }
