@@ -1,10 +1,10 @@
 {
-  "name": "workflow.js",
+  "name": "workflow",
   "version": "0.0.1",
   "description": "A collaborative real-time white- and kanban board",
   "author": "Mark-André Hopf <mhopf@mark13.org>",
   "license": "GPL-3.0",
-  "main": "dist/workflow.js",
+  "main": "index.html",
   "scripts": {
     "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"

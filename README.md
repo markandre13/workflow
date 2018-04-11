@@ -1,2 +1,2 @@
-# workflow.js
+# workflow
 A collaborative real-time white- and kanban board

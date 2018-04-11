@@ -2,7 +2,7 @@ const path = require("path")
 
 module.exports = {
   mode: "development",
-  entry: "./src/index.ts",
+  entry: "./src/workflow.ts",
   devtool: "source-map",
   module: {
     rules: [
@@ -14,13 +14,13 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: [ ".tsx", ".ts", ".js" ]
+    extensions: [ ".ts", ".js" ]
   },
   optimization: {
     minimize: true
   },
   output: {
     filename: "workflow.js",
-    path: path.resolve(__dirname, "dist")
+    path: path.resolve(__dirname, "js")
   }
 }
