@@ -1261,9 +1261,17 @@ class ServerConnection {
       document.cookie = msg.cookie
     }
     
-    let avatar = dom.find(homeScreen, "#avatar") as HTMLImageElement
-    if (avatar)
-      avatar.src=msg.avatar
+    let model = new HtmlModel(`
+      <svg height="32" width="32">
+        <defs>
+          <clipPath id="mask">
+            <rect x="0" y="0" width="32" height="32" rx="4" ry="4" />
+          </clipPath>
+        </defs>
+        <rect x="0" y="0" width="32" height="32" rx="4" ry="4" stroke="none" fill="#08f" />
+        <image clip-path="url(#mask)" xlink:href="${msg.avatar}" x="2" y="2" width="28px" height="28px" />
+      </svg>`)
+    bind("avatar", model)
   
     let toolbar = new Toolbar(dom.find(homeScreen, "#toolbar"), "toolbar");
     let editor = new FigureEditor(dom.find(homeScreen, "#board"), "board", msg.socket, this.classifyBoard(msg.board));
