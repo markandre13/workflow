@@ -104,13 +104,20 @@ board.layers.push(layer);
 
 var db = new sqlite3.Database(':memory:');
 db.serialize(function() {
-  db.run('CREATE TABLE users (name VARCHAR(20) PRIMARY KEY, password CHAR(96) NOT NULL, session CHAR(64), avatar VARCHAR(128))');
+  db.run(`CREATE TABLE users (
+            name VARCHAR(20) PRIMARY KEY,
+            password CHAR(96) NOT NULL,
+            session CHAR(64),
+            avatar VARCHAR(128),
+            email VARCHAR(128),
+            fullname VARCHAR(128)
+          )`);
   
-  let stmt = db.prepare('INSERT INTO users(name, password, avatar) VALUES (?, ?, ?)');
+  let stmt = db.prepare('INSERT INTO users(name, password, avatar, email, fullname) VALUES (?, ?, ?, ?, ?)');
   
   let hash = scrypt.kdfSync("secret", scryptParameters)
-  stmt.run('mark', scrypt.kdfSync("secret", scryptParameters), "img/avatars/pig.svg");
-  stmt.run('gita', scrypt.kdfSync("lovely", scryptParameters), "img/avatars/tiger.svg");
+  stmt.run('mark', scrypt.kdfSync("secret", scryptParameters), "img/avatars/pig.svg", "mhopf@mark13.org", "Mark-André Hopf");
+  stmt.run('tiger', scrypt.kdfSync("lovely", scryptParameters), "img/avatars/tiger.svg", "tiger@mark13.org", "Elena Peel");
   stmt.finalize();
 /*  
   db.each('SELECT name, password FROM users', function(err, row) {
@@ -183,13 +190,15 @@ function init(msg) {
   if (msg.session) {
     let session = msg.session.split(":")
     session[1] = Buffer.from(session[1], 'base64')
-    db.get("SELECT avatar FROM users WHERE name=? AND session=?", session, function(err, row) {
+    db.get("SELECT avatar, email, fullname FROM users WHERE name=? AND session=?", session, function(err, row) {
       if (row === undefined)
         return
       loggedOn = true
       msg.client.send(JSON.stringify({
         cmd:'home',
         avatar:row["avatar"],
+        email:row["email"],
+        fullname:row["fullname"],
         board:board
       }))
     })
@@ -205,7 +214,7 @@ function init(msg) {
 
 function logon(msg) {
   let loggedOn = false
-  db.get('SELECT password, avatar FROM users WHERE name=?', [msg.logon], function(err, row) {
+  db.get('SELECT password, avatar, email, fullname FROM users WHERE name=?', [msg.logon], function(err, row) {
     if (row === undefined)
         return
     if (scrypt.verifyKdfSync(row["password"], msg.password)) {
@@ -218,6 +227,8 @@ function logon(msg) {
         cmd:'home',
         cookie: "session="+msg.logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
         avatar:row["avatar"],
+        email:row["email"],
+        fullname:row["fullname"],
         board:board
       }));
       loggedOn = true
