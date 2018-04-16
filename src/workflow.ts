@@ -19,7 +19,9 @@
 import VectorPath from "./VectorPath"
 import {Point, Size, Rectangle} from "./geometry"
 import * as dom from "toad.js/lib/dom"
-import {Action, Signal, Model, Template, Window, RadioButtonBase, RadioStateModel, FatRadioButton, TextModel, HtmlModel, BooleanModel, NumberModel, TableModel, SelectionModel, TableEditMode, View, TextView, bind, action} from "toad.js"
+import {Action, Signal, Model, Template, Window, RadioButtonBase, RadioStateModel, FatRadioButton, TextModel, HtmlModel, BooleanModel, NumberModel, TableModel, SelectionModel, TableEditMode, View, TextView, bind, action, Dialog} from "toad.js"
+
+import { AccountPreferences } from "./AccountPreferences"
 
 export function main() {
   window.onload = function() {
@@ -1272,6 +1274,17 @@ class ServerConnection {
         <image clip-path="url(#mask)" xlink:href="${msg.avatar}" x="2" y="2" width="28px" height="28px" />
       </svg>`)
     bind("avatar", model)
+    
+    let user = {
+      fullname: new TextModel(msg["fullname"]),
+      email: new TextModel(msg["email"])
+    }
+    
+    action("account|preferences", () => {
+      new AccountPreferences(user)
+    })
+    action("account|logout", () => {
+    })
   
     let toolbar = new Toolbar(dom.find(homeScreen, "#toolbar"), "toolbar");
     let editor = new FigureEditor(dom.find(homeScreen, "#board"), "board", msg.socket, this.classifyBoard(msg.board));
