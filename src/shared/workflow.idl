@@ -35,12 +35,17 @@ valuetype Size {
 
 native SVGElement;
 native Point;
+native Point_ptr;
 native Figure_ptr;
+native FigureEditor;
 
 valuetype Figure {
     public unsigned long id;
     SVGElement createSVG();
+    // Rectangle bounds();
     double distance(in Point point);
+    Point_ptr getHandlePosition(in unsigned short handleId);
+    void setHandlePosition(in unsigned short handleId, in Point position);
 };
 
 valuetype Rectangle: Figure {

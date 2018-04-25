@@ -251,6 +251,7 @@ class Figure extends valuetype.Figure
     }
 }
 
+
 namespace figure {
 
 export class Rectangle extends valuetype.Rectangle
@@ -276,6 +277,34 @@ export class Rectangle extends valuetype.Rectangle
         return Number.MAX_VALUE;
     }
 
+    getHandlePosition(i: number): Point | undefined {
+        switch(i) {
+            case 0: return { x:this.origin.x,                 y:this.origin.y };
+            case 1: return { x:this.origin.x+this.size.width, y:this.origin.y };
+            case 2: return { x:this.origin.x+this.size.width, y:this.origin.y+this.size.height };
+            case 3: return { x:this.origin.x,                 y:this.origin.y+this.size.height };
+        }
+        return undefined
+    }
+
+    setHandlePosition(handle: number, pt: Point): void {
+        if (handle<0 || handle>3)
+            throw Error("fuck")
+
+        if (handle==0 || handle==3) {
+            this.size.width  += this.origin.x - pt.x;
+            this.origin.x=pt.x;
+        } else {
+            this.size.width  += pt.x - (this.origin.x+this.size.width)
+        }
+        if (handle==0 || handle==1) {
+            this.size.height += this.origin.y - pt.y
+            this.origin.y = pt.y
+        } else {
+            this.size.height += pt.y - (this.origin.y+this.size.height)
+        }
+    }
+    
     createSVG(): SVGElement {
        if (this.svg)
          return this.svg
@@ -317,9 +346,54 @@ class EditorEvent extends Point {
 }
 
 class Tool {
+    svgHandles: Array<SVGElement>
+
     mousedown(e: EditorEvent) { console.log("Tool.mousedown()") }
     mousemove(e: EditorEvent) { console.log("Tool.mousemove()") }
     mouseup(e: EditorEvent) { console.log("Tool.mouseup()") }
+    
+    constructor() {
+        this.svgHandles = new Array<SVGElement>()
+    }
+
+    createSVGHandleRect(x: number, y: number): SVGElement {
+        let handle = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        handle.setAttributeNS("", "x", String(Math.round(x-2.5)+0.5)); // FIXME: just a hunch for nice rendering
+        handle.setAttributeNS("", "y", String(Math.round(y-2.5)+0.5));
+        handle.setAttributeNS("", "width", "5");
+        handle.setAttributeNS("", "height", "5");
+        handle.setAttributeNS("", "stroke", "rgb(79,128,255)");
+        handle.setAttributeNS("", "fill", "#fff");
+        // handle.setAttributeNS(null, 'cursor', 'crosshair');
+        handle.setAttributeNS("", "style", "cursor:move");
+        // handle.setAttributeNS(null, 'style', "cursor: url('cursor.svg'), auto");
+        return handle;
+    }
+    
+    select(editor: FigureEditor, figure: Figure): void {
+/*
+        this.editor = editor;
+        this.rect = rect;
+        this.handle = -1;
+        this.handles = [];
+*/
+/*
+        this.outline = Object.assign(new FRectangle(), this.rect) // FIXME: Figure.clone
+        this.outline.svg = undefined
+        this.outline.stroke = "rgb(79,128,255)"
+        this.outline.fill   = "none"
+        this.outline.move({x:-1, y:1})
+        editor.decoLayer.appendChild(this.outline.createSVG())
+*/    
+        for(let i=0; ; ++i) {
+            let h = figure.getHandlePosition(i)
+            if (h === undefined)
+                break
+            let svgHandle = this.createSVGHandleRect(h.x-1, h.y+1)
+            this.svgHandles.push(svgHandle)
+            editor.decorationOverlay.appendChild(svgHandle)
+        }
+    }
 }
 
 class SelectTool extends Tool {
@@ -328,9 +402,12 @@ class SelectTool extends Tool {
     }
     mousedown(event: EditorEvent) {
         console.log("SelectTool.mousedown()")
-        
-        let figure = event.editor.selectedLayer!.findFigureAt(event)
+        if (!event.editor.selectedLayer)
+            return
+        let figure = event.editor.selectedLayer.findFigureAt(event)
         console.log("found ", figure)
+        if (figure !== undefined)
+            this.select(event.editor, figure)
     }
 }
 
@@ -344,6 +421,7 @@ class FigureEditor extends GenericView<Board> {
 
     tool?: Tool
     selectedLayer?: Layer
+    decorationOverlay: SVGElement
 
     constructor() {
         super()
@@ -373,6 +451,9 @@ class FigureEditor extends GenericView<Board> {
         this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         this.scrollView.appendChild(this.svgView)
         
+        this.decorationOverlay = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        this.svgView.appendChild(this.decorationOverlay)
+        
         this.attachShadow({mode: 'open'})
         this.shadowRoot!.appendChild(this.scrollView)
     }
@@ -390,9 +471,9 @@ class FigureEditor extends GenericView<Board> {
 
         let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
         for(let figure of this.model!.layers[0].data) {
-            layer.appendChild(figure.createSVG()!)
+            layer.appendChild(figure.createSVG())
         }
-        this.svgView.appendChild(layer)
+        this.svgView.insertBefore(layer, this.decorationOverlay)
     }
 
     createEditorEvent(e: MouseEvent): EditorEvent {
