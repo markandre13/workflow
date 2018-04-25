@@ -37,19 +37,20 @@ board.layers.push(layer)
 var db = new sqlite3.Database(':memory:');
 db.serialize(function() {
   db.run(`CREATE TABLE users (
-            name VARCHAR(20) PRIMARY KEY,
+            uid INT,
+            logon VARCHAR(20) PRIMARY KEY,
             password CHAR(96) NOT NULL,
-            session CHAR(64),
+            sessionkey BLOB(64),
             avatar VARCHAR(128),
             email VARCHAR(128),
             fullname VARCHAR(128)
           )`);
   
-  let stmt = db.prepare('INSERT INTO users(name, password, avatar, email, fullname) VALUES (?, ?, ?, ?, ?)');
+  let stmt = db.prepare('INSERT INTO users(uid, logon, password, avatar, email, fullname) VALUES (?, ?, ?, ?, ?, ?)');
   
   let hash = scrypt.kdfSync("secret", scryptParameters)
-  stmt.run('mark', scrypt.kdfSync("secret", scryptParameters), "img/avatars/pig.svg", "mhopf@mark13.org", "Mark-André Hopf");
-  stmt.run('tiger', scrypt.kdfSync("lovely", scryptParameters), "img/avatars/tiger.svg", "tiger@mark13.org", "Elena Peel");
+  stmt.run(1, "mark", scrypt.kdfSync("secret", scryptParameters), "img/avatars/pig.svg", "mhopf@mark13.org", "Mark-André Hopf");
+  stmt.run(2, "tiger", scrypt.kdfSync("lovely", scryptParameters), "img/avatars/tiger.svg", "tiger@mark13.org", "Elena Peel");
   stmt.finalize();
 /*  
   db.each('SELECT name, password FROM users', function(err, row) {
@@ -73,24 +74,24 @@ class Server_impl extends Server_skel {
     
     init(aSession: string): void {
         console.log("Server_impl.init()")
-        let loggedOn = false
         if (aSession.length !== 0) {
             let session = aSession.split(":")
-            session[1] = String(Buffer.from(session[1], 'base64'))
-            db.get("SELECT avatar, email, fullname FROM users WHERE name=? AND session=?", session, (err, row) => {
-                if (row === undefined)
-                    return
-                loggedOn = true
-                this.client.homeScreen(
-                    "",
-                    row["avatar"],
-                    row["email"],
-                    row["fullname"],
-                    board
-                )
+            let logon = session[0]
+            let sessionkey = Buffer.from(session[1], 'base64')
+            db.get("SELECT uid, avatar, email, fullname FROM users WHERE logon=? AND sessionkey=?", [logon, sessionkey], (err, row) => {
+                if (row === undefined) {
+                    this.client.logonScreen(30, disclaimer, false, "")
+                } else {
+                    this.client.homeScreen(
+                        "",
+                        row["avatar"],
+                        row["email"],
+                        row["fullname"],
+                        board
+                    )
+                }
             })
-        }
-        if (!loggedOn) {
+        } else {
             this.client.logonScreen(30, disclaimer, false, "")
         }
     }
@@ -100,16 +101,17 @@ class Server_impl extends Server_skel {
         console.log("  logon: '"+logon+"'")
         console.log("  password: '"+password+"'")
         let loggedOn = false
-        db.get('SELECT password, avatar, email, fullname FROM users WHERE name=?', [logon], (err, row) => {
+        db.get('SELECT password, avatar, email, fullname FROM users WHERE logon=?', [logon], (err, row) => {
             if (row === undefined)
                 return
             if (scrypt.verifyKdfSync(row["password"], password)) {
                 const sessionKey = crypto.randomBytes(64)
-                let stmt = db.prepare("UPDATE users SET session=? WHERE name=?")
+                let stmt = db.prepare("UPDATE users SET sessionkey=? WHERE logon=?")
                 stmt.run(sessionKey, logon)
-                const base64SessionKey = Buffer.from(sessionKey).toString("base64")
+                const base64SessionKey = String(Buffer.from(sessionKey).toString("base64"))
                 // cookie: secure="secure" require https?
                 this.client.homeScreen(
+                    // FIXME: hardcoded server URL
                     "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
                     row["avatar"],
                     row["email"],
