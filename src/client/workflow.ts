@@ -33,7 +33,7 @@ import { AccountPreferences } from "./AccountPreferences"
 import { ORB } from "corba.js"
 import { Client_skel } from "../shared/workflow_skel"
 import { Server } from "../shared/workflow_stub"
-import { Origin, Size, Figure, FigureModel, Layer, Rectangle } from "../shared/workflow_valuetype"
+import { Origin, Size, FigureModel, Layer } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
 export async function main(url: string) {
@@ -173,16 +173,83 @@ class Board extends valuetype.Board
     }
 }
 
-class BoardView extends GenericView<Board> {
+class Figure extends valuetype.Figure
+{
     constructor() {
         super()
+        console.log("workflow.Figure.constructor()")
+    }
+    
+    createSVG(): SVGElement {
+        throw Error("Figure.createSVG() is not implemented")
+    }
+}
+
+class Rectangle extends valuetype.Rectangle
+{
+    svg?: SVGElement
+    stroke: string
+    fill: string
+    
+    constructor() {
+        super()
+        this.stroke = "#000"
+        this.fill = "#f80"
+        console.log("workflow.Board.constructor()")
+    }
+
+    createSVG(): SVGElement {
+       if (this.svg)
+         return this.svg
+       this.svg = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+       this.update()
+       return this.svg
+    }
+
+    update(): void {
+        if (!this.svg)
+          return
+
+        let x0=this.origin.x,
+            y0=this.origin.y,
+            x1=this.origin.x+this.size.width,
+            y1=this.origin.y+this.size.height
+        if (x1<x0) [x0,x1] = [x1,x0];
+        if (y1<y0) [y0,y1] = [y1,y0];
+        
+        this.svg.setAttributeNS("", "x", String(x0))
+        this.svg.setAttributeNS("", "y", String(y0))
+        this.svg.setAttributeNS("", "width", String(x1-x0))
+        this.svg.setAttributeNS("", "height", String(y1-y0))
+        this.svg.setAttributeNS("", "stroke", this.stroke)
+        this.svg.setAttributeNS("", "fill", this.fill)
+    }
+}
+
+class BoardView extends GenericView<Board> {
+    svg: SVGElement
+
+    constructor() {
+        super()
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        this.attachShadow({mode: 'open'})
+        this.shadowRoot!.appendChild(this.svg)
     }
     updateModel() {
         console.log("BoardView.updateModel()")
     }
     updateView() {
         console.log("BoardView.updateView()")
-        console.log(this.model)
+        if (this.model === undefined) {
+            return
+        }
+
+        let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        for(let figure of this.model!.layers[0].data) {
+            let f = figure as Figure // FIXME: can we get rid of this?
+            layer.appendChild(f.createSVG())
+        }
+        this.svg.appendChild(layer)
     }
 }
 window.customElements.define("workflow-board", BoardView)
