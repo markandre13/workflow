@@ -36,6 +36,52 @@ import { Server } from "../shared/workflow_stub"
 import { Origin, Size, FigureModel, Layer } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
+namespace figure {
+
+export class Rectangle extends valuetype.Rectangle
+{
+    svg?: SVGElement
+    stroke: string
+    fill: string
+    
+    constructor() {
+        super()
+        this.stroke = "#000"
+        this.fill = "#f80"
+        console.log("workflow.Board.constructor()")
+    }
+
+    createSVG(): SVGElement {
+       if (this.svg)
+         return this.svg
+       this.svg = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+       this.update()
+       return this.svg
+    }
+
+    update(): void {
+        if (!this.svg)
+          return
+
+        let x0=this.origin.x,
+            y0=this.origin.y,
+            x1=this.origin.x+this.size.width,
+            y1=this.origin.y+this.size.height
+        if (x1<x0) [x0,x1] = [x1,x0];
+        if (y1<y0) [y0,y1] = [y1,y0];
+        
+        this.svg.setAttributeNS("", "x", String(x0))
+        this.svg.setAttributeNS("", "y", String(y0))
+        this.svg.setAttributeNS("", "width", String(x1-x0))
+        this.svg.setAttributeNS("", "height", String(y1-y0))
+        this.svg.setAttributeNS("", "stroke", this.stroke)
+        this.svg.setAttributeNS("", "fill", this.fill)
+    }
+}
+
+}
+
+
 export async function main(url: string) {
 
     let orb = new ORB()
@@ -44,7 +90,7 @@ export async function main(url: string) {
     orb.registerValueType("Origin", Origin)
     orb.registerValueType("Size", Size)
     orb.registerValueType("Figure", Figure)
-    orb.registerValueType("Rectangle", Rectangle)
+    orb.registerValueType("Rectangle", figure.Rectangle)
     orb.registerValueType("FigureModel", FigureModel)
     orb.registerValueType("Layer", Layer)
     orb.registerValueType("Board", Board)
@@ -163,6 +209,50 @@ class Client_impl extends Client_skel {
     }
 }
 
+type Point = Origin
+
+export function pointPlusSize(point: Point, size: Size): Point {
+    return {
+        x: point.x+size.width,
+        y: point.y+size.height
+    }
+}
+
+class Rectangle extends valuetype.Rectangle {
+  
+  constructor(origin?: Origin, size?: Size) {
+    super(origin, size)
+  }
+  
+  set(x: number, y: number, width: number, height: number) {
+    this.origin.x = x
+    this.origin.y = y
+    this.size.width = width
+    this.size.height = height
+  }
+
+  expandByPoint(p: Point): void {
+    if (p.x < this.origin.x) {
+      this.size.width += this.origin.x - p.x ; this.origin.x = p.x
+    } else
+    if (p.x > this.origin.x + this.size.width) {
+      this.size.width = p.x - this.origin.x
+    }
+    if (p.y < this.origin.y) {
+      this.size.height += this.origin.y - p.y ; this.origin.y = p.y
+    } else
+    if (p.y > this.origin.y + this.size.height) {
+      this.size.height = p.y - this.origin.y
+    }
+  }
+  
+  expandByRectangle(r: Rectangle): void {
+    this.expandByPoint(r.origin)
+    this.expandByPoint(pointPlusSize(r.origin, r.size))
+  }
+}
+
+
 class Board extends valuetype.Board
 {
     modified: Signal
@@ -185,59 +275,78 @@ class Figure extends valuetype.Figure
     }
 }
 
-class Rectangle extends valuetype.Rectangle
-{
-    svg?: SVGElement
-    stroke: string
-    fill: string
-    
-    constructor() {
+
+class EditorEvent extends Origin {
+    editor: FigureEditor
+    shiftKey: boolean
+    constructor(editor: FigureEditor, opt:any) {
         super()
-        this.stroke = "#000"
-        this.fill = "#f80"
-        console.log("workflow.Board.constructor()")
-    }
-
-    createSVG(): SVGElement {
-       if (this.svg)
-         return this.svg
-       this.svg = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-       this.update()
-       return this.svg
-    }
-
-    update(): void {
-        if (!this.svg)
-          return
-
-        let x0=this.origin.x,
-            y0=this.origin.y,
-            x1=this.origin.x+this.size.width,
-            y1=this.origin.y+this.size.height
-        if (x1<x0) [x0,x1] = [x1,x0];
-        if (y1<y0) [y0,y1] = [y1,y0];
-        
-        this.svg.setAttributeNS("", "x", String(x0))
-        this.svg.setAttributeNS("", "y", String(y0))
-        this.svg.setAttributeNS("", "width", String(x1-x0))
-        this.svg.setAttributeNS("", "height", String(y1-y0))
-        this.svg.setAttributeNS("", "stroke", this.stroke)
-        this.svg.setAttributeNS("", "fill", this.fill)
+        this.editor = editor
+        this.shiftKey = (opt||opt.shiftKey)?true:false
     }
 }
 
-class BoardView extends GenericView<Board> {
-    svg: SVGElement
+class Tool {
+    mousedown(e: EditorEvent) { console.log("Tool.mousedown()") }
+    mousemove(e: EditorEvent) { console.log("Tool.mousemove()") }
+    mouseup(e: EditorEvent) { console.log("Tool.mouseup()") }
+}
+
+class SelectTool extends Tool {
+    constructor() {
+        super()
+    }
+    mousedown(e: EditorEvent) {
+        console.log("SelectTool.mousedown()")
+        // code to find a figure
+    }
+}
+
+class FigureEditor extends GenericView<Board> {
+
+    scrollView: HTMLDivElement
+    bounds: Rectangle
+    zoom: number
+    
+    svgView: SVGElement
+
+    tool?: Tool
 
     constructor() {
         super()
-        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        
+        this.tool = new SelectTool()
+        
+        this.scrollView = document.createElement("div")
+        this.scrollView.style.overflow = "scroll"
+        this.scrollView.style.background = "#fd8"
+        this.scrollView.style.width="100%"
+        this.scrollView.style.height="100%"
+        this.scrollView.onmousedown = (mouseEvent: MouseEvent) => {
+            if (this.tool)
+                this.tool.mousedown(this.createEditorEvent(mouseEvent))
+        }
+        this.scrollView.onmousemove = (mouseEvent: MouseEvent) => {
+            if (this.tool)
+                this.tool.mousemove(this.createEditorEvent(mouseEvent))
+        }
+        this.scrollView.onmouseup = (mouseEvent: MouseEvent) => {
+            if (this.tool)
+                this.tool.mouseup(this.createEditorEvent(mouseEvent))
+        }
+        this.bounds = new Rectangle()
+        this.zoom = 1.0
+        
+        this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        this.scrollView.appendChild(this.svgView)
+        
         this.attachShadow({mode: 'open'})
-        this.shadowRoot!.appendChild(this.svg)
+        this.shadowRoot!.appendChild(this.scrollView)
     }
     updateModel() {
         console.log("BoardView.updateModel()")
     }
+
     updateView() {
         console.log("BoardView.updateView()")
         if (this.model === undefined) {
@@ -248,7 +357,21 @@ class BoardView extends GenericView<Board> {
         for(let figure of this.model!.layers[0].data) {
             layer.appendChild(figure.createSVG())
         }
-        this.svg.appendChild(layer)
+        this.svgView.appendChild(layer)
     }
+
+    createEditorEvent(e: MouseEvent): EditorEvent {
+    
+        // (e.clientX-r.left, e.clientY-r.top) begins at the upper left corner of the editor window
+        //                                     scrolling and origin are ignored
+    
+        let r = this.scrollView.getBoundingClientRect()
+
+        let x = (e.clientX+0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x)/this.zoom
+        let y = (e.clientY+0.5 - r.top  + this.scrollView.scrollTop  + this.bounds.origin.y)/this.zoom
+
+        return {editor: this, x: x, y: y, shiftKey: e.shiftKey}
+  }
+
 }
-window.customElements.define("workflow-board", BoardView)
+window.customElements.define("workflow-board", FigureEditor)
