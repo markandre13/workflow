@@ -1,4 +1,20 @@
-#!/usr/local/bin/node --harmony
+/*
+ *  workflow - A collaborative real-time white- and kanban board
+ *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 console.log('booting workflow server v0.1')
 
@@ -12,7 +28,7 @@ var scryptParameters = scrypt.paramsSync(0.1)
 import { ORB } from "corba.js/lib/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
 import { Server_skel } from "../shared/workflow_skel"
 import { Client } from "../shared/workflow_stub"
-import { Origin, Size, Figure, Rectangle, FigureModel, Layer, Board } from "../shared/workflow_valuetype"
+import { Point, Size, Figure, Rectangle, FigureModel, Layer, Board } from "../shared/workflow_valuetype"
 
 let disclaimer=`Welcome to WorkFlow
         <p>
@@ -30,8 +46,8 @@ console.log('database...');
 
 let board = new Board(10, "Polisens mobila Utrednings STöd Project Board")
 let layer = new Layer(20, "Scrible")
-layer.data.push(new Rectangle(new Origin(25.5, 5.5), new Size(50, 80))) // stroke & fill
-layer.data.push(new Rectangle(new Origin(85.5, 45.5), new Size(50, 80)))
+layer.data.push(new Rectangle(new Point(25.5, 5.5), new Size(50, 80))) // stroke & fill
+layer.data.push(new Rectangle(new Point(85.5, 45.5), new Size(50, 80)))
 board.layers.push(layer)
 
 var db = new sqlite3.Database(':memory:');
@@ -123,7 +139,7 @@ class Server_impl extends Server_skel {
 let orb = new ORB()
 
 orb.register("Server", Server_impl)
-orb.registerValueType("Origin", Origin)
+orb.registerValueType("Point", Point)
 orb.registerValueType("Size", Size)
 orb.registerValueType("Figure", Figure)
 orb.registerValueType("Rectangle", Rectangle)

@@ -33,61 +33,15 @@ import { AccountPreferences } from "./AccountPreferences"
 import { ORB } from "corba.js"
 import { Client_skel } from "../shared/workflow_skel"
 import { Server } from "../shared/workflow_stub"
-import { Origin, Size, FigureModel, Layer } from "../shared/workflow_valuetype"
+import { Point, Size, FigureModel } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
-
-namespace figure {
-
-export class Rectangle extends valuetype.Rectangle
-{
-    svg?: SVGElement
-    stroke: string
-    fill: string
-    
-    constructor() {
-        super()
-        this.stroke = "#000"
-        this.fill = "#f80"
-        console.log("workflow.Board.constructor()")
-    }
-
-    createSVG(): SVGElement {
-       if (this.svg)
-         return this.svg
-       this.svg = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-       this.update()
-       return this.svg
-    }
-
-    update(): void {
-        if (!this.svg)
-          return
-
-        let x0=this.origin.x,
-            y0=this.origin.y,
-            x1=this.origin.x+this.size.width,
-            y1=this.origin.y+this.size.height
-        if (x1<x0) [x0,x1] = [x1,x0];
-        if (y1<y0) [y0,y1] = [y1,y0];
-        
-        this.svg.setAttributeNS("", "x", String(x0))
-        this.svg.setAttributeNS("", "y", String(y0))
-        this.svg.setAttributeNS("", "width", String(x1-x0))
-        this.svg.setAttributeNS("", "height", String(y1-y0))
-        this.svg.setAttributeNS("", "stroke", this.stroke)
-        this.svg.setAttributeNS("", "fill", this.fill)
-    }
-}
-
-}
-
 
 export async function main(url: string) {
 
     let orb = new ORB()
 
     orb.register("Client", Client_impl)
-    orb.registerValueType("Origin", Origin)
+    orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
     orb.registerValueType("Figure", Figure)
     orb.registerValueType("Rectangle", figure.Rectangle)
@@ -209,8 +163,6 @@ class Client_impl extends Client_skel {
     }
 }
 
-type Point = Origin
-
 export function pointPlusSize(point: Point, size: Size): Point {
     return {
         x: point.x+size.width,
@@ -220,7 +172,7 @@ export function pointPlusSize(point: Point, size: Size): Point {
 
 class Rectangle extends valuetype.Rectangle {
   
-  constructor(origin?: Origin, size?: Size) {
+  constructor(origin?: Point, size?: Size) {
     super(origin, size)
   }
   
@@ -252,7 +204,6 @@ class Rectangle extends valuetype.Rectangle {
   }
 }
 
-
 class Board extends valuetype.Board
 {
     modified: Signal
@@ -263,20 +214,103 @@ class Board extends valuetype.Board
     }
 }
 
+class Layer extends valuetype.Layer
+{
+    constructor() {
+        super()
+    }
+    
+    findFigureAt(point: Point): Figure | undefined {
+        let mindist=Number.POSITIVE_INFINITY
+        let nearestFigure: Figure | undefined
+        for(let index = this.data.length-1; index >= 0; --index) {
+            let figure = this.data[index]
+            let d = Number(figure.distance(point))
+            if (d<mindist) {
+                mindist = d;
+                nearestFigure = figure
+            }
+        }
+        
+        if (mindist>=Figure.FIGURE_RANGE) {
+            return undefined
+        }
+        return nearestFigure
+    }
+    
+}
+
 class Figure extends valuetype.Figure
 {
+    public static readonly FIGURE_RANGE = 5.0
+    public static readonly HANDLE_RANGE = 5.0
+
     constructor() {
         super()
         console.log("workflow.Figure.constructor()")
     }
     
-    createSVG(): SVGElement {
+    createSVG(): SVGElement | undefined {
         throw Error("Figure.createSVG() is not implemented")
     }
 }
 
+namespace figure {
 
-class EditorEvent extends Origin {
+export class Rectangle extends valuetype.Rectangle
+{
+    svg?: SVGElement
+    stroke: string
+    fill: string
+    
+    constructor() {
+        super()
+        this.stroke = "#000"
+        this.fill = "#f80"
+        console.log("workflow.Board.constructor()")
+    }
+    
+    distance(pt: Point): number {
+        // FIXME: not final: RANGE and fill="none" need to be considered
+        if (this.origin.x <= pt.x && pt.x < this.origin.x+this.size.width &&
+            this.origin.y <= pt.y && pt.y < this.origin.y+this.size.height )
+        {
+            return -1.0; // even closer than 0
+        }
+        return Number.MAX_VALUE;
+    }
+
+    createSVG(): SVGElement {
+       if (this.svg)
+         return this.svg
+       this.svg = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+       this.update()
+       return this.svg
+    }
+
+    update(): void {
+        if (!this.svg)
+          return
+
+        let x0=this.origin.x,
+            y0=this.origin.y,
+            x1=this.origin.x+this.size.width,
+            y1=this.origin.y+this.size.height
+        if (x1<x0) [x0,x1] = [x1,x0];
+        if (y1<y0) [y0,y1] = [y1,y0];
+        
+        this.svg.setAttributeNS("", "x", String(x0))
+        this.svg.setAttributeNS("", "y", String(y0))
+        this.svg.setAttributeNS("", "width", String(x1-x0))
+        this.svg.setAttributeNS("", "height", String(y1-y0))
+        this.svg.setAttributeNS("", "stroke", this.stroke)
+        this.svg.setAttributeNS("", "fill", this.fill)
+    }
+}
+
+}
+
+class EditorEvent extends Point {
     editor: FigureEditor
     shiftKey: boolean
     constructor(editor: FigureEditor, opt:any) {
@@ -296,9 +330,11 @@ class SelectTool extends Tool {
     constructor() {
         super()
     }
-    mousedown(e: EditorEvent) {
+    mousedown(event: EditorEvent) {
         console.log("SelectTool.mousedown()")
-        // code to find a figure
+        
+        let figure = event.editor.selectedLayer!.findFigureAt(event)
+        console.log("found ", figure)
     }
 }
 
@@ -311,6 +347,7 @@ class FigureEditor extends GenericView<Board> {
     svgView: SVGElement
 
     tool?: Tool
+    selectedLayer?: Layer
 
     constructor() {
         super()
@@ -352,10 +389,12 @@ class FigureEditor extends GenericView<Board> {
         if (this.model === undefined) {
             return
         }
+        
+        this.selectedLayer = this.model!.layers[0]
 
         let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
         for(let figure of this.model!.layers[0].data) {
-            layer.appendChild(figure.createSVG())
+            layer.appendChild(figure.createSVG()!)
         }
         this.svgView.appendChild(layer)
     }

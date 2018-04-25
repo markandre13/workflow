@@ -25,7 +25,7 @@ valuetype User {
     public string avatar;
 };
 
-valuetype Origin {
+valuetype Point {
     public double x, y;
 };
 
@@ -34,14 +34,16 @@ valuetype Size {
 };
 
 native SVGElement;
+native Point;
 
 valuetype Figure {
     public unsigned long id;
     SVGElement createSVG();
+    double distance(in Point point);
 };
 
 valuetype Rectangle: Figure {
-    public Origin origin;
+    public Point origin;
     public Size size;
 };
 
@@ -52,6 +54,7 @@ valuetype FigureModel {
 valuetype Layer: FigureModel {
     public unsigned long id;
     public string name;
+    Figure findFigureAt(in Point point);
 };
 
 valuetype Project {
