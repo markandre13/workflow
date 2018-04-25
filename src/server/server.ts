@@ -77,17 +77,17 @@ class Server_impl extends Server_skel {
         if (aSession.length !== 0) {
             let session = aSession.split(":")
             session[1] = String(Buffer.from(session[1], 'base64'))
-            db.get("SELECT avatar, email, fullname FROM users WHERE name=? AND session=?", session, function(err, row) {
+            db.get("SELECT avatar, email, fullname FROM users WHERE name=? AND session=?", session, (err, row) => {
                 if (row === undefined)
                     return
                 loggedOn = true
-/*            
-            client.homeScreen()
-        avatar:row["avatar"],
-        email:row["email"],
-        fullname:row["fullname"],
-        board:board
-*/
+                this.client.homeScreen(
+                    "",
+                    row["avatar"],
+                    row["email"],
+                    row["fullname"],
+                    board
+                )
             })
         }
         if (!loggedOn) {

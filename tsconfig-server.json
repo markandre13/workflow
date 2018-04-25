@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "outDir": "./js/",
+        "target": "es6",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "traceResolution": false,
+        "lib": ["es6", "es2017.object"],
+        "strict": true,
+        "allowJs": false,
+        "noImplicitAny": true,
+        "sourceMap": true
+    },
+    "include": [
+        "src/server",
+        "src/shared"
+    ]
+}
