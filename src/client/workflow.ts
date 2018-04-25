@@ -26,7 +26,7 @@ import { AccountPreferences } from "./AccountPreferences"
 import { ORB } from "corba.js"
 import { Client_skel } from "../shared/workflow_skel"
 import { Server } from "../shared/workflow_stub"
-import { Origin, Size, Figure, Rectangle, FigureModel, Layer, Board } from "../shared/valuetypes"
+import { Origin, Size, Figure, Rectangle, FigureModel, Layer, Board } from "../shared/workflow_valuetype"
 
 export function main() {
     window.onload = async function() {
@@ -59,9 +59,6 @@ export function main() {
         }
         Client_impl.server.init(session)
     }
-}
-
-class User {
 }
 
 class Client_impl extends Client_skel {

@@ -6,7 +6,7 @@
   "license": "GPL-3.0",
   "main": "index.html",
   "scripts": {
-    "build-idl": "corba-idl --ts-stub src/shared/workflow.idl && corba-idl --ts-skel src/shared/workflow.idl",
+    "build-idl": "corba-idl --ts-stub src/shared/workflow.idl && corba-idl --ts-skel src/shared/workflow.idl && corba-idl --ts-valuetype src/shared/workflow.idl",
     "build-client": "npm run build-idl && webpack",
     "build-server": "npm run build-idl && tsc -p tsconfig-server.json",
     "test": "echo \"Error: no test specified\" && exit 1"

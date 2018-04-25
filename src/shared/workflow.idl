@@ -1,3 +1,7 @@
+valuetype Foo {
+    public sequence<string> data;
+};
+
 valuetype User {
     public unsigned long uid;
     public string name;
@@ -16,9 +20,10 @@ valuetype Size {
 };
 
 valuetype Figure {
+    public unsigned long id;
 };
 
-valuetype Rectangle /*: Figure */ {
+valuetype Rectangle: Figure {
     public Origin origin;
     public Size size;
 };
@@ -27,24 +32,26 @@ valuetype FigureModel {
     public sequence<Figure> data;
 };
 
-valuetype Layer {
-   public FigureModel data;
+valuetype Layer: FigureModel {
+    public unsigned long id;
+    public string name;
 };
 
 valuetype Project {
-    // creator?
-    // created?
+    public unsigned long id;
     public string name;
     public string description;
 };
 
 valuetype Board {
+    public unsigned long id;
     public string name;
     public string description;
     public sequence<Layer> layers;
 };
 
 valuetype Card {
+    public unsigned long id;
     public string name;
     public string description;
 };

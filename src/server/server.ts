@@ -12,7 +12,7 @@ var scryptParameters = scrypt.paramsSync(0.1)
 import { ORB } from "corba.js/lib/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
 import { Server_skel } from "../shared/workflow_skel"
 import { Client } from "../shared/workflow_stub"
-import { Origin, Size, Figure, Rectangle, FigureModel, Layer, Board } from "../shared/valuetypes"
+import { Origin, Size, Figure, Rectangle, FigureModel, Layer, Board } from "../shared/workflow_valuetype"
 
 let disclaimer=`Welcome to WorkFlow
         <p>
@@ -30,8 +30,8 @@ console.log('database...');
 
 let board = new Board(10, "Polisens mobila Utrednings STöd Project Board")
 let layer = new Layer(20, "Scrible")
-layer.data.push(new Rectangle(25.5, 5.5, 50, 80)) // stroke & fill
-layer.data.push(new Rectangle(85.5, 45.5, 50, 80))
+layer.data.push(new Rectangle(new Origin(25.5, 5.5), new Size(50, 80))) // stroke & fill
+layer.data.push(new Rectangle(new Origin(85.5, 45.5), new Size(50, 80)))
 board.layers.push(layer)
 
 var db = new sqlite3.Database(':memory:');
