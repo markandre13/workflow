@@ -51,7 +51,10 @@
 
       <toad-button class="logon-input" action="logon">Log on</toad-button>
       <div class="logon-text">
-        Not a member? <a href="#">Sign up</a> for an account
+        Not a member? <a href="#">Sign up</a> for an account.
+      </div>
+      <div class="logon-text">
+        <toad-slot model="message" style="color: #f00"></toad-slot>
       </div>
     </div>
 
@@ -60,14 +63,13 @@
          mark / secret<br />
          tiger / lovely
       </div>
-      <toad-slot model="message" style="color: #f00"></toad-slot>
     </template>
     
     <template id="homeScreen">
       <img src="img/logo.svg" width="44" height="44" style="position: absolute; left: 2px; top: 2px" />
       <div id="toolbar" style="position: absolute; left: 0; width: 40px; top: 49px; bottom: 32px; background-color: #e3dbdb;"></div>
       
-      <div id="board" style="overflow: scroll; position: absolute; left: 40px; right: 0px; top: 49px; bottom: 32px; background-color: #fd8;"></div>
+      <workflow-board model="board" style="overflow: scroll; position: absolute; left: 40px; right: 0px; top: 49px; bottom: 32px; background-color: #fd8;"></workflow-board>
 
       <div id="debug" style="position: absolute; left: 0; right: 0; height: 32px; bottom: 0; background-color: silver;"></div>
 
@@ -161,11 +163,6 @@
         background: #ac9393;
       }
     </style>
-    
-    <script type="application/javascript">
-      workflow.main()
-    </script>
-
   </head>
-  <body></body>
+  <body onload="workflow.main()"></body>
 </html>

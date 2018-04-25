@@ -19,46 +19,57 @@
 import VectorPath from "./VectorPath"
 //import {Point, Size, Rectangle} from "./geometry"
 import * as dom from "toad.js/lib/dom"
-import {Action, Signal, Model, Template, Window, RadioButtonBase, RadioStateModel, FatRadioButton, TextModel, HtmlModel, BooleanModel, NumberModel, TableModel, SelectionModel, TableEditMode, View, TextView, bind, action, Dialog} from "toad.js"
+import {
+    Action, Signal, Model, Template, Window,
+    RadioButtonBase, RadioStateModel, FatRadioButton,
+    TextModel, HtmlModel, BooleanModel, NumberModel, TableModel, SelectionModel,
+    TableEditMode,
+    View, GenericView, TextView,
+    bind, action,
+    Dialog} from "toad.js"
 
 import { AccountPreferences } from "./AccountPreferences"
 
 import { ORB } from "corba.js"
 import { Client_skel } from "../shared/workflow_skel"
 import { Server } from "../shared/workflow_stub"
-import { Origin, Size, Figure, Rectangle, FigureModel, Layer, Board } from "../shared/workflow_valuetype"
+import { Origin, Size, Figure, FigureModel, Layer, Rectangle } from "../shared/workflow_valuetype"
+import * as valuetype from "../shared/workflow_valuetype"
 
-export function main() {
-    window.onload = async function() {
-  
-        let orb = new ORB()
+export async function main() {
 
-        orb.register("Client", Client_impl)
-        orb.registerValueType("Origin", Origin)
-        orb.registerValueType("Size", Size)
-        orb.registerValueType("Figure", Figure)
-        orb.registerValueType("Rectangle", Rectangle)
-        orb.registerValueType("FigureModel", FigureModel)
-        orb.registerValueType("Layer", Layer)
-        orb.registerValueType("Board", Board)
+    let orb = new ORB()
 
+    orb.register("Client", Client_impl)
+    orb.registerValueType("Origin", Origin)
+    orb.registerValueType("Size", Size)
+    orb.registerValueType("Figure", Figure)
+    orb.registerValueType("Rectangle", Rectangle)
+    orb.registerValueType("FigureModel", FigureModel)
+    orb.registerValueType("Layer", Layer)
+    orb.registerValueType("Board", Board)
+
+    try {
         await orb.connect("192.168.1.105", 8000)
-        Client_impl.server = new Server(orb)
+    }
+    catch(error) {
+        document.body.innerHTML = "no connection to workflow server. please try again later."
+        return
+    }
+    Client_impl.server = new Server(orb)
 
-        let session=""
-        if (document.cookie) {
-            console.log("cookie: "+document.cookie)
-            let cookies = document.cookie.split(";")
-            for(let i=0; i<cookies.length; ++i) {
-                let str = cookies[i].trim()
-                if (str.indexOf("session=") == 0) {
-                    session = str.substring(8, str.length)
-                    break
-                }
+    let session=""
+    if (document.cookie) {
+        let cookies = document.cookie.split(";")
+        for(let i=0; i<cookies.length; ++i) {
+            let str = cookies[i].trim()
+            if (str.indexOf("session=") == 0) {
+                session = str.substring(8, str.length)
+                break
             }
         }
-        Client_impl.server.init(session)
     }
+    Client_impl.server.init(session)
 }
 
 class Client_impl extends Client_skel {
@@ -76,8 +87,6 @@ class Client_impl extends Client_skel {
     logonScreen(lifetime: number, disclaimer: string, inRemember: boolean, errorMessage: string): void {
         console.log("Client_impl.logonScreen()")
 
-        console.log("errorMessage='"+errorMessage+"'")
-
         let template = new Template("logonScreen")
 
         let logon = template.text("logon", "")
@@ -85,7 +94,7 @@ class Client_impl extends Client_skel {
         let remember = template.boolean("remember", inRemember)
         template.html("disclaimer", disclaimer)
         template.number("lifetime", lifetime, {})
-        template.text("msg", errorMessage)
+        template.text("message", errorMessage)
 
         let logonAction = template.action("logon", () => {
             template.clear()
@@ -147,8 +156,33 @@ class Client_impl extends Client_skel {
 
         this.editor = editor
 */
+        bind("board", board)
+
         dom.erase(document.body);
         dom.add(document.body, homeScreen);
     }
 }
 
+class Board extends valuetype.Board
+{
+    modified: Signal
+    constructor() {
+        super()
+        console.log("workflow.Board.constructor()")
+        this.modified = new Signal()
+    }
+}
+
+class BoardView extends GenericView<Board> {
+    constructor() {
+        super()
+    }
+    updateModel() {
+        console.log("BoardView.updateModel()")
+    }
+    updateView() {
+        console.log("BoardView.updateView()")
+        console.log(this.model)
+    }
+}
+window.customElements.define("workflow-board", BoardView)
