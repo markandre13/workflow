@@ -1,0 +1,65 @@
+valuetype User {
+    public unsigned long uid;
+    public string name;
+    public string password;
+    public string email;
+    public string fullname;
+    public string avatar;
+};
+
+valuetype Origin {
+    public double x, y;
+};
+
+valuetype Size {
+    public double width, height;
+};
+
+valuetype Figure {
+};
+
+valuetype Rectangle /*: Figure */ {
+    public Origin origin;
+    public Size size;
+};
+
+valuetype FigureModel {
+    public sequence<Figure> data;
+};
+
+valuetype Layer {
+   public FigureModel data;
+};
+
+valuetype Project {
+    // creator?
+    // created?
+    public string name;
+    public string description;
+};
+
+valuetype Board {
+    public string name;
+    public string description;
+    public sequence<Layer> layers;
+};
+
+valuetype Card {
+    public string name;
+    public string description;
+};
+
+interface Server {
+    oneway void init(in string session);
+    oneway void logon(in string user, in string password, in boolean remember);
+};
+
+interface Client {
+    oneway void logonScreen(in unsigned long lifetime, in string disclaimer, in boolean remember, in string errorMessage);
+    oneway void homeScreen(
+    	in string cookie,
+	in string avatar,
+	in string email,
+	in string fullname,
+	in Board board);
+};

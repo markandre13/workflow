@@ -1,33 +1,4 @@
 /*
- *  The TOAD JavaScript/TypeScript GUI Library
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-import VectorPath from "./VectorPath"
-import {Point, Size, Rectangle} from "./geometry"
-import * as dom from "toad.js/lib/dom"
-import {Action, Signal, Model, Template, Window, RadioButtonBase, RadioStateModel, FatRadioButton, TextModel, HtmlModel, BooleanModel, NumberModel, TableModel, SelectionModel, TableEditMode, View, TextView, bind, action, Dialog} from "toad.js"
-
-import { AccountPreferences } from "./AccountPreferences"
-
-export function main() {
-  window.onload = function() {
-  
-  new ServerConnection()
-/*
 class AvatarCollectionModel extends TableModel {
   data: Array<string>
 
@@ -197,8 +168,6 @@ class MyTableModel extends TableModel {
     console.log("CREATE A NEW FILE")
   })
 */  
-  }
-}
 
 /*
   FigureEditor
@@ -1225,79 +1194,9 @@ class ServerConnection {
   }
 
   initializeLogonScreen(msg: any) {
-    let template = new Template("logonScreen")
-
-    let logon = template.text("logon", "")
-    let password = template.text("password", "")
-    let remember = template.boolean("remember", msg.remember)
-    template.html("disclaimer", msg.disclaimer)
-    template.number("lifetime", msg.lifetime, {})
-    template.text("msg", msg.msg)
-
-    let logonAction = template.action("logon", () => {
-      template.clear()
-      msg.socket.send(JSON.stringify({
-        cmd: 'logon',
-        logon: logon.value,
-        password: password.value,
-        remember: remember.value
-      }));
-    })
- 
-    let checkLogonCondition = function() {
-      logonAction.enabled = logon.value.trim().length!=0 && password.value.trim().length!=0
-    }
-    checkLogonCondition()
-    logon.modified.add(checkLogonCondition)
-    password.modified.add(checkLogonCondition)
-    
-    dom.erase(document.body)
-    dom.add(document.body, template.root)
   }
   
   initializeHomeScreen(msg: any) {
-    let homeScreen = dom.instantiateTemplate('homeScreen');
-    msg.board.socket = msg.socket
-
-    if (msg.cookie) {
-      document.cookie = msg.cookie
-    }
-    
-    let model = new HtmlModel(`
-      <svg height="32" width="32">
-        <defs>
-          <clipPath id="mask">
-            <rect x="0" y="0" width="32" height="32" rx="4" ry="4" />
-          </clipPath>
-        </defs>
-        <rect x="0" y="0" width="32" height="32" rx="4" ry="4" stroke="none" fill="#08f" />
-        <image clip-path="url(#mask)" xlink:href="${msg.avatar}" x="2" y="2" width="28px" height="28px" />
-      </svg>`)
-    bind("avatar", model)
-    
-    let user = {
-      fullname: new TextModel(msg["fullname"]),
-      email: new TextModel(msg["email"])
-    }
-    
-    action("account|preferences", () => {
-      new AccountPreferences(user)
-    })
-    action("account|logout", () => {
-    })
-  
-    let toolbar = new Toolbar(dom.find(homeScreen, "#toolbar"), "toolbar");
-    let editor = new FigureEditor(dom.find(homeScreen, "#board"), "board", msg.socket, this.classifyBoard(msg.board));
-
-    editor.setTool(toolbar.state.getValue())
-    toolbar.state.modified.add(function() {
-      editor.setTool(toolbar.state.getValue())
-    })
-
-    this.editor = editor
-
-    dom.erase(document.body);
-    dom.add(document.body, homeScreen);
   }
 
   handleCreateFigureMessage(msg: any) {

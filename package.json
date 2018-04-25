@@ -6,7 +6,9 @@
   "license": "GPL-3.0",
   "main": "index.html",
   "scripts": {
-    "build": "webpack",
+    "build-idl": "corba-idl --ts-stub src/shared/workflow.idl && corba-idl --ts-skel src/shared/workflow.idl",
+    "build-client": "npm run build-idl && webpack",
+    "build-server": "npm run build-idl && tsc -p tsconfig-server.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -15,7 +17,11 @@
     "ws": "^5.1.1"
   },
   "devDependencies": {
-    "toad.js": "0.0.6",
+    "@types/node": "^9.6.6",
+    "@types/sqlite3": "^3.1.3",
+    "@types/ws": "^4.0.2",
+    "corba.js": "latest",
+    "toad.js": "latest",
     "ts-loader": "^4.2.0",
     "typescript": "^2.8.1",
     "webpack": "^4.5.0",

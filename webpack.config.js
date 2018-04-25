@@ -2,14 +2,14 @@ const path = require("path")
 
 module.exports = {
   mode: "development",
-  entry: "./src/workflow.ts",
+  entry: "./src/client/workflow.ts",
   devtool: "source-map",
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+//        test: /\.tsx?$/,
         use: "ts-loader",
-        exclude: /node_modules/
+        include: /src\/client|src\/shared/
       }
     ]
   },

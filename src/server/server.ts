@@ -2,11 +2,17 @@
 
 console.log('booting workflow server v0.1')
 
-var ws = require('ws')
-var sqlite3 = require('sqlite3').verbose()
-const crypto = require('crypto')
-var scrypt = require('scrypt')
+import * as WebSocket from "ws"
+import * as sqlite3 from "sqlite3"
+import * as crypto from "crypto"
+//import * as scrypt from "scrypt"
+var scrypt = require("scrypt")
 var scryptParameters = scrypt.paramsSync(0.1)
+
+import { ORB } from "corba.js/lib/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
+import { Server_skel } from "../shared/workflow_skel"
+import { Client } from "../shared/workflow_stub"
+import { Origin, Size, Figure, Rectangle, FigureModel, Layer, Board } from "../shared/valuetypes"
 
 let disclaimer=`Welcome to WorkFlow
         <p>
@@ -22,85 +28,11 @@ let disclaimer=`Welcome to WorkFlow
 
 console.log('database...');
 
-class Board {
-}
-
-class Layer {
-  createFigure(msg) {
-    console.log("create figure: '"+msg.type+"'")
-    this.data.push(
-      { type:'rect', x:msg.x, y:msg.y, width:msg.width, height:msg.height, stroke:msg.stroke, fill:msg.fill }
-    )
-    msg.idx = this.data.length
-    let creator = msg.client
-    delete msg.client;
-
-    let json
-    msg.creator = true
-    json = JSON.stringify(msg)
-    creator.send(json)
-    msg.creator = false
-    json = JSON.stringify(msg)
-    for(let client of wss.clients) { // could later reduce this to all clients registered for this board
-      if (client === creator)
-        continue
-      client.send(json);
-    }
-  }
-  moveFigure(msg) {
-    // could check access rights here
-
-    this.data[msg.idx].x += msg.x;
-    this.data[msg.idx].y += msg.y;
-
-    delete msg.client;
-    let json = JSON.stringify(msg);
-    for(let client of wss.clients) { // could later reduce this to all clients registered for this board
-      client.send(json);
-    }
-  }
-  moveHandle(msg) {
-    // could check access rights here
-    // FIXME: share this code with the client
-    let x0=this.data[msg.idx].x,
-        x1=this.data[msg.idx].x+this.data[msg.idx].width,
-        y0=this.data[msg.idx].y,
-        y1=this.data[msg.idx].y+this.data[msg.idx].height
-    switch(msg.hnd) {
-      case 0: x0 = msg.x; y0 = msg.y; break;
-      case 1: x1 = msg.x; y0 = msg.y; break;
-      case 2: x1 = msg.x; y1 = msg.y; break;
-      case 3: x0 = msg.x; y1 = msg.y; break;
-    }
-    if (x1<x0) [x0,x1] = [x1,x0];
-    if (y1<y0) [y0,y1] = [y1,y0];
-    this.data[msg.idx].x = x0
-    this.data[msg.idx].y = y0
-    this.data[msg.idx].width = x1-x0
-    this.data[msg.idx].height = y1-y0
-
-    delete msg.client;
-    let json = JSON.stringify(msg);
-    for(let client of wss.clients) { // could later reduce this to all clients registered for this board
-      client.send(json);
-    }
-  }
-}
-
-let board = new Board();
-board.id = 10;
-board.name = 'Polisens mobila Utrednings STöd Project Board';
-board.layers = [];
-
-let layer = new Layer();
-layer.id = 20;
-layer.name = "Scrible";
-layer.locked = false;
-layer.data = [
-  { type:'rect', x:25.5, y:5.5, width:50, height:80, stroke:'#000', fill:'#f00' },
-  { type:'rect', x:85.5, y:45.5, width:50, height:80, stroke:'#000', fill:'#f00' }
-];
-board.layers.push(layer);
+let board = new Board(10, "Polisens mobila Utrednings STöd Project Board")
+let layer = new Layer(20, "Scrible")
+layer.data.push(new Rectangle(25.5, 5.5, 50, 80)) // stroke & fill
+layer.data.push(new Rectangle(85.5, 45.5, 50, 80))
+board.layers.push(layer)
 
 var db = new sqlite3.Database(':memory:');
 db.serialize(function() {
@@ -130,13 +62,91 @@ db.serialize(function() {
 */
 });
 
-console.log('websocket server...');
+class Server_impl extends Server_skel {
+    client: Client
 
-var wss = new ws.Server({host: '0.0.0.0',port: 8000}, function() {
+    constructor(orb: ORB) {
+        super(orb)
+        console.log("Server_impl.constructor()")
+        this.client = new Client(orb)
+    }
+    
+    init(aSession: string): void {
+        console.log("Server_impl.init()")
+        let loggedOn = false
+        if (aSession.length !== 0) {
+            let session = aSession.split(":")
+            session[1] = String(Buffer.from(session[1], 'base64'))
+            db.get("SELECT avatar, email, fullname FROM users WHERE name=? AND session=?", session, function(err, row) {
+                if (row === undefined)
+                    return
+                loggedOn = true
+/*            
+            client.homeScreen()
+        avatar:row["avatar"],
+        email:row["email"],
+        fullname:row["fullname"],
+        board:board
+*/
+            })
+        }
+        if (!loggedOn) {
+            this.client.logonScreen(30, disclaimer, false, "")
+        }
+    }
+
+    logon(logon: string, password: string, remember: boolean): void {
+        console.log("Server_impl.logon()")
+        console.log("  logon: '"+logon+"'")
+        console.log("  password: '"+password+"'")
+        let loggedOn = false
+        db.get('SELECT password, avatar, email, fullname FROM users WHERE name=?', [logon], (err, row) => {
+            if (row === undefined)
+                return
+            if (scrypt.verifyKdfSync(row["password"], password)) {
+                const sessionKey = crypto.randomBytes(64)
+                let stmt = db.prepare("UPDATE users SET session=? WHERE name=?")
+                stmt.run(sessionKey, logon)
+                const base64SessionKey = new Buffer(sessionKey).toString("base64")
+                // cookie: secure="secure" require https?
+                this.client.homeScreen(
+                    "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
+                    row["avatar"],
+                    row["email"],
+                    row["fullname"],
+                    board
+                )
+                loggedOn = true
+            }              
+        })
+        if (!loggedOn) {
+            this.client.logonScreen(30, disclaimer, remember, "Unknown user and/or password. Please try again.")
+        }
+    }
+}
+
+let orb = new ORB()
+
+orb.register("Server", Server_impl)
+orb.registerValueType("Origin", Origin)
+orb.registerValueType("Size", Size)
+orb.registerValueType("Figure", Figure)
+orb.registerValueType("Rectangle", Rectangle)
+orb.registerValueType("FigureModel", FigureModel)
+orb.registerValueType("Layer", Layer)
+orb.registerValueType("Board", Board)
+
+orb.listen("0.0.0.0", 8000)
+
+console.log("listening...")
+
+/*
+
+var wss = new WebSocket.Server({host: '0.0.0.0',port: 8000}, function() {
   console.log("ready")
 })
 
-wss.on("error", function(error) {
+wss.on("error", function(error: any) {
   switch(error.code) {
     case "EADDRINUSE":
       console.log("error: another server is already running at "+error.address+":"+error.port)
@@ -153,7 +163,7 @@ wss.on('connection', function(client) {
     console.log("open");
   });
     
-  client.on('message', function(message, flags) {
+  client.onmessage = function(message: any) {
 console.log("got "+message)
     var msg = JSON.parse(message);
     msg.client = client;
@@ -178,41 +188,17 @@ console.log("got "+message)
         delete msg.client;
         console.log("unknown message", msg);
     }
-  });
+  }
 
   client.on('close', function() {
     console.log("lost client");
   });
 });
 
-function init(msg) {
-  let loggedOn = false
-  if (msg.session) {
-    let session = msg.session.split(":")
-    session[1] = Buffer.from(session[1], 'base64')
-    db.get("SELECT avatar, email, fullname FROM users WHERE name=? AND session=?", session, function(err, row) {
-      if (row === undefined)
-        return
-      loggedOn = true
-      msg.client.send(JSON.stringify({
-        cmd:'home',
-        avatar:row["avatar"],
-        email:row["email"],
-        fullname:row["fullname"],
-        board:board
-      }))
-    })
-  }
-  if (!loggedOn) {
-    msg.client.send(JSON.stringify({
-      cmd:'logon-request',
-      lifetime: 30,
-      disclaimer: disclaimer
-    }));
-  }
+function init(msg: any) {
 }
 
-function logon(msg) {
+function logon(msg: any) {
   let loggedOn = false
   db.get('SELECT password, avatar, email, fullname FROM users WHERE name=?', [msg.logon], function(err, row) {
     if (row === undefined)
@@ -244,7 +230,7 @@ function logon(msg) {
   }
 }
 
-function createFigure(msg) {
+function createFigure(msg: any) {
   if (msg.board!=board.id) {
     console.log("create: unexpected board id "+msg.board);
     return;
@@ -256,7 +242,7 @@ function createFigure(msg) {
   board.layers[0].createFigure(msg);
 }
 
-function moveFigure(msg) {
+function moveFigure(msg: any) {
   if (msg.board!=board.id) {
     console.log("move: unexpected board id "+msg.board);
     return;
@@ -268,7 +254,7 @@ function moveFigure(msg) {
   board.layers[0].moveFigure(msg);
 }
 
-function moveHandle(msg) {
+function moveHandle(msg: any) {
   if (msg.board!=board.id) {
     console.log("move: unexpected board id "+msg.board);
     return;
@@ -279,3 +265,5 @@ function moveHandle(msg) {
   }
   board.layers[0].moveHandle(msg);
 }
+
+*/
