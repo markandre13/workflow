@@ -98,13 +98,8 @@ class Server_impl extends Server_skel {
 
     logon(logon: string, password: string, remember: boolean): void {
         console.log("Server_impl.logon()")
-        console.log("  logon: '"+logon+"'")
-        console.log("  password: '"+password+"'")
-        let loggedOn = false
         db.get('SELECT password, avatar, email, fullname FROM users WHERE logon=?', [logon], (err, row) => {
-            if (row === undefined)
-                return
-            if (scrypt.verifyKdfSync(row["password"], password)) {
+            if (row !== undefined && scrypt.verifyKdfSync(row["password"], password)) {
                 const sessionKey = crypto.randomBytes(64)
                 let stmt = db.prepare("UPDATE users SET sessionkey=? WHERE logon=?")
                 stmt.run(sessionKey, logon)
@@ -118,12 +113,10 @@ class Server_impl extends Server_skel {
                     row["fullname"],
                     board
                 )
-                loggedOn = true
-            }              
+            } else {
+                this.client.logonScreen(30, disclaimer, remember, "Unknown user and/or password. Please try again.")
+            }
         })
-        if (!loggedOn) {
-            this.client.logonScreen(30, disclaimer, remember, "Unknown user and/or password. Please try again.")
-        }
     }
 }
 
