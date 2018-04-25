@@ -17,7 +17,6 @@
  */
 
 import VectorPath from "./VectorPath"
-//import {Point, Size, Rectangle} from "./geometry"
 import * as dom from "toad.js/lib/dom"
 import {
     Action, Signal, Model, Template, Window,
@@ -36,6 +35,47 @@ import { Server } from "../shared/workflow_stub"
 import { Point, Size, FigureModel } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
+export function pointPlusSize(point: Point, size: Size): Point {
+    return {
+        x: point.x+size.width,
+        y: point.y+size.height
+    }
+}
+
+class Rectangle extends valuetype.Rectangle {
+  
+  constructor(origin?: Point, size?: Size) {
+    super(origin, size)
+  }
+  
+  set(x: number, y: number, width: number, height: number) {
+    this.origin.x = x
+    this.origin.y = y
+    this.size.width = width
+    this.size.height = height
+  }
+
+  expandByPoint(p: Point): void {
+    if (p.x < this.origin.x) {
+      this.size.width += this.origin.x - p.x ; this.origin.x = p.x
+    } else
+    if (p.x > this.origin.x + this.size.width) {
+      this.size.width = p.x - this.origin.x
+    }
+    if (p.y < this.origin.y) {
+      this.size.height += this.origin.y - p.y ; this.origin.y = p.y
+    } else
+    if (p.y > this.origin.y + this.size.height) {
+      this.size.height = p.y - this.origin.y
+    }
+  }
+  
+  expandByRectangle(r: valuetype.Rectangle): void {
+    this.expandByPoint(r.origin)
+    this.expandByPoint(pointPlusSize(r.origin, r.size))
+  }
+}
+
 export async function main(url: string) {
 
     let orb = new ORB()
@@ -43,8 +83,9 @@ export async function main(url: string) {
     orb.register("Client", Client_impl)
     orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
+    orb.registerValueType("Rectangle", Rectangle)
     orb.registerValueType("Figure", Figure)
-    orb.registerValueType("Rectangle", figure.Rectangle)
+    orb.registerValueType("figure::Rectangle", figure.Rectangle)
     orb.registerValueType("FigureModel", FigureModel)
     orb.registerValueType("Layer", Layer)
     orb.registerValueType("Board", Board)
@@ -163,46 +204,6 @@ class Client_impl extends Client_skel {
     }
 }
 
-export function pointPlusSize(point: Point, size: Size): Point {
-    return {
-        x: point.x+size.width,
-        y: point.y+size.height
-    }
-}
-
-class Rectangle extends valuetype.Rectangle {
-  
-  constructor(origin?: Point, size?: Size) {
-    super(origin, size)
-  }
-  
-  set(x: number, y: number, width: number, height: number) {
-    this.origin.x = x
-    this.origin.y = y
-    this.size.width = width
-    this.size.height = height
-  }
-
-  expandByPoint(p: Point): void {
-    if (p.x < this.origin.x) {
-      this.size.width += this.origin.x - p.x ; this.origin.x = p.x
-    } else
-    if (p.x > this.origin.x + this.size.width) {
-      this.size.width = p.x - this.origin.x
-    }
-    if (p.y < this.origin.y) {
-      this.size.height += this.origin.y - p.y ; this.origin.y = p.y
-    } else
-    if (p.y > this.origin.y + this.size.height) {
-      this.size.height = p.y - this.origin.y
-    }
-  }
-  
-  expandByRectangle(r: Rectangle): void {
-    this.expandByPoint(r.origin)
-    this.expandByPoint(pointPlusSize(r.origin, r.size))
-  }
-}
 
 class Board extends valuetype.Board
 {
@@ -254,7 +255,7 @@ class Figure extends valuetype.Figure
 
 namespace figure {
 
-export class Rectangle extends valuetype.Rectangle
+export class Rectangle extends valuetype.figure.Rectangle
 {
     svg?: SVGElement
     stroke: string
@@ -277,6 +278,14 @@ export class Rectangle extends valuetype.Rectangle
         return Number.MAX_VALUE;
     }
 
+    bounds(): Rectangle {
+        return {
+            origin: {x: this.origin.x, y: this.origin.y },
+            size: { width: this.size.width, height: this.size.height }
+        } as Rectangle
+        // return new Rectangle(this.origin, this.size)
+    }
+    
     getHandlePosition(i: number): Point | undefined {
         switch(i) {
             case 0: return { x:this.origin.x,                 y:this.origin.y };
@@ -345,7 +354,33 @@ class EditorEvent extends Point {
     }
 }
 
+class FigureSelection {
+    selection: Set<Figure>
+    
+    constructor() {
+        this.selection = new Set<Figure>()
+    }
+
+    add(figure: Figure): void {
+        this.selection.add(figure)
+    }
+    
+    has(figure: Figure): boolean {
+        return this.selection.has(figure)
+    }
+    
+    empty(): boolean {
+        return this.selection.size === 0
+    }
+
+    clear(): void {
+        this.selection.clear()
+    }    
+}
+
 class Tool {
+    static selection = new FigureSelection()
+
     svgHandles: Array<SVGElement>
 
     mousedown(e: EditorEvent) { console.log("Tool.mousedown()") }
@@ -370,7 +405,7 @@ class Tool {
         return handle;
     }
     
-    select(editor: FigureEditor, figure: Figure): void {
+    createHandleDecorations(editor: FigureEditor, figure: Figure): void {
 /*
         this.editor = editor;
         this.rect = rect;
@@ -397,18 +432,73 @@ class Tool {
 }
 
 class SelectTool extends Tool {
+    selectionRectangle?: SVGElement
+    mouseDownAt?: Point
+
     constructor() {
         super()
     }
+
     mousedown(event: EditorEvent) {
         console.log("SelectTool.mousedown()")
+            
+        this.mouseDownAt = event
+
+        // mouse down on handle?
+        // ...
+
+        let figure = event.editor.selectedLayer!.findFigureAt(event)
+        
+        if (figure === undefined) {
+            Tool.selection.clear()
+            return
+        }
+        
+        if (Tool.selection.has(figure))
+            return
+        
+        if (!event.shiftKey)
+            Tool.selection.clear()
+            
+        Tool.selection.add(figure)
+
+        this.createHandleDecorations(event.editor, figure)
+    }
+
+    mousemove(event: EditorEvent) {
+        console.log("SelectTool.mousemove()")
+
+        if (Tool.selection.empty() && this.selectionRectangle === undefined) {
+console.log("add selection rectangle")
+            this.selectionRectangle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            this.selectionRectangle.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
+            this.selectionRectangle.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
+            event.editor.decorationOverlay.appendChild(this.selectionRectangle)
+        }
+        if (this.selectionRectangle) {
+console.log("adust selection rectangle")
+            let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
+            if (x1<x0) [x0,x1] = [x1,x0]
+            if (y1<y0) [y0,y1] = [y1,y0]
+            this.selectionRectangle.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
+            this.selectionRectangle.setAttributeNS("", "y", String(Math.round(y0)+0.5))
+            this.selectionRectangle.setAttributeNS("", "width", String(Math.round(x1-x0)))
+            this.selectionRectangle.setAttributeNS("", "height", String(Math.round(y1-y0)))
+            return
+        }
+    }
+
+    mouseup(event: EditorEvent) {
+        console.log("SelectTool.mouseup()")
+        this.mouseDownAt = undefined
         if (!event.editor.selectedLayer)
             return
-        let figure = event.editor.selectedLayer.findFigureAt(event)
-        console.log("found ", figure)
-        if (figure !== undefined)
-            this.select(event.editor, figure)
+        if (this.selectionRectangle) {
+            event.editor.decorationOverlay.removeChild(this.selectionRectangle)
+            this.selectionRectangle = undefined
+        }
     }
+
 }
 
 class FigureEditor extends GenericView<Board> {
@@ -420,13 +510,18 @@ class FigureEditor extends GenericView<Board> {
     svgView: SVGElement
 
     tool?: Tool
+    mouseButtonIsDown: boolean
+    
     selectedLayer?: Layer
     decorationOverlay: SVGElement
+
+layer?: SVGElement
 
     constructor() {
         super()
         
         this.tool = new SelectTool()
+        this.mouseButtonIsDown = false
         
         this.scrollView = document.createElement("div")
         this.scrollView.style.overflow = "scroll"
@@ -434,21 +529,27 @@ class FigureEditor extends GenericView<Board> {
         this.scrollView.style.width="100%"
         this.scrollView.style.height="100%"
         this.scrollView.onmousedown = (mouseEvent: MouseEvent) => {
-            if (this.tool)
+            this.mouseButtonIsDown = true
+            if (this.tool && this.selectedLayer)
                 this.tool.mousedown(this.createEditorEvent(mouseEvent))
         }
         this.scrollView.onmousemove = (mouseEvent: MouseEvent) => {
-            if (this.tool)
+            if (!this.mouseButtonIsDown)
+                return
+            if (this.tool && this.selectedLayer)
                 this.tool.mousemove(this.createEditorEvent(mouseEvent))
         }
         this.scrollView.onmouseup = (mouseEvent: MouseEvent) => {
-            if (this.tool)
+            this.mouseButtonIsDown = false
+            if (this.tool && this.selectedLayer)
                 this.tool.mouseup(this.createEditorEvent(mouseEvent))
         }
         this.bounds = new Rectangle()
         this.zoom = 1.0
         
         this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        this.svgView.style.position = "relative"
+        this.svgView.style.backgroundColor = "rgb(255,128,0)"
         this.scrollView.appendChild(this.svgView)
         
         this.decorationOverlay = document.createElementNS("http://www.w3.org/2000/svg", "g")
@@ -470,10 +571,78 @@ class FigureEditor extends GenericView<Board> {
         this.selectedLayer = this.model!.layers[0]
 
         let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
+this.layer = layer
         for(let figure of this.model!.layers[0].data) {
             layer.appendChild(figure.createSVG())
+            this.bounds.expandByRectangle(figure.bounds())
         }
         this.svgView.insertBefore(layer, this.decorationOverlay)
+
+        setTimeout( () => {
+            this.bounds.expandByPoint({x: this.scrollView.offsetWidth, y: this.scrollView.offsetHeight})
+            this.svgView.style.width  = this.bounds.size.width+"px"
+            this.svgView.style.height = this.bounds.size.height+"px"
+            this.adjustBounds()
+            this.scrollView.scrollLeft = -this.bounds.origin.x
+            this.scrollView.scrollTop  = -this.bounds.origin.y
+        }, 0)
+    }
+
+    adjustBounds(): void {
+/*
+    let editor = this;
+    let board  = this.board
+    let svg    = this.svg
+    let layer  = this.layer
+*/    
+        if (!this.model)
+            return
+
+        let bounds = new Rectangle()
+    
+        // include the viewing ports center
+        bounds.expandByPoint({
+            x: this.scrollView.offsetWidth/this.zoom,
+            y: this.scrollView.offsetHeight/this.zoom
+        })
+
+        // include all figures
+        for(let item of this.model.layers[0]!.data)
+            bounds.expandByRectangle(item.bounds())
+
+        // include visible areas top, left corner
+        bounds.expandByPoint({
+            x: this.bounds.origin.x + this.scrollView.scrollLeft,
+            y: this.bounds.origin.y + this.scrollView.scrollTop
+        })
+
+        // include visible areas bottom, right corner
+        bounds.expandByPoint({
+            x: this.bounds.origin.x + this.scrollView.scrollLeft + this.scrollView.clientWidth/this.zoom,
+            y: this.bounds.origin.y + this.scrollView.scrollTop  + this.scrollView.clientHeight/this.zoom
+        })
+    
+        let x = this.bounds.origin.x + this.scrollView.scrollLeft - bounds.origin.x
+        let y = this.bounds.origin.y + this.scrollView.scrollTop  - bounds.origin.y
+/*
+console.log("adjustBounds after scrolling")
+console.log("  old bounds   =("+editor.bounds.origin.x+","+editor.bounds.origin.y+","+editor.bounds.size.width+","+editor.bounds.size.height+")")
+console.log("  new bounds   =("+bounds.origin.x+","+bounds.origin.y+","+bounds.size.width+","+bounds.size.height+")")
+console.log("  scroll       =("+editor.window.scrollLeft+","+editor.window.scrollTop+")")
+console.log("  scroll mapped=("+(editor.bounds.origin.x+editor.window.scrollLeft)+","+(editor.bounds.origin.y+editor.window.scrollTop)+")")
+console.log("  new scroll   =("+x+","+y+")")
+*/
+        let zoomString=String(this.zoom)
+        let scale="scale("+zoomString+" "+zoomString+")"
+this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+(-bounds.origin.y)+") "+scale)
+        this.decorationOverlay.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+(-bounds.origin.y)+") "+scale)
+        this.svgView.style.width  = (bounds.size.width  * this.zoom)+"px"
+        this.svgView.style.height = (bounds.size.height * this.zoom)+"px"
+
+        this.scrollView.scrollLeft = x
+        this.scrollView.scrollTop  = y
+
+        this.bounds = bounds
     }
 
     createEditorEvent(e: MouseEvent): EditorEvent {

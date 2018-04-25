@@ -16,14 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-valuetype User {
-    public unsigned long uid;
-    public string name;
-    public string password;
-    public string email;
-    public string fullname;
-    public string avatar;
-};
+native SVGElement;
+native Point_ptr;
+native Figure_ptr;
+native FigureEditor;
 
 valuetype Point {
     public double x, y;
@@ -33,24 +29,42 @@ valuetype Size {
     public double width, height;
 };
 
-native SVGElement;
-native Point;
-native Point_ptr;
-native Figure_ptr;
-native FigureEditor;
+valuetype Rectangle {
+    public Point origin;
+    public Size size;
+};
 
 valuetype Figure {
     public unsigned long id;
     SVGElement createSVG();
-    // Rectangle bounds();
+    Rectangle bounds();
     double distance(in Point point);
     Point_ptr getHandlePosition(in unsigned short handleId);
     void setHandlePosition(in unsigned short handleId, in Point position);
 };
 
-valuetype Rectangle: Figure {
-    public Point origin;
-    public Size size;
+module figure {
+/*
+    valuetype Shape: Figure {
+        public Point origin;
+        public Size size;
+    };
+
+    valuetype Rectangle: Shape {
+    };
+
+    valuetype Circle: Shape {
+    };
+*/
+    valuetype Rectangle: Figure {
+        public Point origin;
+        public Size size;
+    };
+
+    valuetype Text: Figure {
+        public Point origin;
+        public string text;
+    };
 };
 
 valuetype FigureModel {
@@ -61,6 +75,15 @@ valuetype Layer: FigureModel {
     public unsigned long id;
     public string name;
     Figure_ptr findFigureAt(in Point point);
+};
+
+valuetype User {
+    public unsigned long uid;
+    public string name;
+    public string password;
+    public string email;
+    public string fullname;
+    public string avatar;
 };
 
 valuetype Project {
