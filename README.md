@@ -1,5 +1,52 @@
 # workflow
-A collaborative real-time white- and kanban board
+
+A collaborative real-time white- and kanban board.
+
+Managing the software development process through Lean/Agile methodologies
+means to apply the same steps used in creating an algorithm to the software
+development process itself:
+
+    • design the algorithm (Plan)
+    • implement the algorithm (Do)
+    • test the algorithm (Check/Study)
+    • release the algorithm (Act/Adjust)
+
+A tool to visualize the software development process and to give the team
+ownership of their process, is the Kanban board as described in Henrik
+Kniberg's seminal book <a
+href="https://www.crisp.se/file-uploads/Lean-from-the-trenches.pdf">Lean
+from the Trenches</a>.
+
+When compared to what Kniberg did for the Swedish police, electronic kanban
+boards, like Jira, et al., place a lot of restrictions on what can be done to
+the board.
+
+Some restrictions are owed to the hardware
+
+ * limited screen space
+ * single user interface (one mouse & one keyboard)
+ * no haptic experience
+ * restricted face to face communication between developers
+
+But some might be overcome by large, high-resolution touch screens and/or by
+turning each developers phone/tablet into a input device.
+
+Other restrictions are owed to the software and the organizations which run
+them:
+
+ * only columns and lanes
+ * no notes, descriptions, drawings, ...
+ * no undo/redo
+ * no collaborative real-time interaction
+ * sometimes all changes to the board structure have to go through an
+   unwilling administrator
+ * sometimes management doesn't want everything to be put on the board
+   because it might look bad to outsiders
+ * no API to use custom algorithms to analyse the data
+ * etc.
+
+Workflow aims to be a Kanban board which is not less but more than a building
+plastered with whiteboards.
 
 ## Server
 
@@ -46,7 +93,7 @@ and restart Apache
 
 ### Apache as Secure WebSocket Proxy
 
-In case your webserver is not already providing SSL, enable the Apache SSL module
+In case your web server is not already providing SSL, enable the Apache SSL module
 
     a2enconf ssl
 
