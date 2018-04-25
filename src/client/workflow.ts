@@ -1,5 +1,5 @@
 /*
- *  The TOAD JavaScript/TypeScript GUI Library
+ *  workflow - A collaborative real-time white- and kanban board
  *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -246,8 +246,7 @@ class BoardView extends GenericView<Board> {
 
         let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
         for(let figure of this.model!.layers[0].data) {
-            let f = figure as Figure // FIXME: can we get rid of this?
-            layer.appendChild(f.createSVG())
+            layer.appendChild(figure.createSVG())
         }
         this.svg.appendChild(layer)
     }
