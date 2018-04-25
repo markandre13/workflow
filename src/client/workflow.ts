@@ -36,7 +36,7 @@ import { Server } from "../shared/workflow_stub"
 import { Origin, Size, Figure, FigureModel, Layer, Rectangle } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
-export async function main() {
+export async function main(url: string) {
 
     let orb = new ORB()
 
@@ -50,10 +50,10 @@ export async function main() {
     orb.registerValueType("Board", Board)
 
     try {
-        await orb.connect("192.168.1.105", 8000)
+        await orb.connect(url) // FIXME: provide callbacks on ORB like onerror, etc. via getters/setters to WebSocket
     }
     catch(error) {
-        document.body.innerHTML = "no connection to workflow server. please try again later."
+        document.body.innerHTML = "could not connect to workflow server '"+url+"'. please try again later."
         return
     }
     Client_impl.server = new Server(orb)
