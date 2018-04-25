@@ -107,7 +107,7 @@ class Server_impl extends Server_skel {
                 const sessionKey = crypto.randomBytes(64)
                 let stmt = db.prepare("UPDATE users SET session=? WHERE name=?")
                 stmt.run(sessionKey, logon)
-                const base64SessionKey = new Buffer(sessionKey).toString("base64")
+                const base64SessionKey = Buffer.from(sessionKey).toString("base64")
                 // cookie: secure="secure" require https?
                 this.client.homeScreen(
                     "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
