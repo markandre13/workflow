@@ -35,6 +35,7 @@ valuetype Size {
 
 native SVGElement;
 native Point;
+native Figure_ptr;
 
 valuetype Figure {
     public unsigned long id;
@@ -54,7 +55,7 @@ valuetype FigureModel {
 valuetype Layer: FigureModel {
     public unsigned long id;
     public string name;
-    Figure findFigureAt(in Point point);
+    Figure_ptr findFigureAt(in Point point);
 };
 
 valuetype Project {

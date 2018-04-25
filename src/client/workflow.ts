@@ -249,10 +249,6 @@ class Figure extends valuetype.Figure
         super()
         console.log("workflow.Figure.constructor()")
     }
-    
-    createSVG(): SVGElement | undefined {
-        throw Error("Figure.createSVG() is not implemented")
-    }
 }
 
 namespace figure {
