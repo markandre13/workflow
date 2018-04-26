@@ -125,7 +125,7 @@ class Client_impl extends Client_skel {
         this.server = Client_impl.server
     }
 
-    logonScreen(lifetime: number, disclaimer: string, inRemember: boolean, errorMessage: string): void {
+    async logonScreen(lifetime: number, disclaimer: string, inRemember: boolean, errorMessage: string) {
         console.log("Client_impl.logonScreen()")
 
         let template = new Template("logonScreen")
@@ -153,7 +153,7 @@ class Client_impl extends Client_skel {
         dom.add(document.body, template.root)
     }
 
-    homeScreen(cookie: string, avatar: string, email: string, fullname: string, board: Board): void {
+    async homeScreen(cookie: string, avatar: string, email: string, fullname: string, board: Board) {
         console.log("homeScreen()")
 
         let homeScreen = dom.instantiateTemplate('homeScreen');
@@ -674,6 +674,7 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
         console.log("board id: "+this.model!.id)
         console.log("layer id: "+this.selectedLayer!.id)
         console.log("delta   : ", delta)
+        // Client_impl.server.translateFigures(boardId, layerId, delta)
     }
 }
 window.customElements.define("workflow-board", FigureEditor)

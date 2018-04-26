@@ -104,57 +104,48 @@ class Server_impl extends Server_skel {
         this.client = new Client(orb)
     }
     
-    init(aSession: string): void {
+    destructor() { // FIXME: corba.js should invoke this method when the connection get's lost?
+        console.log("Server_impl.destructor()")
+    }
+    
+    async init(aSession: string) {
         console.log("Server_impl.init()")
         if (aSession.length !== 0) {
             let session = aSession.split(":")
             let logon = session[0]
             let sessionkey = Buffer.from(session[1], 'base64')
-            db.select("uid", "avatar", "email", "fullname", "sessionkey").from("users").where({logon: logon, sessionkey: sessionkey})
-            .then( (result) => {
-                if (result.length === 0) {
-                    this.client.logonScreen(30, disclaimer, false, "")
-                } else {
-                    let user = result[0]
-                    this.client.homeScreen(
-                        "",
-                        user.avatar,
-                        user.email,
-                        user.fullname,
-                        board)
-                }
-            })
-        } else {
-            this.client.logonScreen(30, disclaimer, false, "")
+            let result = await db.select("uid", "avatar", "email", "fullname", "sessionkey").from("users").where({logon: logon, sessionkey: sessionkey})
+            if (result.length === 1) {
+                let user = result[0]
+                this.client.homeScreen("", user.avatar, user.email, user.fullname, board)
+                return
+            }
         }
+        this.client.logonScreen(30, disclaimer, false, "")
     }
 
-    logon(logon: string, password: string, remember: boolean): void {
+    async logon(logon: string, password: string, remember: boolean) {
         console.log("Server_impl.logon()")
-        db.select("uid", "password", "avatar", "email", "fullname").from("users").where("logon", logon)
-        .then( (result) => {
-            if (result.length === 1 && scrypt.verifyKdfSync(result[0].password, password)) {
-                const user = result[0]
-                const sessionKey = crypto.randomBytes(64)
-                db("users").where("uid", user.uid).update("sessionkey", sessionKey)
-                .then( () => {
-                    const base64SessionKey = String(Buffer.from(sessionKey).toString("base64"))
-                    this.client.homeScreen(
-                        // FIXME: hardcoded server URL
-                        "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
-                        user.avatar,
-                        user.email,
-                        user.fullname,
-                        board
-                    )
-                })
-            } else {
-                this.client.logonScreen(30, disclaimer, remember, "Unknown user and/or password. Please try again.")
-            }
-        })
+        let result = await db.select("uid", "password", "avatar", "email", "fullname").from("users").where("logon", logon)
+        if (result.length === 1 && scrypt.verifyKdfSync(result[0].password, password)) {
+            const user = result[0]
+            const sessionKey = crypto.randomBytes(64)
+            await db("users").where("uid", user.uid).update("sessionkey", sessionKey)
+            const base64SessionKey = String(Buffer.from(sessionKey).toString("base64"))
+            this.client.homeScreen(
+                // FIXME: hardcoded server URL
+                "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
+                user.avatar,
+                user.email,
+                user.fullname,
+                board
+            )
+        } else {
+            this.client.logonScreen(30, disclaimer, remember, "Unknown user and/or password. Please try again.")
+        }
     }
     
-    translateFigures(delta: Point) {
+    async translateFigures(delta: Point) {
       console.log("Server_impl.translateFigures(): ", delta)
     }
 }
