@@ -19,7 +19,7 @@
 console.log('booting workflow server v0.1')
 
 import * as WebSocket from "ws"
-import * as sqlite3 from "sqlite3"
+import * as knex from "knex"
 import * as crypto from "crypto"
 //import * as scrypt from "scrypt"
 var scrypt = require("scrypt")
@@ -51,34 +51,49 @@ layer.data.push(new valuetype.figure.Rectangle(new Point(25.5, 5.5), new Size(50
 layer.data.push(new valuetype.figure.Rectangle(new Point(85.5, 45.5), new Size(50, 80)))
 board.layers.push(layer)
 
-var db = new sqlite3.Database(':memory:');
-db.serialize(function() {
-  db.run(`CREATE TABLE users (
-            uid INT,
-            logon VARCHAR(20) PRIMARY KEY,
-            password CHAR(96) NOT NULL,
-            sessionkey BLOB(64),
-            avatar VARCHAR(128),
-            email VARCHAR(128),
-            fullname VARCHAR(128)
-          )`);
-  
-  let stmt = db.prepare('INSERT INTO users(uid, logon, password, avatar, email, fullname) VALUES (?, ?, ?, ?, ?, ?)');
-  
-  let hash = scrypt.kdfSync("secret", scryptParameters)
-  stmt.run(1, "mark", scrypt.kdfSync("secret", scryptParameters), "img/avatars/pig.svg", "mhopf@mark13.org", "Mark-André Hopf");
-  stmt.run(2, "tiger", scrypt.kdfSync("lovely", scryptParameters), "img/avatars/tiger.svg", "tiger@mark13.org", "Elena Peel");
-  stmt.finalize();
-/*  
-  db.each('SELECT name, password FROM users', function(err, row) {
-    console.log(err, row);
-  });
-  
-  db.get('SELECT COUNT(*) FROM users WHERE name=? AND password=?', ['mark', 'secret'], function(err, row) {
-    console.log(err, row['COUNT(*)']);
-  });
-*/
-});
+let db = knex({
+    client: "sqlite3",
+    useNullAsDefault: true,
+    connection: {
+        filename: ":memory:",
+    }
+})
+
+main()
+
+async function main() {
+      
+    await db.schema.createTable('users', (table) => {
+        table.increments("uid").primary()
+        table.string("logon", 20)
+        table.string("password", 96)
+        table.string("sessionkey", 64)
+        table.string("fullname", 128)
+        table.string("email", 128)
+        table.string("avatar", 128)
+    })
+    
+    await db("users").insert([
+        { logon: "mark" , password: scrypt.kdfSync("secret", scryptParameters), avatar: "img/avatars/pig.svg",   email: "mhopf@mark13.org", fullname: "Mark-André Hopf" },
+        { logon: "tiger", password: scrypt.kdfSync("lovely", scryptParameters), avatar: "img/avatars/tiger.svg", email: "tiger@mark13.org", fullname: "Elena Peel" }
+    ])
+
+    let orb = new ORB()
+
+    orb.register("Server", Server_impl)
+    orb.registerValueType("Point", Point)
+    orb.registerValueType("Size", Size)
+    orb.registerValueType("Rectangle", Rectangle)
+    orb.registerValueType("Figure", Figure)
+    orb.registerValueType("figure::Rectangle", valuetype.figure.Rectangle)
+    orb.registerValueType("FigureModel", FigureModel)
+    orb.registerValueType("Layer", Layer)
+    orb.registerValueType("Board", Board)
+
+    orb.listen("0.0.0.0", 8000)
+
+    console.log("listening...")
+}
 
 class Server_impl extends Server_skel {
     client: Client
@@ -95,17 +110,18 @@ class Server_impl extends Server_skel {
             let session = aSession.split(":")
             let logon = session[0]
             let sessionkey = Buffer.from(session[1], 'base64')
-            db.get("SELECT uid, avatar, email, fullname FROM users WHERE logon=? AND sessionkey=?", [logon, sessionkey], (err, row) => {
-                if (row === undefined) {
+            db.select("uid", "avatar", "email", "fullname", "sessionkey").from("users").where({logon: logon, sessionkey: sessionkey})
+            .then( (result) => {
+                if (result.length === 0) {
                     this.client.logonScreen(30, disclaimer, false, "")
                 } else {
+                    let user = result[0]
                     this.client.homeScreen(
                         "",
-                        row["avatar"],
-                        row["email"],
-                        row["fullname"],
-                        board
-                    )
+                        user.avatar,
+                        user.email,
+                        user.fullname,
+                        board)
                 }
             })
         } else {
@@ -115,21 +131,23 @@ class Server_impl extends Server_skel {
 
     logon(logon: string, password: string, remember: boolean): void {
         console.log("Server_impl.logon()")
-        db.get('SELECT password, avatar, email, fullname FROM users WHERE logon=?', [logon], (err, row) => {
-            if (row !== undefined && scrypt.verifyKdfSync(row["password"], password)) {
+        db.select("uid", "password", "avatar", "email", "fullname").from("users").where("logon", logon)
+        .then( (result) => {
+            if (result.length === 1 && scrypt.verifyKdfSync(result[0].password, password)) {
+                const user = result[0]
                 const sessionKey = crypto.randomBytes(64)
-                let stmt = db.prepare("UPDATE users SET sessionkey=? WHERE logon=?")
-                stmt.run(sessionKey, logon)
-                const base64SessionKey = String(Buffer.from(sessionKey).toString("base64"))
-                // cookie: secure="secure" require https?
-                this.client.homeScreen(
-                    // FIXME: hardcoded server URL
-                    "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
-                    row["avatar"],
-                    row["email"],
-                    row["fullname"],
-                    board
-                )
+                db("users").where("uid", user.uid).update("sessionkey", sessionKey)
+                .then( () => {
+                    const base64SessionKey = String(Buffer.from(sessionKey).toString("base64"))
+                    this.client.homeScreen(
+                        // FIXME: hardcoded server URL
+                        "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
+                        user.avatar,
+                        user.email,
+                        user.fullname,
+                        board
+                    )
+                })
             } else {
                 this.client.logonScreen(30, disclaimer, remember, "Unknown user and/or password. Please try again.")
             }
@@ -141,21 +159,6 @@ class Server_impl extends Server_skel {
     }
 }
 
-let orb = new ORB()
-
-orb.register("Server", Server_impl)
-orb.registerValueType("Point", Point)
-orb.registerValueType("Size", Size)
-orb.registerValueType("Rectangle", Rectangle)
-orb.registerValueType("Figure", Figure)
-orb.registerValueType("figure::Rectangle", valuetype.figure.Rectangle)
-orb.registerValueType("FigureModel", FigureModel)
-orb.registerValueType("Layer", Layer)
-orb.registerValueType("Board", Board)
-
-orb.listen("0.0.0.0", 8000)
-
-console.log("listening...")
 
 /*
 
