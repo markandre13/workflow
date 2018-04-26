@@ -186,24 +186,13 @@ class Client_impl extends Client_skel {
         action("account|logout", () => {
         })
   
-/*
-        let toolbar = new Toolbar(dom.find(homeScreen, "#toolbar"), "toolbar");
-        let editor = new FigureEditor(dom.find(homeScreen, "#board"), "board", msg.socket, this.classifyBoard(msg.board));
-
-        editor.setTool(toolbar.state.getValue())
-        toolbar.state.modified.add(function() {
-            editor.setTool(toolbar.state.getValue())
-        })
-
-        this.editor = editor
-*/
+        // bind("toolselector", toolselector)
         bind("board", board)
 
         dom.erase(document.body);
         dom.add(document.body, homeScreen);
     }
 }
-
 
 class Board extends valuetype.Board
 {
@@ -237,6 +226,9 @@ class Layer extends valuetype.Layer
             return undefined
         }
         return nearestFigure
+    }
+    
+    translateFigures(delta: Point) {
     }
     
 }
@@ -486,6 +478,26 @@ console.log("adust selection rectangle")
             this.selectionRectangle.setAttributeNS("", "height", String(Math.round(y1-y0)))
             return
         }
+        
+        // mouse move for handle
+        // ...
+        Client_impl.server!.translateFigures(/*selection.selection,*/ new Point(11, 38))
+//        event.editor.selectedLayer.translateFigures(new Point(47, 11))
+        event.editor.translateSelection(new Point(20, 1))
+/*        
+        // translate selection (figures, handles, outline)
+        let dx = event.x-this.x;
+        let dy = event.y-this.y;
+    
+        // translate selected figures
+        for(let f of this.figure)
+            event.editor.activeLayer.sendMoveFigureMessage(f, dx, dy);
+    
+        // translate the handles (& outline)
+        for(let h of this.handler) {
+            h.move({x: dx, y: dy});
+        }
+*/
     }
 
     mouseup(event: EditorEvent) {
@@ -568,7 +580,7 @@ layer?: SVGElement
             return
         }
         
-        this.selectedLayer = this.model!.layers[0]
+        this.selectedLayer = this.model!.layers[0] as Layer
 
         let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
 this.layer = layer
@@ -656,7 +668,12 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
         let y = (e.clientY+0.5 - r.top  + this.scrollView.scrollTop  + this.bounds.origin.y)/this.zoom
 
         return {editor: this, x: x, y: y, shiftKey: e.shiftKey}
-  }
-
+    }
+    
+    translateSelection(delta: Point): void {
+        console.log("board id: "+this.model!.id)
+        console.log("layer id: "+this.selectedLayer!.id)
+        console.log("delta   : ", delta)
+    }
 }
 window.customElements.define("workflow-board", FigureEditor)

@@ -108,6 +108,7 @@ valuetype Card {
 interface Server {
     oneway void init(in string session);
     oneway void logon(in string user, in string password, in boolean remember);
+    oneway void translateFigures(/*in sequence<Figure> figures,*/ in Point delta);
 };
 
 interface Client {

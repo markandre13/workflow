@@ -135,6 +135,10 @@ class Server_impl extends Server_skel {
             }
         })
     }
+    
+    translateFigures(delta: Point) {
+      console.log("Server_impl.translateFigures(): ", delta)
+    }
 }
 
 let orb = new ORB()
