@@ -25,8 +25,8 @@ import * as crypto from "crypto"
 var scrypt = require("scrypt")
 var scryptParameters = scrypt.paramsSync(0.1)
 
-import { ORB } from "corba.js/lib/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
-import { Server_skel } from "../shared/workflow_skel"
+import { ORB, Object_ref } from "corba.js/lib/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
+import { Server_skel, Project_skel, Project_ref } from "../shared/workflow_skel"
 import { Client } from "../shared/workflow_stub"
 import { Point, Size, Rectangle, Figure, FigureModel, Layer, Board } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
@@ -65,9 +65,9 @@ async function main() {
       
     await db.schema.createTable('users', (table) => {
         table.increments("uid").primary()
-        table.string("logon", 20)
+        table.string("logon", 20).index()
         table.string("password", 96)
-        table.string("sessionkey", 64)
+        table.binary("sessionkey", 64)
         table.string("fullname", 128)
         table.string("email", 128)
         table.string("avatar", 128)
@@ -77,10 +77,35 @@ async function main() {
         { logon: "mark" , password: scrypt.kdfSync("secret", scryptParameters), avatar: "img/avatars/pig.svg",   email: "mhopf@mark13.org", fullname: "Mark-André Hopf" },
         { logon: "tiger", password: scrypt.kdfSync("lovely", scryptParameters), avatar: "img/avatars/tiger.svg", email: "tiger@mark13.org", fullname: "Elena Peel" }
     ])
+    
+    await db.schema.createTable('projects', (table) => {
+        table.increments("pid").primary()
+        table.string("name", 128)
+        table.string("description")
+    })
+    await db("projects").insert([
+        { name: "Polisens mobila Utrednings STöd", description: "" }
+    ])
+
+    await db.schema.createTable('boards', (table) => {
+        table.increments("bid").primary()
+        table.integer("pid").references("pid").inTable("projects")
+        table.string("name", 128)
+        table.string("description")
+        table.jsonb("data") // collection of layers
+    })
+    await db("boards").insert([
+        { pid: 1,
+          name: "Polisens mobila Utrednings STöd Project Board",
+          description: "",
+          data: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure::Rectangle","#V":{"id":0,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}},{"#T":"figure::Rectangle","#V":{"id":0,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}}],"id":20,"name":"Scrible"}}])
+        }
+    ])
 
     let orb = new ORB()
 
     orb.register("Server", Server_impl)
+    orb.register("Project", Project_impl)
     orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
     orb.registerValueType("Rectangle", Rectangle)
@@ -95,8 +120,19 @@ async function main() {
     console.log("listening...")
 }
 
+class Project_impl extends Project_skel {
+    constructor(orb: ORB) {
+        super(orb)
+        console.log("Project_impl.constructor()")
+    }
+    async hello() {
+        console.log("Project_impl.hello()")
+    }
+}
+
 class Server_impl extends Server_skel {
     client: Client
+    board?: Board
 
     constructor(orb: ORB) {
         super(orb)
@@ -106,6 +142,7 @@ class Server_impl extends Server_skel {
     
     destructor() { // FIXME: corba.js should invoke this method when the connection get's lost?
         console.log("Server_impl.destructor()")
+//        this.board.unregisterWatcher(this)
     }
     
     async init(aSession: string) {
@@ -132,6 +169,10 @@ class Server_impl extends Server_skel {
             const sessionKey = crypto.randomBytes(64)
             await db("users").where("uid", user.uid).update("sessionkey", sessionKey)
             const base64SessionKey = String(Buffer.from(sessionKey).toString("base64"))
+
+            this.board = board
+//            this.board.registerWatcher(this)
+
             this.client.homeScreen(
                 // FIXME: hardcoded server URL
                 "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
@@ -146,7 +187,24 @@ class Server_impl extends Server_skel {
     }
     
     async translateFigures(delta: Point) {
-      console.log("Server_impl.translateFigures(): ", delta)
+        console.log("Server_impl.translateFigures(): ", delta)
+/*
+        let project = projectStorage.get(projectID)
+        let board = project.get(boardID)
+        let layer = board.get(layerID)
+        let figure = layer.get(figureID)
+        figure.translate(delta)
+*/
+    }
+    
+    async getProject(projectID: number) {
+        console.log("Server_impl.getProject("+projectID+")")
+        let project = new Project_impl(this.orb as ORB) // FIXME: can we get rid of this cast?
+        let ref = project._this()
+console.log("  return ", ref)
+console.log("  instanceof Project_ref: "+( (ref instanceof Project_ref)?"yes":"no") )
+console.log("  instanceof Object_ref : "+( (ref instanceof Object_ref)?"yes":"no") )
+        return ref
     }
 }
 

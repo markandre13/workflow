@@ -31,7 +31,7 @@ import { AccountPreferences } from "./AccountPreferences"
 
 import { ORB } from "corba.js"
 import { Client_skel } from "../shared/workflow_skel"
-import { Server } from "../shared/workflow_stub"
+import { Server, Project } from "../shared/workflow_stub"
 import { Point, Size, FigureModel } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
@@ -81,6 +81,7 @@ export async function main(url: string) {
     let orb = new ORB()
 
     orb.register("Client", Client_impl)
+    orb.registerStub("Project", Project)
     orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
     orb.registerValueType("Rectangle", Rectangle)
@@ -155,6 +156,9 @@ class Client_impl extends Client_skel {
 
     async homeScreen(cookie: string, avatar: string, email: string, fullname: string, board: Board) {
         console.log("homeScreen()")
+        
+        let project = await this.server.getProject(1138)
+        project.hello()
 
         let homeScreen = dom.instantiateTemplate('homeScreen');
         // msg.board.socket = msg.socket

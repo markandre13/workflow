@@ -86,11 +86,13 @@ valuetype User {
     public string avatar;
 };
 
+/*
 valuetype Project {
     public unsigned long id;
     public string name;
     public string description;
 };
+*/
 
 valuetype Board {
     public unsigned long id;
@@ -105,10 +107,15 @@ valuetype Card {
     public string description;
 };
 
+interface Project {
+    oneway void hello();
+};
+
 interface Server {
     oneway void init(in string session);
     oneway void logon(in string user, in string password, in boolean remember);
     oneway void translateFigures(/*in sequence<Figure> figures,*/ in Point delta);
+    Project getProject(in unsigned long projectID);
 };
 
 interface Client {
