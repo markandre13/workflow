@@ -25,7 +25,7 @@ import * as crypto from "crypto"
 var scrypt = require("scrypt")
 var scryptParameters = scrypt.paramsSync(0.1)
 
-import { ORB, Object_ref } from "corba.js/lib/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
+import { ORB, Object_ref } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
 import { Server_skel, Project_skel, Project_ref } from "../shared/workflow_skel"
 import { Client } from "../shared/workflow_stub"
 import { Point, Size, Rectangle, Figure, FigureModel, Layer, Board } from "../shared/workflow_valuetype"
@@ -199,11 +199,8 @@ class Server_impl extends Server_skel {
     
     async getProject(projectID: number) {
         console.log("Server_impl.getProject("+projectID+")")
-        let project = new Project_impl(this.orb as ORB) // FIXME: can we get rid of this cast?
+        let project = new Project_impl(this.orb)
         let ref = project._this()
-console.log("  return ", ref)
-console.log("  instanceof Project_ref: "+( (ref instanceof Project_ref)?"yes":"no") )
-console.log("  instanceof Object_ref : "+( (ref instanceof Object_ref)?"yes":"no") )
         return ref
     }
 }
