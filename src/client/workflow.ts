@@ -346,7 +346,7 @@ class FigureSelection {
     constructor() {
         this.selection = new Set<Figure>()
     }
-
+    
     add(figure: Figure): void {
         this.selection.add(figure)
     }
@@ -367,14 +367,14 @@ class FigureSelection {
 class Tool {
     static selection = new FigureSelection()
 
-    svgHandles: Array<SVGElement>
+    svgHandles: Map<Figure, Array<SVGElement>>
 
     mousedown(e: EditorEvent) { console.log("Tool.mousedown()") }
     mousemove(e: EditorEvent) { console.log("Tool.mousemove()") }
     mouseup(e: EditorEvent) { console.log("Tool.mouseup()") }
     
     constructor() {
-        this.svgHandles = new Array<SVGElement>()
+        this.svgHandles = new Map<Figure, Array<SVGElement>>()
     }
 
     createSVGHandleRect(x: number, y: number): SVGElement {
@@ -406,14 +406,29 @@ class Tool {
         this.outline.move({x:-1, y:1})
         editor.decoLayer.appendChild(this.outline.createSVG())
 */    
+        let handles = this.svgHandles.get(figure)
+        if (handles === undefined) {
+            handles = new Array<SVGElement>()
+            this.svgHandles.set(figure, handles)
+        }
         for(let i=0; ; ++i) {
             let h = figure.getHandlePosition(i)
             if (h === undefined)
                 break
             let svgHandle = this.createSVGHandleRect(h.x-1, h.y+1)
-            this.svgHandles.push(svgHandle)
+            handles.push(svgHandle)
             editor.decorationOverlay.appendChild(svgHandle)
         }
+    }
+    
+    destroyHandleDecorations(editor: FigureEditor, figure: Figure): void {
+        let handles = this.svgHandles.get(figure)
+        if (handles === undefined)
+            return
+        for(let svgHandle of handles) {
+            editor.decorationOverlay.removeChild(svgHandle)
+        }
+        this.svgHandles.delete(figure)
     }
 }
 
@@ -436,6 +451,9 @@ class SelectTool extends Tool {
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         
         if (figure === undefined) {
+            for(let figure of Tool.selection.selection) {
+                this.destroyHandleDecorations(event.editor, figure)
+            }
             Tool.selection.clear()
             return
         }
@@ -443,8 +461,12 @@ class SelectTool extends Tool {
         if (Tool.selection.has(figure))
             return
         
-        if (!event.shiftKey)
+        if (!event.shiftKey) {
+            for(let figure of Tool.selection.selection) {
+                this.destroyHandleDecorations(event.editor, figure)
+            }
             Tool.selection.clear()
+        }
             
         Tool.selection.add(figure)
 
@@ -507,11 +529,6 @@ console.log("adust selection rectangle")
 
 }
 
-interface LayerCollection {
-    modified: Signal
-    layers: Array<Layer>
-}
-
 class BoardData extends valuetype.BoardData
 {
     modified: Signal
@@ -521,9 +538,13 @@ class BoardData extends valuetype.BoardData
         this.modified = new Signal()
         console.log("BoardData.constructor()")
     }
+    
+    translate(figures: Set<Figure>, delta: Point): void {
+        // this.board.translate(layerId, figureIds, delta)
+    }
 }
 
-class FigureEditor extends GenericView<LayerCollection> {
+class FigureEditor extends GenericView<BoardData> {
 
     scrollView: HTMLDivElement
     bounds: Rectangle
@@ -681,10 +702,7 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
     }
     
     translateSelection(delta: Point): void {
-//        console.log("board id: "+this.model!.id)
-//        console.log("layer id: "+this.selectedLayer!.id)
-//        console.log("delta   : ", delta)
-        // Client_impl.server.translateFigures(boardId, layerId, delta)
+        this.model!.translate(Tool.selection.selection, delta)
     }
 }
 window.customElements.define("workflow-board", FigureEditor)
