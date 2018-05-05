@@ -31,7 +31,7 @@ import { AccountPreferences } from "./AccountPreferences"
 
 import { ORB } from "corba.js"
 import { Client_skel } from "../shared/workflow_skel"
-import { Server, Project } from "../shared/workflow_stub"
+import { Server, Project, Board } from "../shared/workflow_stub"
 import { Point, Size, FigureModel } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
@@ -79,9 +79,11 @@ class Rectangle extends valuetype.Rectangle {
 export async function main(url: string) {
 
     let orb = new ORB()
+//    orb.debug = 1
 
     orb.register("Client", Client_impl)
     orb.registerStub("Project", Project)
+    orb.registerStub("Board", Board)
     orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
     orb.registerValueType("Rectangle", Rectangle)
@@ -89,7 +91,7 @@ export async function main(url: string) {
     orb.registerValueType("figure::Rectangle", figure.Rectangle)
     orb.registerValueType("FigureModel", FigureModel)
     orb.registerValueType("Layer", Layer)
-    orb.registerValueType("Board", Board)
+    orb.registerValueType("BoardData", BoardData)
 
     try {
         await orb.connect(url) // FIXME: provide callbacks on ORB like onerror, etc. via getters/setters to WebSocket
@@ -154,12 +156,9 @@ class Client_impl extends Client_skel {
         dom.add(document.body, template.root)
     }
 
-    async homeScreen(cookie: string, avatar: string, email: string, fullname: string, board: Board) {
+    async homeScreen(cookie: string, avatar: string, email: string, fullname: string) {
         console.log("homeScreen()")
         
-        let project = await this.server.getProject(1138)
-        project.hello()
-
         let homeScreen = dom.instantiateTemplate('homeScreen');
         // msg.board.socket = msg.socket
 
@@ -179,32 +178,25 @@ class Client_impl extends Client_skel {
             </svg>`)
         bind("avatar", model)
     
-        let user = {
-            fullname: new TextModel(fullname),
-            email: new TextModel(email)
-        }
-    
         action("account|preferences", () => {
+            let user = {
+                fullname: new TextModel(fullname),
+                email: new TextModel(email)
+            }
             new AccountPreferences(user)
         })
         action("account|logout", () => {
         })
   
         // bind("toolselector", toolselector)
-        bind("board", board)
+        let project = await this.server.getProject(1)
+        let board = await project.getBoard(1)
+        let boarddata = await board.getData() as BoardData
+
+        bind("board", boarddata)
 
         dom.erase(document.body);
         dom.add(document.body, homeScreen);
-    }
-}
-
-class Board extends valuetype.Board
-{
-    modified: Signal
-    constructor() {
-        super()
-        console.log("workflow.Board.constructor()")
-        this.modified = new Signal()
     }
 }
 
@@ -234,7 +226,6 @@ class Layer extends valuetype.Layer
     
     translateFigures(delta: Point) {
     }
-    
 }
 
 class Figure extends valuetype.Figure
@@ -247,7 +238,6 @@ class Figure extends valuetype.Figure
         console.log("workflow.Figure.constructor()")
     }
 }
-
 
 namespace figure {
 
@@ -517,7 +507,23 @@ console.log("adust selection rectangle")
 
 }
 
-class FigureEditor extends GenericView<Board> {
+interface LayerCollection {
+    modified: Signal
+    layers: Array<Layer>
+}
+
+class BoardData extends valuetype.BoardData
+{
+    modified: Signal
+
+    constructor() {
+        super()
+        this.modified = new Signal()
+        console.log("BoardData.constructor()")
+    }
+}
+
+class FigureEditor extends GenericView<LayerCollection> {
 
     scrollView: HTMLDivElement
     bounds: Rectangle
@@ -675,9 +681,9 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
     }
     
     translateSelection(delta: Point): void {
-        console.log("board id: "+this.model!.id)
-        console.log("layer id: "+this.selectedLayer!.id)
-        console.log("delta   : ", delta)
+//        console.log("board id: "+this.model!.id)
+//        console.log("layer id: "+this.selectedLayer!.id)
+//        console.log("delta   : ", delta)
         // Client_impl.server.translateFigures(boardId, layerId, delta)
     }
 }

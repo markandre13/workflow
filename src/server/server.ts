@@ -26,9 +26,9 @@ var scrypt = require("scrypt")
 var scryptParameters = scrypt.paramsSync(0.1)
 
 import { ORB, Object_ref } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
-import { Server_skel, Project_skel, Project_ref } from "../shared/workflow_skel"
+import { Server_skel, Project_skel, Board_skel, Project_ref } from "../shared/workflow_skel"
 import { Client } from "../shared/workflow_stub"
-import { Point, Size, Rectangle, Figure, FigureModel, Layer, Board } from "../shared/workflow_valuetype"
+import { Point, Size, Rectangle, Figure, FigureModel, Layer, BoardData } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
 let disclaimer=`Welcome to WorkFlow
@@ -45,11 +45,13 @@ let disclaimer=`Welcome to WorkFlow
 
 console.log('database...');
 
+/*
 let board = new Board(10, "Polisens mobila Utrednings STöd Project Board")
 let layer = new Layer(20, "Scrible")
 layer.data.push(new valuetype.figure.Rectangle(new Point(25.5, 5.5), new Size(50, 80))) // stroke & fill
 layer.data.push(new valuetype.figure.Rectangle(new Point(85.5, 45.5), new Size(50, 80)))
 board.layers.push(layer)
+*/
 
 let db = knex({
     client: "sqlite3",
@@ -75,7 +77,7 @@ async function main() {
     
     await db("users").insert([
         { logon: "mark" , password: scrypt.kdfSync("secret", scryptParameters), avatar: "img/avatars/pig.svg",   email: "mhopf@mark13.org", fullname: "Mark-André Hopf" },
-        { logon: "tiger", password: scrypt.kdfSync("lovely", scryptParameters), avatar: "img/avatars/tiger.svg", email: "tiger@mark13.org", fullname: "Elena Peel" }
+        { logon: "tiger", password: scrypt.kdfSync("lovely", scryptParameters), avatar: "img/avatars/tiger.svg", email: "tiger@mark13.org", fullname: "Emma Peel" }
     ])
     
     await db.schema.createTable('projects', (table) => {
@@ -92,47 +94,37 @@ async function main() {
         table.integer("pid").references("pid").inTable("projects")
         table.string("name", 128)
         table.string("description")
-        table.jsonb("data") // collection of layers
+        table.jsonb("layers")
     })
     await db("boards").insert([
         { pid: 1,
           name: "Polisens mobila Utrednings STöd Project Board",
           description: "",
-          data: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure::Rectangle","#V":{"id":0,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}},{"#T":"figure::Rectangle","#V":{"id":0,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}}],"id":20,"name":"Scrible"}}])
+          layers: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure::Rectangle","#V":{"id":0,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}},{"#T":"figure::Rectangle","#V":{"id":0,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}}],"id":20,"name":"Scrible"}}])
         }
     ])
 
     let orb = new ORB()
-
+//orb.debug = 1
     orb.register("Server", Server_impl)
     orb.register("Project", Project_impl)
+    orb.register("Board", Board_impl)
     orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
     orb.registerValueType("Rectangle", Rectangle)
     orb.registerValueType("Figure", Figure)
     orb.registerValueType("figure::Rectangle", valuetype.figure.Rectangle)
     orb.registerValueType("FigureModel", FigureModel)
+    orb.registerValueType("BoardData", valuetype.BoardData)
     orb.registerValueType("Layer", Layer)
-    orb.registerValueType("Board", Board)
 
     orb.listen("0.0.0.0", 8000)
 
     console.log("listening...")
 }
 
-class Project_impl extends Project_skel {
-    constructor(orb: ORB) {
-        super(orb)
-        console.log("Project_impl.constructor()")
-    }
-    async hello() {
-        console.log("Project_impl.hello()")
-    }
-}
-
 class Server_impl extends Server_skel {
     client: Client
-    board?: Board
 
     constructor(orb: ORB) {
         super(orb)
@@ -154,7 +146,7 @@ class Server_impl extends Server_skel {
             let result = await db.select("uid", "avatar", "email", "fullname", "sessionkey").from("users").where({logon: logon, sessionkey: sessionkey})
             if (result.length === 1) {
                 let user = result[0]
-                this.client.homeScreen("", user.avatar, user.email, user.fullname, board)
+                this.client.homeScreen("", user.avatar, user.email, user.fullname)
                 return
             }
         }
@@ -170,7 +162,7 @@ class Server_impl extends Server_skel {
             await db("users").where("uid", user.uid).update("sessionkey", sessionKey)
             const base64SessionKey = String(Buffer.from(sessionKey).toString("base64"))
 
-            this.board = board
+//            this.board = board
 //            this.board.registerWatcher(this)
 
             this.client.homeScreen(
@@ -178,9 +170,7 @@ class Server_impl extends Server_skel {
                 "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
                 user.avatar,
                 user.email,
-                user.fullname,
-                board
-            )
+                user.fullname)
         } else {
             this.client.logonScreen(30, disclaimer, remember, "Unknown user and/or password. Please try again.")
         }
@@ -199,9 +189,62 @@ class Server_impl extends Server_skel {
     
     async getProject(projectID: number) {
         console.log("Server_impl.getProject("+projectID+")")
-        let project = new Project_impl(this.orb)
-        let ref = project._this()
-        return ref
+        
+        let result = await db.select("pid", "name", "description").from("projects").where({pid: projectID})
+        if (result.length === 1) {
+            console.log("got project")
+            let project = new Project_impl(this.orb, result[0])
+            return project._this()
+        }
+        throw Error("Server_impl.getProject("+projectID+"): no such project")
+    }
+}
+
+interface ProjectData {
+    pid: number
+    name: string
+    description: string
+}
+
+class Project_impl extends Project_skel {
+    data: ProjectData
+
+    constructor(orb: ORB, data: ProjectData) {
+        super(orb)
+        this.data = data
+        console.log("Project_impl.constructor()")
+    }
+
+    async getBoard(boardID: number) {
+        console.log("Project_impl.getBoard("+boardID+")")
+        
+        let result = await db.select("bid", "name", "description", "layers").from("boards").where({pid: this.data.pid, bid: boardID})
+        if (result.length === 1) {
+            console.log("got board")
+            let boarddata = new valuetype.BoardData(
+                result[0].bid,
+                result[0].name,
+                result[0].description,
+                this.orb.deserialize(result[0].layers) as Array<Layer>
+            )
+            let board = new Board_impl(this.orb, boarddata)
+            return board._this()
+        }
+        throw Error("Project_impl.getBoard("+boardID+"): no such board")
+    }
+}
+
+class Board_impl extends Board_skel {
+    data: BoardData
+
+    constructor(orb: ORB, data: BoardData) {
+        super(orb)
+        this.data = data
+        console.log("Board_impl.constructor()")
+    }
+    
+    async getData() {
+        return this.data
     }
 }
 

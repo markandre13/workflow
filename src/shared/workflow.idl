@@ -86,29 +86,25 @@ valuetype User {
     public string avatar;
 };
 
-/*
-valuetype Project {
-    public unsigned long id;
-    public string name;
-    public string description;
-};
-*/
-
-valuetype Board {
-    public unsigned long id;
-    public string name;
-    public string description;
-    public sequence<Layer> layers;
-};
-
 valuetype Card {
     public unsigned long id;
     public string name;
     public string description;
 };
 
+valuetype BoardData {
+    public unsigned long bid;
+    public string name;
+    public string description;
+    public sequence<Layer> layers;
+};
+
+interface Board {
+    BoardData getData();
+};
+
 interface Project {
-    oneway void hello();
+    Board getBoard(in unsigned long boardID);
 };
 
 interface Server {
@@ -124,6 +120,5 @@ interface Client {
     	in string cookie,
 	in string avatar,
 	in string email,
-	in string fullname,
-	in Board board);
+	in string fullname);
 };
