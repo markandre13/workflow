@@ -25,9 +25,10 @@ import * as crypto from "crypto"
 var scrypt = require("scrypt")
 var scryptParameters = scrypt.paramsSync(0.1)
 
-import { ORB, Object_ref } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
-import { Server_skel, Project_skel, Board_skel, Project_ref } from "../shared/workflow_skel"
-import { Client } from "../shared/workflow_stub"
+import { ORB } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
+import * as iface from "../shared/workflow"
+import * as skel from "../shared/workflow_skel"
+import * as stub from "../shared/workflow_stub"
 import { Point, Size, Rectangle, Figure, FigureModel, Layer, BoardData } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
@@ -100,15 +101,16 @@ async function main() {
         { pid: 1,
           name: "Polisens mobila Utrednings STöd Project Board",
           description: "",
-          layers: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure::Rectangle","#V":{"id":0,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}},{"#T":"figure::Rectangle","#V":{"id":0,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}}],"id":20,"name":"Scrible"}}])
+          layers: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure::Rectangle","#V":{"id":1,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}},{"#T":"figure::Rectangle","#V":{"id":2,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}}],"id":20,"name":"Scrible"}}])
         }
     ])
 
     let orb = new ORB()
-//orb.debug = 1
+orb.debug = 1
     orb.register("Server", Server_impl)
     orb.register("Project", Project_impl)
     orb.register("Board", Board_impl)
+    orb.registerStub("BoardListener", stub.BoardListener)
     orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
     orb.registerValueType("Rectangle", Rectangle)
@@ -123,13 +125,13 @@ async function main() {
     console.log("listening...")
 }
 
-class Server_impl extends Server_skel {
-    client: Client
+class Server_impl extends skel.Server {
+    client: stub.Client
 
     constructor(orb: ORB) {
         super(orb)
         console.log("Server_impl.constructor()")
-        this.client = new Client(orb)
+        this.client = new stub.Client(orb)
     }
     
     destructor() { // FIXME: corba.js should invoke this method when the connection get's lost?
@@ -193,8 +195,7 @@ class Server_impl extends Server_skel {
         let result = await db.select("pid", "name", "description").from("projects").where({pid: projectID})
         if (result.length === 1) {
             console.log("got project")
-            let project = new Project_impl(this.orb, result[0])
-            return project._this()
+            return new Project_impl(this.orb, result[0])
         }
         throw Error("Server_impl.getProject("+projectID+"): no such project")
     }
@@ -206,7 +207,7 @@ interface ProjectData {
     description: string
 }
 
-class Project_impl extends Project_skel {
+class Project_impl extends skel.Project {
     data: ProjectData
 
     constructor(orb: ORB, data: ProjectData) {
@@ -221,30 +222,49 @@ class Project_impl extends Project_skel {
         let result = await db.select("bid", "name", "description", "layers").from("boards").where({pid: this.data.pid, bid: boardID})
         if (result.length === 1) {
             console.log("got board")
-            let boarddata = new valuetype.BoardData(
-                result[0].bid,
-                result[0].name,
-                result[0].description,
-                this.orb.deserialize(result[0].layers) as Array<Layer>
-            )
-            let board = new Board_impl(this.orb, boarddata)
-            return board._this()
+            result[0].layers = this.orb.deserialize(result[0].layers)
+            let boarddata = new valuetype.BoardData(result[0])
+            return new Board_impl(this.orb, boarddata)
         }
         throw Error("Project_impl.getBoard("+boardID+"): no such board")
     }
 }
 
-class Board_impl extends Board_skel {
+class Board_impl extends skel.Board {
     data: BoardData
+    listeners: Set<stub.BoardListener>
 
     constructor(orb: ORB, data: BoardData) {
         super(orb)
         this.data = data
+        this.listeners = new Set<stub.BoardListener>()
         console.log("Board_impl.constructor()")
     }
     
     async getData() {
         return this.data
+    }
+
+    async addListener(listener: stub.BoardListener) {
+        if (this.listeners.has(listener))
+            return
+        this.listeners.add(listener)
+//        listener.orb.addEventListener("close", () => {
+//            this.removeListener(listener)
+//        })
+    }
+    
+    async removeListener(listener: stub.BoardListener) {
+        if (!this.listeners.has(listener))
+            return
+        this.listeners.delete(listener)
+//        listener.orb.deleteEventListener("close", ...)
+    }
+    
+    async translate(figureIDs: Array<number>, delta: Point) {
+        console.log("Board_impl.translate(", figureIDs, ", ", delta, ")")
+        for (let listener of this.listeners)
+            listener.translate(figureIDs, delta)
     }
 }
 

@@ -99,8 +99,15 @@ valuetype BoardData {
     public sequence<Layer> layers;
 };
 
+interface BoardListener {
+    oneway void translate(in sequence<unsigned long> figureIDs, in Point delta);
+};
+
 interface Board {
     BoardData getData();
+    oneway void addListener(in BoardListener listener);
+    oneway void removeListener(in BoardListener listener);
+    oneway void translate(in sequence<unsigned long> figureIDs, in Point delta);
 };
 
 interface Project {

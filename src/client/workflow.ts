@@ -30,8 +30,9 @@ import {
 import { AccountPreferences } from "./AccountPreferences"
 
 import { ORB } from "corba.js"
-import { Client_skel } from "../shared/workflow_skel"
-import { Server, Project, Board } from "../shared/workflow_stub"
+import * as iface from "../shared/workflow"
+import * as skel from "../shared/workflow_skel"
+import * as stub from "../shared/workflow_stub"
 import { Point, Size, FigureModel } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
@@ -45,7 +46,7 @@ export function pointPlusSize(point: Point, size: Size): Point {
 class Rectangle extends valuetype.Rectangle {
   
   constructor(origin?: Point, size?: Size) {
-    super(origin, size)
+    super({origin: origin, size: size})
   }
   
   set(x: number, y: number, width: number, height: number) {
@@ -79,11 +80,11 @@ class Rectangle extends valuetype.Rectangle {
 export async function main(url: string) {
 
     let orb = new ORB()
-//    orb.debug = 1
+    orb.debug = 1
 
     orb.register("Client", Client_impl)
-    orb.registerStub("Project", Project)
-    orb.registerStub("Board", Board)
+    orb.registerStub("Project", stub.Project)
+    orb.registerStub("Board", stub.Board)
     orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
     orb.registerValueType("Rectangle", Rectangle)
@@ -100,7 +101,6 @@ export async function main(url: string) {
         document.body.innerHTML = "could not connect to workflow server '"+url+"'. please try again later."
         return
     }
-    Client_impl.server = new Server(orb)
 
     let session=""
     if (document.cookie) {
@@ -113,12 +113,14 @@ export async function main(url: string) {
             }
         }
     }
+
+    Client_impl.server = new stub.Server(orb)
     Client_impl.server.init(session)
 }
 
-class Client_impl extends Client_skel {
-    static server?: Server
-    server: Server
+class Client_impl extends skel.Client {
+    static server?: stub.Server
+    server: stub.Server
 
     constructor(orb: ORB) {
         super(orb)
@@ -191,7 +193,12 @@ class Client_impl extends Client_skel {
         // bind("toolselector", toolselector)
         let project = await this.server.getProject(1)
         let board = await project.getBoard(1)
+        
+        let boardListener = new BoardListener_impl(this.orb, board)
+        board.addListener(boardListener)
+        
         let boarddata = await board.getData() as BoardData
+        boarddata.board = board
 
         bind("board", boarddata)
 
@@ -200,12 +207,21 @@ class Client_impl extends Client_skel {
     }
 }
 
+class BoardListener_impl extends skel.BoardListener {
+    board: stub.Board
+
+    constructor(orb: ORB, board: stub.Board) {
+        super(orb)
+        this.board = board
+    }
+
+    async translate(figureIDs: Array<number>, delta: Point) {
+        console.log("BoardListener_impl.translate()")
+    }
+}
+
 class Layer extends valuetype.Layer
 {
-    constructor() {
-        super()
-    }
-    
     findFigureAt(point: Point): Figure | undefined {
         let mindist=Number.POSITIVE_INFINITY
         let nearestFigure: Figure | undefined
@@ -224,15 +240,15 @@ class Layer extends valuetype.Layer
         return nearestFigure
     }
     
-    translateFigures(delta: Point) {
-    }
+//    translateFigures(delta: Point) {
+//    }
 }
 
-class Figure extends valuetype.Figure
+abstract class Figure extends valuetype.Figure
 {
     public static readonly FIGURE_RANGE = 5.0
     public static readonly HANDLE_RANGE = 5.0
-
+    
     constructor() {
         super()
         console.log("workflow.Figure.constructor()")
@@ -361,7 +377,14 @@ class FigureSelection {
 
     clear(): void {
         this.selection.clear()
-    }    
+    }
+    
+    figureIds(): Array<number> {
+        let result = new Array<number>()
+        for(let figure of this.selection)
+            result.push(figure.id)
+        return result
+    }
 }
 
 class Tool {
@@ -497,9 +520,9 @@ console.log("adust selection rectangle")
         
         // mouse move for handle
         // ...
-        Client_impl.server!.translateFigures(/*selection.selection,*/ new Point(11, 38))
+//        Client_impl.server!.translateFigures(/*selection.selection,*/ new Point(11, 38))
 //        event.editor.selectedLayer.translateFigures(new Point(47, 11))
-        event.editor.translateSelection(new Point(20, 1))
+        event.editor.translateSelection(new Point({x:20, y:1}))
 /*        
         // translate selection (figures, handles, outline)
         let dx = event.x-this.x;
@@ -532,6 +555,7 @@ console.log("adust selection rectangle")
 class BoardData extends valuetype.BoardData
 {
     modified: Signal
+    board?: stub.Board
 
     constructor() {
         super()
@@ -539,8 +563,8 @@ class BoardData extends valuetype.BoardData
         console.log("BoardData.constructor()")
     }
     
-    translate(figures: Set<Figure>, delta: Point): void {
-        // this.board.translate(layerId, figureIds, delta)
+    translate(indices: Array<number>, delta: Point): void {
+        this.board!.translate(indices, delta)
     }
 }
 
@@ -702,7 +726,7 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
     }
     
     translateSelection(delta: Point): void {
-        this.model!.translate(Tool.selection.selection, delta)
+        this.model!.translate(Tool.selection.figureIds(), delta)
     }
 }
 window.customElements.define("workflow-board", FigureEditor)

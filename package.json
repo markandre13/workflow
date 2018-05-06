@@ -7,7 +7,7 @@
   "main": "index.html",
   "scripts": {
     "build": "npm run build-idl && tsc -p tsconfig-server.json && webpack",
-    "build-idl": "corba-idl -d --ts-stub --ts-skeleton --ts-valuetype src/shared/workflow.idl",
+    "build-idl": "corba-idl -d --ts-all src/shared/workflow.idl",
     "build-client": "npm run build-idl && webpack",
     "build-server": "npm run build-idl && tsc -p tsconfig-server.json",
     "test": "echo \"Error: no test specified\" && exit 1"
