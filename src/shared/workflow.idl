@@ -36,7 +36,9 @@ valuetype Rectangle {
 
 valuetype Figure {
     public unsigned long id;
+
     SVGElement createSVG();
+    void translate(in Point delta);
     Rectangle bounds();
     double distance(in Point point);
     Point_ptr getHandlePosition(in unsigned short handleId);
@@ -100,14 +102,15 @@ valuetype BoardData {
 };
 
 interface BoardListener {
-    oneway void translate(in sequence<unsigned long> figureIDs, in Point delta);
+    oneway void translate(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Point delta);
 };
 
 interface Board {
     BoardData getData();
     oneway void addListener(in BoardListener listener);
     oneway void removeListener(in BoardListener listener);
-    oneway void translate(in sequence<unsigned long> figureIDs, in Point delta);
+    // FIXME? how about translating figures on different layers at the same time?
+    oneway void translate(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Point delta);
 };
 
 interface Project {

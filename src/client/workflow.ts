@@ -43,6 +43,13 @@ export function pointPlusSize(point: Point, size: Size): Point {
     }
 }
 
+export function pointMinusPoint(a: Point, b: Point): Point {
+    return new Point({
+        x: a.x - b.x,
+        y: a.y - b.y
+    })
+}
+
 class Rectangle extends valuetype.Rectangle {
   
   constructor(origin?: Point, size?: Size) {
@@ -80,7 +87,7 @@ class Rectangle extends valuetype.Rectangle {
 export async function main(url: string) {
 
     let orb = new ORB()
-    orb.debug = 1
+//    orb.debug = 1
 
     orb.register("Client", Client_impl)
     orb.registerStub("Project", stub.Project)
@@ -194,29 +201,16 @@ class Client_impl extends skel.Client {
         let project = await this.server.getProject(1)
         let board = await project.getBoard(1)
         
-        let boardListener = new BoardListener_impl(this.orb, board)
-        board.addListener(boardListener)
-        
-        let boarddata = await board.getData() as BoardData
+        let boarddata = await board.getData() as BoardData // FIXME: getData should also set the listener so that we won't skip a beat
         boarddata.board = board
+
+        let boardListener = new BoardListener_impl(this.orb, boarddata)
+        board.addListener(boardListener)
 
         bind("board", boarddata)
 
         dom.erase(document.body);
         dom.add(document.body, homeScreen);
-    }
-}
-
-class BoardListener_impl extends skel.BoardListener {
-    board: stub.Board
-
-    constructor(orb: ORB, board: stub.Board) {
-        super(orb)
-        this.board = board
-    }
-
-    async translate(figureIDs: Array<number>, delta: Point) {
-        console.log("BoardListener_impl.translate()")
     }
 }
 
@@ -268,6 +262,12 @@ export class Rectangle extends valuetype.figure.Rectangle
         this.stroke = "#000"
         this.fill = "#f80"
         console.log("workflow.Board.constructor()")
+    }
+    
+    translate(delta: Point) {
+        this.origin.x += delta.x
+        this.origin.y += delta.y
+        this.update()
     }
     
     distance(pt: Point): number {
@@ -522,7 +522,10 @@ console.log("adust selection rectangle")
         // ...
 //        Client_impl.server!.translateFigures(/*selection.selection,*/ new Point(11, 38))
 //        event.editor.selectedLayer.translateFigures(new Point(47, 11))
-        event.editor.translateSelection(new Point({x:20, y:1}))
+
+        event.editor.translateSelection(pointMinusPoint(event, this.mouseDownAt!))
+        this.mouseDownAt = event
+        
 /*        
         // translate selection (figures, handles, outline)
         let dx = event.x-this.x;
@@ -563,8 +566,34 @@ class BoardData extends valuetype.BoardData
         console.log("BoardData.constructor()")
     }
     
-    translate(indices: Array<number>, delta: Point): void {
-        this.board!.translate(indices, delta)
+    // FIXME: too many translate functions to do stuff
+    translate(layerID: number, indices: Array<number>, delta: Point): void {
+        this.board!.translate(layerID, indices, delta)
+    }
+}
+
+class BoardListener_impl extends skel.BoardListener {
+    boarddata: BoardData
+
+    constructor(orb: ORB, boarddata: BoardData) {
+        super(orb)
+        this.boarddata = boarddata
+    }
+
+    async translate(layerID: number, figureIDs: Array<number>, delta: Point) {
+//        console.log("BoardListener_impl.translate(", figureIDs, ", ", delta, ")")
+        // FIXME: too many loops
+        for(let layer of this.boarddata.layers) {
+            if (layer.id === layerID) {
+                for(let id of figureIDs) {
+                    for(let figure of layer.data) {
+                        if (id === figure.id) {
+                            figure.translate(delta)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -726,7 +755,7 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
     }
     
     translateSelection(delta: Point): void {
-        this.model!.translate(Tool.selection.figureIds(), delta)
+        this.model!.translate(this.selectedLayer!.id, Tool.selection.figureIds(), delta)
     }
 }
 window.customElements.define("workflow-board", FigureEditor)

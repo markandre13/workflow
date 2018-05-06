@@ -106,7 +106,7 @@ async function main() {
     ])
 
     let orb = new ORB()
-orb.debug = 1
+//orb.debug = 1
     orb.register("Server", Server_impl)
     orb.register("Project", Project_impl)
     orb.register("Board", Board_impl)
@@ -261,10 +261,10 @@ class Board_impl extends skel.Board {
 //        listener.orb.deleteEventListener("close", ...)
     }
     
-    async translate(figureIDs: Array<number>, delta: Point) {
-        console.log("Board_impl.translate(", figureIDs, ", ", delta, ")")
+    async translate(layerID: number, figureIDs: Array<number>, delta: Point) {
+//        console.log("Board_impl.translate(", figureIDs, ", ", delta, ")")
         for (let listener of this.listeners)
-            listener.translate(figureIDs, delta)
+            listener.translate(layerID, figureIDs, delta)
     }
 }
 
