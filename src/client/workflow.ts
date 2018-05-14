@@ -16,9 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import VectorPath from "./VectorPath"
 import * as dom from "toad.js/lib/dom"
 import {
+    Matrix,
     Action, Signal, Model, Template, Window,
     RadioButtonBase, RadioStateModel, FatRadioButton,
     TextModel, HtmlModel, BooleanModel, NumberModel, TableModel, SelectionModel,
@@ -52,37 +52,45 @@ export function pointMinusPoint(a: Point, b: Point): Point {
 
 class Rectangle extends valuetype.Rectangle {
   
-  constructor(origin?: Point, size?: Size) {
-    super({origin: origin, size: size})
-  }
+    constructor(rectangle?: valuetype.Rectangle) {
+        super(rectangle)
+    }
   
-  set(x: number, y: number, width: number, height: number) {
-    this.origin.x = x
-    this.origin.y = y
-    this.size.width = width
-    this.size.height = height
-  }
+    set(x: number, y: number, width: number, height: number) {
+        this.origin.x = x
+        this.origin.y = y
+        this.size.width = width
+        this.size.height = height
+    }
 
-  expandByPoint(p: Point): void {
-    if (p.x < this.origin.x) {
-      this.size.width += this.origin.x - p.x ; this.origin.x = p.x
-    } else
-    if (p.x > this.origin.x + this.size.width) {
-      this.size.width = p.x - this.origin.x
+    expandByPoint(p: Point): void {
+        if (p.x < this.origin.x) {
+            this.size.width += this.origin.x - p.x ; this.origin.x = p.x
+        } else
+        if (p.x > this.origin.x + this.size.width) {
+            this.size.width = p.x - this.origin.x
+        }
+        if (p.y < this.origin.y) {
+            this.size.height += this.origin.y - p.y ; this.origin.y = p.y
+        } else
+        if (p.y > this.origin.y + this.size.height) {
+           this.size.height = p.y - this.origin.y
+        }
     }
-    if (p.y < this.origin.y) {
-      this.size.height += this.origin.y - p.y ; this.origin.y = p.y
-    } else
-    if (p.y > this.origin.y + this.size.height) {
-      this.size.height = p.y - this.origin.y
-    }
-  }
   
-  expandByRectangle(r: valuetype.Rectangle): void {
-    this.expandByPoint(r.origin)
-    this.expandByPoint(pointPlusSize(r.origin, r.size))
-  }
+    expandByRectangle(r: valuetype.Rectangle): void {
+        if (this.size.width === 0 && this.size.height === 0) {
+            this.origin.x = r.origin.x
+            this.origin.y = r.origin.y
+            this.size.width = r.size.width
+            this.size.height = r.size.height
+        } else {
+            this.expandByPoint(r.origin)
+            this.expandByPoint(pointPlusSize(r.origin, r.size))
+        }
+    }
 }
+
 
 export async function main(url: string) {
 
@@ -249,11 +257,80 @@ abstract class Figure extends valuetype.Figure
     }
 }
 
+declare global {
+  interface SVGPathElement {
+    setPathData(data: any): void
+    getPathData(): any
+  }
+}
+
+export class Path
+{
+    path: any
+    svg: SVGPathElement
+  
+    constructor() {
+        this.path = [];
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement;
+    }
+
+    clear() {
+        this.path = []
+    }
+
+    update() {
+        this.svg.setPathData(this.path)
+    }
+
+    move(point: Point) {
+        this.path.push({type: 'M', values: [point.x, point.y]})
+    }
+
+    line(point: Point) {
+        this.path.push({type: 'L', values: [point.x, point.y]})
+    }
+
+    close() {
+        this.path.push({type: 'Z'})
+    }
+    
+    appendRect(rectangle: any) {
+        this.move(rectangle.origin)
+        this.line({x: rectangle.origin.x + rectangle.size.width, y: rectangle.origin.y                         })
+        this.line({x: rectangle.origin.x + rectangle.size.width, y: rectangle.origin.y + rectangle.size.height })
+        this.line({x: rectangle.origin.x                       , y: rectangle.origin.y + rectangle.size.height })
+        this.close()
+    }
+    
+    // relativeMove
+    // relativeLine
+    // relativeCurve
+    // append(path)
+    transform(matrix: Matrix) {
+        for(let segment of this.path) {
+            switch(segment.type) {
+                case 'M':
+                case 'L':
+                    segment.values = matrix.transformArrayPoint(segment.values)
+                    break
+            }
+        }
+    }
+
+    translate(point: Point) {
+        this.transform(new Matrix({
+            m11: 1.0, m12: 0.0,
+            m21: 0.0, m22: 1.0,
+            tX: point.x, tY: point.y
+        }))
+    }
+}
+
 namespace figure {
 
 export class Rectangle extends valuetype.figure.Rectangle
 {
-    svg?: SVGElement
+    path?: Path
     stroke: string
     fill: string
     
@@ -261,13 +338,13 @@ export class Rectangle extends valuetype.figure.Rectangle
         super()
         this.stroke = "#000"
         this.fill = "#f80"
-        console.log("workflow.Board.constructor()")
     }
     
     translate(delta: Point) {
-        this.origin.x += delta.x
-        this.origin.y += delta.y
-        this.update()
+        if (this.path === undefined)
+            return
+        this.path.translate(delta)
+        this.path.update()
     }
     
     distance(pt: Point): number {
@@ -280,20 +357,16 @@ export class Rectangle extends valuetype.figure.Rectangle
         return Number.MAX_VALUE;
     }
 
-    bounds(): Rectangle {
-        return {
-            origin: {x: this.origin.x, y: this.origin.y },
-            size: { width: this.size.width, height: this.size.height }
-        } as Rectangle
-        // return new Rectangle(this.origin, this.size)
+    bounds(): valuetype.figure.Rectangle {
+        return this
     }
     
     getHandlePosition(i: number): Point | undefined {
         switch(i) {
-            case 0: return { x:this.origin.x,                 y:this.origin.y };
-            case 1: return { x:this.origin.x+this.size.width, y:this.origin.y };
-            case 2: return { x:this.origin.x+this.size.width, y:this.origin.y+this.size.height };
-            case 3: return { x:this.origin.x,                 y:this.origin.y+this.size.height };
+            case 0: return { x:this.origin.x,                 y:this.origin.y }
+            case 1: return { x:this.origin.x+this.size.width, y:this.origin.y }
+            case 2: return { x:this.origin.x+this.size.width, y:this.origin.y+this.size.height }
+            case 3: return { x:this.origin.x,                 y:this.origin.y+this.size.height }
         }
         return undefined
     }
@@ -317,34 +390,28 @@ export class Rectangle extends valuetype.figure.Rectangle
     }
     
     createSVG(): SVGElement {
-       if (this.svg)
-         return this.svg
-       this.svg = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+       if (this.path)
+           return this.path.svg
+       this.path = new Path()
        this.update()
-       return this.svg
+       return this.path.svg
     }
 
     update(): void {
-        if (!this.svg)
+        if (!this.path)
           return
-
-        let x0=this.origin.x,
-            y0=this.origin.y,
-            x1=this.origin.x+this.size.width,
-            y1=this.origin.y+this.size.height
-        if (x1<x0) [x0,x1] = [x1,x0];
-        if (y1<y0) [y0,y1] = [y1,y0];
         
-        this.svg.setAttributeNS("", "x", String(x0))
-        this.svg.setAttributeNS("", "y", String(y0))
-        this.svg.setAttributeNS("", "width", String(x1-x0))
-        this.svg.setAttributeNS("", "height", String(y1-y0))
-        this.svg.setAttributeNS("", "stroke", this.stroke)
-        this.svg.setAttributeNS("", "fill", this.fill)
+        this.path.clear()
+        this.path.appendRect(this)
+        this.path.update()
+
+        this.path.svg.setAttributeNS("", "stroke", this.stroke)
+        this.path.svg.setAttributeNS("", "fill", this.fill)
     }
-}
 
 }
+
+} // namespace figure
 
 class EditorEvent extends Point {
     editor: FigureEditor
@@ -390,57 +457,82 @@ class FigureSelection {
 class Tool {
     static selection = new FigureSelection()
 
-    svgHandles: Map<Figure, Array<SVGElement>>
+    svgHandles: Map<Figure, Array<Path>>
+    svgOutlines: Map<Figure, SVGElement>
 
     mousedown(e: EditorEvent) { console.log("Tool.mousedown()") }
     mousemove(e: EditorEvent) { console.log("Tool.mousemove()") }
     mouseup(e: EditorEvent) { console.log("Tool.mouseup()") }
     
     constructor() {
-        this.svgHandles = new Map<Figure, Array<SVGElement>>()
+        this.svgHandles = new Map<Figure, Array<Path>>()
+        this.svgOutlines = new Map<Figure, SVGElement>()
     }
 
-    createSVGHandleRect(x: number, y: number): SVGElement {
-        let handle = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        handle.setAttributeNS("", "x", String(Math.round(x-2.5)+0.5)); // FIXME: just a hunch for nice rendering
-        handle.setAttributeNS("", "y", String(Math.round(y-2.5)+0.5));
-        handle.setAttributeNS("", "width", "5");
-        handle.setAttributeNS("", "height", "5");
-        handle.setAttributeNS("", "stroke", "rgb(79,128,255)");
-        handle.setAttributeNS("", "fill", "#fff");
-        // handle.setAttributeNS(null, 'cursor', 'crosshair');
-        handle.setAttributeNS("", "style", "cursor:move");
-        // handle.setAttributeNS(null, 'style', "cursor: url('cursor.svg'), auto");
-        return handle;
+    static createOutlineCopy(svg: SVGElement): SVGElement {
+        svg = svg.cloneNode(true) as SVGElement
+        svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
+        svg.setAttributeNS("", "fill", "none")
+
+console.log(svg.nodeName) // rect
+
+        // FIXME: if it's a group, iterate over all elements
+        // FIXME: translate outline by (-1, +1)
+        return svg
+    }
+    
+    createOutline(editor: FigureEditor, figure: Figure): void {
+        if (this.svgOutlines.has(figure))
+            return
+        let svgOutline = Tool.createOutlineCopy(figure.createSVG())
+        editor.decorationOverlay.appendChild(svgOutline)
+        this.svgOutlines.set(figure, svgOutline)
+    }
+    
+    destroyOutline(editor: FigureEditor, figure: Figure): void {
+        let svgOutline = this.svgOutlines.get(figure)
+        if (svgOutline === undefined)
+            return
+        editor.decorationOverlay.removeChild(svgOutline)
+        this.svgOutlines.delete(figure)
     }
     
     createHandleDecorations(editor: FigureEditor, figure: Figure): void {
-/*
-        this.editor = editor;
-        this.rect = rect;
-        this.handle = -1;
-        this.handles = [];
-*/
-/*
-        this.outline = Object.assign(new FRectangle(), this.rect) // FIXME: Figure.clone
-        this.outline.svg = undefined
-        this.outline.stroke = "rgb(79,128,255)"
-        this.outline.fill   = "none"
-        this.outline.move({x:-1, y:1})
-        editor.decoLayer.appendChild(this.outline.createSVG())
-*/    
         let handles = this.svgHandles.get(figure)
         if (handles === undefined) {
-            handles = new Array<SVGElement>()
+            handles = new Array<Path>()
             this.svgHandles.set(figure, handles)
-        }
+        } // FIXME: else what?
         for(let i=0; ; ++i) {
             let h = figure.getHandlePosition(i)
             if (h === undefined)
                 break
-            let svgHandle = this.createSVGHandleRect(h.x-1, h.y+1)
-            handles.push(svgHandle)
-            editor.decorationOverlay.appendChild(svgHandle)
+            let path = new Path()
+            path.appendRect({
+                origin: {
+                    x: Math.round(h.x-2.5)+0.5-1,
+                    y: Math.round(h.y-2.5)+0.5+1
+                },
+                size: { width: 5, height: 5 }
+            })
+            path.update()
+            path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
+            path.svg.setAttributeNS("", "fill", "#fff")
+            switch(i) {
+                case 0:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-nw.svg) 5 7, move")
+                    break
+                case 1:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-ne.svg) 5 7, move")
+                    break
+                case 2:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-se.svg) 5 7, move")
+                    break
+                case 3:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-sw.svg) 5 7, move")
+                    break
+            }
+            editor.decorationOverlay.appendChild(path.svg)
         }
     }
     
@@ -448,19 +540,22 @@ class Tool {
         let handles = this.svgHandles.get(figure)
         if (handles === undefined)
             return
-        for(let svgHandle of handles) {
-            editor.decorationOverlay.removeChild(svgHandle)
-        }
+        for(let path of handles)
+            editor.decorationOverlay.removeChild(path.svg)
         this.svgHandles.delete(figure)
     }
 }
 
 class SelectTool extends Tool {
-    selectionRectangle?: SVGElement
+    svgMarquee?: SVGElement
+    boundary: Rectangle
+    svgDecoration: Array<SVGElement>
     mouseDownAt?: Point
 
     constructor() {
         super()
+        this.boundary = new Rectangle()
+        this.svgDecoration = new Array<SVGElement>()
     }
 
     mousedown(event: EditorEvent) {
@@ -493,28 +588,29 @@ class SelectTool extends Tool {
             
         Tool.selection.add(figure)
 
-        this.createHandleDecorations(event.editor, figure)
+//        this.createOutline(event.editor, figure)
+//        this.updateHandleDecorations(event.editor, figure)
+        this.updateBoundary()
+        this.updateDecoration(event.editor)
     }
 
     mousemove(event: EditorEvent) {
         console.log("SelectTool.mousemove()")
 
-        if (Tool.selection.empty() && this.selectionRectangle === undefined) {
-console.log("add selection rectangle")
-            this.selectionRectangle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-            this.selectionRectangle.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
-            this.selectionRectangle.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
-            event.editor.decorationOverlay.appendChild(this.selectionRectangle)
+        if (Tool.selection.empty() && this.svgMarquee === undefined) {
+            this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
+            this.svgMarquee.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
+            event.editor.decorationOverlay.appendChild(this.svgMarquee)
         }
-        if (this.selectionRectangle) {
-console.log("adust selection rectangle")
+        if (this.svgMarquee) {
             let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
             if (x1<x0) [x0,x1] = [x1,x0]
             if (y1<y0) [y0,y1] = [y1,y0]
-            this.selectionRectangle.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
-            this.selectionRectangle.setAttributeNS("", "y", String(Math.round(y0)+0.5))
-            this.selectionRectangle.setAttributeNS("", "width", String(Math.round(x1-x0)))
-            this.selectionRectangle.setAttributeNS("", "height", String(Math.round(y1-y0)))
+            this.svgMarquee.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
+            this.svgMarquee.setAttributeNS("", "y", String(Math.round(y0)+0.5))
+            this.svgMarquee.setAttributeNS("", "width", String(Math.round(x1-x0)))
+            this.svgMarquee.setAttributeNS("", "height", String(Math.round(y1-y0)))
             return
         }
         
@@ -547,12 +643,135 @@ console.log("adust selection rectangle")
         this.mouseDownAt = undefined
         if (!event.editor.selectedLayer)
             return
-        if (this.selectionRectangle) {
-            event.editor.decorationOverlay.removeChild(this.selectionRectangle)
-            this.selectionRectangle = undefined
+        if (this.svgMarquee) {
+            event.editor.decorationOverlay.removeChild(this.svgMarquee)
+            this.svgMarquee = undefined
         }
     }
+    
+    /*******************************************************************
+     *                                                                 *
+     *                           H A N D L E                           *
+     *                                                                 *
+     *******************************************************************/
+    updateBoundary() {
+        this.boundary = new Rectangle()
+        for(let figure of Tool.selection.selection) {
+            this.boundary.expandByRectangle(figure.bounds())
+        }
+    }
+    
+    updateDecoration(editor: FigureEditor) {
+        for(let svg of this.svgDecoration) {
+            editor.decorationOverlay.removeChild(svg)
+        }
+        this.svgDecoration.length = 0
+        
+        let path = new Path()
+        path.appendRect(this.boundary)
+        path.update()
+        path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
+        path.svg.setAttributeNS("", "fill", "none")
+        editor.decorationOverlay.appendChild(path.svg)
+        this.svgDecoration.push(path.svg)
+    
+        for(let i=0; i<16; ++i) {
+            let path = new Path()
+            path.appendRect(this.getBoundaryHandle(i))
+            path.update()
+            if (i<8) {
+                path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
+                path.svg.setAttributeNS("", "fill", "#fff")
+            } else {
+                path.svg.setAttributeNS("", "stroke", "rgba(0,0,0,0)")
+                path.svg.setAttributeNS("", "fill", "rgba(0,0,0,0)")
+            }
+            switch(i) {
+                case 0:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-nw.svg) 6 6, move")
+                    break
+                case 1:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-n.svg) 4 7, move")
+                    break
+                case 2:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-ne.svg) 6 6, move")
+                    break
+                case 3:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-e.svg) 7 4, move")
+                    break
+                case 4:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-se.svg) 6 6, move")
+                    break
+                case 5:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-s.svg) 4 7, move")
+                    break
+                case 6:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-sw.svg) 6 6, move")
+                    break
+                case 7:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-w.svg) 7 4, move")
+                    break
+                case 8:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-rotate-nw.svg) 5 5, move")
+                    break
+                case 9:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-rotate-n.svg) 7 2, move")
+                    break
+                case 10:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-rotate-ne.svg) 8 5, move")
+                    break
+                case 11:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-rotate-e.svg) 5 7, move")
+                    break
+                case 12:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-rotate-se.svg) 8 8, move")
+                    break
+                case 13:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-rotate-s.svg) 7 5, move")
+                    break
+                case 14:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-rotate-sw.svg) 5 8, move")
+                    break
+                case 15:
+                    path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-rotate-w.svg) 2 7, move")
+                    break
+            }
+            editor.decorationOverlay.appendChild(path.svg)
+            this.svgDecoration.push(path.svg)
+        }
+    }
+     
+    getBoundaryHandle(handle: number): Rectangle {
+        const s = 5.0,
+              x0 = this.boundary.origin.x - s/2.0,
+              y0 = this.boundary.origin.y - s/2.0,
+              x1 = this.boundary.origin.x + this.boundary.size.width - s/2.0,
+              y1 = this.boundary.origin.y + this.boundary.size.height - s/2.0,
+              w = x1 - x0,
+              h = y1 - y0
 
+        let r = new Rectangle()
+        switch(handle) {
+            case  0: r.set(x0    +1.5, y0+1   , s, s); break;
+            case  1: r.set(x0+w/2    , y0+1   , s, s); break;
+            case  2: r.set(x0+w  -0.5, y0+1   , s, s); break;
+            case  3: r.set(x0+w  -0.5, y0+h/2 , s, s); break;
+            case  4: r.set(x0+w  -0.5, y0+h   , s, s); break;
+            case  5: r.set(x0+w/2    , y0+h   , s, s); break;
+            case  6: r.set(x0    +1.5, y0+h   , s, s); break;
+            case  7: r.set(x0    +1.5, y0+h/2 , s, s); break;
+
+            case  8: r.set(x0    -s, y0    -s, s, s); break;
+            case  9: r.set(x0+w/2  , y0    -s, s, s); break;
+            case 10: r.set(x0+w  +s, y0    -s, s, s); break;
+            case 11: r.set(x0+w  +s, y0+h/2  , s, s); break;
+            case 12: r.set(x0+w  +s, y0+h  +s, s, s); break;
+            case 13: r.set(x0+w/2  , y0+h  +s, s, s); break;
+            case 14: r.set(x0    -s, y0+h  +s, s, s); break;
+            case 15: r.set(x0    -s, y0+h/2  , s, s); break;
+        }
+        return r
+    }
 }
 
 class BoardData extends valuetype.BoardData
