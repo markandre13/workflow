@@ -56,14 +56,15 @@ class Rectangle extends valuetype.Rectangle {
         super(rectangle)
     }
   
-    set(x: number, y: number, width: number, height: number) {
+    set(x: number, y: number, width: number, height: number): Rectangle {
         this.origin.x = x
         this.origin.y = y
         this.size.width = width
         this.size.height = height
+        return this
     }
 
-    expandByPoint(p: Point): void {
+    expandByPoint(p: Point): Rectangle {
         if (p.x < this.origin.x) {
             this.size.width += this.origin.x - p.x ; this.origin.x = p.x
         } else
@@ -76,9 +77,10 @@ class Rectangle extends valuetype.Rectangle {
         if (p.y > this.origin.y + this.size.height) {
            this.size.height = p.y - this.origin.y
         }
+        return this
     }
   
-    expandByRectangle(r: valuetype.Rectangle): void {
+    expandByRectangle(r: valuetype.Rectangle): Rectangle {
         if (this.size.width === 0 && this.size.height === 0) {
             this.origin.x = r.origin.x
             this.origin.y = r.origin.y
@@ -88,9 +90,18 @@ class Rectangle extends valuetype.Rectangle {
             this.expandByPoint(r.origin)
             this.expandByPoint(pointPlusSize(r.origin, r.size))
         }
+        return this
+    }
+    
+    inflate(expansion: number): Rectangle {
+        this.origin.x -= expansion
+        this.origin.y -= expansion
+        expansion *= 2.0
+        this.size.width += expansion
+        this.size.height += expansion
+        return this
     }
 }
-
 
 export async function main(url: string) {
 
@@ -549,13 +560,13 @@ console.log(svg.nodeName) // rect
 class SelectTool extends Tool {
     svgMarquee?: SVGElement
     boundary: Rectangle
-    svgDecoration: Array<SVGElement>
+    decoration: Array<Path>
     mouseDownAt?: Point
 
     constructor() {
         super()
         this.boundary = new Rectangle()
-        this.svgDecoration = new Array<SVGElement>()
+        this.decoration = new Array<Path>()
     }
 
     mousedown(event: EditorEvent) {
@@ -569,9 +580,9 @@ class SelectTool extends Tool {
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         
         if (figure === undefined) {
-            for(let figure of Tool.selection.selection) {
-                this.destroyHandleDecorations(event.editor, figure)
-            }
+            this.clearDecoration(event.editor)
+            for(let figure of Tool.selection.selection)
+                this.destroyOutline(event.editor, figure)
             Tool.selection.clear()
             return
         }
@@ -580,16 +591,15 @@ class SelectTool extends Tool {
             return
         
         if (!event.shiftKey) {
-            for(let figure of Tool.selection.selection) {
-                this.destroyHandleDecorations(event.editor, figure)
-            }
+            this.clearDecoration(event.editor)
+            for(let figure of Tool.selection.selection)
+                this.destroyOutline(event.editor, figure)
             Tool.selection.clear()
         }
             
         Tool.selection.add(figure)
 
-//        this.createOutline(event.editor, figure)
-//        this.updateHandleDecorations(event.editor, figure)
+        this.createOutline(event.editor, figure)
         this.updateBoundary()
         this.updateDecoration(event.editor)
     }
@@ -619,7 +629,12 @@ class SelectTool extends Tool {
 //        Client_impl.server!.translateFigures(/*selection.selection,*/ new Point(11, 38))
 //        event.editor.selectedLayer.translateFigures(new Point(47, 11))
 
-        event.editor.translateSelection(pointMinusPoint(event, this.mouseDownAt!))
+        let delta = pointMinusPoint(event, this.mouseDownAt!)
+        for(let decorator of this.decoration) {
+            decorator.translate(delta)
+            decorator.update()
+        }
+        event.editor.translateSelection(delta)
         this.mouseDownAt = event
         
 /*        
@@ -661,24 +676,33 @@ class SelectTool extends Tool {
         }
     }
     
-    updateDecoration(editor: FigureEditor) {
-        for(let svg of this.svgDecoration) {
-            editor.decorationOverlay.removeChild(svg)
+    clearDecoration(editor: FigureEditor) {
+        for(let decorator of this.decoration) {
+            editor.decorationOverlay.removeChild(decorator.svg)
         }
-        this.svgDecoration.length = 0
-        
+        this.decoration.length = 0
+    }
+    
+    updateDecoration(editor: FigureEditor) {
+        this.clearDecoration(editor)
+
         let path = new Path()
-        path.appendRect(this.boundary)
+        let rectangle = new Rectangle(this.boundary)
+        rectangle.inflate(1.0)
+        rectangle.origin.x    = Math.round(rectangle.origin.x-0.5)+0.5
+        rectangle.origin.y    = Math.round(rectangle.origin.y-0.5)+0.5
+        rectangle.size.width  = Math.round(rectangle.size.width)
+        rectangle.size.height = Math.round(rectangle.size.height)
+        path.appendRect(rectangle)
         path.update()
         path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
         path.svg.setAttributeNS("", "fill", "none")
         editor.decorationOverlay.appendChild(path.svg)
-        this.svgDecoration.push(path.svg)
+        this.decoration.push(path)
     
         for(let i=0; i<16; ++i) {
             let path = new Path()
             path.appendRect(this.getBoundaryHandle(i))
-            path.update()
             if (i<8) {
                 path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
                 path.svg.setAttributeNS("", "fill", "#fff")
@@ -736,8 +760,9 @@ class SelectTool extends Tool {
                     path.svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-rotate-w.svg) 2 7, move")
                     break
             }
+            path.update()
             editor.decorationOverlay.appendChild(path.svg)
-            this.svgDecoration.push(path.svg)
+            this.decoration.push(path)
         }
     }
      
@@ -752,14 +777,14 @@ class SelectTool extends Tool {
 
         let r = new Rectangle()
         switch(handle) {
-            case  0: r.set(x0    +1.5, y0+1   , s, s); break;
-            case  1: r.set(x0+w/2    , y0+1   , s, s); break;
-            case  2: r.set(x0+w  -0.5, y0+1   , s, s); break;
-            case  3: r.set(x0+w  -0.5, y0+h/2 , s, s); break;
-            case  4: r.set(x0+w  -0.5, y0+h   , s, s); break;
-            case  5: r.set(x0+w/2    , y0+h   , s, s); break;
-            case  6: r.set(x0    +1.5, y0+h   , s, s); break;
-            case  7: r.set(x0    +1.5, y0+h/2 , s, s); break;
+            case  0: r.set(x0    , y0     , s, s); break;
+            case  1: r.set(x0+w/2, y0     , s, s); break;
+            case  2: r.set(x0+w  , y0     , s, s); break;
+            case  3: r.set(x0+w  , y0+h/2 , s, s); break;
+            case  4: r.set(x0+w  , y0+h   , s, s); break;
+            case  5: r.set(x0+w/2, y0+h   , s, s); break;
+            case  6: r.set(x0    , y0+h   , s, s); break;
+            case  7: r.set(x0    , y0+h/2 , s, s); break;
 
             case  8: r.set(x0    -s, y0    -s, s, s); break;
             case  9: r.set(x0+w/2  , y0    -s, s, s); break;
@@ -770,6 +795,8 @@ class SelectTool extends Tool {
             case 14: r.set(x0    -s, y0+h  +s, s, s); break;
             case 15: r.set(x0    -s, y0+h/2  , s, s); break;
         }
+        r.origin.x = Math.round(r.origin.x-0.5)+0.5
+        r.origin.y = Math.round(r.origin.y-0.5)+0.5
         return r
     }
 }
