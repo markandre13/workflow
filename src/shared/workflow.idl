@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-native SVGElement;
+native Path;
 native Point_ptr;
 native Figure_ptr;
 native FigureEditor;
@@ -37,7 +37,7 @@ valuetype Rectangle {
 valuetype Figure {
     public unsigned long id;
 
-    SVGElement createSVG();
+    Path getPath();
     void translate(in Point delta);
     Rectangle bounds();
     double distance(in Point point);

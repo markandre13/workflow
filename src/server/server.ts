@@ -32,6 +32,8 @@ import * as stub from "../shared/workflow_stub"
 import { Point, Size, Rectangle, Figure, FigureModel, Layer, BoardData } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
+let testing = true
+
 let disclaimer=`Welcome to WorkFlow
         <p>
           For assistance contact the service desk at 721-821-4291<br />
@@ -141,6 +143,10 @@ class Server_impl extends skel.Server {
     
     async init(aSession: string) {
         console.log("Server_impl.init()")
+        if (testing) {
+            this.client.homeScreen("", "img/avatars/pig.svg", "pig@mark13.org", "Pig")
+            return
+        }
         if (aSession.length !== 0) {
             let session = aSession.split(":")
             let logon = session[0]
