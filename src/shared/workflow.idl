@@ -119,7 +119,6 @@ valuetype BoardData {
 };
 
 interface BoardListener {
-    oneway void translate(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Point delta);
     oneway void transform(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Matrix matrix);
 };
 
@@ -127,8 +126,7 @@ interface Board {
     BoardData getData();
     oneway void addListener(in BoardListener listener);
     oneway void removeListener(in BoardListener listener);
-    // FIXME? how about translating figures on different layers at the same time?
-    oneway void translate(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Point delta);
+    // FIXME? how about transforming figures on different layers at the same time?
     oneway void transform(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Matrix matrix);
 };
 

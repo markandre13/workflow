@@ -268,14 +268,8 @@ class Board_impl extends skel.Board {
 //        listener.orb.deleteEventListener("close", ...)
     }
     
-    async translate(layerID: number, figureIDs: Array<number>, delta: Point) {
-//        console.log("Board_impl.translate(", figureIDs, ", ", delta, ")")
-        for (let listener of this.listeners)
-            listener.translate(layerID, figureIDs, delta)
-    }
-
     async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix) {
-//        console.log("Board_impl.translate(", figureIDs, ", ", delta, ")")
+//        console.log("Board_impl.transform(", figureIDs, ", ", matrix, ")")
         for (let listener of this.listeners)
             listener.transform(layerID, figureIDs, matrix)
     }

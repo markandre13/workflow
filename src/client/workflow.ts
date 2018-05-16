@@ -795,7 +795,7 @@ class SelectTool extends Tool {
         }
         console.log("not handle")
 
-this.transformation.identity()
+        this.transformation.identity()
 
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         
@@ -859,7 +859,10 @@ this.transformation.identity()
             decorator.translate(delta)
             decorator.update()
         }
-        event.editor.translateSelection(delta)
+        this.transformation.identity()
+        this.transformation.translate(delta)
+        this.updateOutline(event.editor)
+        event.editor.transformSelection(this.transformation)
         this.mouseDownAt = event
         
 /*        
@@ -898,7 +901,6 @@ this.transformation.identity()
             this.svgMarquee = undefined
         }
     }
-
 
     updateOutline(editor: FigureEditor) {
         // FIXME: improve
@@ -1168,11 +1170,7 @@ class BoardData extends valuetype.BoardData
         console.log("BoardData.constructor()")
     }
     
-    // FIXME: too many translate functions to do stuff
-    translate(layerID: number, indices: Array<number>, delta: Point): void {
-        this.board!.translate(layerID, indices, delta)
-    }
-    
+    // FIXME: too many functions to do stuff
     transform(layerID: number, indices: Array<number>, matrix: Matrix): void {
         this.board!.transform(layerID, indices, matrix)
     }
@@ -1186,24 +1184,8 @@ class BoardListener_impl extends skel.BoardListener {
         this.boarddata = boarddata
     }
 
-    async translate(layerID: number, figureIDs: Array<number>, delta: Point) {
-//        console.log("BoardListener_impl.translate(", figureIDs, ", ", delta, ")")
-        // FIXME: too many loops
-        for(let layer of this.boarddata.layers) {
-            if (layer.id === layerID) {
-                for(let id of figureIDs) {
-                    for(let figure of layer.data) {
-                        if (id === figure.id) {
-                            figure.translate(delta)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix) {
-        console.log("BoardListener_impl.transform(", figureIDs, ", ", matrix, ")")
+//        console.log("BoardListener_impl.transform(", figureIDs, ", ", matrix, ")")
         // FIXME: too many loops
         for(let layer of this.boarddata.layers) {
             if (layer.id === layerID) {
@@ -1376,10 +1358,6 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
         let y = (e.clientY+0.5 - r.top  + this.scrollView.scrollTop  + this.bounds.origin.y)/this.zoom
 
         return {editor: this, x: x, y: y, shiftKey: e.shiftKey}
-    }
-    
-    translateSelection(delta: Point): void {
-        this.model!.translate(this.selectedLayer!.id, Tool.selection.figureIds(), delta)
     }
     
     transformSelection(matrix: Matrix): void {
