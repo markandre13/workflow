@@ -18,7 +18,6 @@
 
 import * as dom from "toad.js/lib/dom"
 import {
-    Matrix,
     Action, Signal, Model, Template, Window,
     RadioButtonBase, RadioStateModel, FatRadioButton,
     TextModel, HtmlModel, BooleanModel, NumberModel, TableModel, SelectionModel,
@@ -69,6 +68,138 @@ export function pointMinus(a: Point) {
         x: -a.x,
         y: -a.y
     })
+}
+
+export class Matrix extends valuetype.Matrix implements iface.MatrixStruct
+{
+    constructor(matrix?: iface.MatrixStruct) {
+        super(matrix)
+        if (matrix === undefined) {
+            this.m11 = 1.0
+            this.m22 = 1.0
+        }
+    }
+    
+    isIdentity(): boolean {
+        return this.m11 === 1.0 && this.m12 === 0.0 &&
+               this.m21 === 0.0 && this.m22 === 1.0 &&
+               this.tX  === 0.0 && this.tY  === 0.0
+    }
+
+    isOnlyTranslate(): boolean {
+        return this.m11 === 1.0 && this.m12 === 0.0 &&
+               this.m21 === 0.0 && this.m22 === 1.0
+    }
+
+    isOnlyTranslateAndScale(): boolean {
+        return this.m12 === 0.0 && this.m21 === 0.0
+    }
+    
+    identity() {
+        this.m11 = 1.0
+        this.m12 = 0.0
+        this.m21 = 0.0
+        this.m22 = 1.0
+        this.tX  = 0.0
+        this.tY  = 0.0
+    }
+    
+    append(matrix: Matrix) {
+        let n11 = this.m11 * matrix.m11 + this.m12 * matrix.m21
+        let n12 = this.m11 * matrix.m12 + this.m12 * matrix.m22
+        let n21 = this.m21 * matrix.m11 + this.m22 * matrix.m21
+        let n22 = this.m21 * matrix.m12 + this.m22 * matrix.m22
+        let nX  = this.tX  * matrix.m11 + this.tY  * matrix.m21 + matrix.tX
+        let nY  = this.tX  * matrix.m12 + this.tY  * matrix.m22 + matrix.tY
+        
+        this.m11 = n11
+        this.m12 = n12
+        this.m21 = n21
+        this.m22 = n22
+        this.tX  = nX
+        this.tY  = nY
+    }
+
+    prepend(matrix: Matrix) {
+        let n11 = matrix.m11 * this.m11 + matrix.m12 * this.m21
+        let n12 = matrix.m11 * this.m12 + matrix.m12 * this.m22
+        let n21 = matrix.m21 * this.m11 + matrix.m22 * this.m21
+        let n22 = matrix.m21 * this.m12 + matrix.m22 * this.m22
+        let nX  = matrix.tX  * this.m11 + matrix.tY  * this.m21 + this.tX
+        let nY  = matrix.tX  * this.m12 + matrix.tY  * this.m22 + this.tY
+        
+        this.m11 = n11
+        this.m12 = n12
+        this.m21 = n21
+        this.m22 = n22
+        this.tX  = nX
+        this.tY  = nY
+    }
+    
+    invert() {
+        let d = 1.0 / (this.m11 * this.m22 - this.m21 * this.m12)
+        let n11 = d *  this.m22
+        let n12 = d * -this.m12
+        let n21 = d * -this.m21
+        let n22 = d *  this.m11
+        let nX  = d * (this.m21 * this.tY - this.m22 * this.tX)
+        let nY  = d * (this.m12 * this.tX - this.m11 * this.tY)
+
+        this.m11 = n11
+        this.m12 = n12
+        this.m21 = n21
+        this.m22 = n22
+        this.tX  = nX
+        this.tY  = nY
+    }
+    
+    translate(point: Point) {
+        let m = new Matrix({
+            m11: 1.0, m12: 0.0,
+            m21: 0.0, m22: 1.0,
+            tX: point.x, tY: point.y
+        })
+        this.append(m)
+    }
+
+    rotate(radiant: number) {
+        let m = new Matrix({
+            m11:  Math.cos(radiant), m12: Math.sin(radiant),
+            m21: -Math.sin(radiant), m22: Math.cos(radiant),
+            tX: 0, tY: 0
+        })
+        this.append(m)
+    }
+    
+    scale(x: number, y:number) {
+        let m = new Matrix({
+            m11:  x, m12: 0,
+            m21:  0, m22: y,
+            tX: 0, tY: 0
+        })
+        this.append(m)
+    }
+    
+    transformPoint(point: Point): Point {
+        return {
+            x: point.x * this.m11 + point.y * this.m21 + this.tX,
+            y: point.x * this.m12 + point.y * this.m22 + this.tY
+        }
+    }
+
+    transformArrayPoint(point: [number, number]): [number, number] {
+        return [
+            point[0] * this.m11 + point[1] * this.m21 + this.tX,
+            point[0] * this.m12 + point[1] * this.m22 + this.tY
+        ]
+    }
+    
+    transformSize(size: Size): Size {
+        return {
+            width: size.width * this.m11 + size.height * this.m21,
+            height: size.width * this.m12 + size.height * this.m22
+        }
+    }
 }
 
 class Rectangle extends valuetype.Rectangle {
@@ -146,6 +277,7 @@ export async function main(url: string) {
     orb.registerStub("Board", stub.Board)
     orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
+    orb.registerValueType("Matrix", Matrix)
     orb.registerValueType("Rectangle", Rectangle)
     orb.registerValueType("Figure", Figure)
     orb.registerValueType("figure::Rectangle", figure.Rectangle)
@@ -401,11 +533,20 @@ export class Rectangle extends valuetype.figure.Rectangle
         this.fill = "#f80"
     }
     
-    translate(delta: Point) {
+    translate(delta: Point) { // FIXME: store
         if (this.path === undefined)
             return
         this.path.translate(delta)
         this.path.update()
+    }
+
+    transform(transform: Matrix): boolean {
+        if (!transform.isOnlyTranslateAndScale())
+            return false
+        this.origin = transform.transformPoint(this.origin)
+        this.size   = transform.transformSize(this.size)
+        this.update()
+        return true
     }
     
     distance(pt: Point): number {
@@ -654,6 +795,8 @@ class SelectTool extends Tool {
         }
         console.log("not handle")
 
+this.transformation.identity()
+
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         
         if (figure === undefined) {
@@ -737,6 +880,16 @@ class SelectTool extends Tool {
 
     mouseup(event: EditorEvent) {
         console.log("SelectTool.mouseup()")
+        switch(this.state) {
+            case State.DRAG_MARQUEE:
+                break
+            case State.MOVE_HANDLE:
+                this.moveHandle(event)
+                this.stopHandle(event)
+                break
+            case State.MOVE_SELECTION:
+                break
+        }
         this.mouseDownAt = undefined
         if (!event.editor.selectedLayer)
             return
@@ -766,7 +919,7 @@ class SelectTool extends Tool {
         for(let figure of Tool.selection.selection) {
             this.boundary.expandByRectangle(figure.bounds())
         }
-        this.boundary.inflate(1.0)
+//        this.boundary.inflate(1.0)
     }
     
     clearDecoration(editor: FigureEditor) {
@@ -997,6 +1150,11 @@ class SelectTool extends Tool {
         this.updateOutline(event.editor)
         this.updateDecoration(event.editor)
     }
+    
+    stopHandle(event: EditorEvent) {
+        this.state = State.NONE
+        event.editor.transformSelection(this.transformation)
+    }
 }
 
 class BoardData extends valuetype.BoardData
@@ -1013,6 +1171,10 @@ class BoardData extends valuetype.BoardData
     // FIXME: too many translate functions to do stuff
     translate(layerID: number, indices: Array<number>, delta: Point): void {
         this.board!.translate(layerID, indices, delta)
+    }
+    
+    transform(layerID: number, indices: Array<number>, matrix: Matrix): void {
+        this.board!.transform(layerID, indices, matrix)
     }
 }
 
@@ -1033,6 +1195,24 @@ class BoardListener_impl extends skel.BoardListener {
                     for(let figure of layer.data) {
                         if (id === figure.id) {
                             figure.translate(delta)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix) {
+        console.log("BoardListener_impl.transform(", figureIDs, ", ", matrix, ")")
+        // FIXME: too many loops
+        for(let layer of this.boarddata.layers) {
+            if (layer.id === layerID) {
+                for(let id of figureIDs) {
+                    for(let figure of layer.data) {
+                        if (id === figure.id) {
+                            if (!figure.transform(matrix)) {
+                                // ...
+                            }
                         }
                     }
                 }
@@ -1200,6 +1380,10 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
     
     translateSelection(delta: Point): void {
         this.model!.translate(this.selectedLayer!.id, Tool.selection.figureIds(), delta)
+    }
+    
+    transformSelection(matrix: Matrix): void {
+        this.model!.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
     }
 }
 window.customElements.define("workflow-board", FigureEditor)

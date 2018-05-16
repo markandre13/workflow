@@ -29,7 +29,7 @@ import { ORB } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba
 import * as iface from "../shared/workflow"
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
-import { Point, Size, Rectangle, Figure, FigureModel, Layer, BoardData } from "../shared/workflow_valuetype"
+import { Point, Size, Matrix, Rectangle, Figure, FigureModel, Layer, BoardData } from "../shared/workflow_valuetype"
 import * as valuetype from "../shared/workflow_valuetype"
 
 let testing = true
@@ -115,6 +115,7 @@ async function main() {
     orb.registerStub("BoardListener", stub.BoardListener)
     orb.registerValueType("Point", Point)
     orb.registerValueType("Size", Size)
+    orb.registerValueType("Matrix", Matrix)
     orb.registerValueType("Rectangle", Rectangle)
     orb.registerValueType("Figure", Figure)
     orb.registerValueType("figure::Rectangle", valuetype.figure.Rectangle)
@@ -271,6 +272,12 @@ class Board_impl extends skel.Board {
 //        console.log("Board_impl.translate(", figureIDs, ", ", delta, ")")
         for (let listener of this.listeners)
             listener.translate(layerID, figureIDs, delta)
+    }
+
+    async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix) {
+//        console.log("Board_impl.translate(", figureIDs, ", ", delta, ")")
+        for (let listener of this.listeners)
+            listener.transform(layerID, figureIDs, matrix)
     }
 }
 

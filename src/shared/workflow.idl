@@ -29,6 +29,22 @@ valuetype Size {
     public double width, height;
 };
 
+valuetype Matrix {
+    public double m11, m12, m21, m22, tX, tY;
+
+    void identity();
+    void append(in Matrix matrix);
+    void prepend(in Matrix matrix);
+    void invert();
+    void translate(in Point point);
+    void rotate(in double radiant);
+    void scale(in double x, in double y);
+    Point transformPoint(in Point point);
+//    sequence<double, 2> transformArrayPoint(in sequence<double, 2> point);
+// 2 is maximum size, we would like exact size
+    sequence<double> transformArrayPoint(in sequence<double> point);
+};
+
 valuetype Rectangle {
     public Point origin;
     public Size size;
@@ -39,6 +55,7 @@ valuetype Figure {
 
     Path getPath();
     void translate(in Point delta);
+    boolean transform(in Matrix matrix);
     Rectangle bounds();
     double distance(in Point point);
     Point_ptr getHandlePosition(in unsigned short handleId);
@@ -103,6 +120,7 @@ valuetype BoardData {
 
 interface BoardListener {
     oneway void translate(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Point delta);
+    oneway void transform(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Matrix matrix);
 };
 
 interface Board {
@@ -111,6 +129,7 @@ interface Board {
     oneway void removeListener(in BoardListener listener);
     // FIXME? how about translating figures on different layers at the same time?
     oneway void translate(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Point delta);
+    oneway void transform(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Matrix matrix);
 };
 
 interface Project {
