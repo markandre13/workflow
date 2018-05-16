@@ -521,6 +521,55 @@ export class Path
 
 namespace figure {
 
+export class Transform extends valuetype.figure.Transform {
+    path?: Path
+
+    constructor(init?: any) {
+        super(init)
+//        this.matrix = matrix
+//        this.children = new Array<any>()
+    }
+
+    translate(delta: Point) { // FIXME: store
+        throw Error("not yet implemented")
+    }
+
+    transform(transform: Matrix): boolean {
+        (this.matrix as Matrix).append(transform)
+        return true
+    }
+    
+    distance(pt: Point): number {
+       throw Error("not yet implemented")
+    }
+
+    bounds(): valuetype.figure.Rectangle {
+       throw Error("not yet implemented")
+    }
+    
+    getHandlePosition(i: number): Point | undefined {
+        return undefined
+    }
+
+    setHandlePosition(handle: number, pt: Point): void {
+    }
+    
+    getPath(): Path {
+       if (this.path === undefined) {
+           let path = this.children[0]!.getPath() as Path
+           this.path = new Path(path)
+           this.path.transform(this.matrix as Matrix)
+           this.path.update()
+//           this.path = new Path()
+//           this.update()
+       }
+       return this.path
+    }
+
+    update(): void {
+    }
+}
+
 export class Rectangle extends valuetype.figure.Rectangle
 {
     path?: Path
@@ -889,7 +938,7 @@ class SelectTool extends Tool {
             case State.MOVE_HANDLE:
                 this.moveHandle(event)
                 this.stopHandle(event)
-                break
+                return
             case State.MOVE_SELECTION:
                 break
         }
@@ -1187,12 +1236,24 @@ class BoardListener_impl extends skel.BoardListener {
     async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix) {
 //        console.log("BoardListener_impl.transform(", figureIDs, ", ", matrix, ")")
         // FIXME: too many loops
+        // FIXME: too many casts
         for(let layer of this.boarddata.layers) {
             if (layer.id === layerID) {
                 for(let id of figureIDs) {
-                    for(let figure of layer.data) {
-                        if (id === figure.id) {
-                            if (!figure.transform(matrix)) {
+                    for(let index in layer.data) {
+                        let f = layer.data[index]
+                        if (id === f.id) {
+                            if (!f.transform(matrix)) {
+                                let transform = new figure.Transform()
+                                transform.matrix = new Matrix(matrix)
+                                transform.children.push(f)
+                                let oldPath = f.getPath() as Path
+                                let newPath = transform.getPath() as Path
+                                (oldPath.svg as any).replaceWith(newPath.svg)
+//                                (f.getPath() as Path).svg.replaceWith(
+//                                    (transform.getPath() as Path).svg
+//                                )
+                                layer.data[index] = transform
                                 // ...
                             }
                         }

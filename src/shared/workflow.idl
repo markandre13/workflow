@@ -31,6 +31,18 @@ valuetype Size {
 
 valuetype Matrix {
     public double m11, m12, m21, m22, tX, tY;
+/*
+    // FIXME: declaring operations will make the resulting class 'abstract',
+    // previnting us to use it as an attribute because it can not be
+    // instantiated. this is were CORBA's factory would be of help, because
+    // it could the used to instantiate the real implementation.
+    // or we could use the class registered in the ORB, which is similar to
+    // the factory.
+    // it might also be a good idea to create the valuetypes as interfaces
+    // and to provide a utility function for the code we are currently
+    // placing within the constructor. this way we could use inheritance
+    // without any prototype hacks when implementing the valuetypes.
+    // (can interfaces have static functions? also: factory?)
 
     void identity();
     void append(in Matrix matrix);
@@ -43,6 +55,7 @@ valuetype Matrix {
 //    sequence<double, 2> transformArrayPoint(in sequence<double, 2> point);
 // 2 is maximum size, we would like exact size
     sequence<double> transformArrayPoint(in sequence<double> point);
+*/
 };
 
 valuetype Rectangle {
@@ -63,7 +76,6 @@ valuetype Figure {
 };
 
 module figure {
-/*
     valuetype Shape: Figure {
         public Point origin;
         public Size size;
@@ -74,10 +86,13 @@ module figure {
 
     valuetype Circle: Shape {
     };
-*/
-    valuetype Rectangle: Figure {
-        public Point origin;
-        public Size size;
+
+    valuetype Group: Figure {
+	public sequence<Figure> children;
+    };
+
+    valuetype Transform: Group {
+	public Matrix matrix;
     };
 
     valuetype Text: Figure {
@@ -87,7 +102,7 @@ module figure {
 };
 
 valuetype FigureModel {
-    public sequence<Figure> data;
+    public sequence<Figure> data; // FIXME: 'data' is a bad name, how about 'figures'?
 };
 
 valuetype Layer: FigureModel {
