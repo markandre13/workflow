@@ -281,9 +281,12 @@ export async function main(url: string) {
     ORB.registerValueType("Size", Size)
     ORB.registerValueType("Matrix", Matrix)
     ORB.registerValueType("Rectangle", Rectangle)
-    ORB.registerValueType("Figure", Figure)
+
+    ORB.registerValueType("figure.Figure", figure.Figure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
+    ORB.registerValueType("figure.Group", figure.Transform)
     ORB.registerValueType("figure.Transform", figure.Transform)
+
     ORB.registerValueType("FigureModel", FigureModel)
     ORB.registerValueType("Layer", Layer)
     ORB.registerValueType("BoardData", BoardData)
@@ -401,41 +404,6 @@ class Client_impl extends skel.Client {
     }
 }
 
-class Layer extends valueimpl.Layer
-{
-    findFigureAt(point: Point): Figure | undefined {
-        let mindist=Number.POSITIVE_INFINITY
-        let nearestFigure: Figure | undefined
-        for(let index = this.data.length-1; index >= 0; --index) {
-            let figure = this.data[index]
-            let d = Number(figure.distance(point))
-            if (d<mindist) {
-                mindist = d;
-                nearestFigure = figure
-            }
-        }
-        
-        if (mindist>=Figure.FIGURE_RANGE) {
-            return undefined
-        }
-        return nearestFigure
-    }
-    
-//    translateFigures(delta: Point) {
-//    }
-}
-
-abstract class Figure extends valueimpl.Figure
-{
-    public static readonly FIGURE_RANGE = 5.0
-    public static readonly HANDLE_RANGE = 5.0
-    
-    constructor() {
-        super()
-        console.log("workflow.Figure.constructor()")
-    }
-}
-
 declare global {
   interface SVGPathElement {
     setPathData(data: any): void
@@ -443,144 +411,39 @@ declare global {
   }
 }
 
-export class Path
-{
-    path: any
-    svg: SVGPathElement
-  
-    constructor(path?: Path) {
-        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement;
-        if (path === undefined) {
-            this.path = []
-        } else {
-            this.path = [] // FIXME: improve
-            for(let entry of path.path) {
-                switch(entry.type) {
-                    case "M":
-                        this.path.push({type: 'M', values: [entry.values[0], entry.values[1]]})
-                        break
-                    case "L":
-                        this.path.push({type: 'L', values: [entry.values[0], entry.values[1]]})
-                        break
-                    case "Z":
-                        this.path.push({type: 'Z'})
-                    
-                }
-            }
-        }
-    }
-
-    clear() {
-        this.path = []
-    }
-
-    update() {
-        this.svg.setPathData(this.path)
-    }
-
-    move(point: Point) {
-        this.path.push({type: 'M', values: [point.x, point.y]})
-    }
-
-    line(point: Point) {
-        this.path.push({type: 'L', values: [point.x, point.y]})
-    }
-
-    close() {
-        this.path.push({type: 'Z'})
-    }
-    
-    appendRect(rectangle: any) {
-        this.move(rectangle.origin)
-        this.line({x: rectangle.origin.x + rectangle.size.width, y: rectangle.origin.y                         })
-        this.line({x: rectangle.origin.x + rectangle.size.width, y: rectangle.origin.y + rectangle.size.height })
-        this.line({x: rectangle.origin.x                       , y: rectangle.origin.y + rectangle.size.height })
-        this.close()
-    }
-    
-    // relativeMove
-    // relativeLine
-    // relativeCurve
-    // append(path)
-    transform(matrix: Matrix) {
-        for(let segment of this.path) {
-            switch(segment.type) {
-                case 'M':
-                case 'L':
-                    segment.values = matrix.transformArrayPoint(segment.values)
-                    break
-            }
-        }
-    }
-
-    translate(point: Point) {
-        this.transform(new Matrix({
-            m11: 1.0, m12: 0.0,
-            m21: 0.0, m22: 1.0,
-            tX: point.x, tY: point.y
-        }))
-    }
-}
-
 namespace figure {
 
-export class Transform extends valueimpl.figure.Transform {
-    path?: Path
-
-    constructor(init?: any) {
+export abstract class Figure extends valueimpl.Figure
+{
+    public static readonly FIGURE_RANGE = 5.0
+    public static readonly HANDLE_RANGE = 5.0
+    
+    constructor(init?: Partial<Figure>) {
         super(init)
-//        this.matrix = matrix
-//        this.children = new Array<any>()
-    }
-
-    translate(delta: Point) { // FIXME: store
-        throw Error("not yet implemented")
-    }
-
-    transform(transform: Matrix): boolean {
-        (this.matrix as Matrix).append(transform)
-        return true
-    }
-    
-    distance(pt: Point): number {
-       throw Error("not yet implemented")
-    }
-
-    bounds(): valuetype.figure.Rectangle {
-       throw Error("not yet implemented")
-    }
-    
-    getHandlePosition(i: number): Point | undefined {
-        return undefined
-    }
-
-    setHandlePosition(handle: number, pt: Point): void {
-    }
-    
-    getPath(): Path {
-       if (this.path === undefined) {
-           let path = this.children[0]!.getPath() as Path
-           this.path = new Path(path)
-           this.path.transform(this.matrix as Matrix)
-           this.path.update()
-//           this.path = new Path()
-//           this.update()
-       }
-       return this.path
-    }
-
-    update(): void {
+        console.log("workflow.Figure.constructor()")
     }
 }
 
-export class Rectangle extends valueimpl.figure.Rectangle
+export abstract class Shape extends Figure implements valuetype.figure.Shape
+{
+    origin!: Point
+    size!: Size
+
+    constructor(init?: Partial<Shape>) {
+        super(init)
+        valuetype.figure.initShape(this, init)
+    }
+}
+
+export class Rectangle extends Shape implements valuetype.figure.Rectangle
 {
     path?: Path
     stroke: string
     fill: string
     
-    constructor() {
-        super()
+    constructor(init?: Partial<Rectangle>) {
+        super(init)
+        valuetype.figure.initRectangle(this, init)
         this.stroke = "#000"
         this.fill = "#f80"
     }
@@ -662,10 +525,207 @@ export class Rectangle extends valueimpl.figure.Rectangle
         this.path.svg.setAttributeNS("", "stroke", this.stroke)
         this.path.svg.setAttributeNS("", "fill", this.fill)
     }
+}
 
+export class Group extends Figure implements valuetype.figure.Group
+{
+    children!: Array<Figure>
+
+    constructor(init?: Partial<Group>) {
+        super(init)
+        valuetype.figure.initGroup(this, init)
+    }
+
+    translate(delta: Point) { // FIXME: store
+        throw Error("not yet implemented")
+    }
+
+    transform(transform: Matrix): boolean {
+        return true
+    }
+    
+    distance(pt: Point): number {
+       throw Error("not yet implemented")
+    }
+
+    bounds(): valuetype.figure.Rectangle {
+       throw Error("not yet implemented")
+    }
+    
+    getHandlePosition(i: number): Point | undefined {
+        return undefined
+    }
+
+    setHandlePosition(handle: number, pt: Point): void {
+    }
+    
+    getPath(): Path {
+       throw Error("not yet implemented")
+    }
+
+    update(): void {
+    }
+}
+
+export class Transform extends Group implements valuetype.figure.Transform {
+    path?: Path
+    matrix!: Matrix
+
+    constructor(init?: Partial<Transform>) {
+        super(init)
+        valuetype.figure.initTransform(this, init)
+    }
+
+    translate(delta: Point) { // FIXME: store
+        throw Error("not yet implemented")
+    }
+
+    transform(transform: Matrix): boolean {
+        this.matrix.append(transform)
+        return true
+    }
+    
+    distance(pt: Point): number {
+       throw Error("not yet implemented")
+    }
+
+    bounds(): valuetype.figure.Rectangle {
+       throw Error("not yet implemented")
+    }
+    
+    getHandlePosition(i: number): Point | undefined {
+        return undefined
+    }
+
+    setHandlePosition(handle: number, pt: Point): void {
+    }
+    
+    getPath(): Path {
+       if (this.path === undefined) {
+           let path = this.children[0]!.getPath() as Path
+           this.path = new Path(path)
+           this.path.transform(this.matrix as Matrix)
+           this.path.update()
+//           this.path = new Path()
+//           this.update()
+       }
+       return this.path
+    }
+
+    update(): void {
+    }
 }
 
 } // namespace figure
+
+type Figure = figure.Figure
+const Figure = figure.Figure
+
+class Layer extends valueimpl.Layer
+{
+    findFigureAt(point: Point): Figure | undefined {
+        let mindist=Number.POSITIVE_INFINITY
+        let nearestFigure: figure.Figure | undefined
+        for(let index = this.data.length-1; index >= 0; --index) {
+            let figure = this.data[index]
+            let d = Number(figure.distance(point))
+            if (d < mindist) {
+                mindist = d;
+                nearestFigure = figure
+            }
+        }
+        
+        if (mindist >= Figure.FIGURE_RANGE) {
+            return undefined
+        }
+        return nearestFigure
+    }
+    
+//    translateFigures(delta: Point) {
+//    }
+}
+
+
+
+export class Path
+{
+    path: any
+    svg: SVGPathElement
+  
+    constructor(path?: Path) {
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement;
+        if (path === undefined) {
+            this.path = []
+        } else {
+            this.path = [] // FIXME: improve
+            for(let entry of path.path) {
+                switch(entry.type) {
+                    case "M":
+                        this.path.push({type: 'M', values: [entry.values[0], entry.values[1]]})
+                        break
+                    case "L":
+                        this.path.push({type: 'L', values: [entry.values[0], entry.values[1]]})
+                        break
+                    case "Z":
+                        this.path.push({type: 'Z'})
+                    
+                }
+            }
+        }
+    }
+
+    clear() {
+        this.path = []
+    }
+
+    update() {
+        this.svg.setPathData(this.path)
+    }
+
+    move(point: Point) {
+        this.path.push({type: 'M', values: [point.x, point.y]})
+    }
+
+    line(point: Point) {
+        this.path.push({type: 'L', values: [point.x, point.y]})
+    }
+
+    close() {
+        this.path.push({type: 'Z'})
+    }
+    
+    appendRect(rectangle: any) {
+        this.move(rectangle.origin)
+        this.line({x: rectangle.origin.x + rectangle.size.width, y: rectangle.origin.y                         })
+        this.line({x: rectangle.origin.x + rectangle.size.width, y: rectangle.origin.y + rectangle.size.height })
+        this.line({x: rectangle.origin.x                       , y: rectangle.origin.y + rectangle.size.height })
+        this.close()
+    }
+    
+    // relativeMove
+    // relativeLine
+    // relativeCurve
+    // append(path)
+    transform(matrix: Matrix) {
+        for(let segment of this.path) {
+            switch(segment.type) {
+                case 'M':
+                case 'L':
+                    segment.values = matrix.transformArrayPoint(segment.values)
+                    break
+            }
+        }
+    }
+
+    translate(point: Point) {
+        this.transform(new Matrix({
+            m11: 1.0, m12: 0.0,
+            m21: 0.0, m22: 1.0,
+            tX: point.x, tY: point.y
+        }))
+    }
+}
+
 
 class EditorEvent extends Point {
     editor: FigureEditor
