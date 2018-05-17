@@ -24,7 +24,8 @@ import {
     TableEditMode,
     View, GenericView, TextView,
     bind, action,
-    Dialog} from "toad.js"
+    Dialog
+} from "toad.js"
 
 import { AccountPreferences } from "./AccountPreferences"
 
@@ -32,8 +33,9 @@ import { ORB } from "corba.js"
 import * as iface from "../shared/workflow"
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
-import { Point, Size, FigureModel } from "../shared/workflow_valuetype"
+import { Point, Size, FigureModel } from "../shared/workflow_valueimpl"
 import * as valuetype from "../shared/workflow_valuetype"
+import * as valueimpl from "../shared/workflow_valueimpl"
 
 export function pointPlusSize(point: Point, size: Size): Point {
     return {
@@ -70,9 +72,8 @@ export function pointMinus(a: Point) {
     })
 }
 
-export class Matrix extends valuetype.Matrix implements iface.MatrixStruct
-{
-    constructor(matrix?: iface.MatrixStruct) {
+export class Matrix extends valueimpl.Matrix {
+    constructor(matrix?: Partial<Matrix>) {
         super(matrix)
         if (matrix === undefined) {
             this.m11 = 1.0
@@ -202,7 +203,7 @@ export class Matrix extends valuetype.Matrix implements iface.MatrixStruct
     }
 }
 
-class Rectangle extends valuetype.Rectangle {
+class Rectangle extends valueimpl.Rectangle {
   
     constructor(rectangle?: valuetype.Rectangle) {
         super(rectangle)
@@ -275,15 +276,17 @@ export async function main(url: string) {
     orb.register("Client", Client_impl)
     orb.registerStub("Project", stub.Project)
     orb.registerStub("Board", stub.Board)
-    orb.registerValueType("Point", Point)
-    orb.registerValueType("Size", Size)
-    orb.registerValueType("Matrix", Matrix)
-    orb.registerValueType("Rectangle", Rectangle)
-    orb.registerValueType("Figure", Figure)
-    orb.registerValueType("figure::Rectangle", figure.Rectangle)
-    orb.registerValueType("FigureModel", FigureModel)
-    orb.registerValueType("Layer", Layer)
-    orb.registerValueType("BoardData", BoardData)
+
+    ORB.registerValueType("Point", Point)
+    ORB.registerValueType("Size", Size)
+    ORB.registerValueType("Matrix", Matrix)
+    ORB.registerValueType("Rectangle", Rectangle)
+    ORB.registerValueType("Figure", Figure)
+    ORB.registerValueType("figure.Rectangle", figure.Rectangle)
+    ORB.registerValueType("figure.Transform", figure.Transform)
+    ORB.registerValueType("FigureModel", FigureModel)
+    ORB.registerValueType("Layer", Layer)
+    ORB.registerValueType("BoardData", BoardData)
 
     try {
         await orb.connect(url) // FIXME: provide callbacks on ORB like onerror, etc. via getters/setters to WebSocket
@@ -398,7 +401,7 @@ class Client_impl extends skel.Client {
     }
 }
 
-class Layer extends valuetype.Layer
+class Layer extends valueimpl.Layer
 {
     findFigureAt(point: Point): Figure | undefined {
         let mindist=Number.POSITIVE_INFINITY
@@ -422,7 +425,7 @@ class Layer extends valuetype.Layer
 //    }
 }
 
-abstract class Figure extends valuetype.Figure
+abstract class Figure extends valueimpl.Figure
 {
     public static readonly FIGURE_RANGE = 5.0
     public static readonly HANDLE_RANGE = 5.0
@@ -521,7 +524,7 @@ export class Path
 
 namespace figure {
 
-export class Transform extends valuetype.figure.Transform {
+export class Transform extends valueimpl.figure.Transform {
     path?: Path
 
     constructor(init?: any) {
@@ -570,7 +573,7 @@ export class Transform extends valuetype.figure.Transform {
     }
 }
 
-export class Rectangle extends valuetype.figure.Rectangle
+export class Rectangle extends valueimpl.figure.Rectangle
 {
     path?: Path
     stroke: string
@@ -1208,7 +1211,7 @@ class SelectTool extends Tool {
     }
 }
 
-class BoardData extends valuetype.BoardData
+class BoardData extends valueimpl.BoardData
 {
     modified: Signal
     board?: stub.Board

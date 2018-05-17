@@ -29,8 +29,9 @@ import { ORB } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba
 import * as iface from "../shared/workflow"
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
-import { Point, Size, Matrix, Rectangle, Figure, FigureModel, Layer, BoardData } from "../shared/workflow_valuetype"
+import { Point, Size, Matrix, Rectangle, Figure, FigureModel, Layer, BoardData } from "../shared/workflow_valueimpl"
 import * as valuetype from "../shared/workflow_valuetype"
+import * as valueimpl from "../shared/workflow_valueimpl"
 
 let testing = true
 
@@ -103,7 +104,7 @@ async function main() {
         { pid: 1,
           name: "Polisens mobila Utrednings STöd Project Board",
           description: "",
-          layers: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure::Rectangle","#V":{"id":1,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}},{"#T":"figure::Rectangle","#V":{"id":2,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}}],"id":20,"name":"Scrible"}}])
+          layers: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure.Rectangle","#V":{"id":1,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}},{"#T":"figure.Rectangle","#V":{"id":2,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}}],"id":20,"name":"Scrible"}}])
         }
     ])
 
@@ -113,15 +114,15 @@ async function main() {
     orb.register("Project", Project_impl)
     orb.register("Board", Board_impl)
     orb.registerStub("BoardListener", stub.BoardListener)
-    orb.registerValueType("Point", Point)
-    orb.registerValueType("Size", Size)
-    orb.registerValueType("Matrix", Matrix)
-    orb.registerValueType("Rectangle", Rectangle)
-    orb.registerValueType("Figure", Figure)
-    orb.registerValueType("figure::Rectangle", valuetype.figure.Rectangle)
-    orb.registerValueType("FigureModel", FigureModel)
-    orb.registerValueType("BoardData", valuetype.BoardData)
-    orb.registerValueType("Layer", Layer)
+    ORB.registerValueType("Point", Point)
+    ORB.registerValueType("Size", Size)
+    ORB.registerValueType("Matrix", Matrix)
+    ORB.registerValueType("Rectangle", Rectangle)
+    ORB.registerValueType("Figure", Figure)
+    ORB.registerValueType("figure.Rectangle", valueimpl.figure.Rectangle)
+    ORB.registerValueType("FigureModel", FigureModel)
+    ORB.registerValueType("BoardData", valueimpl.BoardData)
+    ORB.registerValueType("Layer", Layer)
 
     orb.listen("0.0.0.0", 8000)
 
@@ -230,7 +231,7 @@ class Project_impl extends skel.Project {
         if (result.length === 1) {
             console.log("got board")
             result[0].layers = this.orb.deserialize(result[0].layers)
-            let boarddata = new valuetype.BoardData(result[0])
+            let boarddata = new valueimpl.BoardData(result[0])
             return new Board_impl(this.orb, boarddata)
         }
         throw Error("Project_impl.getBoard("+boardID+"): no such board")
