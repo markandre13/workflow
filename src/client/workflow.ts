@@ -1133,7 +1133,7 @@ class BoardListener_impl extends skel.BoardListener {
         this.boarddata = boarddata
     }
 
-    async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix) {
+    async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix, newIds: Array<number>) {
 //        console.log("BoardListener_impl.transform(", figureIDs, ", ", matrix, ")")
         // FIXME: too many loops
         // FIXME: too many casts
@@ -1145,6 +1145,7 @@ class BoardListener_impl extends skel.BoardListener {
                         if (id === f.id) {
                             if (!f.transform(matrix)) {
                                 let transform = new figure.Transform()
+                                transform.id = newIds.shift()!
                                 transform.matrix = new Matrix(matrix)
                                 transform.children.push(f)
                                 let oldPath = f.getPath() as Path

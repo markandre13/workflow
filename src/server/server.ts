@@ -126,7 +126,7 @@ async function main() {
     ORB.registerValueType("figure.Figure", Figure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
     ORB.registerValueType("figure.Group", valueimpl.figure.Group)
-    ORB.registerValueType("figure.Transform", valueimpl.figure.Transform)
+    ORB.registerValueType("figure.Transform", figure.Transform)
     ORB.registerValueType("FigureModel", FigureModel)
     ORB.registerValueType("BoardData", valueimpl.BoardData)
     ORB.registerValueType("Layer", Layer)
@@ -297,20 +297,25 @@ class Board_impl extends skel.Board {
 //        listener.orb.deleteEventListener("close", ...)
     }
     
-    // FIXME: share code with client
+    // FIXME: share code with client (BoardListener_impl.transform)
     async transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix) {
 //        console.log("Board_impl.transform(", figureIdArray, ", ", matrix, ")")
         let figureIdSet = new Set<number>()
         for(let id of figureIdArray)
             figureIdSet.add(id)
+        let newIdArray = new Array<number>()
         for (let layer of this.data.layers) {
             if (layer.id === layerID) {
-                for (let figure of layer.data) {
-                    if (figureIdSet.has(figure.id)) {
-//                        console.log("transform figure "+figure.id)
-                        if (!figure.transform(matrix)) {
-                            console.log("FIXME: need to add transformation")
-//			    layer.createFigureId()
+                for (let index in layer.data) {
+                    let fig = layer.data[index]
+                    if (figureIdSet.has(fig.id)) {
+                        if (!fig.transform(matrix)) {
+                            let transform = new figure.Transform()
+                            transform.id = (layer as Layer).createFigureId()
+                            newIdArray.push(transform.id)
+                            transform.matrix = new Matrix(matrix)
+                            transform.children.push(fig)
+                            layer.data[index] = transform
                         }
                     }
                 }
@@ -318,25 +323,34 @@ class Board_impl extends skel.Board {
             }
         }
         for (let listener of this.listeners)
-            listener.transform(layerID, figureIdArray, matrix)
+            listener.transform(layerID, figureIdArray, matrix, newIdArray)
     }
 }
 
 export class Layer extends FigureModel implements valuetype.Layer {
     id!: number
     name!: string
+    highestFigureId?: number
 
     constructor(init?: Partial<Layer>) {
         super(init)
         valuetype.initLayer(this, init)
-        console.log("server.ts: Layer.constructor()")
-        console.log("  ", this.data)
-        for(let figure of this.data) {
-            console.log("    ", figure)
-        }
     }
+
     findFigureAt(point: Point): Figure | undefined {
         return undefined
+    }
+    
+    createFigureId(): number {
+        if (this.highestFigureId === undefined) {
+            this.highestFigureId = 0
+            for(let figure of this.data) {
+                if (figure.id > this.highestFigureId) { // FIXME: recursive
+                    this.highestFigureId = figure.id
+                }
+            }
+        }
+        return ++this.highestFigureId
     }
 }
 
@@ -463,5 +477,119 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
     }
 */
 }
+
+export class Group extends Figure implements valuetype.figure.Group
+{
+    children!: Array<Figure>
+
+    constructor(init?: Partial<Group>) {
+        super(init)
+        valuetype.figure.initGroup(this, init)
+    }
+
+    translate(delta: Point) { // FIXME: store
+        throw Error("not yet implemented")
+    }
+
+    transform(transform: Matrix): boolean {
+        return true
+    }
+    
+    distance(pt: Point): number {
+        throw Error("not yet implemented")
+    }
+
+    bounds(): geometry.Rectangle {
+        throw Error("not yet implemented")
+    }
+    
+    getHandlePosition(i: number): Point | undefined {
+        return undefined
+    }
+
+    setHandlePosition(handle: number, pt: Point): void {
+    }
+    
+    getPath(): Path {
+       throw Error("not yet implemented")
+    }
+
+    update(): void {
+    }
+}
+
+
+export class Transform extends Group implements valuetype.figure.Transform {
+    path?: Path
+    matrix!: Matrix
+
+    constructor(init?: Partial<Transform>) {
+        super(init)
+        valuetype.figure.initTransform(this, init)
+    }
+
+    translate(delta: Point) { // FIXME: store
+        this.matrix.translate(delta)
+/*
+        if (this.path) {
+            this.path.translate(delta)
+            this.path.update()
+        }
+*/
+    }
+
+    transform(transform: Matrix): boolean {
+        this.matrix.append(transform)
+/*
+        if (this.path) {
+            this.path.transform(transform)
+            this.path.update()
+        }
+*/
+        return true
+    }
+    
+    distance(pt: Point): number {
+        let m = new Matrix(this.matrix)
+        m.invert()
+        pt = m.transformPoint(pt)
+        return this.children[0].distance(pt)
+    }
+
+    bounds(): geometry.Rectangle {
+        throw Error("not implemented")
+/*
+        let path = new Path()
+        path.appendRect(this.children[0].bounds())
+        path.transform(this.matrix)
+        return path.bounds()
+*/
+    }
+    
+    getHandlePosition(i: number): Point | undefined {
+        return undefined
+    }
+
+    setHandlePosition(handle: number, pt: Point): void {
+    }
+    
+    getPath(): Path {
+        throw Error("not implemented")
+/*
+       if (this.path === undefined) {
+           let path = this.children[0]!.getPath() as Path
+           this.path = new Path(path)
+           this.path.transform(this.matrix)
+           this.path.update()
+       }
+       return this.path
+*/
+    }
+/*
+    update(): void {
+    }
+*/
+}
+
 
 } // namespace figure

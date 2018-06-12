@@ -134,7 +134,10 @@ valuetype BoardData {
 };
 
 interface BoardListener {
-    oneway void transform(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Matrix matrix);
+    oneway void transform(in unsigned long layerID,
+                          in sequence<unsigned long> figureIDs,
+                          in Matrix matrix,
+                          in sequence<unsigned long> newIDs);
 };
 
 interface Board {
