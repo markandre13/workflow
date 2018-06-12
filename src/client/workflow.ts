@@ -33,9 +33,12 @@ import { ORB } from "corba.js"
 import * as iface from "../shared/workflow"
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
-import { Point, Size, FigureModel } from "../shared/workflow_valueimpl"
-import * as valuetype from "../shared/workflow_valuetype"
 import * as valueimpl from "../shared/workflow_valueimpl"
+import { FigureModel } from "../shared/workflow_valueimpl"
+import * as valuetype from "../shared/workflow_valuetype"
+
+import * as geometry from "./geometry"
+import { Point, Size, Rectangle, Matrix } from "./geometry"
 
 export function pointPlusSize(point: Point, size: Size): Point {
     return {
@@ -70,202 +73,6 @@ export function pointMinus(a: Point) {
         x: -a.x,
         y: -a.y
     })
-}
-
-export class Matrix extends valueimpl.Matrix {
-    constructor(matrix?: Partial<Matrix>) {
-        super(matrix)
-        if (matrix === undefined) {
-            this.m11 = 1.0
-            this.m22 = 1.0
-        }
-    }
-    
-    isIdentity(): boolean {
-        return this.m11 === 1.0 && this.m12 === 0.0 &&
-               this.m21 === 0.0 && this.m22 === 1.0 &&
-               this.tX  === 0.0 && this.tY  === 0.0
-    }
-
-    isOnlyTranslate(): boolean {
-        return this.m11 === 1.0 && this.m12 === 0.0 &&
-               this.m21 === 0.0 && this.m22 === 1.0
-    }
-
-    isOnlyTranslateAndScale(): boolean {
-        return this.m12 === 0.0 && this.m21 === 0.0
-    }
-    
-    identity() {
-        this.m11 = 1.0
-        this.m12 = 0.0
-        this.m21 = 0.0
-        this.m22 = 1.0
-        this.tX  = 0.0
-        this.tY  = 0.0
-    }
-    
-    append(matrix: Matrix) {
-        let n11 = this.m11 * matrix.m11 + this.m12 * matrix.m21
-        let n12 = this.m11 * matrix.m12 + this.m12 * matrix.m22
-        let n21 = this.m21 * matrix.m11 + this.m22 * matrix.m21
-        let n22 = this.m21 * matrix.m12 + this.m22 * matrix.m22
-        let nX  = this.tX  * matrix.m11 + this.tY  * matrix.m21 + matrix.tX
-        let nY  = this.tX  * matrix.m12 + this.tY  * matrix.m22 + matrix.tY
-        
-        this.m11 = n11
-        this.m12 = n12
-        this.m21 = n21
-        this.m22 = n22
-        this.tX  = nX
-        this.tY  = nY
-    }
-
-    prepend(matrix: Matrix) {
-        let n11 = matrix.m11 * this.m11 + matrix.m12 * this.m21
-        let n12 = matrix.m11 * this.m12 + matrix.m12 * this.m22
-        let n21 = matrix.m21 * this.m11 + matrix.m22 * this.m21
-        let n22 = matrix.m21 * this.m12 + matrix.m22 * this.m22
-        let nX  = matrix.tX  * this.m11 + matrix.tY  * this.m21 + this.tX
-        let nY  = matrix.tX  * this.m12 + matrix.tY  * this.m22 + this.tY
-        
-        this.m11 = n11
-        this.m12 = n12
-        this.m21 = n21
-        this.m22 = n22
-        this.tX  = nX
-        this.tY  = nY
-    }
-    
-    invert() {
-        let d = 1.0 / (this.m11 * this.m22 - this.m21 * this.m12)
-        let n11 = d *  this.m22
-        let n12 = d * -this.m12
-        let n21 = d * -this.m21
-        let n22 = d *  this.m11
-        let nX  = d * (this.m21 * this.tY - this.m22 * this.tX)
-        let nY  = d * (this.m12 * this.tX - this.m11 * this.tY)
-
-        this.m11 = n11
-        this.m12 = n12
-        this.m21 = n21
-        this.m22 = n22
-        this.tX  = nX
-        this.tY  = nY
-    }
-    
-    translate(point: Point) {
-        let m = new Matrix({
-            m11: 1.0, m12: 0.0,
-            m21: 0.0, m22: 1.0,
-            tX: point.x, tY: point.y
-        })
-        this.append(m)
-    }
-
-    rotate(radiant: number) {
-        let m = new Matrix({
-            m11:  Math.cos(radiant), m12: Math.sin(radiant),
-            m21: -Math.sin(radiant), m22: Math.cos(radiant),
-            tX: 0, tY: 0
-        })
-        this.append(m)
-    }
-    
-    scale(x: number, y:number) {
-        let m = new Matrix({
-            m11:  x, m12: 0,
-            m21:  0, m22: y,
-            tX: 0, tY: 0
-        })
-        this.append(m)
-    }
-    
-    transformPoint(point: Point): Point {
-        return {
-            x: point.x * this.m11 + point.y * this.m21 + this.tX,
-            y: point.x * this.m12 + point.y * this.m22 + this.tY
-        }
-    }
-
-    transformArrayPoint(point: [number, number]): [number, number] {
-        return [
-            point[0] * this.m11 + point[1] * this.m21 + this.tX,
-            point[0] * this.m12 + point[1] * this.m22 + this.tY
-        ]
-    }
-    
-    transformSize(size: Size): Size {
-        return {
-            width: size.width * this.m11 + size.height * this.m21,
-            height: size.width * this.m12 + size.height * this.m22
-        }
-    }
-}
-
-class Rectangle extends valueimpl.Rectangle {
-  
-    constructor(rectangle?: valuetype.Rectangle) {
-        super(rectangle)
-    }
-  
-    set(x: number, y: number, width: number, height: number): Rectangle {
-        this.origin.x = x
-        this.origin.y = y
-        this.size.width = width
-        this.size.height = height
-        return this
-    }
-    
-    contains(p: Point): boolean {
-        return this.origin.x <= p.x && p.x <= this.origin.x + this.size.width &&
-               this.origin.y <= p.y && p.y <= this.origin.y + this.size.height
-    }
-
-    expandByPoint(p: Point): Rectangle {
-        if (p.x < this.origin.x) {
-            this.size.width += this.origin.x - p.x ; this.origin.x = p.x
-        } else
-        if (p.x > this.origin.x + this.size.width) {
-            this.size.width = p.x - this.origin.x
-        }
-        if (p.y < this.origin.y) {
-            this.size.height += this.origin.y - p.y ; this.origin.y = p.y
-        } else
-        if (p.y > this.origin.y + this.size.height) {
-           this.size.height = p.y - this.origin.y
-        }
-        return this
-    }
-    
-    center(): Point {
-        return new Point({
-            x: this.origin.x + this.size.width / 2.0,
-            y: this.origin.y + this.size.height / 2.0
-        })
-    }
-  
-    expandByRectangle(r: valuetype.Rectangle): Rectangle {
-        if (this.size.width === 0 && this.size.height === 0) {
-            this.origin.x = r.origin.x
-            this.origin.y = r.origin.y
-            this.size.width = r.size.width
-            this.size.height = r.size.height
-        } else {
-            this.expandByPoint(r.origin)
-            this.expandByPoint(pointPlusSize(r.origin, r.size))
-        }
-        return this
-    }
-    
-    inflate(expansion: number): Rectangle {
-        this.origin.x -= expansion
-        this.origin.y -= expansion
-        expansion *= 2.0
-        this.size.width += expansion
-        this.size.height += expansion
-        return this
-    }
 }
 
 export async function main(url: string) {
@@ -474,8 +281,8 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
         return Number.MAX_VALUE;
     }
 
-    bounds(): valuetype.figure.Rectangle {
-        return this
+    bounds(): geometry.Rectangle {
+        return new geometry.Rectangle(this)
     }
     
     getHandlePosition(i: number): Point | undefined {
@@ -545,11 +352,11 @@ export class Group extends Figure implements valuetype.figure.Group
     }
     
     distance(pt: Point): number {
-       throw Error("not yet implemented")
+        throw Error("not yet implemented")
     }
 
-    bounds(): valuetype.figure.Rectangle {
-       throw Error("not yet implemented")
+    bounds(): geometry.Rectangle {
+        throw Error("not yet implemented")
     }
     
     getHandlePosition(i: number): Point | undefined {
@@ -577,20 +384,34 @@ export class Transform extends Group implements valuetype.figure.Transform {
     }
 
     translate(delta: Point) { // FIXME: store
-        throw Error("not yet implemented")
+        this.matrix.translate(delta)
+        if (this.path) {
+            this.path.translate(delta)
+            this.path.update()
+        }
     }
 
     transform(transform: Matrix): boolean {
         this.matrix.append(transform)
+        if (this.path) {
+            this.path.transform(transform)
+            this.path.update()
+        }
         return true
     }
     
     distance(pt: Point): number {
-       throw Error("not yet implemented")
+        let m = new Matrix(this.matrix)
+        m.invert()
+        pt = m.transformPoint(pt)
+        return this.children[0].distance(pt)
     }
 
-    bounds(): valuetype.figure.Rectangle {
-       throw Error("not yet implemented")
+    bounds(): geometry.Rectangle {
+        let path = new Path()
+        path.appendRect(this.children[0].bounds())
+        path.transform(this.matrix)
+        return path.bounds()
     }
     
     getHandlePosition(i: number): Point | undefined {
@@ -604,10 +425,8 @@ export class Transform extends Group implements valuetype.figure.Transform {
        if (this.path === undefined) {
            let path = this.children[0]!.getPath() as Path
            this.path = new Path(path)
-           this.path.transform(this.matrix as Matrix)
+           this.path.transform(this.matrix)
            this.path.update()
-//           this.path = new Path()
-//           this.update()
        }
        return this.path
     }
@@ -644,8 +463,6 @@ class Layer extends valueimpl.Layer
 //    translateFigures(delta: Point) {
 //    }
 }
-
-
 
 export class Path
 {
@@ -700,6 +517,26 @@ export class Path
         this.line({x: rectangle.origin.x + rectangle.size.width, y: rectangle.origin.y + rectangle.size.height })
         this.line({x: rectangle.origin.x                       , y: rectangle.origin.y + rectangle.size.height })
         this.close()
+    }
+    
+    bounds(): Rectangle {
+        let isFirstPoint = true
+        let rectangle = new Rectangle()
+        for(let segment of this.path) {
+            switch(segment.type) {
+                case 'M':
+                case 'L':
+                    if (isFirstPoint) {
+                        rectangle.origin.x = segment.values[0]
+                        rectangle.origin.y = segment.values[1]
+                        isFirstPoint = false
+                    } else {
+                        rectangle.expandByPoint(new Point({x: segment.values[0], y: segment.values[1]}))
+                    }
+                    break
+            }
+        }
+        return rectangle
     }
     
     // relativeMove
@@ -1485,6 +1322,7 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
     }
     
     transformSelection(matrix: Matrix): void {
+console.log("FigureEditor.transformSelection(): ", Tool.selection.figureIds())
         this.model!.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
     }
 }

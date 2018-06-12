@@ -29,7 +29,12 @@ import { ORB } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba
 import * as iface from "../shared/workflow"
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
-import { Point, Size, Matrix, Rectangle, Figure, FigureModel, Layer, BoardData } from "../shared/workflow_valueimpl"
+import { Figure, FigureModel, BoardData } from "../shared/workflow_valueimpl"
+
+// FIXME: move to shared
+import * as geometry from "../client/geometry"
+import { Point, Size, Rectangle, Matrix } from "../client/geometry"
+
 import * as valuetype from "../shared/workflow_valuetype"
 import * as valueimpl from "../shared/workflow_valueimpl"
 
@@ -119,7 +124,7 @@ async function main() {
     ORB.registerValueType("Matrix", Matrix)
     ORB.registerValueType("Rectangle", Rectangle)
     ORB.registerValueType("figure.Figure", Figure)
-    ORB.registerValueType("figure.Rectangle", valueimpl.figure.Rectangle)
+    ORB.registerValueType("figure.Rectangle", figure.Rectangle)
     ORB.registerValueType("figure.Group", valueimpl.figure.Group)
     ORB.registerValueType("figure.Transform", valueimpl.figure.Transform)
     ORB.registerValueType("FigureModel", FigureModel)
@@ -133,6 +138,7 @@ async function main() {
 
 class Server_impl extends skel.Server {
     client: stub.Client
+    static projects = new Map<number, Project_impl>()
 
     constructor(orb: ORB) {
         super(orb)
@@ -202,12 +208,20 @@ class Server_impl extends skel.Server {
     async getProject(projectID: number) {
         console.log("Server_impl.getProject("+projectID+")")
         
-        let result = await db.select("pid", "name", "description").from("projects").where({pid: projectID})
-        if (result.length === 1) {
-            console.log("got project")
-            return new Project_impl(this.orb, result[0])
+        let project = Server_impl.projects.get(projectID)
+        if (project) {
+            console.log("return active project "+projectID)
+            return project
         }
-        throw Error("Server_impl.getProject("+projectID+"): no such project")
+        
+        let result = await db.select("pid", "name", "description").from("projects").where({pid: projectID})
+        if (result.length !== 1) {
+            throw Error("Server_impl.getProject("+projectID+"): no such project")
+        }
+        console.log("return restored project "+projectID)
+        project = new Project_impl(this.orb, result[0])
+        Server_impl.projects.set(projectID, project)
+        return project
     }
 }
 
@@ -220,23 +234,34 @@ interface ProjectData {
 class Project_impl extends skel.Project {
     data: ProjectData
 
+    boards: Map<number, Board_impl>
+
     constructor(orb: ORB, data: ProjectData) {
         super(orb)
         this.data = data
+	this.boards = new Map<number, Board_impl>()
         console.log("Project_impl.constructor()")
     }
 
     async getBoard(boardID: number) {
         console.log("Project_impl.getBoard("+boardID+")")
         
-        let result = await db.select("bid", "name", "description", "layers").from("boards").where({pid: this.data.pid, bid: boardID})
-        if (result.length === 1) {
-            console.log("got board")
-            result[0].layers = this.orb.deserialize(result[0].layers)
-            let boarddata = new valueimpl.BoardData(result[0])
-            return new Board_impl(this.orb, boarddata)
+	let board = this.boards.get(boardID)
+	if (board) {
+	    console.log("return active board "+boardID)
+	    return board
         }
-        throw Error("Project_impl.getBoard("+boardID+"): no such board")
+        let result = await db.select("bid", "name", "description", "layers").from("boards").where({pid: this.data.pid, bid: boardID})
+        if (result.length !== 1) {
+            throw Error("Project_impl.getBoard("+boardID+"): no such board")
+        }
+
+        result[0].layers = this.orb.deserialize(result[0].layers)
+        let boarddata = new valueimpl.BoardData(result[0])
+        board = new Board_impl(this.orb, boarddata)
+        this.boards.set(boardID, board)
+        console.log("return restored board "+boardID)
+        return board
     }
 }
 
@@ -252,6 +277,7 @@ class Board_impl extends skel.Board {
     }
     
     async getData() {
+//console.log("Board_impl.getData()")
         return this.data
     }
 
@@ -271,138 +297,171 @@ class Board_impl extends skel.Board {
 //        listener.orb.deleteEventListener("close", ...)
     }
     
-    async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix) {
-//        console.log("Board_impl.transform(", figureIDs, ", ", matrix, ")")
-        for (let listener of this.listeners)
-            listener.transform(layerID, figureIDs, matrix)
-    }
-}
-
-
-/*
-
-var wss = new WebSocket.Server({host: '0.0.0.0',port: 8000}, function() {
-  console.log("ready")
-})
-
-wss.on("error", function(error: any) {
-  switch(error.code) {
-    case "EADDRINUSE":
-      console.log("error: another server is already running at "+error.address+":"+error.port)
-      break
-    default:
-      console.log("error", error)
-  }
-})
-
-wss.on('connection', function(client) {
-  console.log("got client");
-
-  client.on('open', function() {
-    console.log("open");
-  });
-    
-  client.onmessage = function(message: any) {
-console.log("got "+message)
-    var msg = JSON.parse(message);
-    msg.client = client;
-    switch(msg.cmd) {
-      case 'init': init(msg); break;
-      case 'logon': logon(msg); break;
-      case 'create': createFigure(msg); break;
-      case 'move': moveFigure(msg); break;
-      case 'hndl': moveHandle(msg); break;
-      case 'enter':
-      case 'pointer':
-      case 'leave': {
-        delete msg.client;
-        let json = JSON.stringify(msg);
-        for(let client of wss.clients) { // could later reduce this to all clients registered for this board
-          // TODO: skip sender
-          client.send(json);
+    // FIXME: share code with client
+    async transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix) {
+//        console.log("Board_impl.transform(", figureIdArray, ", ", matrix, ")")
+        let figureIdSet = new Set<number>()
+        for(let id of figureIdArray)
+            figureIdSet.add(id)
+        for (let layer of this.data.layers) {
+            if (layer.id === layerID) {
+                for (let figure of layer.data) {
+                    if (figureIdSet.has(figure.id)) {
+//                        console.log("transform figure "+figure.id)
+                        if (!figure.transform(matrix)) {
+                            console.log("FIXME: need to add transformation")
+//			    layer.createFigureId()
+                        }
+                    }
+                }
+                break
+            }
         }
-        } break;
-      
-      default:
-        delete msg.client;
-        console.log("unknown message", msg);
+        for (let listener of this.listeners)
+            listener.transform(layerID, figureIdArray, matrix)
     }
-  }
-
-  client.on('close', function() {
-    console.log("lost client");
-  });
-});
-
-function init(msg: any) {
 }
 
-function logon(msg: any) {
-  let loggedOn = false
-  db.get('SELECT password, avatar, email, fullname FROM users WHERE name=?', [msg.logon], function(err, row) {
-    if (row === undefined)
-        return
-    if (scrypt.verifyKdfSync(row["password"], msg.password)) {
-      const sessionKey = crypto.randomBytes(64)
-      let stmt = db.prepare("UPDATE users SET session=? WHERE name=?")
-      stmt.run(sessionKey, msg.logon)
-      const base64SessionKey = new Buffer(sessionKey).toString("base64")
-      // cookie: secure="secure" require https?
-      msg.client.send(JSON.stringify({
-        cmd:'home',
-        cookie: "session="+msg.logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
-        avatar:row["avatar"],
-        email:row["email"],
-        fullname:row["fullname"],
-        board:board
-      }));
-      loggedOn = true
+export class Layer extends FigureModel implements valuetype.Layer {
+    id!: number
+    name!: string
+
+    constructor(init?: Partial<Layer>) {
+        super(init)
+        valuetype.initLayer(this, init)
+        console.log("server.ts: Layer.constructor()")
+        console.log("  ", this.data)
+        for(let figure of this.data) {
+            console.log("    ", figure)
+        }
     }
-  })
-  if (!loggedOn) {
-    msg.client.send(JSON.stringify({
-      cmd:'logon-request',
-      lifetime: 30,
-      disclaimer: disclaimer,
-      msg: 'Unknown user and/or password. Please try again.'
-    }));
-  }
+    findFigureAt(point: Point): Figure | undefined {
+        return undefined
+    }
 }
 
-function createFigure(msg: any) {
-  if (msg.board!=board.id) {
-    console.log("create: unexpected board id "+msg.board);
-    return;
-  }
-  if (msg.layer!=board.layers[0].id) {
-    console.log("create: unexpected layer id "+msg.layer);
-    return;
-  }
-  board.layers[0].createFigure(msg);
+// FIXME: share with client
+namespace figure {
+
+export abstract class Figure extends valueimpl.Figure
+{
+    public static readonly FIGURE_RANGE = 5.0
+    public static readonly HANDLE_RANGE = 5.0
+
+    constructor(init?: Partial<Figure>) {
+        super(init)
+        console.log("workflow.Figure.constructor()")
+    }
 }
 
-function moveFigure(msg: any) {
-  if (msg.board!=board.id) {
-    console.log("move: unexpected board id "+msg.board);
-    return;
-  }
-  if (msg.layer!=board.layers[0].id) {
-    console.log("move: unexpected layer id "+msg.layer);
-    return;
-  }
-  board.layers[0].moveFigure(msg);
+export abstract class Shape extends Figure implements valuetype.figure.Shape
+{
+    origin!: Point
+    size!: Size
+
+    constructor(init?: Partial<Shape>) {
+        super(init)
+        valuetype.figure.initShape(this, init)
+    }
 }
 
-function moveHandle(msg: any) {
-  if (msg.board!=board.id) {
-    console.log("move: unexpected board id "+msg.board);
-    return;
-  }
-  if (msg.layer!=board.layers[0].id) {
-    console.log("move: unexpected layer id "+msg.layer);
-    return;
-  }
-  board.layers[0].moveHandle(msg);
-}
-
+export class Rectangle extends Shape implements valuetype.figure.Rectangle
+{
+    path?: Path
+    stroke: string
+    fill: string
+    
+    constructor(init?: Partial<Rectangle>) {
+        super(init)
+        valuetype.figure.initRectangle(this, init)
+        this.stroke = "#000"
+        this.fill = "#f80"
+    }
+    
+    translate(delta: Point) { // FIXME: store
+/*
+        if (this.path === undefined)
+            return
+        this.path.translate(delta)
+        this.path.update()
 */
+    }
+
+    transform(transform: Matrix): boolean {
+        if (!transform.isOnlyTranslateAndScale())
+            return false
+        this.origin = transform.transformPoint(this.origin)
+        this.size   = transform.transformSize(this.size)
+//console.log("server: transformed rectangle to ", this)
+//        this.update()
+        return true
+    }
+    
+    distance(pt: Point): number {
+        // FIXME: not final: RANGE and fill="none" need to be considered
+        if (this.origin.x <= pt.x && pt.x < this.origin.x+this.size.width &&
+            this.origin.y <= pt.y && pt.y < this.origin.y+this.size.height )
+        {
+            return -1.0; // even closer than 0
+        }
+        return Number.MAX_VALUE;
+    }
+
+    bounds(): geometry.Rectangle {
+        return new geometry.Rectangle(this)
+    }
+    
+    getHandlePosition(i: number): Point | undefined {
+        switch(i) {
+            case 0: return { x:this.origin.x,                 y:this.origin.y }
+            case 1: return { x:this.origin.x+this.size.width, y:this.origin.y }
+            case 2: return { x:this.origin.x+this.size.width, y:this.origin.y+this.size.height }
+            case 3: return { x:this.origin.x,                 y:this.origin.y+this.size.height }
+        }
+        return undefined
+    }
+
+    setHandlePosition(handle: number, pt: Point): void {
+        if (handle<0 || handle>3)
+            throw Error("fuck")
+
+        if (handle==0 || handle==3) {
+            this.size.width  += this.origin.x - pt.x;
+            this.origin.x=pt.x;
+        } else {
+            this.size.width  += pt.x - (this.origin.x+this.size.width)
+        }
+        if (handle==0 || handle==1) {
+            this.size.height += this.origin.y - pt.y
+            this.origin.y = pt.y
+        } else {
+            this.size.height += pt.y - (this.origin.y+this.size.height)
+        }
+    }
+    
+    getPath(): Path {
+	throw Error("not implemented")
+/*
+       if (this.path === undefined) {
+           this.path = new Path()
+           this.update()
+       }
+       return this.path
+*/
+    }
+/*
+    update(): void {
+        if (!this.path)
+          return
+        
+        this.path.clear()
+        this.path.appendRect(this)
+        this.path.update()
+
+        this.path.svg.setAttributeNS("", "stroke", this.stroke)
+        this.path.svg.setAttributeNS("", "fill", this.fill)
+    }
+*/
+}
+
+} // namespace figure
