@@ -16,14 +16,45 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as valueimpl from "../shared/workflow_valueimpl"
-import { Point, Size } from "../shared/workflow_valueimpl"
-import * as valuetype from "../shared/workflow_valuetype"
+import * as valueimpl from "./workflow_valueimpl"
+import { Point, Size } from "./workflow_valueimpl"
+import * as valuetype from "./workflow_valuetype"
 
-export { Point, Size } from "../shared/workflow_valueimpl"
+export { Point, Size } from "./workflow_valueimpl"
 
-export function pointPlusSize(p: Point, s: Size): Point {
-  return { x: p.x+s.width, y: p.y+s.height }
+export function pointPlusSize(point: Point, size: Size): Point {
+    return new Point({
+        x: point.x+size.width,
+        y: point.y+size.height
+    })
+}
+
+export function pointMinusPoint(a: Point, b: Point): Point {
+    return new Point({
+        x: a.x - b.x,
+        y: a.y - b.y
+    })
+}
+
+export function pointPlusPoint(a: Point, b: Point): Point {
+    return new Point({
+        x: a.x + b.x,
+        y: a.y + b.y
+    })
+}
+
+export function pointMultiplyNumber(a: Point, b: number): Point {
+    return new Point({
+        x: a.x * b,
+        y: a.y * b
+    })
+}
+
+export function pointMinus(a: Point) {
+    return new Point({
+        x: -a.x,
+        y: -a.y
+    })
 }
 
 export class Rectangle extends valueimpl.Rectangle {

@@ -31,9 +31,8 @@ import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
 import { Figure, FigureModel, BoardData } from "../shared/workflow_valueimpl"
 
-// FIXME: move to shared
-import * as geometry from "../client/geometry"
-import { Point, Size, Rectangle, Matrix } from "../client/geometry"
+import * as geometry from "../shared/geometry"
+import { Point, Size, Rectangle, Matrix } from "../shared/geometry"
 
 import * as valuetype from "../shared/workflow_valuetype"
 import * as valueimpl from "../shared/workflow_valueimpl"

@@ -37,43 +37,11 @@ import * as valueimpl from "../shared/workflow_valueimpl"
 import { FigureModel } from "../shared/workflow_valueimpl"
 import * as valuetype from "../shared/workflow_valuetype"
 
-import * as geometry from "./geometry"
-import { Point, Size, Rectangle, Matrix } from "./geometry"
-
-export function pointPlusSize(point: Point, size: Size): Point {
-    return {
-        x: point.x+size.width,
-        y: point.y+size.height
-    }
-}
-
-export function pointMinusPoint(a: Point, b: Point): Point {
-    return new Point({
-        x: a.x - b.x,
-        y: a.y - b.y
-    })
-}
-
-export function pointPlusPoint(a: Point, b: Point): Point {
-    return new Point({
-        x: a.x + b.x,
-        y: a.y + b.y
-    })
-}
-
-export function pointMultiplyNumber(a: Point, b: number): Point {
-    return new Point({
-        x: a.x * b,
-        y: a.y * b
-    })
-}
-
-export function pointMinus(a: Point) {
-    return new Point({
-        x: -a.x,
-        y: -a.y
-    })
-}
+import * as geometry from "../shared/geometry"
+import {
+    Point, Size, Rectangle, Matrix,
+    pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber, pointMinus
+} from "../shared/geometry"
 
 export async function main(url: string) {
 
