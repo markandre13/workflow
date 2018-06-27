@@ -266,13 +266,32 @@ class Project_impl extends skel.Project {
 
 class Board_impl extends skel.Board {
     data: BoardData
-    listeners: Set<stub.BoardListener>
+    listeners: Map<stub.BoardListener, EventListener>
 
     constructor(orb: ORB, data: BoardData) {
         super(orb)
         this.data = data
-        this.listeners = new Set<stub.BoardListener>()
+        this.listeners = new Map<stub.BoardListener, EventListener>()
         console.log("Board_impl.constructor()")
+    }
+    
+    async addListener(listener: stub.BoardListener) {
+        if (this.listeners.has(listener))
+            return
+
+        let closing = () => {
+            this.removeListener(listener)
+        }
+        listener.orb.addEventListener("close", closing)
+        this.listeners.set(listener, closing)
+    }
+    
+    async removeListener(listener: stub.BoardListener) {
+        let closing = this.listeners.get(listener)
+        if (closing === undefined)
+            return
+        this.listeners.delete(listener)
+        listener.orb.removeEventListener("close", closing)
     }
     
     async getData() {
@@ -280,22 +299,6 @@ class Board_impl extends skel.Board {
         return this.data
     }
 
-    async addListener(listener: stub.BoardListener) {
-        if (this.listeners.has(listener))
-            return
-        this.listeners.add(listener)
-//        listener.orb.addEventListener("close", () => {
-//            this.removeListener(listener)
-//        })
-    }
-    
-    async removeListener(listener: stub.BoardListener) {
-        if (!this.listeners.has(listener))
-            return
-        this.listeners.delete(listener)
-//        listener.orb.deleteEventListener("close", ...)
-    }
-    
     // FIXME: share code with client (BoardListener_impl.transform)
     async transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix) {
 //        console.log("Board_impl.transform(", figureIdArray, ", ", matrix, ")")
@@ -321,8 +324,9 @@ class Board_impl extends skel.Board {
                 break
             }
         }
-        for (let listener of this.listeners)
-            listener.transform(layerID, figureIdArray, matrix, newIdArray)
+        for (let listener of this.listeners) {
+            listener[0].transform(layerID, figureIdArray, matrix, newIdArray)
+        }
     }
 }
 
