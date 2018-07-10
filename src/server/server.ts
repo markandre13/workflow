@@ -312,6 +312,15 @@ class Board_impl extends skel.Board {
         return this.model
     }
 
+    layerById(layerID: number) {
+        for(let layer of this.model.layers) {
+            if (layer.id === layerID) {
+                return layer
+            }
+        }
+        throw Error("Board_impl: layerById("+layerID+"): unknown layer id")
+    }
+
     // FIXME: share code with client (BoardListener_impl.transform)
     async transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix) {
 //        console.log("Board_impl.transform(", figureIdArray, ", ", matrix, ")")
@@ -319,24 +328,24 @@ class Board_impl extends skel.Board {
         for(let id of figureIdArray)
             figureIdSet.add(id)
         let newIdArray = new Array<number>()
-        for (let layer of this.model.layers) {
-            if (layer.id === layerID) {
-                for (let index in layer.data) {
-                    let fig = layer.data[index]
-                    if (figureIdSet.has(fig.id)) {
-                        if (!fig.transform(matrix)) {
-                            let transform = new figure.Transform()
-                            transform.id = (layer as Layer).createFigureId()
-                            newIdArray.push(transform.id)
-                            transform.matrix = new Matrix(matrix)
-                            transform.children.push(fig)
-                            layer.data[index] = transform
-                        }
-                    }
-                }
-                break
-            }
+        
+        let layer = this.layerById(layerID)
+        for (let index in layer.data) {
+            let fig = layer.data[index]
+            if (!figureIdSet.has(fig.id))
+                continue
+                
+            if (fig.transform(matrix))
+                continue
+
+            let transform = new figure.Transform()
+            transform.id = (layer as Layer).createFigureId()
+            newIdArray.push(transform.id)
+            transform.matrix = new Matrix(matrix)
+            transform.children.push(fig)
+            layer.data[index] = transform
         }
+
         for (let listener of this.listeners) {
             listener[0].transform(layerID, figureIdArray, matrix, newIdArray)
         }

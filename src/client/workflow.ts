@@ -1108,34 +1108,45 @@ class BoardListener_impl extends skel.BoardListener {
         this.boardmodel = boardmodel
     }
 
-    async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix, newIds: Array<number>) {
-//        console.log("BoardListener_impl.transform(", figureIDs, ", ", matrix, ")")
-        // FIXME: too many loops
-        // FIXME: too many casts
+    layerById(layerID: number) {
         for(let layer of this.boardmodel.layers) {
-            if (layer.id === layerID) {
-                for(let id of figureIDs) {
-                    for(let index in layer.data) {
-                        let f = layer.data[index]
-                        if (id === f.id) {
-                            if (!f.transform(matrix)) {
-                                let transform = new figure.Transform()
-                                transform.id = newIds.shift()!
-                                transform.matrix = new Matrix(matrix)
-                                transform.children.push(f)
-                                let oldPath = f.getPath() as Path
-                                let newPath = transform.getPath() as Path
-                                (oldPath.svg as any).replaceWith(newPath.svg)
-//                                (f.getPath() as Path).svg.replaceWith(
-//                                    (transform.getPath() as Path).svg
-//                                )
-                                layer.data[index] = transform
-                                // ...
-                            }
-                        }
-                    }
-                }
-            }
+            if (layer.id === layerID)
+                return layer
+        }
+        throw Error("BoardListener_impl: layerById("+layerID+"): unknown layer id")
+    }
+
+    async transform(layerId: number, figureIdArray: Array<number>, matrix: Matrix, newIds: Array<number>) {
+//        console.log("BoardListener_impl.transform(", figureIDs, ", ", matrix, ")")
+        // FIXME: too many casts
+        
+        let layer = this.layerById(layerId)
+
+        let figureIdSet = new Set<number>()
+        for(let id of figureIdArray)
+            figureIdSet.add(id)
+        
+        for(let index in layer.data) {
+            let fig = layer.data[index]
+
+            if (!figureIdSet.has(fig.id))
+                continue
+
+            if (fig.transform(matrix))
+                continue
+
+            let transform = new figure.Transform()
+            transform.id = newIds.shift()!
+            transform.matrix = new Matrix(matrix)
+            transform.children.push(fig)
+            let oldPath = fig.getPath() as Path
+            let newPath = transform.getPath() as Path
+            (oldPath.svg as any).replaceWith(newPath.svg)
+//            (f.getPath() as Path).svg.replaceWith(
+//                (transform.getPath() as Path).svg
+//            )
+            layer.data[index] = transform
+            // ...
         }
     }
 }
