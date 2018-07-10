@@ -206,17 +206,6 @@ class Server_impl extends skel.Server {
         }
     }
     
-    async translateFigures(delta: Point) {
-        console.log("Server_impl.translateFigures(): ", delta)
-/*
-        let project = projectStorage.get(projectID)
-        let board = project.get(boardID)
-        let layer = board.get(layerID)
-        let figure = layer.get(figureID)
-        figure.translate(delta)
-*/
-    }
-    
     async getProject(projectID: number) {
         console.log("Server_impl.getProject("+projectID+")")
         
@@ -417,22 +406,11 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
         this.fill = "#f80"
     }
     
-    translate(delta: Point) { // FIXME: store
-/*
-        if (this.path === undefined)
-            return
-        this.path.translate(delta)
-        this.path.update()
-*/
-    }
-
     transform(transform: Matrix): boolean {
         if (!transform.isOnlyTranslateAndScale())
             return false
         this.origin = transform.transformPoint(this.origin)
         this.size   = transform.transformSize(this.size)
-//console.log("server: transformed rectangle to ", this)
-//        this.update()
         return true
     }
     
@@ -480,27 +458,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
     
     getPath(): Path {
 	throw Error("not implemented")
-/*
-       if (this.path === undefined) {
-           this.path = new Path()
-           this.update()
-       }
-       return this.path
-*/
     }
-/*
-    update(): void {
-        if (!this.path)
-          return
-        
-        this.path.clear()
-        this.path.appendRect(this)
-        this.path.update()
-
-        this.path.svg.setAttributeNS("", "stroke", this.stroke)
-        this.path.svg.setAttributeNS("", "fill", this.fill)
-    }
-*/
 }
 
 export class Group extends Figure implements valuetype.figure.Group
@@ -510,10 +468,6 @@ export class Group extends Figure implements valuetype.figure.Group
     constructor(init?: Partial<Group>) {
         super(init)
         valuetype.figure.initGroup(this, init)
-    }
-
-    translate(delta: Point) { // FIXME: store
-        throw Error("not yet implemented")
     }
 
     transform(transform: Matrix): boolean {
@@ -545,7 +499,6 @@ export class Group extends Figure implements valuetype.figure.Group
 
 
 export class Transform extends Group implements valuetype.figure.Transform {
-    path?: Path
     matrix!: Matrix
 
     constructor(init?: Partial<Transform>) {
@@ -553,24 +506,8 @@ export class Transform extends Group implements valuetype.figure.Transform {
         valuetype.figure.initTransform(this, init)
     }
 
-    translate(delta: Point) { // FIXME: store
-        this.matrix.translate(delta)
-/*
-        if (this.path) {
-            this.path.translate(delta)
-            this.path.update()
-        }
-*/
-    }
-
     transform(transform: Matrix): boolean {
         this.matrix.append(transform)
-/*
-        if (this.path) {
-            this.path.transform(transform)
-            this.path.update()
-        }
-*/
         return true
     }
     
@@ -583,12 +520,6 @@ export class Transform extends Group implements valuetype.figure.Transform {
 
     bounds(): geometry.Rectangle {
         throw Error("not implemented")
-/*
-        let path = new Path()
-        path.appendRect(this.children[0].bounds())
-        path.transform(this.matrix)
-        return path.bounds()
-*/
     }
     
     getHandlePosition(i: number): Point | undefined {
@@ -600,20 +531,7 @@ export class Transform extends Group implements valuetype.figure.Transform {
     
     getPath(): Path {
         throw Error("not implemented")
-/*
-       if (this.path === undefined) {
-           let path = this.children[0]!.getPath() as Path
-           this.path = new Path(path)
-           this.path.transform(this.matrix)
-           this.path.update()
-       }
-       return this.path
-*/
     }
-/*
-    update(): void {
-    }
-*/
 }
 
 

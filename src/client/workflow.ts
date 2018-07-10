@@ -230,13 +230,6 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
         this.fill = "#f80"
     }
     
-    translate(delta: Point) { // FIXME: store
-        if (this.path === undefined)
-            return
-        this.path.translate(delta)
-        this.path.update()
-    }
-
     transform(transform: Matrix): boolean {
         if (!transform.isOnlyTranslateAndScale())
             return false
@@ -318,10 +311,6 @@ export class Group extends Figure implements valuetype.figure.Group
         valuetype.figure.initGroup(this, init)
     }
 
-    translate(delta: Point) { // FIXME: store
-        throw Error("not yet implemented")
-    }
-
     transform(transform: Matrix): boolean {
         return true
     }
@@ -356,14 +345,6 @@ export class Transform extends Group implements valuetype.figure.Transform {
     constructor(init?: Partial<Transform>) {
         super(init)
         valuetype.figure.initTransform(this, init)
-    }
-
-    translate(delta: Point) { // FIXME: store
-        this.matrix.translate(delta)
-        if (this.path) {
-            this.path.translate(delta)
-            this.path.update()
-        }
     }
 
     transform(transform: Matrix): boolean {
@@ -434,9 +415,6 @@ class Layer extends valueimpl.Layer
         }
         return nearestFigure
     }
-    
-//    translateFigures(delta: Point) {
-//    }
 }
 
 export class Path
@@ -774,10 +752,6 @@ class SelectTool extends Tool {
         }
         
         // mouse move for handle
-        // ...
-//        Client_impl.server!.translateFigures(/*selection.selection,*/ new Point(11, 38))
-//        event.editor.selectedLayer.translateFigures(new Point(47, 11))
-
         let delta = pointMinusPoint(event, this.mouseDownAt!)
         for(let decorator of this.decoration) {
             decorator.translate(delta)
@@ -788,21 +762,6 @@ class SelectTool extends Tool {
         this.updateOutline(event.editor)
         event.editor.transformSelection(this.transformation)
         this.mouseDownAt = event
-        
-/*        
-        // translate selection (figures, handles, outline)
-        let dx = event.x-this.x;
-        let dy = event.y-this.y;
-    
-        // translate selected figures
-        for(let f of this.figure)
-            event.editor.activeLayer.sendMoveFigureMessage(f, dx, dy);
-    
-        // translate the handles (& outline)
-        for(let h of this.handler) {
-            h.move({x: dx, y: dy});
-        }
-*/
     }
 
     mouseup(event: EditorEvent) {
