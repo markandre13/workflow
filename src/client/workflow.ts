@@ -48,9 +48,11 @@ export async function main(url: string) {
     let orb = new ORB()
 //    orb.debug = 1
 
-    orb.register("Client", Client_impl)
-    orb.registerStub("Project", stub.Project)
-    orb.registerStub("Board", stub.Board)
+//    orb.register("Client", Client_impl)
+    orb.registerStubClass(stub.WorkflowServer)
+    orb.registerStubClass(stub.Server)
+    orb.registerStubClass(stub.Project)
+    orb.registerStubClass(stub.Board)
 
     ORB.registerValueType("Point", Point)
     ORB.registerValueType("Size", Size)
@@ -74,32 +76,35 @@ export async function main(url: string) {
         return
     }
 
-    let session=""
-    if (document.cookie) {
-        let cookies = document.cookie.split(";")
-        for(let i=0; i<cookies.length; ++i) {
-            let str = cookies[i].trim()
-            if (str.indexOf("session=") == 0) {
-                session = str.substring(8, str.length)
-                break
-            }
-        }
-    }
-
-    Client_impl.server = new stub.Server(orb)
-    Client_impl.server.init(session)
+    let workflowserver = stub.WorkflowServer.narrow(await orb.resolve("WorkflowServer"))
+    let sessionServerSide = await workflowserver.getServer()
+    let sessionClientSide = new Client_impl(orb, sessionServerSide)
 }
 
 class Client_impl extends skel.Client {
-    static server?: stub.Server
     server: stub.Server
 
-    constructor(orb: ORB) {
+    constructor(orb: ORB, server: stub.Server) {
         super(orb)
         console.log("Client_impl.constructor()")
-        if (Client_impl.server === undefined)
-            throw Error("Client_impl.constructor(): no server")
-        this.server = Client_impl.server
+        this.server = server
+        server.setClient(this)
+        this.initializeSession()
+    }
+    
+    initializeSession() {
+        let session=""
+        if (document.cookie) {
+            let cookies = document.cookie.split(";")
+            for(let i=0; i<cookies.length; ++i) {
+                let str = cookies[i].trim()
+                if (str.indexOf("session=") == 0) {
+                    session = str.substring(8, str.length)
+                    break
+                }
+            }
+        }
+        this.server.init(session)
     }
 
     async logonScreen(lifetime: number, disclaimer: string, inRemember: boolean, errorMessage: string) {

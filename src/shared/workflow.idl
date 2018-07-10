@@ -152,13 +152,6 @@ interface Project {
     Board getBoard(in unsigned long boardID);
 };
 
-interface Server {
-    oneway void init(in string session);
-    oneway void logon(in string user, in string password, in boolean remember);
-    oneway void translateFigures(/*in sequence<Figure> figures,*/ in Point delta);
-    Project getProject(in unsigned long projectID);
-};
-
 interface Client {
     oneway void logonScreen(in unsigned long lifetime, in string disclaimer, in boolean remember, in string errorMessage);
     oneway void homeScreen(
@@ -166,4 +159,16 @@ interface Client {
 	in string avatar,
 	in string email,
 	in string fullname);
+};
+
+interface Server {
+    oneway void setClient(in Client client);
+    oneway void init(in string session);
+    oneway void logon(in string user, in string password, in boolean remember);
+    oneway void translateFigures(/*in sequence<Figure> figures,*/ in Point delta);
+    Project getProject(in unsigned long projectID);
+};
+
+interface WorkflowServer {
+    Server getServer();
 };

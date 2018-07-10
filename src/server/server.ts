@@ -114,10 +114,11 @@ async function main() {
 
     let orb = new ORB()
 //orb.debug = 1
-    orb.register("Server", Server_impl)
-    orb.register("Project", Project_impl)
-    orb.register("Board", Board_impl)
-    orb.registerStub("BoardListener", stub.BoardListener)
+//    orb.register("Server", Server_impl)
+//    orb.register("Project", Project_impl)
+//    orb.register("Board", Board_impl)
+    orb.registerStubClass(stub.Client)
+    orb.registerStubClass(stub.BoardListener)
     ORB.registerValueType("Point", Point)
     ORB.registerValueType("Size", Size)
     ORB.registerValueType("Matrix", Matrix)
@@ -129,20 +130,27 @@ async function main() {
     ORB.registerValueType("FigureModel", FigureModel)
     ORB.registerValueType("BoardData", valueimpl.BoardData)
     ORB.registerValueType("Layer", Layer)
+    
+    orb.bind("WorkflowServer", new WorkflowServer_impl(orb))
 
     orb.listen("0.0.0.0", 8000)
 
     console.log("listening...")
 }
 
+class WorkflowServer_impl extends skel.WorkflowServer {
+    async getServer() {
+        return new Server_impl(this.orb)
+    }
+}
+
 class Server_impl extends skel.Server {
-    client: stub.Client
+    client?: stub.Client
     static projects = new Map<number, Project_impl>()
 
     constructor(orb: ORB) {
         super(orb)
         console.log("Server_impl.constructor()")
-        this.client = new stub.Client(orb)
     }
     
     destructor() { // FIXME: corba.js should invoke this method when the connection get's lost?
@@ -150,10 +158,15 @@ class Server_impl extends skel.Server {
 //        this.board.unregisterWatcher(this)
     }
     
+    async setClient(client: stub.Client) {
+        console.log("Server_impl.setClient()")
+        this.client = client
+    }
+    
     async init(aSession: string) {
         console.log("Server_impl.init()")
         if (testing) {
-            this.client.homeScreen("", "img/avatars/pig.svg", "pig@mark13.org", "Pig")
+            this.client!.homeScreen("", "img/avatars/pig.svg", "pig@mark13.org", "Pig")
             return
         }
         if (aSession.length !== 0) {
@@ -163,11 +176,11 @@ class Server_impl extends skel.Server {
             let result = await db.select("uid", "avatar", "email", "fullname", "sessionkey").from("users").where({logon: logon, sessionkey: sessionkey})
             if (result.length === 1) {
                 let user = result[0]
-                this.client.homeScreen("", user.avatar, user.email, user.fullname)
+                this.client!.homeScreen("", user.avatar, user.email, user.fullname)
                 return
             }
         }
-        this.client.logonScreen(30, disclaimer, false, "")
+        this.client!.logonScreen(30, disclaimer, false, "")
     }
 
     async logon(logon: string, password: string, remember: boolean) {
@@ -182,14 +195,14 @@ class Server_impl extends skel.Server {
 //            this.board = board
 //            this.board.registerWatcher(this)
 
-            this.client.homeScreen(
+            this.client!.homeScreen(
                 // FIXME: hardcoded server URL
                 "session="+logon+":"+base64SessionKey+"; domain=192.168.1.105; path=/~mark/workflow/; max-age="+String(60*60*24*1),
                 user.avatar,
                 user.email,
                 user.fullname)
         } else {
-            this.client.logonScreen(30, disclaimer, remember, "Unknown user and/or password. Please try again.")
+            this.client!.logonScreen(30, disclaimer, remember, "Unknown user and/or password. Please try again.")
         }
     }
     
