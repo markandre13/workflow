@@ -163,7 +163,7 @@ class Server_impl extends skel.Server {
         this.client = client
     }
     
-    async init(aSession: string) {
+    async initializeWebSession(aSession: string) {
         console.log("Server_impl.init()")
         if (testing) {
             this.client!.homeScreen("", "img/avatars/pig.svg", "pig@mark13.org", "Pig")

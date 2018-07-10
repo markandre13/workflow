@@ -106,7 +106,7 @@ class Client_impl extends skel.Client {
                 }
             }
         }
-        this.server.init(session)
+        this.server.initializeWebSession(session)
     }
 
     async logonScreen(lifetime: number, disclaimer: string, inRemember: boolean, errorMessage: string) {
