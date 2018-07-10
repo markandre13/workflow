@@ -29,7 +29,7 @@ import { ORB } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba
 import * as iface from "../shared/workflow"
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
-import { Figure, FigureModel, BoardData } from "../shared/workflow_valueimpl"
+import { Figure, FigureModel, BoardModel } from "../shared/workflow_valueimpl"
 
 import * as geometry from "../shared/geometry"
 import { Point, Size, Rectangle, Matrix } from "../shared/geometry"
@@ -128,7 +128,7 @@ async function main() {
     ORB.registerValueType("figure.Group", valueimpl.figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
     ORB.registerValueType("FigureModel", FigureModel)
-    ORB.registerValueType("BoardData", valueimpl.BoardData)
+    ORB.registerValueType("BoardModel", valueimpl.BoardModel)
     ORB.registerValueType("Layer", Layer)
     
     orb.bind("WorkflowServer", new WorkflowServer_impl(orb))
@@ -269,8 +269,8 @@ class Project_impl extends skel.Project {
         }
 
         result[0].layers = this.orb.deserialize(result[0].layers)
-        let boarddata = new valueimpl.BoardData(result[0])
-        board = new Board_impl(this.orb, boarddata)
+        let boardmodel = new valueimpl.BoardModel(result[0])
+        board = new Board_impl(this.orb, boardmodel)
         this.boards.set(boardID, board)
         console.log("return restored board "+boardID)
         return board
@@ -278,12 +278,12 @@ class Project_impl extends skel.Project {
 }
 
 class Board_impl extends skel.Board {
-    data: BoardData
+    model: BoardModel
     listeners: Map<stub.BoardListener, EventListener>
 
-    constructor(orb: ORB, data: BoardData) {
+    constructor(orb: ORB, model: BoardModel) {
         super(orb)
-        this.data = data
+        this.model = model
         this.listeners = new Map<stub.BoardListener, EventListener>()
         console.log("Board_impl.constructor()")
     }
@@ -307,9 +307,9 @@ class Board_impl extends skel.Board {
         listener.orb.removeEventListener("close", closing)
     }
     
-    async getData() {
+    async getModel() {
 //console.log("Board_impl.getData()")
-        return this.data
+        return this.model
     }
 
     // FIXME: share code with client (BoardListener_impl.transform)
@@ -319,7 +319,7 @@ class Board_impl extends skel.Board {
         for(let id of figureIdArray)
             figureIdSet.add(id)
         let newIdArray = new Array<number>()
-        for (let layer of this.data.layers) {
+        for (let layer of this.model.layers) {
             if (layer.id === layerID) {
                 for (let index in layer.data) {
                     let fig = layer.data[index]

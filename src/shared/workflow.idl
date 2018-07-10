@@ -126,12 +126,18 @@ valuetype Card {
     public string description;
 };
 
-valuetype BoardData {
+valuetype BoardModel {
     public unsigned long bid;
     public string name;
     public string description;
     public sequence<Layer> layers;
 };
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Interfaces
+//
+/////////////////////////////////////////////////////////////////////////////
 
 interface BoardListener {
     oneway void transform(in unsigned long layerID,
@@ -141,7 +147,7 @@ interface BoardListener {
 };
 
 interface Board {
-    BoardData getData();
+    BoardModel getModel();
     oneway void addListener(in BoardListener listener);
     oneway void removeListener(in BoardListener listener);
     // FIXME? how about transforming figures on different layers at the same time?
@@ -153,6 +159,7 @@ interface Project {
 };
 
 interface Client {
+    // logon
     oneway void logonScreen(in unsigned long lifetime, in string disclaimer, in boolean remember, in string errorMessage);
     oneway void homeScreen(
     	in string cookie,
@@ -162,9 +169,14 @@ interface Client {
 };
 
 interface Server {
+    // initial contact
     oneway void setClient(in Client client);
+
+    // logon
     oneway void initializeWebSession(in string session);
     oneway void logon(in string user, in string password, in boolean remember);
+
+    // ...
     oneway void translateFigures(/*in sequence<Figure> figures,*/ in Point delta);
     Project getProject(in unsigned long projectID);
 };

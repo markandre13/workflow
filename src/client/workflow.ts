@@ -63,9 +63,9 @@ export async function main(url: string) {
     ORB.registerValueType("figure.Group", figure.Transform)
     ORB.registerValueType("figure.Transform", figure.Transform)
 
-    ORB.registerValueType("FigureModel", FigureModel)
+//    ORB.registerValueType("FigureModel", FigureModel)
     ORB.registerValueType("Layer", Layer)
-    ORB.registerValueType("BoardData", BoardData)
+    ORB.registerValueType("BoardModel", BoardModel)
 
     try {
         await orb.connect(url)
@@ -173,13 +173,13 @@ class Client_impl extends skel.Client {
         let project = await this.server.getProject(1)
         let board = await project.getBoard(1)
         
-        let boarddata = await board.getData() as BoardData // FIXME: getData should also set the listener so that we won't skip a beat
-        boarddata.board = board
+        let boardmodel = await board.getModel() as BoardModel // FIXME: getData should also set the listener so that we won't skip a beat
+        boardmodel.board = board
 
-        let boardListener = new BoardListener_impl(this.orb, boarddata)
+        let boardListener = new BoardListener_impl(this.orb, boardmodel)
         board.addListener(boardListener)
 
-        bind("board", boarddata)
+        bind("board", boardmodel)
 
         dom.erase(document.body);
         dom.add(document.body, homeScreen);
@@ -1083,7 +1083,7 @@ class SelectTool extends Tool {
     }
 }
 
-class BoardData extends valueimpl.BoardData
+class BoardModel extends valueimpl.BoardModel
 {
     modified: Signal
     board?: stub.Board
@@ -1091,7 +1091,7 @@ class BoardData extends valueimpl.BoardData
     constructor() {
         super()
         this.modified = new Signal()
-        console.log("BoardData.constructor()")
+        console.log("BoardModel.constructor()")
     }
     
     // FIXME: too many functions to do stuff
@@ -1101,18 +1101,18 @@ class BoardData extends valueimpl.BoardData
 }
 
 class BoardListener_impl extends skel.BoardListener {
-    boarddata: BoardData
+    boardmodel: BoardModel
 
-    constructor(orb: ORB, boarddata: BoardData) {
+    constructor(orb: ORB, boardmodel: BoardModel) {
         super(orb)
-        this.boarddata = boarddata
+        this.boardmodel = boardmodel
     }
 
     async transform(layerID: number, figureIDs: Array<number>, matrix: Matrix, newIds: Array<number>) {
 //        console.log("BoardListener_impl.transform(", figureIDs, ", ", matrix, ")")
         // FIXME: too many loops
         // FIXME: too many casts
-        for(let layer of this.boarddata.layers) {
+        for(let layer of this.boardmodel.layers) {
             if (layer.id === layerID) {
                 for(let id of figureIDs) {
                     for(let index in layer.data) {
@@ -1140,7 +1140,7 @@ class BoardListener_impl extends skel.BoardListener {
     }
 }
 
-class FigureEditor extends GenericView<BoardData> {
+class FigureEditor extends GenericView<BoardModel> {
 
     scrollView: HTMLDivElement
     bounds: Rectangle
