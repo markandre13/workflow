@@ -48,7 +48,6 @@ export async function main(url: string) {
     let orb = new ORB()
 //    orb.debug = 1
 
-//    orb.register("Client", Client_impl)
     orb.registerStubClass(stub.WorkflowServer)
     orb.registerStubClass(stub.Server)
     orb.registerStubClass(stub.Project)
@@ -69,11 +68,14 @@ export async function main(url: string) {
     ORB.registerValueType("BoardData", BoardData)
 
     try {
-        await orb.connect(url) // FIXME: provide callbacks on ORB like onerror, etc. via getters/setters to WebSocket
+        await orb.connect(url)
     }
     catch(error) {
         document.body.innerHTML = "could not connect to workflow server '"+url+"'. please try again later."
         return
+    }
+    orb.onclose = () => {
+        document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
     }
 
     let workflowserver = stub.WorkflowServer.narrow(await orb.resolve("WorkflowServer"))
