@@ -69,31 +69,27 @@ export class SelectTool extends Tool {
         this.mouseDownAt = event
 
         if (this.downHandle(event)) {
-            console.log("down handle")
+            this.state = State.MOVE_HANDLE
             return
         }
-        console.log("not handle")
 
         this.transformation.identity()
 
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         
         if (figure === undefined) {
-            this.clearDecoration(event.editor)
-            for(let figure of Tool.selection.selection)
-                this.destroyOutline(event.editor, figure)
-            Tool.selection.clear()
+            this.clearSelection(event)
+            this.state = State.DRAG_MARQUEE
             return
         }
         
-        if (Tool.selection.has(figure))
+        if (Tool.selection.has(figure)) {
+            this.state = State.MOVE_SELECTION
             return
+        }
         
         if (!event.shiftKey) {
-            this.clearDecoration(event.editor)
-            for(let figure of Tool.selection.selection)
-                this.destroyOutline(event.editor, figure)
-            Tool.selection.clear()
+            this.clearSelection(event)
         }
             
         Tool.selection.add(figure)
@@ -105,61 +101,43 @@ export class SelectTool extends Tool {
 
     mousemove(event: EditorEvent) {
         console.log("SelectTool.mousemove()")
+        
         switch(this.state) {
             case State.MOVE_HANDLE:
                 this.moveHandle(event)
-                return
+                break
+            case State.DRAG_MARQUEE:
+                this.dragMarquee(event)
+                break
+            case State.MOVE_SELECTION:
+                this.moveSelection(event)
+                break
         }
-
-        if (Tool.selection.empty() && this.svgMarquee === undefined) {
-            this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-            this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
-            this.svgMarquee.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
-            event.editor.decorationOverlay.appendChild(this.svgMarquee)
-        }
-        if (this.svgMarquee) {
-            let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
-            if (x1<x0) [x0,x1] = [x1,x0]
-            if (y1<y0) [y0,y1] = [y1,y0]
-            this.svgMarquee.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
-            this.svgMarquee.setAttributeNS("", "y", String(Math.round(y0)+0.5))
-            this.svgMarquee.setAttributeNS("", "width", String(Math.round(x1-x0)))
-            this.svgMarquee.setAttributeNS("", "height", String(Math.round(y1-y0)))
-            return
-        }
-        
-        // mouse move for handle
-        let delta = pointMinusPoint(event, this.mouseDownAt!)
-        for(let decorator of this.decoration) {
-            decorator.translate(delta)
-            decorator.update()
-        }
-        this.transformation.identity()
-        this.transformation.translate(delta)
-        this.updateOutline(event.editor)
-        event.editor.transformSelection(this.transformation)
-        this.mouseDownAt = event
     }
 
     mouseup(event: EditorEvent) {
         console.log("SelectTool.mouseup()")
         switch(this.state) {
             case State.DRAG_MARQUEE:
+                this.stopMarquee(event)
                 break
             case State.MOVE_HANDLE:
                 this.moveHandle(event)
                 this.stopHandle(event)
-                return
+                break
             case State.MOVE_SELECTION:
+                this.moveSelection(event)
+                this.stopMove(event)
                 break
         }
-        this.mouseDownAt = undefined
-        if (!event.editor.selectedLayer)
-            return
-        if (this.svgMarquee) {
-            event.editor.decorationOverlay.removeChild(this.svgMarquee)
-            this.svgMarquee = undefined
-        }
+        this.state = State.NONE
+    }
+    
+    clearSelection(event: EditorEvent) {
+        this.clearDecoration(event.editor)
+        for(let figure of Tool.selection.selection)
+            this.destroyOutline(event.editor, figure)
+        Tool.selection.clear()
     }
 
     updateOutline(editor: FigureEditor) {
@@ -334,19 +312,18 @@ export class SelectTool extends Tool {
             return false
         for(let handle = 0; handle<16; ++handle) {
             let rectangle = this.getBoundaryHandle(handle)
-            if (rectangle.contains(event)) {
-                this.state = State.MOVE_HANDLE
-                this.selectedHandle = handle
-                this.handleStart = event
-                this.transformation.identity()
-                this.oldBoundary = new Rectangle(this.boundary)
-                if (handle >= 8) {
-                    this.rotationCenter = this.boundary.center()
-                    this.rotationStartDirection = Math.atan2(event.y - this.rotationCenter.y,
-                                                             event.x - this.rotationCenter.x)
-                }
-                return true
+            if (!rectangle.contains(event))
+                continue
+            this.selectedHandle = handle
+            this.handleStart = event
+            this.transformation.identity()
+            this.oldBoundary = new Rectangle(this.boundary)
+            if (handle >= 8) {
+                this.rotationCenter = this.boundary.center()
+                this.rotationStartDirection = Math.atan2(event.y - this.rotationCenter.y,
+                                                         event.x - this.rotationCenter.x)
             }
+            return true
         }
         return false
     }
@@ -416,5 +393,56 @@ export class SelectTool extends Tool {
     stopHandle(event: EditorEvent) {
         this.state = State.NONE
         event.editor.transformSelection(this.transformation)
+    }
+
+    /*******************************************************************
+     *                                                                 *
+     *                            M A R Q U E E                        *
+     *                                                                 *
+     *******************************************************************/
+
+    dragMarquee(event: EditorEvent) {
+        if (this.svgMarquee === undefined) {
+            this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
+            this.svgMarquee.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
+            event.editor.decorationOverlay.appendChild(this.svgMarquee)
+        }
+        let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
+        if (x1<x0) [x0,x1] = [x1,x0]
+        if (y1<y0) [y0,y1] = [y1,y0]
+        this.svgMarquee.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
+        this.svgMarquee.setAttributeNS("", "y", String(Math.round(y0)+0.5))
+        this.svgMarquee.setAttributeNS("", "width", String(Math.round(x1-x0)))
+        this.svgMarquee.setAttributeNS("", "height", String(Math.round(y1-y0)))
+    }
+    
+    stopMarquee(event: EditorEvent) {
+        event.editor.decorationOverlay.removeChild(this.svgMarquee!)
+        this.svgMarquee = undefined
+        this.mouseDownAt = undefined
+    }
+
+    /*******************************************************************
+     *                                                                 *
+     *                   M O V E   S E L E C T I O N                   *
+     *                                                                 *
+     *******************************************************************/
+    
+    moveSelection(event: EditorEvent) {
+        let delta = pointMinusPoint(event, this.mouseDownAt!)
+        for(let decorator of this.decoration) {
+            decorator.translate(delta)
+            decorator.update()
+        }
+        this.transformation.identity()
+        this.transformation.translate(delta)
+        this.updateOutline(event.editor)
+        event.editor.transformSelection(this.transformation)
+        this.mouseDownAt = event
+    }
+    
+    stopMove(event: EditorEvent) {
+        this.mouseDownAt = undefined
     }
 }
