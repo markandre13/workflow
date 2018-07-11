@@ -103,17 +103,20 @@ console.log("FigureEditor.constructor()")
         this.scrollView.style.width="100%"
         this.scrollView.style.height="100%"
         this.scrollView.onmousedown = (mouseEvent: MouseEvent) => {
+            mouseEvent.preventDefault()
             this.mouseButtonIsDown = true
             if (this.tool && this.selectedLayer)
                 this.tool.mousedown(this.createEditorEvent(mouseEvent))
         }
         this.scrollView.onmousemove = (mouseEvent: MouseEvent) => {
+            mouseEvent.preventDefault()
             if (!this.mouseButtonIsDown)
                 return
             if (this.tool && this.selectedLayer)
                 this.tool.mousemove(this.createEditorEvent(mouseEvent))
         }
         this.scrollView.onmouseup = (mouseEvent: MouseEvent) => {
+            mouseEvent.preventDefault()
             this.mouseButtonIsDown = false
             if (this.tool && this.selectedLayer)
                 this.tool.mouseup(this.createEditorEvent(mouseEvent))
