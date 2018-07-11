@@ -18,9 +18,8 @@
 
 import * as dom from "toad.js/lib/dom"
 import {
-    Action, Signal, Model, Template, Window,
-    RadioButtonBase, RadioStateModel, FatRadioButton,
-    TextModel, HtmlModel, BooleanModel, NumberModel, TableModel, SelectionModel,
+    Action, Signal, Model, Template,
+    TextModel, HtmlModel,
     TableEditMode,
     View, GenericView, TextView,
     bind, action,
@@ -48,14 +47,14 @@ import { Figure } from "./figure"
 import { Path } from "./Path"
 
 import { Tool, SelectTool } from "./tool"
-import { FigureEditor, LayerModel, FigureSelection, EditorEvent } from "./editor"
+import { FigureEditor, ToolModel, LayerModel, FigureSelection, EditorEvent } from "./editor"
 
 export async function main(url: string) {
 
     let orb = new ORB()
 //    orb.debug = 1
 
-    window.customElements.define("workflow-board", FigureEditor)
+    window.customElements.define("toad-figureeditor", FigureEditor)
 
     orb.registerStubClass(stub.WorkflowServer)
     orb.registerStubClass(stub.Server)
@@ -178,7 +177,13 @@ class Client_impl extends skel.Client {
         action("account|logout", () => {
         })
   
-        // bind("toolselector", toolselector)
+        let toolmodel = new ToolModel()
+        toolmodel.add("select", new SelectTool())
+        toolmodel.add("rectangle", new SelectTool())
+        toolmodel.stringValue = "select"
+        bind("tool", toolmodel)  // for tool buttons
+        bind("board", toolmodel) // for figureeditor
+
         let project = await this.server.getProject(1)
         let board = await project.getBoard(1)
         

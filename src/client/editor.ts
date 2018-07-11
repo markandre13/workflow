@@ -16,11 +16,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Signal, GenericView } from "toad.js"
+import { Signal, GenericView, Model, OptionModel, globalController } from "toad.js"
 import { Point, Rectangle, Matrix } from "../shared/geometry"
 import { Path } from "./Path"
 import { Figure, Layer } from "../shared/workflow_valuetype"
 import { Tool, SelectTool } from "./tool"
+
+export class ToolModel extends OptionModel<Tool> {
+}
 
 export interface LayerModel {
     modified: Signal
@@ -79,6 +82,8 @@ export class FigureEditor extends GenericView<LayerModel> {
     svgView: SVGElement
 
     tool?: Tool
+    toolModel?: ToolModel
+    
     mouseButtonIsDown: boolean
     
     selectedLayer?: Layer
@@ -127,12 +132,37 @@ console.log("FigureEditor.constructor()")
         this.attachShadow({mode: 'open'})
         this.shadowRoot!.appendChild(this.scrollView)
     }
+    
+    setModel(model?: Model): void {
+        if (model === undefined) {
+            if (this.toolModel) {
+                this.toolModel.modified.remove(this)
+                this.toolModel = undefined
+            }
+            super.setModel(undefined)
+        } else
+        if (model instanceof ToolModel) {
+console.log("FigureEditor.setModel(): ToolModel")
+            if (this.toolModel === model)
+                return
+            this.toolModel = model
+            this.toolModel.modified.add( () => {
+                console.log("new tool")
+                this.tool = this.toolModel!.value
+            }, this)
+            return
+        } else {
+console.log("FigureEditor.setModel(): LayerModel")
+            super.setModel(model as LayerModel)
+        }
+    }
+
     updateModel() {
-        console.log("BoardView.updateModel()")
+        console.log("FigureEditor.updateModel()")
     }
 
     updateView() {
-        console.log("BoardView.updateView()")
+        console.log("FigureEditor.updateView()")
         if (this.model === undefined) {
             return
         }
