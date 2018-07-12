@@ -75,6 +75,55 @@ export class Rectangle extends valueimpl.Rectangle {
         return this.origin.x <= p.x && p.x <= this.origin.x + this.size.width &&
                this.origin.y <= p.y && p.y <= this.origin.y + this.size.height
     }
+    
+    intersects(r: Rectangle): boolean {
+        // based on Dan Cohen and Ivan Sutherland's clipping algorithm
+        let x00 = this.origin.x
+        let x01 = x00 + this.size.width
+        if (x00>x01) {
+            [x00, x01] = [x01, x00]
+        }
+
+        let x10 = r.origin.x
+        let x11 = x10 + r.size.width
+        if (x10>x11) {
+            [x10, x11] = [x11, x10]
+        }
+
+        let y00 = this.origin.y
+        let y01 = y00 + this.size.height
+        if (y00>y01) {
+            [y00, y01] = [ y01, y00 ]
+        }
+
+        let y10 = r.origin.y
+        let y11 = y10 + r.size.height
+        if (y10>y11) {
+            [y10, y11] = [y11, y10]
+        }
+
+        let f0 = 0
+        if (x00 < x10)
+            f0 |= 1
+        if (x00 > x11)
+            f0 |= 2
+        if (y00 < y10)
+            f0 |= 4
+        if (y00 > y11)
+            f0 |= 8
+
+        let f1 = 0
+        if (x01 < x10)
+            f1 |= 1
+        if (x01 > x11)
+            f1 |= 2
+        if (y01 < y10)
+            f1 |= 4
+        if (y01 > y11)
+            f1 |= 8
+
+        return (f0 & f1)==0;
+    }
 
     expandByPoint(p: Point): Rectangle {
         if (p.x < this.origin.x) {
