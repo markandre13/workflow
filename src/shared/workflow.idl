@@ -61,6 +61,16 @@ valuetype Matrix {
 valuetype Rectangle {
     public Point origin;
     public Size size;
+
+    Rectangle set(in double x, in double y, in double width, in double height);
+    boolean contains(in Point point);
+    boolean containsRectangle(in Rectangle rectangle);
+    boolean intersects(in Rectangle rectangle);
+    Rectangle expandByPoint(in Point point);
+    Point center();
+    Rectangle expandByRectangle(in Rectangle rectangle);
+    Rectangle inflate(in double expansion);
+
 };
 
 valuetype Figure {

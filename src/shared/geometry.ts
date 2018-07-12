@@ -76,6 +76,13 @@ export class Rectangle extends valueimpl.Rectangle {
                this.origin.y <= p.y && p.y <= this.origin.y + this.size.height
     }
     
+    containsRectangle(r: Rectangle): boolean {
+        return this.contains(r.origin) &&
+               this.contains(new Point({x: r.origin.x + r.size.width, y: r.origin.y                    })) &&
+               this.contains(new Point({x: r.origin.x + r.size.width, y: r.origin.y + r.size.height })) &&
+               this.contains(new Point({x: r.origin.x               , y: r.origin.y + r.size.height }))
+    }
+    
     intersects(r: Rectangle): boolean {
         // based on Dan Cohen and Ivan Sutherland's clipping algorithm
         let x00 = this.origin.x

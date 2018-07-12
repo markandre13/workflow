@@ -39,7 +39,9 @@ export class SelectTool extends Tool {
     decoration: Array<Path>
     mouseDownAt?: Point
 
+    marqueeRectangle?: Rectangle
     svgMarquee?: SVGElement
+    marqueeOutlines: Map<Figure, Path>
     
     selectedHandle: number
     handleStart: Point
@@ -54,6 +56,7 @@ export class SelectTool extends Tool {
         this.state = State.NONE
         this.boundary = new Rectangle()
         this.decoration = new Array<Path>()
+        this.marqueeOutlines = new Map<Figure, Path>()
         
         this.selectedHandle = 0
         this.handleStart = new Point()
@@ -414,27 +417,76 @@ export class SelectTool extends Tool {
      *******************************************************************/
 
     private dragMarquee(event: EditorEvent) {
-        if (this.svgMarquee === undefined) {
-            this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-            this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
-            this.svgMarquee.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
-            event.editor.decorationOverlay.appendChild(this.svgMarquee)
+        if (this.svgMarquee === undefined)
+            this.createMarquee(event.editor)
+        this.updateMarquee(event)
+        this.removeMarqueeOutlines(event.editor)
+        this.createMarqueeOutlines(event.editor)
+    }
+  
+    private stopMarquee(event: EditorEvent) {
+
+        Tool.selection.modified.lock()
+        this.copyMarqueeToSelection()
+        this.removeMarquee(event.editor)
+        this.removeMarqueeOutlines(event.editor)
+        Tool.selection.modified.unlock()
+
+        this.mouseDownAt = undefined
+    }
+
+    private createMarquee(editor: FigureEditor) {
+        if (this.svgMarquee !== undefined)
+            return
+        this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
+        this.svgMarquee.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
+        editor.decorationOverlay.appendChild(this.svgMarquee)
+    }
+    
+    private removeMarquee(editor: FigureEditor) {
+        if (this.svgMarquee === undefined)
+            return
+        editor.decorationOverlay.removeChild(this.svgMarquee)
+        this.svgMarquee = undefined
+    }
+    
+    private copyMarqueeToSelection() {
+        for(let pair of this.marqueeOutlines) {
+            Tool.selection.add(pair[0])
         }
+    }
+  
+    private updateMarquee(event: EditorEvent) {
         let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
         if (x1<x0) [x0,x1] = [x1,x0]
         if (y1<y0) [y0,y1] = [y1,y0]
-        this.svgMarquee.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
-        this.svgMarquee.setAttributeNS("", "y", String(Math.round(y0)+0.5))
-        this.svgMarquee.setAttributeNS("", "width", String(Math.round(x1-x0)))
-        this.svgMarquee.setAttributeNS("", "height", String(Math.round(y1-y0)))
+        this.marqueeRectangle = new Rectangle({origin: { x: x0, y: y0 }, size: { width: x1-x0, height: y1-y0 }})
+        this.svgMarquee!.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
+        this.svgMarquee!.setAttributeNS("", "y", String(Math.round(y0)+0.5))
+        this.svgMarquee!.setAttributeNS("", "width", String(Math.round(x1-x0)))
+        this.svgMarquee!.setAttributeNS("", "height", String(Math.round(y1-y0)))
     }
-    
-    private stopMarquee(event: EditorEvent) {
-        if (this.svgMarquee) {
-            event.editor.decorationOverlay.removeChild(this.svgMarquee)
-            this.svgMarquee = undefined
+
+    private removeMarqueeOutlines(editor: FigureEditor) {
+        for(let pair of this.marqueeOutlines) {
+            editor.decorationOverlay.removeChild(pair[1].svg)
         }
-        this.mouseDownAt = undefined
+        this.marqueeOutlines.clear()
+    }
+
+    private createMarqueeOutlines(editor: FigureEditor) {
+        for(let figure of editor.selectedLayer!.data) {
+            if (Tool.selection.has(figure))
+                continue
+
+            if (!this.marqueeRectangle!.containsRectangle(figure.bounds()))
+                continue
+
+            let outline = Tool.createOutlineCopy(figure.getPath() as Path)
+            editor.decorationOverlay.appendChild(outline.svg)
+            this.marqueeOutlines.set(figure, outline)
+        }
     }
 
     /*******************************************************************
