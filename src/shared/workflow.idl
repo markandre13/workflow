@@ -77,6 +77,7 @@ valuetype Figure {
     public unsigned long id;
 
     Path getPath();
+    void update();
     boolean transform(in Matrix matrix);
     Rectangle bounds();
     double distance(in Point point);
@@ -149,6 +150,7 @@ valuetype BoardModel {
 /////////////////////////////////////////////////////////////////////////////
 
 interface BoardListener {
+    oneway void add(in unsigned long layerID, in Figure figure);
     oneway void transform(in unsigned long layerID,
                           in sequence<unsigned long> figureIDs,
                           in Matrix matrix,
@@ -157,8 +159,11 @@ interface BoardListener {
 
 interface Board {
     BoardModel getModel();
+
     oneway void addListener(in BoardListener listener);
     oneway void removeListener(in BoardListener listener);
+
+    oneway void add(in unsigned long layerID, in Figure figure);
     // FIXME? how about transforming figures on different layers at the same time?
     oneway void transform(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Matrix matrix);
 };

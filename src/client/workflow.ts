@@ -46,7 +46,7 @@ import * as figure from "./figure"
 import { Figure } from "./figure"
 import { Path } from "./Path"
 
-import { Tool, SelectTool } from "./tool"
+import { Tool, SelectTool, ShapeTool } from "./tool"
 import { FigureEditor, ToolModel, LayerModel } from "./editor"
 
 export async function main(url: string) {
@@ -66,9 +66,9 @@ export async function main(url: string) {
     ORB.registerValueType("Matrix", Matrix)
     ORB.registerValueType("Rectangle", Rectangle)
 
-    ORB.registerValueType("figure.Figure", figure.Figure)
+    ORB.registerValueType("Figure", figure.Figure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
-    ORB.registerValueType("figure.Group", figure.Transform)
+    ORB.registerValueType("figure.Group", figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
 
 //    ORB.registerValueType("FigureModel", FigureModel)
@@ -179,7 +179,8 @@ class Client_impl extends skel.Client {
   
         let toolmodel = new ToolModel()
         toolmodel.add("select", new SelectTool())
-        toolmodel.add("rectangle", new SelectTool())
+        toolmodel.add("rectangle", new ShapeTool(() => { return new figure.Rectangle() }))
+//        toolmodel.add("circle", new ShapeTool(() => { return new figure.Circle() }))
         toolmodel.stringValue = "select"
         bind("tool", toolmodel)  // for tool buttons
         bind("board", toolmodel) // for figureeditor
@@ -236,6 +237,10 @@ export class BoardModel extends valueimpl.BoardModel implements LayerModel
     transform(layerID: number, indices: Array<number>, matrix: Matrix): void {
         this.board!.transform(layerID, indices, matrix)
     }
+    
+    add(layerID: number, figure: Figure) {
+        this.board!.add(layerID, figure)
+    }
 }
 
 export class BoardListener_impl extends skel.BoardListener {
@@ -251,7 +256,13 @@ export class BoardListener_impl extends skel.BoardListener {
             if (layer.id === layerID)
                 return layer
         }
-        throw Error("BoardListener_impl: layerById("+layerID+"): unknown layer id")
+        throw Error("BoardListener_impl.layerById(): unknown layer id "+layerID)
+    }
+    
+    async add(layerId: number, figure: Figure) {
+        let layer = this.layerById(layerId)
+        layer.data.push(figure)
+        this.boardmodel.modified.trigger()
     }
 
     async transform(layerId: number, figureIdArray: Array<number>, matrix: Matrix, newIds: Array<number>) {

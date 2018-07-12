@@ -44,12 +44,16 @@ export class Tool {
 
     static createOutlineCopy(aPath: Path): Path {
         let path = new Path(aPath)
+        // FIXME: translate outline by (-1, +1)
+        Tool.setOutlineColors(path)
         path.update()
+        return path
+    }
+    
+    static setOutlineColors(path: Path): void {
         path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
         path.svg.setAttributeNS("", "fill", "none")
         // FIXME: if it's a group, iterate over all elements
-        // FIXME: translate outline by (-1, +1)
-        return path
     }
     
     createOutlines(editor: FigureEditor): void { // FIXME: rename into createOutlinesForSelection()

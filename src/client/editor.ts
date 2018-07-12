@@ -29,6 +29,7 @@ export interface LayerModel {
     modified: Signal
     layers: Array<Layer>
 
+    add(layerID: number, figure: Figure): void
     transform(layerID: number, indices: Array<number>, matrix: Matrix): void
 }
 
@@ -267,6 +268,10 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
     
     transformSelection(matrix: Matrix): void {
         this.model!.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
+    }
+    
+    addFigure(figure: Figure): void {
+        this.model!.add(this.selectedLayer!.id, figure)
     }
 }
 //window.customElements.define("workflow-board", FigureEditor)

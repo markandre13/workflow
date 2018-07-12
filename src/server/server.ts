@@ -123,7 +123,7 @@ async function main() {
     ORB.registerValueType("Size", Size)
     ORB.registerValueType("Matrix", Matrix)
     ORB.registerValueType("Rectangle", Rectangle)
-    ORB.registerValueType("figure.Figure", Figure)
+    ORB.registerValueType("Figure", Figure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
     ORB.registerValueType("figure.Group", valueimpl.figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
@@ -309,6 +309,16 @@ class Board_impl extends skel.Board {
         }
         throw Error("Board_impl: layerById("+layerID+"): unknown layer id")
     }
+    
+    async add(layerID: number, figure: Figure) {
+//        console.log("Board_impl.add(): ", figure)
+        let layer = this.layerById(layerID)
+        figure.id = (layer as Layer).createFigureId()
+        layer.data.push(figure)
+        for (let listener of this.listeners) {
+            listener[0].add(layerID, figure)
+        }
+    }
 
     // FIXME: share code with client (BoardListener_impl.transform)
     async transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix) {
@@ -379,6 +389,9 @@ export abstract class Figure extends valueimpl.Figure
     constructor(init?: Partial<Figure>) {
         super(init)
         console.log("workflow.Figure.constructor()")
+    }
+    
+    update(): void {
     }
 }
 

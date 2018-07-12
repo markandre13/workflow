@@ -18,3 +18,4 @@
 
 export { Tool } from "./tool/tool"
 export { SelectTool } from "./tool/select"
+export { ShapeTool } from "./tool/shape"
