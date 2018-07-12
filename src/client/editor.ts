@@ -20,7 +20,7 @@ import { Signal, GenericView, Model, OptionModel, globalController } from "toad.
 import { Point, Rectangle, Matrix } from "../shared/geometry"
 import { Path } from "./Path"
 import { Figure, Layer } from "../shared/workflow_valuetype"
-import { Tool, SelectTool } from "./tool"
+import { Tool } from "./tool"
 
 export class ToolModel extends OptionModel<Tool> {
 }
@@ -42,15 +42,18 @@ export class EditorEvent extends Point {
     }
 }
 
-export class FigureSelection {
+export class FigureSelectionModel {
+    modified: Signal
     selection: Set<Figure>
     
     constructor() {
+        this.modified = new Signal()
         this.selection = new Set<Figure>()
     }
     
     add(figure: Figure): void {
         this.selection.add(figure)
+        this.modified.trigger()
     }
     
     has(figure: Figure): boolean {
@@ -63,6 +66,7 @@ export class FigureSelection {
 
     clear(): void {
         this.selection.clear()
+        this.modified.trigger()
     }
     
     figureIds(): Array<number> {
@@ -81,7 +85,7 @@ export class FigureEditor extends GenericView<LayerModel> {
     
     svgView: SVGElement
 
-    tool?: Tool
+    private tool?: Tool
     toolModel?: ToolModel
     
     mouseButtonIsDown: boolean
@@ -94,7 +98,6 @@ layer?: SVGElement
     constructor() {
         super()
 console.log("FigureEditor.constructor()")        
-        this.tool = new SelectTool()
         this.mouseButtonIsDown = false
         
         this.scrollView = document.createElement("div")
@@ -136,6 +139,15 @@ console.log("FigureEditor.constructor()")
         this.shadowRoot!.appendChild(this.scrollView)
     }
     
+    setTool(tool?: Tool) {
+        if (this.tool) {
+            this.tool.deactivate(this.createEditorEvent())
+        }
+        this.tool = tool
+        if (this.tool)
+            this.tool.activate(this.createEditorEvent())
+    }
+    
     setModel(model?: Model): void {
         if (model === undefined) {
             if (this.toolModel) {
@@ -145,17 +157,15 @@ console.log("FigureEditor.constructor()")
             super.setModel(undefined)
         } else
         if (model instanceof ToolModel) {
-console.log("FigureEditor.setModel(): ToolModel")
             if (this.toolModel === model)
                 return
             this.toolModel = model
             this.toolModel.modified.add( () => {
-                console.log("new tool")
-                this.tool = this.toolModel!.value
+                this.setTool(this.toolModel!.value)
             }, this)
+            this.setTool(this.toolModel!.value)
             return
         } else {
-console.log("FigureEditor.setModel(): LayerModel")
             super.setModel(model as LayerModel)
         }
     }
@@ -191,12 +201,6 @@ this.layer = layer
     }
 
     adjustBounds(): void {
-/*
-    let editor = this;
-    let board  = this.board
-    let svg    = this.svg
-    let layer  = this.layer
-*/    
         if (!this.model)
             return
 
@@ -247,21 +251,21 @@ this.layer!.setAttributeNS("", "transform", "translate("+(-bounds.origin.x)+" "+
         this.bounds = bounds
     }
 
-    createEditorEvent(e: MouseEvent): EditorEvent {
+    createEditorEvent(mouseEvent?: MouseEvent): EditorEvent {
+        if (mouseEvent === undefined) {
+            return { editor: this, x:0, y:0, shiftKey: false }
+        }
     
         // (e.clientX-r.left, e.clientY-r.top) begins at the upper left corner of the editor window
         //                                     scrolling and origin are ignored
-    
         let r = this.scrollView.getBoundingClientRect()
+        let x = (mouseEvent.clientX+0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x)/this.zoom
+        let y = (mouseEvent.clientY+0.5 - r.top  + this.scrollView.scrollTop  + this.bounds.origin.y)/this.zoom
 
-        let x = (e.clientX+0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x)/this.zoom
-        let y = (e.clientY+0.5 - r.top  + this.scrollView.scrollTop  + this.bounds.origin.y)/this.zoom
-
-        return {editor: this, x: x, y: y, shiftKey: e.shiftKey}
+        return { editor: this, x: x, y: y, shiftKey: mouseEvent.shiftKey }
     }
     
     transformSelection(matrix: Matrix): void {
-console.log("FigureEditor.transformSelection(): ", Tool.selection.figureIds())
         this.model!.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
     }
 }

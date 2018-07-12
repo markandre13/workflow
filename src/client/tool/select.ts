@@ -22,7 +22,7 @@ import {
 } from "../../shared/geometry"
 import { Path } from "../Path"
 import { Figure } from "../figure"
-import { FigureEditor, FigureSelection, EditorEvent } from "../editor.ts"
+import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor.ts"
 import { Tool } from "./tool"
 
 enum State {
@@ -62,10 +62,24 @@ export class SelectTool extends Tool {
         this.rotationCenter = new Point()
         this.rotationStartDirection = 0
     }
+    
+    activate(event: EditorEvent) {
+        Tool.selection.modified.add( () => {
+            this.removeOutlines(event.editor)
+            this.removeDecoration(event.editor)
+            this.createOutlines(event.editor)
+            this.createDecoration(event.editor)
+        }, this)
+        Tool.selection.modified.trigger()
+    }
+    
+    deactivate(event: EditorEvent) {
+        Tool.selection.modified.remove(this)
+        this.removeOutlines(event.editor)
+        this.removeDecoration(event.editor)
+    }
 
     mousedown(event: EditorEvent) {
-        console.log("SelectTool.mousedown()")
-            
         this.mouseDownAt = event
 
         if (this.downHandle(event)) {
@@ -78,30 +92,27 @@ export class SelectTool extends Tool {
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         
         if (figure === undefined) {
-            this.clearSelection(event)
+            if (!event.shiftKey) {
+                Tool.selection.clear()
+            }
             this.state = State.DRAG_MARQUEE
             return
         }
         
+        this.state = State.MOVE_SELECTION
+
         if (Tool.selection.has(figure)) {
-            this.state = State.MOVE_SELECTION
             return
         }
         
-        if (!event.shiftKey) {
-            this.clearSelection(event)
-        }
-            
+        Tool.selection.modified.lock()
+        if (!event.shiftKey)
+            Tool.selection.clear()
         Tool.selection.add(figure)
-
-        this.createOutline(event.editor, figure)
-        this.updateBoundary()
-        this.updateDecoration(event.editor)
+        Tool.selection.modified.unlock()
     }
 
     mousemove(event: EditorEvent) {
-        console.log("SelectTool.mousemove()")
-        
         switch(this.state) {
             case State.MOVE_HANDLE:
                 this.moveHandle(event)
@@ -116,7 +127,6 @@ export class SelectTool extends Tool {
     }
 
     mouseup(event: EditorEvent) {
-        console.log("SelectTool.mouseup()")
         switch(this.state) {
             case State.DRAG_MARQUEE:
                 this.stopMarquee(event)
@@ -133,45 +143,44 @@ export class SelectTool extends Tool {
         this.state = State.NONE
     }
     
-    clearSelection(event: EditorEvent) {
-        this.clearDecoration(event.editor)
-        for(let figure of Tool.selection.selection)
-            this.destroyOutline(event.editor, figure)
-        Tool.selection.clear()
-    }
-
-    updateOutline(editor: FigureEditor) {
-        // FIXME: improve
-        let outlines = this.outlines
-        this.outlines = new Map<Figure, Path>()
-        for(let [figure, path] of outlines) {
-            editor.decorationOverlay.removeChild(path.svg)
-            this.createOutline(editor, figure)
-        }
+    updateOutlines(editor: FigureEditor) {
+        this.removeOutlines(editor)
+        this.createOutlines(editor)
         for(let [figure, path] of this.outlines) {
             path.transform(this.transformation)
             path.update()
         }
     }
     
-    updateBoundary() {
-        this.boundary = new Rectangle()
-        for(let figure of Tool.selection.selection) {
-            this.boundary.expandByRectangle(figure.bounds())
-        }
-//        this.boundary.inflate(1.0)
+    updateDecoration(editor: FigureEditor) {
+        this.removeDecoration(editor)
+        this.createDecoration(editor)
     }
     
-    clearDecoration(editor: FigureEditor) {
+    createDecoration(editor: FigureEditor) {
+        if (Tool.selection.empty())
+            return
+    
+        this.updateBoundary()
+        this.createDecorationRectangle(editor)
+        this.createDecorationHandles(editor)
+    }
+
+    removeDecoration(editor: FigureEditor) {
         for(let decorator of this.decoration) {
             editor.decorationOverlay.removeChild(decorator.svg)
         }
         this.decoration.length = 0
     }
-    
-    updateDecoration(editor: FigureEditor) {
-        this.clearDecoration(editor)
 
+    private updateBoundary() {
+        this.boundary = new Rectangle()
+        for(let figure of Tool.selection.selection) {
+            this.boundary.expandByRectangle(figure.bounds())
+        }
+    }
+    
+    private createDecorationRectangle(editor: FigureEditor) {
         let path = new Path()
         let rectangle = new Rectangle(this.boundary)
         rectangle.origin.x    = Math.round(rectangle.origin.x-0.5)+0.5
@@ -185,7 +194,9 @@ export class SelectTool extends Tool {
         path.svg.setAttributeNS("", "fill", "none")
         editor.decorationOverlay.appendChild(path.svg)
         this.decoration.push(path)
+    }
     
+    private createDecorationHandles(editor: FigureEditor) {
         for(let handle=0; handle<16; ++handle) {
             let path = new Path()
             path.appendRect(this.getBoundaryHandle(handle))
@@ -202,6 +213,7 @@ export class SelectTool extends Tool {
             this.decoration.push(path)
         }
     }
+
      
     /*******************************************************************
      *                                                                 *
@@ -209,7 +221,7 @@ export class SelectTool extends Tool {
      *                                                                 *
      *******************************************************************/
 
-    getBoundaryHandle(handle: number): Rectangle {
+    private getBoundaryHandle(handle: number): Rectangle {
         const s = 5.0
         let   x = this.boundary.origin.x,
               y = this.boundary.origin.y,
@@ -254,7 +266,7 @@ export class SelectTool extends Tool {
         return r
     }
     
-    setCursorForHandle(handle: number, svg: SVGElement) {
+    private setCursorForHandle(handle: number, svg: SVGElement) {
         switch(handle) {
             case 0:
                 svg.setAttributeNS("", "style", "cursor: url(img/cursor/select-resize-nw.svg) 6 6, move")
@@ -307,7 +319,7 @@ export class SelectTool extends Tool {
         }
     }
     
-    downHandle(event: EditorEvent): boolean {
+    private downHandle(event: EditorEvent): boolean {
         if (Tool.selection.empty())
             return false
         for(let handle = 0; handle<16; ++handle) {
@@ -328,14 +340,14 @@ export class SelectTool extends Tool {
         return false
     }
     
-    moveHandle(event: EditorEvent) {
+    private moveHandle(event: EditorEvent) {
         if (this.selectedHandle < 8)
             this.moveHandle2Scale(event)
         else
             this.moveHandle2Rotate(event)
     }
     
-    moveHandle2Scale(event: EditorEvent) {
+    private moveHandle2Scale(event: EditorEvent) {
         let x0 = this.boundary.origin.x,
             y0 = this.boundary.origin.y,
             x1 = x0 + this.boundary.size.width,
@@ -370,11 +382,11 @@ export class SelectTool extends Tool {
         this.transformation.scale(sx, sy)
         this.transformation.translate({x: X0, y: Y0})
         
-        this.updateOutline(event.editor)
+        this.updateOutlines(event.editor)
         this.updateDecoration(event.editor)
     }
     
-    moveHandle2Rotate(event: EditorEvent) {
+    private moveHandle2Rotate(event: EditorEvent) {
         let rotd = Math.atan2(event.y - this.rotationCenter.y, event.x - this.rotationCenter.x)
         rotd -= this.rotationStartDirection
         let center = this.rotationCenter
@@ -386,11 +398,11 @@ export class SelectTool extends Tool {
         this.transformation.rotate(rotd)
         this.transformation.translate(center)
         
-        this.updateOutline(event.editor)
+        this.updateOutlines(event.editor)
         this.updateDecoration(event.editor)
     }
     
-    stopHandle(event: EditorEvent) {
+    private stopHandle(event: EditorEvent) {
         this.state = State.NONE
         event.editor.transformSelection(this.transformation)
     }
@@ -401,7 +413,7 @@ export class SelectTool extends Tool {
      *                                                                 *
      *******************************************************************/
 
-    dragMarquee(event: EditorEvent) {
+    private dragMarquee(event: EditorEvent) {
         if (this.svgMarquee === undefined) {
             this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
             this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
@@ -417,9 +429,11 @@ export class SelectTool extends Tool {
         this.svgMarquee.setAttributeNS("", "height", String(Math.round(y1-y0)))
     }
     
-    stopMarquee(event: EditorEvent) {
-        event.editor.decorationOverlay.removeChild(this.svgMarquee!)
-        this.svgMarquee = undefined
+    private stopMarquee(event: EditorEvent) {
+        if (this.svgMarquee) {
+            event.editor.decorationOverlay.removeChild(this.svgMarquee)
+            this.svgMarquee = undefined
+        }
         this.mouseDownAt = undefined
     }
 
@@ -429,20 +443,23 @@ export class SelectTool extends Tool {
      *                                                                 *
      *******************************************************************/
     
-    moveSelection(event: EditorEvent) {
+    private moveSelection(event: EditorEvent) {
         let delta = pointMinusPoint(event, this.mouseDownAt!)
         for(let decorator of this.decoration) {
             decorator.translate(delta)
             decorator.update()
         }
+
         this.transformation.identity()
         this.transformation.translate(delta)
-        this.updateOutline(event.editor)
+
+        this.updateOutlines(event.editor)
+
         event.editor.transformSelection(this.transformation)
         this.mouseDownAt = event
     }
     
-    stopMove(event: EditorEvent) {
+    private stopMove(event: EditorEvent) {
         this.mouseDownAt = undefined
     }
 }

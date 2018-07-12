@@ -22,20 +22,22 @@ import {
 } from "../../shared/geometry"
 import { Path } from "../Path"
 import { Figure } from "../figure"
-import { FigureEditor, FigureSelection, EditorEvent } from "../editor.ts"
+import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor.ts"
 
 export class Tool {
-    static selection: FigureSelection // = new FigureSelection()
+    static selection: FigureSelectionModel // = new FigureSelection()
 
     handles: Map<Figure, Array<Path>>
     outlines: Map<Figure, Path>
 
-    mousedown(e: EditorEvent) { console.log("Tool.mousedown()") }
-    mousemove(e: EditorEvent) { console.log("Tool.mousemove()") }
-    mouseup(e: EditorEvent) { console.log("Tool.mouseup()") }
+    activate(e: EditorEvent) {}
+    deactivate(e: EditorEvent) {}
+    mousedown(e: EditorEvent) {}
+    mousemove(e: EditorEvent) {}
+    mouseup(e: EditorEvent) {}
     
     constructor() {
-        if (Tool.selection === undefined) Tool.selection = new FigureSelection() // FIXME: initialization via static doesn't work
+        if (Tool.selection === undefined) Tool.selection = new FigureSelectionModel() // FIXME: initialization via static doesn't work
         this.handles = new Map<Figure, Array<Path>>()
         this.outlines = new Map<Figure, Path>()
     }
@@ -50,19 +52,20 @@ export class Tool {
         return path
     }
     
-    createOutline(editor: FigureEditor, figure: Figure): void {
-        if (this.outlines.has(figure))
-            return
-        let outline = Tool.createOutlineCopy(figure.getPath() as Path)
-        editor.decorationOverlay.appendChild(outline.svg)
-        this.outlines.set(figure, outline)
+    createOutlines(editor: FigureEditor): void { // FIXME: rename into createOutlinesForSelection()
+        for(let figure of Tool.selection.selection) {
+            if (this.outlines.has(figure))
+                continue
+            let outline = Tool.createOutlineCopy(figure.getPath() as Path)
+            editor.decorationOverlay.appendChild(outline.svg)
+            this.outlines.set(figure, outline)
+        }
     }
     
-    destroyOutline(editor: FigureEditor, figure: Figure): void {
-        let outline = this.outlines.get(figure)
-        if (outline === undefined)
-            return
-        editor.decorationOverlay.removeChild(outline.svg)
-        this.outlines.delete(figure)
+    removeOutlines(editor: FigureEditor): void {
+        for(let pair of this.outlines) {
+            editor.decorationOverlay.removeChild(pair[1].svg)
+        }
+        this.outlines.clear()
     }
 }

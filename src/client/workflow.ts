@@ -47,7 +47,7 @@ import { Figure } from "./figure"
 import { Path } from "./Path"
 
 import { Tool, SelectTool } from "./tool"
-import { FigureEditor, ToolModel, LayerModel, FigureSelection, EditorEvent } from "./editor"
+import { FigureEditor, ToolModel, LayerModel } from "./editor"
 
 export async function main(url: string) {
 
