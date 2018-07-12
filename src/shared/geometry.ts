@@ -59,7 +59,7 @@ export function pointMinus(a: Point) {
 
 export class Rectangle extends valueimpl.Rectangle {
   
-    constructor(rectangle?: valuetype.Rectangle) {
+    constructor(rectangle?: Partial<valueimpl.Rectangle>) {
         super(rectangle)
     }
   
