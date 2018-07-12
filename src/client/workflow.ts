@@ -68,6 +68,7 @@ export async function main(url: string) {
 
     ORB.registerValueType("Figure", figure.Figure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
+    ORB.registerValueType("figure.Circle", figure.Circle)
     ORB.registerValueType("figure.Group", figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
 
@@ -180,7 +181,7 @@ class Client_impl extends skel.Client {
         let toolmodel = new ToolModel()
         toolmodel.add("select", new SelectTool())
         toolmodel.add("rectangle", new ShapeTool(() => { return new figure.Rectangle() }))
-//        toolmodel.add("circle", new ShapeTool(() => { return new figure.Circle() }))
+        toolmodel.add("circle", new ShapeTool(() => { return new figure.Circle() }))
         toolmodel.stringValue = "select"
         bind("tool", toolmodel)  // for tool buttons
         bind("board", toolmodel) // for figureeditor

@@ -45,21 +45,7 @@ export abstract class Shape extends Figure implements valuetype.figure.Shape
         super(init)
         valuetype.figure.initShape(this, init)
     }
-}
 
-export class Rectangle extends Shape implements valuetype.figure.Rectangle
-{
-    path?: Path
-    stroke: string
-    fill: string
-    
-    constructor(init?: Partial<Rectangle>) {
-        super(init)
-        valuetype.figure.initRectangle(this, init)
-        this.stroke = "#000"
-        this.fill = "#f80"
-    }
-    
     transform(transform: Matrix): boolean {
         if (!transform.isOnlyTranslateAndScale())
             return false
@@ -69,16 +55,6 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
         return true
     }
     
-    distance(pt: Point): number {
-        // FIXME: not final: RANGE and fill="none" need to be considered
-        if (this.origin.x <= pt.x && pt.x < this.origin.x+this.size.width &&
-            this.origin.y <= pt.y && pt.y < this.origin.y+this.size.height )
-        {
-            return -1.0; // even closer than 0
-        }
-        return Number.MAX_VALUE;
-    }
-
     bounds(): geometry.Rectangle {
         return new geometry.Rectangle(this)
     }
@@ -110,6 +86,30 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
             this.size.height += pt.y - (this.origin.y+this.size.height)
         }
     }
+}
+
+export class Rectangle extends Shape implements valuetype.figure.Rectangle
+{
+    path?: Path
+    stroke: string
+    fill: string
+    
+    constructor(init?: Partial<Rectangle>) {
+        super(init)
+        valuetype.figure.initRectangle(this, init)
+        this.stroke = "#000"
+        this.fill = "#f80"
+    }
+    
+    distance(pt: Point): number {
+        // FIXME: not final: RANGE and fill="none" need to be considered
+        if (this.origin.x <= pt.x && pt.x < this.origin.x+this.size.width &&
+            this.origin.y <= pt.y && pt.y < this.origin.y+this.size.height )
+        {
+            return -1.0; // even closer than 0
+        }
+        return Number.MAX_VALUE;
+    }
     
     getPath(): Path {
        if (this.path === undefined) {
@@ -125,6 +125,65 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
         
         this.path.clear()
         this.path.appendRect(this)
+        this.path.update()
+
+        this.path.svg.setAttributeNS("", "stroke", this.stroke)
+        this.path.svg.setAttributeNS("", "fill", this.fill)
+    }
+}
+
+export class Circle extends Shape implements valuetype.figure.Circle
+{
+    path?: Path
+    stroke: string
+    fill: string
+    
+    constructor(init?: Partial<Circle>) {
+        super(init)
+        valuetype.figure.initCircle(this, init)
+        this.stroke = "#000"
+        this.fill = "#f80"
+    }
+    
+    distance(pt: Point): number {
+        let rx = 0.5 * this.size.width,
+            ry = 0.5 * this.size.height,
+            cx = this.origin.x + rx,
+            cy = this.origin.y + ry,
+            dx = pt.x - cx,
+            dy = pt.y - cy,
+            phi = Math.atan( (dy*rx) / (dx*ry) )
+
+        if (dx<0.0)
+          phi=phi+Math.PI
+        let ex = rx*Math.cos(phi),
+            ey = ry*Math.sin(phi)
+
+        if (this.fill !== "none") {
+            let d = Math.sqrt(dx*dx+dy*dy)-Math.sqrt(ex*ex+ey*ey)
+            if (d<0.0)
+                return -1.0
+            return d
+        }
+        dx -= ex
+        dy -= ey
+        return Math.sqrt(dx*dx+dy*dy)
+    }
+    
+    getPath(): Path {
+       if (this.path === undefined) {
+           this.path = new Path()
+           this.update()
+       }
+       return this.path
+    }
+
+    update(): void {
+        if (!this.path)
+          return
+        
+        this.path.clear()
+        this.path.appendCircle(this)
         this.path.update()
 
         this.path.svg.setAttributeNS("", "stroke", this.stroke)

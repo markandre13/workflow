@@ -125,6 +125,7 @@ async function main() {
     ORB.registerValueType("Rectangle", Rectangle)
     ORB.registerValueType("Figure", Figure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
+    ORB.registerValueType("figure.Circle", figure.Circle)
     ORB.registerValueType("figure.Group", valueimpl.figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
     ORB.registerValueType("FigureModel", FigureModel)
@@ -391,6 +392,18 @@ export abstract class Figure extends valueimpl.Figure
         console.log("workflow.Figure.constructor()")
     }
     
+    getPath(): Path {
+	throw Error("not implemented")
+    }
+
+    distance(pt: Point): number {
+        throw Error("not implemented")
+    }
+
+    bounds(): geometry.Rectangle {
+        throw Error("not implemented")
+    }
+    
     update(): void {
     }
 }
@@ -404,41 +417,13 @@ export abstract class Shape extends Figure implements valuetype.figure.Shape
         super(init)
         valuetype.figure.initShape(this, init)
     }
-}
 
-export class Rectangle extends Shape implements valuetype.figure.Rectangle
-{
-    path?: Path
-    stroke: string
-    fill: string
-    
-    constructor(init?: Partial<Rectangle>) {
-        super(init)
-        valuetype.figure.initRectangle(this, init)
-        this.stroke = "#000"
-        this.fill = "#f80"
-    }
-    
     transform(transform: Matrix): boolean {
         if (!transform.isOnlyTranslateAndScale())
             return false
         this.origin = transform.transformPoint(this.origin)
         this.size   = transform.transformSize(this.size)
         return true
-    }
-    
-    distance(pt: Point): number {
-        // FIXME: not final: RANGE and fill="none" need to be considered
-        if (this.origin.x <= pt.x && pt.x < this.origin.x+this.size.width &&
-            this.origin.y <= pt.y && pt.y < this.origin.y+this.size.height )
-        {
-            return -1.0; // even closer than 0
-        }
-        return Number.MAX_VALUE;
-    }
-
-    bounds(): geometry.Rectangle {
-        return new geometry.Rectangle(this)
     }
     
     getHandlePosition(i: number): Point | undefined {
@@ -468,10 +453,34 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
             this.size.height += pt.y - (this.origin.y+this.size.height)
         }
     }
+}
+
+export class Rectangle extends Shape implements valuetype.figure.Rectangle
+{
+    stroke: string
+    fill: string
     
-    getPath(): Path {
-	throw Error("not implemented")
+    constructor(init?: Partial<Rectangle>) {
+        super(init)
+        valuetype.figure.initRectangle(this, init)
+        this.stroke = "#000"
+        this.fill = "#f80"
     }
+    
+}
+
+export class Circle extends Shape implements valuetype.figure.Circle
+{
+    stroke: string
+    fill: string
+    
+    constructor(init?: Partial<Rectangle>) {
+        super(init)
+        valuetype.figure.initRectangle(this, init)
+        this.stroke = "#000"
+        this.fill = "#f80"
+    }
+    
 }
 
 export class Group extends Figure implements valuetype.figure.Group
