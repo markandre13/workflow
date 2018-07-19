@@ -47,7 +47,17 @@ import { Figure } from "./figure"
 import { Path } from "./Path"
 
 import { Tool, SelectTool, ShapeTool } from "./tool"
-import { FigureEditor, ToolModel, LayerModel } from "./editor"
+import { FigureEditor, ToolModel, Layer, LayerModel } from "./editor"
+
+export async function runtest(test: Function) {
+    window.customElements.define("toad-figureeditor", FigureEditor)
+    try {
+        test()
+    }
+    catch(error) {
+        console.log("error: "+error.message)
+    }
+}
 
 export async function main(url: string) {
 
@@ -63,8 +73,8 @@ export async function main(url: string) {
 
     ORB.registerValueType("Point", Point)
     ORB.registerValueType("Size", Size)
-    ORB.registerValueType("Matrix", Matrix)
     ORB.registerValueType("Rectangle", Rectangle)
+    ORB.registerValueType("Matrix", Matrix)
 
     ORB.registerValueType("Figure", figure.Figure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
@@ -199,27 +209,6 @@ class Client_impl extends skel.Client {
 
         dom.erase(document.body);
         dom.add(document.body, homeScreen);
-    }
-}
-
-class Layer extends valueimpl.Layer
-{
-    findFigureAt(point: Point): Figure | undefined {
-        let mindist=Number.POSITIVE_INFINITY
-        let nearestFigure: figure.Figure | undefined
-        for(let index = this.data.length-1; index >= 0; --index) {
-            let figure = this.data[index]
-            let d = Number(figure.distance(point))
-            if (d < mindist) {
-                mindist = d;
-                nearestFigure = figure
-            }
-        }
-        
-        if (mindist >= Figure.FIGURE_RANGE) {
-            return undefined
-        }
-        return nearestFigure
     }
 }
 

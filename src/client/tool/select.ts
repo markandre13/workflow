@@ -22,7 +22,7 @@ import {
 } from "../../shared/geometry"
 import { Path } from "../Path"
 import { Figure } from "../figure"
-import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor.ts"
+import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor"
 import { Tool } from "./tool"
 
 enum State {

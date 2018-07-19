@@ -19,10 +19,33 @@
 import { Signal, GenericView, Model, OptionModel, globalController } from "toad.js"
 import { Point, Rectangle, Matrix } from "../shared/geometry"
 import { Path } from "./Path"
-import { Figure, Layer } from "../shared/workflow_valuetype"
+import { Figure } from "../shared/workflow_valuetype"
+import * as figure from "./figure"
+import * as valueimpl from "../shared/workflow_valueimpl"
 import { Tool } from "./tool"
 
 export class ToolModel extends OptionModel<Tool> {
+}
+
+export class Layer extends valueimpl.Layer
+{
+    findFigureAt(point: Point): Figure | undefined {
+        let mindist=Number.POSITIVE_INFINITY
+        let nearestFigure: figure.Figure | undefined
+        for(let index = this.data.length-1; index >= 0; --index) {
+            let figure = this.data[index]
+            let d = Number(figure.distance(point))
+            if (d < mindist) {
+                mindist = d;
+                nearestFigure = figure
+            }
+        }
+        
+        if (mindist >= figure.Figure.FIGURE_RANGE) {
+            return undefined
+        }
+        return nearestFigure
+    }
 }
 
 export interface LayerModel {
@@ -180,12 +203,17 @@ console.log("FigureEditor.constructor()")
         if (this.model === undefined) {
             return
         }
+        if (this.model.layers.length === 0) {
+console.log("FigureEditor.updateView(): no layers")
+            return
+        }
         
-        this.selectedLayer = this.model!.layers[0] as Layer
+        this.selectedLayer = this.model.layers[0] as Layer
 
         let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
 this.layer = layer
         for(let figure of this.model!.layers[0].data) {
+console.log("append svg to svg layer")
             layer.appendChild((figure.getPath() as Path).svg)
             this.bounds.expandByRectangle(figure.bounds())
         }

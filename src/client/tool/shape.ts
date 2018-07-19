@@ -22,7 +22,7 @@ import {
 } from "../../shared/geometry"
 import { Path } from "../Path"
 import { Figure, Shape } from "../figure"
-import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor.ts"
+import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor"
 import { Tool } from "./tool"
 
 export class ShapeTool extends Tool {

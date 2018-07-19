@@ -1,21 +1,23 @@
 {
     "compilerOptions": {
-        "outDir": ".",
         "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
         "traceResolution": false,
         "lib": ["es6", "es2017.object", "dom"],
-        "baseUrl": ".",
-          "paths": {
-        },
         "strict": true,
         "allowJs": false,
         "noImplicitAny": true,
-        "sourceMap": true
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "baseUrl": ".",
+        "paths": {
+            "shared/*": [ "src/shared/*" ]
+        }
     },
     "include": [
-        "test/**/*.ts"
+        "test/**/*.ts",
+        "src/**/*.ts"
     ],
     "exclude": [
         "test/**/*.spec.ts",

@@ -1,25 +1,18 @@
 {
     "compilerOptions": {
-        "outDir": ".",
+        "outDir": "./js/",
         "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
         "traceResolution": false,
         "lib": ["es6", "es2017.object", "dom"],
-        "baseUrl": ".",
-          "paths": {
-        },
         "strict": true,
         "allowJs": false,
         "noImplicitAny": true,
         "sourceMap": true
     },
     "include": [
-        "test/**/*.ts"
-    ],
-    "exclude": [
-        "test/**/*.spec.ts",
-        "test/bootstrap.ts",
-        "node_modules"
+        "src/client",
+        "src/shared"
     ]
 }
