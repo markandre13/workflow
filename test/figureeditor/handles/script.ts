@@ -64,7 +64,9 @@ class FigureModel extends toad.Model implements editor.LayerModel {
     }
 }
 
-unittest.register("figureeditor/handles", () => {
+let figuremodel: FigureModel | undefined
+
+unittest.register("figureeditor.handles.initialize", () => {
     console.log("executing figureeditor/handles")
     
     ORB.registerValueType("Point", Point)
@@ -75,7 +77,7 @@ unittest.register("figureeditor/handles", () => {
 //    ORB.registerValueType("Figure", Figure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
 
-    let figuremodel = new FigureModel()
+    figuremodel = new FigureModel()
     let layer = new editor.Layer()
     let shape = new figure.Rectangle({origin: {x: 50.5, y: 50.5}, size: {width: 50, height: 50}})
     layer.data.push(shape)
@@ -90,6 +92,12 @@ unittest.register("figureeditor/handles", () => {
     
     window.customElements.define("toad-figureeditor", editor.FigureEditor)
     document.body.innerHTML = `<toad-figureeditor model="model" style="position: absolute; top: 0; bottom: 0; left: 0; right: 0"></toad-figureeditor>`
+})
 
-    console.log("test done")
+unittest.register("figureeditor.handles.get-x-position", () => {
+    return (figuremodel!.layers[0]!.data[0]! as figure.Rectangle).origin.x
+})
+
+unittest.register("figureeditor.handles.reset-x-position", () => {
+    (figuremodel!.layers[0]!.data[0]! as figure.Rectangle).origin.x = 50.5
 })

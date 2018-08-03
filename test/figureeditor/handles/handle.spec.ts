@@ -6,7 +6,7 @@ import * as puppeteer from "puppeteer"
 import { browser } from "../../bootstrap"
 
 declare module unittest {
-    function run(testname: string): void
+    function run(testname: string): any
 }
 
 describe("figureeditor", function() {
@@ -28,13 +28,32 @@ describe("figureeditor", function() {
             await page.setViewport({ width: 800, height: 600 })
 
             // go to a page setup for mouse event tracking
-            await page.goto("http://127.0.0.1:8080/test/figureeditor/handles/index.html")
+            await page.goto("http://127.0.0.1:8080/test/index.html")
             try {
-                await page.evaluate(() => unittest.run('figureeditor/handles') )
-                await page.mouse.move(52,52)
+                await page.evaluate(() => unittest.run('figureeditor.handles.initialize') )
+                await page.mouse.move(75,75)
                 await page.mouse.down()
-                await page.mouse.move(12,52)
                 await page.mouse.up()
+                
+                // 48 47 
+                // no: 46 46.5 46.9
+
+                for(let i=0; i<1; ++i) {
+                    await page.mouse.move(46.9,50)
+                    await page.mouse.down()
+                    await page.mouse.move(6,50)
+                    await page.mouse.up()
+                    let x = await page.evaluate(() => unittest.run('figureeditor.handles.get-x-position') )
+                    console.log(x)
+//                    expect(x).to.equal(10.5)
+/*                    
+                    
+                    await page.mouse.down()
+                    await page.mouse.move(52,52)
+                    await page.mouse.up()
+                    expect(x).to.equal(50.5)
+*/
+                }
             }
             catch(e) {
                 console.log(e.stack)

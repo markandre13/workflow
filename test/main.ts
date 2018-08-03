@@ -1,5 +1,3 @@
-//import * as mylib from "figureeditor/"
-
 let testMap = new Map<string, Function>()
 
 export function register(testName: string, test: Function) {
@@ -7,10 +5,6 @@ export function register(testName: string, test: Function) {
     testMap.set(testName, test)
 }
 
-export function run(testName: string) {
-    (testMap.get(testName)!)()
-}
-
-export function main() {
-    console.log("executing main()")
+export function run(testName: string): any {
+    return (testMap.get(testName)!)()
 }
