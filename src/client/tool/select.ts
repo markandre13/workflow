@@ -139,6 +139,7 @@ export class SelectTool extends Tool {
                 this.stopHandle(event)
                 break
             case State.MOVE_SELECTION:
+console.log("mouse up selection")
                 this.moveSelection(event)
                 this.stopMove(event)
                 break
@@ -225,44 +226,60 @@ export class SelectTool extends Tool {
      *******************************************************************/
 
     private getBoundaryHandle(handle: number): Rectangle {
-        const s = 5.0
         let   x = this.boundary.origin.x,
               y = this.boundary.origin.y,
               w = this.boundary.size.width,
               h = this.boundary.size.height
 
+        let v = { x: 0, y: 0} // FIXME: pre-store x in an array
         switch(handle % 8) {
-            case  0: [x, y] = [x       ,y      ]; break
-            case  1: [x, y] = [x+w/2.0, y      ]; break
-            case  2: [x, y] = [x+w    , y      ]; break
-            case  3: [x, y] = [x+w    , y+h/2.0]; break
-            case  4: [x, y] = [x+w    , y+h    ]; break
-            case  5: [x, y] = [x+w/2.0, y+h    ]; break
-            case  6: [x, y] = [x      , y+h    ]; break
-            case  7: [x, y] = [x      , y+h/2.0]; break
+            case  0:
+                [x, y] = [x       ,y      ]
+                v = { x: -1, y: -1}
+                break
+            case  1:
+                [x, y] = [x+w/2.0, y      ]
+                v = { x:  0, y: -1}
+                break
+            case  2:
+                [x, y] = [x+w    , y      ]
+                v = { x:  1, y: -1}
+                break
+            case  3:
+                [x, y] = [x+w    , y+h/2.0]
+                v = { x:  1, y:  0}
+                break
+            case  4:
+                [x, y] = [x+w    , y+h    ]
+                v = { x:  1, y:  1}
+                break
+            case  5:
+                [x, y] = [x+w/2.0, y+h    ]
+                v = { x:  0, y:  1}
+                break
+            case  6:
+                [x, y] = [x      , y+h    ]
+                v = { x: -1, y:  1}
+                break
+            case  7:
+                [x, y] = [x      , y+h/2.0]
+                v = { x: -1, y:  0}
+                break
         }
         let r = new Rectangle()
-        r.set(x, y, s, s)
+        r.set(x, y, Figure.HANDLE_RANGE, Figure.HANDLE_RANGE)
         r.origin = this.transformation.transformPoint(r.origin)
-        r.origin.x -= s/2.0
-        r.origin.y -= s/2.0
+        r.origin.x -= Figure.HANDLE_RANGE / 2.0
+        r.origin.y -= Figure.HANDLE_RANGE / 2.0
 
         // for handle <= 7 move away from center by one pixel
         // for handle > 7, move away from center by one + s pixel
-        let center = this.transformation.transformPoint(this.boundary.center())
-        let v = pointMinusPoint(r.origin, center)
-        
-        let ax = Math.abs(v.x),
-            ay = Math.abs(v.y)
-        let a = (ax > ay) ? ax : ay
-        if (a !== 0) { // FIXME: test
-          v.y /= a
-          v.x /= a
+
+        if (handle>=8) {
+            v = pointMultiplyNumber(v, Figure.HANDLE_RANGE+1)
+            r.origin = pointPlusPoint(r.origin, v)
         }
-        if (handle>=8)
-            v = pointMultiplyNumber(v, s)
-        r.origin = pointPlusPoint(r.origin, v)
-        
+
         r.origin.x = Math.round(r.origin.x-0.5)+0.5
         r.origin.y = Math.round(r.origin.y-0.5)+0.5
         
@@ -408,6 +425,12 @@ export class SelectTool extends Tool {
     private stopHandle(event: EditorEvent) {
         this.state = State.NONE
         event.editor.transformSelection(this.transformation)
+
+//        this.updateBoundaryFromSelection() // because the figure is updated async, or just continue with the current selection?
+
+        this.updateOutlines(event.editor)
+        this.updateDecoration(event.editor)
+
     }
 
     /*******************************************************************
@@ -506,6 +529,7 @@ export class SelectTool extends Tool {
         this.transformation.translate(delta)
 
         this.updateOutlines(event.editor)
+        this.updateDecoration(event.editor)
 
         event.editor.transformSelection(this.transformation)
         this.mouseDownAt = event
