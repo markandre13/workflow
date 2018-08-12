@@ -4,7 +4,8 @@ module.exports = (config) => {
     frameworks: ["mocha", "chai", "karma-typescript", "source-map-support"],
     files: [ 
       { pattern: "test/unit/**/*.spec.ts" },
-      { pattern: "src/shared/*.ts" }
+      { pattern: "src/shared/**/*.ts" },
+      { pattern: "src/client/**/*.ts" }
     ],
     preprocessors: { 
       "**/*.ts": ["karma-typescript"],
@@ -12,10 +13,7 @@ module.exports = (config) => {
     },
     reporters: ["mocha", "karma-typescript"],
     karmaTypescriptConfig: {
-      tsconfig: "tsconfig-test-unit.json",
-//      include: [
-//        "src", "test/unit"
-//      ]
+      tsconfig: "tsconfig-test-unit.json"
     },
     port: 9876,
     colors: true,
