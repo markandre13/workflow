@@ -3,6 +3,7 @@ module.exports = (config) => {
     basePath: '.',
     frameworks: ["mocha", "chai", "karma-typescript", "source-map-support"],
     files: [ 
+      "polyfill/path-data-polyfill.js",
       { pattern: "test/unit/**/*.spec.ts" },
       { pattern: "src/shared/**/*.ts" },
       { pattern: "src/client/**/*.ts" }
