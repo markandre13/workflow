@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "outDir": ".",
+        "target": "es6",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "traceResolution": false,
+        "lib": ["es6", "es2017.object", "dom"],
+        "baseUrl": ".",
+        "paths": {
+            "shared/*": [ "src/shared/*" ],
+            "client/*": [ "src/client/*" ]
+        },
+        "strict": true,
+        "allowJs": false,
+        "noImplicitAny": true,
+        "sourceMap": true
+    },
+    "include": [
+        "test/unit/**/*.ts",
+        "src/shared/**/*.ts",
+        "src/client/**/*.ts"
+    ],
+    "exclude": [
+        "test/ui/**/*.ts",
+        "node_modules"
+    ]
+}

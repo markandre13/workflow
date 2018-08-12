@@ -10,9 +10,8 @@
     "build-idl": "corba-idl -d --ts-all src/shared/workflow.idl",
     "build-client": "npm run build-idl && webpack",
     "build-server": "npm run build-idl && tsc -p tsconfig-server.json",
-    "test-uiX": "npm run build-idl && tsc -p tsconfig-test-ui.json && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
-    "test-ui": "npm run build-idl &&  webpack --config webpack-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
-    "test-unit": "npm run build-idl && webpack --config webpack-unittest.config.js && mocha --require ts-node/register test/unit/bootstrap.ts 'test/uni/**/*.spec.ts'"
+    "test-ui": "npm run build-idl && webpack --config webpack-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
+    "test-unit": "npm run build-idl && karma start"
   },
   "dependencies": {
     "knex": "^0.14.6",
