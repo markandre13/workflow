@@ -1,8 +1,8 @@
 var glob = require("glob")
 const path = require("path")
 
-let files = glob.sync("./test/**/script.ts")
-files.push("./test/main.ts")
+let files = glob.sync("./test/ui/**/script.ts")
+files.push("./test/ui/main.ts")
 
 module.exports = {
   mode: "development",
@@ -17,7 +17,7 @@ module.exports = {
           {
             loader: "ts-loader",
             options: {
-              configFile: "tsconfig-test.json"
+              configFile: "tsconfig-test-ui.json"
             }
           }
         ],

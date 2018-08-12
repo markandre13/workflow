@@ -28,7 +28,7 @@ describe("figureeditor", function() {
             await page.setViewport({ width: 800, height: 600 })
 
             // go to a page setup for mouse event tracking
-            await page.goto("http://127.0.0.1:8080/test/index.html")
+            await page.goto("http://127.0.0.1:8080/test/ui/index.html")
             try {
                 await page.evaluate(() => unittest.run('figureeditor.handles.initialize') )
                 await page.mouse.move(75,75)

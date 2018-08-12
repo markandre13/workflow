@@ -1,4 +1,4 @@
-import * as unittest from "test/main"
+import * as unittest from "test/ui/main"
 import { ORB } from "corba.js"
 import * as toad from "toad.js"
 import { Point, Size, Rectangle, Matrix } from "shared/geometry"

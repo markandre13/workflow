@@ -4,6 +4,8 @@ import * as httpServer from "http-server"
 export var browser: puppeteer.Browser
 export var httpd: any
 
+console.log("bootstrap.ts has been included")
+
 // puppeteer options
 const opts = {
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -12,19 +14,15 @@ const opts = {
     timeout: 100000
 }
 
-// expose variables
 before(async function () {
-console.log("start daemons")
+    console.log("before()")
     browser = await puppeteer.launch(opts)
     httpd = httpServer.createServer()
     httpd.listen(8080, "127.0.0.1")
-console.log("started daemons")
 })
 
 // close browser and reset global variables
 after(function () {
-console.log("terminate daemons")
     httpd.close()
     browser.close()
-console.log("terminated daemons")
 })
