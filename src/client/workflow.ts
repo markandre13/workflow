@@ -49,6 +49,7 @@ import { Path } from "./Path"
 import { Tool, SelectTool, ShapeTool } from "./tool"
 import { FigureEditor, ToolModel, Layer, LayerModel } from "./editor"
 import { StrokeAndFill, StrokeAndFillModel } from "./strokeandfill"
+import { ColorSwatch, ColorSwatchModel } from "./colorswatch"
 
 export async function runtest(test: Function) {
     window.customElements.define("toad-figureeditor", FigureEditor)
@@ -67,6 +68,7 @@ export async function main(url: string) {
 
     window.customElements.define("toad-figureeditor", FigureEditor)
     window.customElements.define("toad-strokeandfill", StrokeAndFill)
+    window.customElements.define("toad-colorswatch", ColorSwatch)
 
     orb.registerStubClass(stub.WorkflowServer)
     orb.registerStubClass(stub.Server)
@@ -201,6 +203,10 @@ class Client_impl extends skel.Client {
         let strokeandfillmodel = new StrokeAndFillModel()
         bind("strokeandfill", strokeandfillmodel)
 //        bind("board", strokeandfillmodel)
+
+        action("setcolor", (data?: any) => {
+            strokeandfillmodel.fill = data
+        })
 
         let project = await this.server.getProject(1)
         let board = await project.getBoard(1)

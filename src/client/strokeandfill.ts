@@ -24,44 +24,44 @@ let strokeandfillStyle = document.createElement("style")
 strokeandfillStyle.textContent=`
 svg {
     top: 0;
-    botton: 0;
     left: 0;
-    right: 0;
+    width: 41px;
+    height: 60px;
     background: none;
 }
 `
 export class StrokeAndFillModel extends Model
 {
-        _stroke: string
-        _fill: string
-        
-        constructor() {
-            super()
-            this._stroke = "#000"
-            this._fill = "#fff"
-        }
-        
-        set stroke(value: string) {
-            if (value == this._stroke)
-                return
-            this._stroke = value
-            this.modified.trigger()
-        }
-        
-        get stroke() {
-            return this._stroke
-        }
+    _stroke: string
+    _fill: string
+    
+    constructor() {
+        super()
+        this._stroke = "#000"
+        this._fill = "#fff"
+    }
+    
+    set stroke(value: string) {
+        if (value == this._stroke)
+            return
+        this._stroke = value
+        this.modified.trigger()
+    }
+    
+    get stroke() {
+        return this._stroke
+    }
 
-        set fill(value: string) {
-            if (value == this._fill)
-                return
-            this._fill = value
-            this.modified.trigger()
-        }
-        
-        get fill() {
-            return this._fill
-        }
+    set fill(value: string) {
+        if (value == this._fill)
+            return
+        this._fill = value
+        this.modified.trigger()
+    }
+    
+    get fill() {
+        return this._fill
+    }
 }
 
 export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
