@@ -64,16 +64,41 @@ export class Path
         this.svg.setPathData(this.path)
     }
 
-    move(point: Point) {
-        this.path.push({type: 'M', values: [point.x, point.y]})
+    move(point: Point): void
+    move(x: number, y: number): void
+    move(pointOrX: Point|number, Y?: number): void
+    {
+        if (typeof pointOrX === "object")
+            this.path.push({type: 'M', values: [pointOrX.x, pointOrX.y]})
+        else
+            this.path.push({type: 'M', values: [pointOrX, Y]})
     }
 
-    line(point: Point) {
-        this.path.push({type: 'L', values: [point.x, point.y]})
+    line(point: Point): void
+    line(x: number, y: number): void
+    line(pointOrX: Point|number, Y?: number): void
+    {
+        if (typeof pointOrX === "object")
+            this.path.push({type: 'L', values: [pointOrX.x, pointOrX.y]})
+        else
+            this.path.push({type: 'L', values: [pointOrX, Y]})
     }
-    
-    curve(p0: Point, p1: Point, p2: Point) {
-        this.path.push({type: 'C', values: [p0.x, p0.y, p1.x, p1.y, p2.x, p2.y]})
+
+    curve(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number): void
+    curve(p0: Point, p1: Point, p2: Point): void
+    curve(p0OrX0: Point|number, p1OrY0: Point|number,
+          p2OrX1: Point|number, Y1?: number,
+          X2?: number, Y2?: number): void
+    {
+        // FIXME: fails when point is just an object
+        if (p0OrX0 instanceof Point &&
+            p1OrY0 instanceof Point &&
+            p2OrX1 instanceof Point)
+            this.path.push({type: 'C', values: [p0OrX0.x, p0OrX0.y,
+                                                p1OrY0.x, p1OrY0.y,
+                                                p2OrX1.x, p2OrX1.y]})
+        else
+            this.path.push({type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1, X2, Y2]})
     }
 
     close() {
@@ -167,11 +192,21 @@ export class Path
         }
     }
 
-    translate(point: Point) {
-        this.transform(new Matrix({
-            m11: 1.0, m12: 0.0,
-            m21: 0.0, m22: 1.0,
-            tX: point.x, tY: point.y
-        }))
+    translate(point: Point): void
+    translate(x: number, y: number): void
+    translate(pointOrX: Point|number, Y?: number): void
+    {
+        if (typeof pointOrX === "object")
+            this.transform(new Matrix({
+                m11: 1.0, m12: 0.0,
+                m21: 0.0, m22: 1.0,
+                tX: pointOrX.x, tY: pointOrX.y
+            }))
+        else
+            this.transform(new Matrix({
+                m11: 1.0, m12: 0.0,
+                m21: 0.0, m22: 1.0,
+                tX: pointOrX, tY: Y
+            }))
     }
 }
