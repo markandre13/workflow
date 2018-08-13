@@ -30,15 +30,43 @@ svg {
     background: none;
 }
 `
+export enum StrokeOrFill {
+   STROKE,
+   FILL,
+   NONE,
+   BOTH
+}
+
 export class StrokeAndFillModel extends Model
 {
     _stroke: string
     _fill: string
+    _strokeOrFill: StrokeOrFill
     
     constructor() {
         super()
         this._stroke = "#000"
         this._fill = "#fff"
+        this._strokeOrFill = StrokeOrFill.STROKE
+    }
+    
+    set(value: string) {
+        switch(this._strokeOrFill) {
+            case StrokeOrFill.STROKE:
+                this.stroke = value
+                break
+            case StrokeOrFill.FILL:
+                this.fill = value
+                break
+            case StrokeOrFill.NONE:
+                break
+            case StrokeOrFill.BOTH:
+                this.modified.lock()
+                this.stroke = value
+                this.fill = value
+                this.modified.unlock()
+                break
+        }
     }
     
     set stroke(value: string) {
@@ -312,11 +340,15 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         svg.appendChild(noneButton2)
 
         fill.onmousedown = () => {
+            if (this.model)
+                this.model._strokeOrFill = StrokeOrFill.FILL
             svg.removeChild(fill)
             svg.insertBefore(fill, strokeHitBox.nextSibling)
         }
 
         strokeHitBox.onmousedown = () => {
+            if (this.model)
+                this.model._strokeOrFill = StrokeOrFill.STROKE
             svg.removeChild(fill)
             svg.insertBefore(fill, stroke)
         }

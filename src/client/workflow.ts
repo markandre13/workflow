@@ -205,7 +205,7 @@ class Client_impl extends skel.Client {
 //        bind("board", strokeandfillmodel)
 
         action("setcolor", (data?: any) => {
-            strokeandfillmodel.fill = data
+            strokeandfillmodel.set(data)
         })
 
         let project = await this.server.getProject(1)
