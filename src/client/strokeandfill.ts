@@ -17,7 +17,7 @@
  */
 
 import { GenericView, Model } from "toad.js"
-import { Path } from "./Path"
+import { Path } from "./path"
 import { Point } from "../shared/geometry"
 
 let strokeandfillStyle = document.createElement("style")

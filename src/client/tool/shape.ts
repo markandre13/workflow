@@ -20,7 +20,7 @@ import {
     Point, Rectangle, Matrix,
     pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
 } from "../../shared/geometry"
-import { Path } from "../Path"
+import { Path } from "../path"
 import { Figure, Shape } from "../figure"
 import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor"
 import { Tool } from "./tool"

@@ -44,7 +44,7 @@ import {
 
 import * as figure from "./figure"
 import { Figure } from "./figure"
-import { Path } from "./Path"
+import { Path } from "./path"
 
 import { Tool, SelectTool, ShapeTool } from "./tool"
 import { FigureEditor, ToolModel, Layer, LayerModel } from "./editor"

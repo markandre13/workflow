@@ -18,7 +18,7 @@
 
 import { Signal, GenericView, Model, OptionModel, globalController } from "toad.js"
 import { Point, Rectangle, Matrix } from "../shared/geometry"
-import { Path } from "./Path"
+import { Path } from "./path"
 import { Figure } from "../shared/workflow_valuetype"
 import * as figure from "./figure"
 import * as valueimpl from "../shared/workflow_valueimpl"
