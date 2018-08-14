@@ -23,6 +23,7 @@ import { Figure } from "../shared/workflow_valuetype"
 import * as figure from "./figure"
 import * as valueimpl from "../shared/workflow_valueimpl"
 import { Tool } from "./tool"
+import { StrokeAndFillModel } from "./strokeandfill"
 
 export class ToolModel extends OptionModel<Tool> {
 }
@@ -111,6 +112,7 @@ export class FigureEditor extends GenericView<LayerModel> {
 
     private tool?: Tool
     toolModel?: ToolModel
+    strokeAndFillModel?: StrokeAndFillModel
     
     mouseButtonIsDown: boolean
     
@@ -121,7 +123,6 @@ layer?: SVGElement
 
     constructor() {
         super()
-console.log("FigureEditor.constructor()")        
         this.mouseButtonIsDown = false
         
         this.scrollView = document.createElement("div")
@@ -164,6 +165,8 @@ console.log("FigureEditor.constructor()")
     }
     
     setTool(tool?: Tool) {
+        if (tool == this.tool)
+            return
         if (this.tool) {
             this.tool.deactivate(this.createEditorEvent())
         }
@@ -188,7 +191,17 @@ console.log("FigureEditor.constructor()")
                 this.setTool(this.toolModel!.value)
             }, this)
             this.setTool(this.toolModel!.value)
-            return
+        } else
+        if (model instanceof StrokeAndFillModel) {
+            if (this.strokeAndFillModel === model)
+                return
+            if (this.tool) {
+                this.tool.deactivate(this.createEditorEvent())
+            }
+            this.strokeAndFillModel = model
+            if (this.tool) {
+                this.tool.activate(this.createEditorEvent())
+            }
         } else {
             super.setModel(model as LayerModel)
         }

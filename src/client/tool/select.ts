@@ -73,11 +73,19 @@ export class SelectTool extends Tool {
             this.createOutlines(event.editor)
             this.createDecoration(event.editor)
         }, this)
+        if (event.editor.strokeAndFillModel) {
+            event.editor.strokeAndFillModel.modified.add( () => {
+                console.log("SelectTool.strokeAndFillModel modified")
+            }, this)
+        }
         Tool.selection.modified.trigger()
     }
     
     deactivate(event: EditorEvent) {
         Tool.selection.modified.remove(this)
+        if (event.editor.strokeAndFillModel) {
+            event.editor.strokeAndFillModel!.modified.remove(this)
+        }
         this.removeOutlines(event.editor)
         this.removeDecoration(event.editor)
     }

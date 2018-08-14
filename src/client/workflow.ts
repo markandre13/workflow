@@ -202,7 +202,7 @@ class Client_impl extends skel.Client {
         
         let strokeandfillmodel = new StrokeAndFillModel()
         bind("strokeandfill", strokeandfillmodel)
-//        bind("board", strokeandfillmodel)
+        bind("board", strokeandfillmodel)
 
         action("setcolor", (data?: any) => {
             strokeandfillmodel.set(data)
