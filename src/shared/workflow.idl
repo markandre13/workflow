@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-native Path;
+native Graphic;
 native Point_ptr;
 native Figure_ptr;
 native FigureEditor;
@@ -76,8 +76,9 @@ valuetype Rectangle {
 valuetype Figure {
     public unsigned long id;
 
-    Path getPath();
-    void updateSVG();
+    Graphic getGraphic();
+    void updateGraphic();
+
     boolean transform(in Matrix matrix);
     Rectangle bounds();
     double distance(in Point point);

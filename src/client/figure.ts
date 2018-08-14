@@ -66,7 +66,7 @@ export abstract class Shape extends AttributedFigure implements valuetype.figure
             return false
         this.origin = transform.transformPoint(this.origin)
         this.size   = transform.transformSize(this.size)
-        this.updateSVG()
+        this.updateGraphic()
         return true
     }
     
@@ -122,15 +122,15 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
         return Number.MAX_VALUE;
     }
     
-    getPath(): Path {
+    getGraphic(): Graphic {
        if (this.path === undefined) {
            this.path = new Path()
-           this.updateSVG()
+           this.updateGraphic()
        }
        return this.path
     }
 
-    updateSVG(): void {
+    updateGraphic(): void {
         if (!this.path)
           return
         
@@ -177,15 +177,15 @@ export class Circle extends Shape implements valuetype.figure.Circle
         return Math.sqrt(dx*dx+dy*dy)
     }
     
-    getPath(): Path {
+    getGraphic(): Graphic {
        if (this.path === undefined) {
            this.path = new Path()
-           this.updateSVG()
+           this.updateGraphic()
        }
        return this.path
     }
 
-    updateSVG(): void {
+    updateGraphic(): void {
         if (!this.path)
           return
         
@@ -226,11 +226,11 @@ export class Group extends Figure implements valuetype.figure.Group
     setHandlePosition(handle: number, pt: Point): void {
     }
     
-    getPath(): Path {
+    getGraphic(): Graphic {
        throw Error("not yet implemented")
     }
 
-    updateSVG(): void {
+    updateGraphic(): void {
     }
 }
 
@@ -273,16 +273,16 @@ export class Transform extends Group implements valuetype.figure.Transform {
     setHandlePosition(handle: number, pt: Point): void {
     }
     
-    getPath(): Path {
+    getGraphic(): Graphic {
        if (this.path === undefined) {
-           let path = this.children[0]!.getPath() as Path
-           this.path = new Path(path)
+           let path = this.children[0]!.getGraphic() as Path
+           this.path = new Path(path) // FIXME: more generic clone?
            this.path.transform(this.matrix)
            this.path.updateSVG()
        }
        return this.path
     }
 
-    updateSVG(): void {
+    updateGraphic(): void {
     }
 }

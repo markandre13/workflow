@@ -30,6 +30,24 @@ export abstract class Graphic {
     svg!: SVGElement
     abstract updateSVG(): void
     abstract transform(matrix: Matrix): void
+
+    translate(point: Point): void
+    translate(x: number, y: number): void
+    translate(pointOrX: Point|number, Y?: number): void
+    {
+        if (typeof pointOrX === "object")
+            this.transform(new Matrix({
+                m11: 1.0, m12: 0.0,
+                m21: 0.0, m22: 1.0,
+                tX: pointOrX.x, tY: pointOrX.y
+            }))
+        else
+            this.transform(new Matrix({
+                m11: 1.0, m12: 0.0,
+                m21: 0.0, m22: 1.0,
+                tX: pointOrX, tY: Y
+            }))
+    }
 }
 
 export class Group extends Graphic {
@@ -210,23 +228,6 @@ export class Path extends Graphic
         }
     }
 
-    translate(point: Point): void
-    translate(x: number, y: number): void
-    translate(pointOrX: Point|number, Y?: number): void
-    {
-        if (typeof pointOrX === "object")
-            this.transform(new Matrix({
-                m11: 1.0, m12: 0.0,
-                m21: 0.0, m22: 1.0,
-                tX: pointOrX.x, tY: pointOrX.y
-            }))
-        else
-            this.transform(new Matrix({
-                m11: 1.0, m12: 0.0,
-                m21: 0.0, m22: 1.0,
-                tX: pointOrX, tY: Y
-            }))
-    }
 }
 
 export class AttributedPath extends Path

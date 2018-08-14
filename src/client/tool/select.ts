@@ -20,7 +20,7 @@ import {
     Point, Rectangle, Matrix,
     pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
 } from "../../shared/geometry"
-import { Path } from "../path"
+import { Graphic, Path } from "../path"
 import { Figure, AttributedFigure } from "../figure"
 import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor"
 import { Tool } from "./tool"
@@ -36,12 +36,12 @@ export class SelectTool extends Tool {
     state: State
 
     boundary: Rectangle
-    decoration: Array<Path>
+    decoration: Array<Graphic>
     mouseDownAt?: Point
 
     marqueeRectangle?: Rectangle
     svgMarquee?: SVGElement
-    marqueeOutlines: Map<Figure, Path>
+    marqueeOutlines: Map<Figure, Graphic>
     
     selectedHandle: number
     handleStart: Point
@@ -55,8 +55,8 @@ export class SelectTool extends Tool {
         super()
         this.state = State.NONE
         this.boundary = new Rectangle()
-        this.decoration = new Array<Path>()
-        this.marqueeOutlines = new Map<Figure, Path>()
+        this.decoration = new Array<Graphic>()
+        this.marqueeOutlines = new Map<Figure, Graphic>()
         
         this.selectedHandle = 0
         this.handleStart = new Point()
@@ -80,7 +80,7 @@ export class SelectTool extends Tool {
                     if (figure instanceof AttributedFigure) {
                         figure.stroke = event.editor.strokeAndFillModel!.stroke
                         figure.fill = event.editor.strokeAndFillModel!.fill
-                        figure.updateSVG()
+                        figure.updateGraphic()
                     }
                 }
             }, this)
@@ -521,7 +521,7 @@ console.log("mouse up selection")
             if (!this.marqueeRectangle!.containsRectangle(figure.bounds()))
                 continue
 
-            let outline = Tool.createOutlineCopy(figure.getPath() as Path)
+            let outline = Tool.createOutlineCopy(figure.getGraphic() as Graphic)
             editor.decorationOverlay.appendChild(outline.svg)
             this.marqueeOutlines.set(figure, outline)
         }

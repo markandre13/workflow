@@ -393,8 +393,12 @@ export abstract class Figure extends valueimpl.Figure
         console.log("workflow.Figure.constructor()")
     }
     
-    getPath(): Path {
+    getGraphic(): Graphic {
 	throw Error("not implemented")
+    }
+
+    updateGraphic(): void {
+        throw Error("not implemented")
     }
 
     distance(pt: Point): number {
@@ -405,8 +409,6 @@ export abstract class Figure extends valueimpl.Figure
         throw Error("not implemented")
     }
     
-    updateSVG(): void {
-    }
 }
 
 export abstract class AttributedFigure extends Figure implements valuetype.figure.AttributedFigure

@@ -20,15 +20,15 @@ import {
     Point, Rectangle, Matrix,
     pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
 } from "../../shared/geometry"
-import { Path } from "../path"
+import { Graphic, Path } from "../path"
 import { Figure } from "../figure"
 import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor"
 
 export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()
 
-    handles: Map<Figure, Array<Path>>
-    outlines: Map<Figure, Path>
+    handles: Map<Figure, Array<Graphic>>
+    outlines: Map<Figure, Graphic>
 
     activate(e: EditorEvent) {}
     deactivate(e: EditorEvent) {}
@@ -42,15 +42,15 @@ export class Tool {
         this.outlines = new Map<Figure, Path>()
     }
 
-    static createOutlineCopy(aPath: Path): Path {
-        let path = new Path(aPath)
+    static createOutlineCopy(aPath: Graphic): Graphic {
+        let path = new Path(aPath as Path) // FIXME: clone
         // FIXME: translate outline by (-1, +1)
         Tool.setOutlineColors(path)
         path.updateSVG()
         return path
     }
     
-    static setOutlineColors(path: Path): void {
+    static setOutlineColors(path: Graphic): void {
         path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
         path.svg.setAttributeNS("", "fill", "none")
         // FIXME: if it's a group, iterate over all elements
@@ -60,7 +60,7 @@ export class Tool {
         for(let figure of Tool.selection.selection) {
             if (this.outlines.has(figure))
                 continue
-            let outline = Tool.createOutlineCopy(figure.getPath() as Path)
+            let outline = Tool.createOutlineCopy(figure.getGraphic() as Graphic)
             editor.decorationOverlay.appendChild(outline.svg)
             this.outlines.set(figure, outline)
         }

@@ -18,7 +18,7 @@
 
 import { Signal, GenericView, Model, OptionModel, globalController } from "toad.js"
 import { Point, Rectangle, Matrix } from "../shared/geometry"
-import { Path } from "./path"
+import { Path, Graphic } from "./path"
 import { Figure } from "../shared/workflow_valuetype"
 import * as figure from "./figure"
 import * as valueimpl from "../shared/workflow_valueimpl"
@@ -227,7 +227,7 @@ console.log("FigureEditor.updateView(): no layers")
 this.layer = layer
         for(let figure of this.model!.layers[0].data) {
 console.log("append svg to svg layer")
-            layer.appendChild((figure.getPath() as Path).svg)
+            layer.appendChild((figure.getGraphic() as Graphic).svg)
             this.bounds.expandByRectangle(figure.bounds())
         }
         this.svgView.insertBefore(layer, this.decorationOverlay)

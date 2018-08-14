@@ -44,7 +44,7 @@ import {
 
 import * as figure from "./figure"
 import { Figure } from "./figure"
-import { Path } from "./path"
+import { Graphic, Path } from "./path"
 
 import { Tool, SelectTool, ShapeTool } from "./tool"
 import { FigureEditor, ToolModel, Layer, LayerModel } from "./editor"
@@ -292,9 +292,9 @@ export class BoardListener_impl extends skel.BoardListener {
             transform.id = newIds.shift()!
             transform.matrix = new Matrix(matrix)
             transform.children.push(fig)
-            let oldPath = fig.getPath() as Path
-            let newPath = transform.getPath() as Path
-            (oldPath.svg as any).replaceWith(newPath.svg)
+            let oldGraphic = fig.getGraphic() as Graphic
+            let newGraphic = transform.getGraphic() as Graphic
+            (oldGraphic.svg as any).replaceWith(newGraphic.svg)
 //            (f.getPath() as Path).svg.replaceWith(
 //                (transform.getPath() as Path).svg
 //            )
