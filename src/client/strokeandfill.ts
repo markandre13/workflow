@@ -68,9 +68,23 @@ export class StrokeAndFillModel extends Model
                 break
         }
     }
+
+    get() {
+        switch(this._strokeOrFill) {
+            case StrokeOrFill.STROKE:
+                return this.stroke
+                break
+            case StrokeOrFill.FILL:
+                return this.fill
+                break
+            case StrokeOrFill.NONE:
+            case StrokeOrFill.BOTH:
+                return ""
+        }
+    }
     
     set stroke(value: string) {
-        if (value == this._stroke)
+        if (value === this._stroke)
             return
         this._stroke = value
         this.modified.trigger()
@@ -81,7 +95,7 @@ export class StrokeAndFillModel extends Model
     }
 
     set fill(value: string) {
-        if (value == this._fill)
+        if (value === this._fill)
             return
         this._fill = value
         this.modified.trigger()
@@ -90,18 +104,39 @@ export class StrokeAndFillModel extends Model
     get fill() {
         return this._fill
     }
+
+    set strokeOrFill(value: StrokeOrFill) {
+        if (value === this._strokeOrFill)
+            return
+        this._strokeOrFill = value
+        this.modified.trigger()
+    }
+    
+    get strokeOrFill() {
+        return this._strokeOrFill
+    }
 }
 
 export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
     strokeElement: SVGRectElement
+    strokeNoneElement: SVGLineElement
     fillElement: SVGRectElement
+    fillNoneElement: SVGLineElement
+    colorButtonElement: SVGRectElement
+    colorButtonIndicatorElement: SVGRectElement
+    noneButtonIndicatorElement: SVGRectElement
+    stroke: string
+    fill: string
 
     constructor() {
         super()
+        this.stroke = "#000"
+        this.fill = "#fff"
 
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
 
         let fill = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        let fillHitBox = fill
         for(let n of [
             ["x", "0.5"],
             ["y", "0.5"],
@@ -114,6 +149,21 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         }
         svg.appendChild(fill);
         this.fillElement = fill
+
+        let fillNone = document.createElementNS("http://www.w3.org/2000/svg", "line")
+        this.fillNoneElement = fillNone
+        for(let n of [
+            ["x1", "4"],
+            ["y1", "24"],
+            ["x2", "24"],
+            ["y2", "4"],
+            ["stroke", "rgba(255,0,0,0)"],
+            ["stroke-width", "2"],
+            ["stroke-linecap", "round"]])
+        {
+            fillNone.setAttributeNS("", n[0], n[1])
+        }
+        svg.appendChild(fillNone)
         
         let stroke = document.createElementNS("http://www.w3.org/2000/svg", "rect")
         for(let n of [
@@ -141,6 +191,21 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         }
         svg.appendChild(stroke2);
         this.strokeElement = stroke2
+
+        let strokeNone = document.createElementNS("http://www.w3.org/2000/svg", "line")
+        this.strokeNoneElement = strokeNone
+        for(let n of [
+            ["x1", "16"],
+            ["y1", "38"],
+            ["x2", "38"],
+            ["y2", "16"],
+            ["stroke", "rgba(255,0,0,1)"],
+            ["stroke-width", "2"],
+            ["stroke-linecap", "round"]])
+        {
+            strokeNone.setAttributeNS("", n[0], n[1])
+        }
+        svg.appendChild(strokeNone)
 
         let stroke3 = document.createElementNS("http://www.w3.org/2000/svg", "rect")
         for(let n of [
@@ -274,6 +339,7 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         svg.appendChild(defaultFillAndStrokeHitBox);
 
         let colorButton = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        this.colorButtonIndicatorElement = colorButton
         for(let n of [
             ["x", "0.5"],
             ["y", "46.5"],
@@ -287,6 +353,7 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         svg.appendChild(colorButton)
 
         let colorButton1 = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        this.colorButtonElement = colorButton1
         for(let n of [
             ["x", "3.5"],
             ["y", "49.5"],
@@ -299,7 +366,22 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         }
         svg.appendChild(colorButton1)
 
+        let colorButtonHitBox = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        this.colorButtonIndicatorElement = colorButton
+        for(let n of [
+            ["x", "0.5"],
+            ["y", "46.5"],
+            ["width", "13"],
+            ["height", "13"],
+            ["stroke", "rgba(0,0,0,0)"],
+            ["fill", "rgba(0,0,0,0)"]])
+        {
+            colorButtonHitBox.setAttributeNS("", n[0], n[1])
+        }
+        svg.appendChild(colorButtonHitBox)
+
         let noneButton = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        this.noneButtonIndicatorElement = noneButton
         for(let n of [
             ["x", "27.5"],
             ["y", "46.5"],
@@ -339,27 +421,51 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         }
         svg.appendChild(noneButton2)
 
-        fill.onmousedown = () => {
+        let noneButtonHitBox = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        for(let n of [
+            ["x", "27.5"],
+            ["y", "46.5"],
+            ["width", "13"],
+            ["height", "13"],
+            ["stroke", "rgba(0,0,0,0)"],
+            ["fill", "rgba(0,0,0,0)"]])
+        {
+            noneButtonHitBox.setAttributeNS("", n[0], n[1])
+        }
+        svg.appendChild(noneButtonHitBox)
+        
+        fillHitBox.onmousedown = () => {
             if (this.model)
-                this.model._strokeOrFill = StrokeOrFill.FILL
+                this.model.strokeOrFill = StrokeOrFill.FILL
             svg.removeChild(fill)
+            svg.removeChild(fillNone)
+            svg.insertBefore(fillNone, strokeHitBox.nextSibling)
             svg.insertBefore(fill, strokeHitBox.nextSibling)
         }
 
         strokeHitBox.onmousedown = () => {
             if (this.model)
-                this.model._strokeOrFill = StrokeOrFill.STROKE
+                this.model.strokeOrFill = StrokeOrFill.STROKE
             svg.removeChild(fill)
+            svg.removeChild(fillNone)
             svg.insertBefore(fill, stroke)
+            svg.insertBefore(fillNone, stroke)
         }
         
         swapFillAndStrokeHitBox.onmousedown = () => {
             if (!this.model)
                 return
             this.model.modified.lock()
+            
             let akku = this.model.stroke
             this.model.stroke = this.model.fill
             this.model.fill = akku
+            
+            akku = this.stroke
+            this.stroke = this.fill
+            this.fill = akku
+            this.model.modified.trigger()
+            
             this.model.modified.unlock()
         }
         
@@ -370,6 +476,24 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
             this.model.stroke = "#000"
             this.model.fill = "#fff"
             this.model.modified.unlock()
+        }
+        
+        colorButtonHitBox.onmousedown = () => {
+            if (this.model) {
+                switch(this.model.strokeOrFill) {
+                    case StrokeOrFill.STROKE:
+                        this.model.stroke = this.stroke
+                        break
+                    case StrokeOrFill.FILL:
+                        this.model.fill = this.fill
+                        break
+                }
+            }
+        }
+
+        noneButtonHitBox.onmousedown = () => {
+            if (this.model)
+                this.model.set("none")
         }
 
         this.attachShadow({mode: 'open'})
@@ -384,11 +508,30 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
     }
     
     updateView() {
-        if (this.model) {
-            console.log("strokeandfill update view")
+        if (!this.model)
+            return
+        if (this.model.stroke !== "none")
+            this.stroke = this.model.stroke
+        if (this.model.fill !== "none")
+            this.fill = this.model.fill
+        this.noneButtonIndicatorElement.setAttributeNS("", "fill", this.model.get() === "none" ? "#888" : "#ddd")
+        this.colorButtonIndicatorElement.setAttributeNS("", "fill", this.model.get() !== "none" ? "#888" : "#ddd")
+        this.colorButtonElement.setAttributeNS("", "fill", this.model.strokeOrFill === StrokeOrFill.STROKE ? this.stroke : this.fill)
+        if (this.model.stroke === "none") {
+            this.strokeElement.setAttributeNS("", "fill", "#fff")
+            this.strokeElement.setAttributeNS("", "stroke", "#fff")
+            this.strokeNoneElement.setAttributeNS("", "stroke", "#f00")
+        } else {
             this.strokeElement.setAttributeNS("", "fill", this.model.stroke)
             this.strokeElement.setAttributeNS("", "stroke", this.model.stroke)
+            this.strokeNoneElement.setAttributeNS("", "stroke", "none")
+        }
+        if (this.model.fill === "none") {
+            this.fillElement.setAttributeNS("", "fill", "#fff")
+            this.fillNoneElement.setAttributeNS("", "stroke", "#f00")
+        } else {
             this.fillElement.setAttributeNS("", "fill", this.model.fill)
+            this.fillNoneElement.setAttributeNS("", "stroke", "none")
         }
     }
 }
