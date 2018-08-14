@@ -81,6 +81,8 @@ export async function main(url: string) {
     ORB.registerValueType("Matrix", Matrix)
 
     ORB.registerValueType("Figure", figure.Figure)
+    ORB.registerValueType("figure.AttributedFigure", figure.AttributedFigure)
+    ORB.registerValueType("figure.Shape", figure.Shape)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
     ORB.registerValueType("figure.Circle", figure.Circle)
     ORB.registerValueType("figure.Group", figure.Group)

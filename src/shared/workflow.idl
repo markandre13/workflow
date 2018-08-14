@@ -86,7 +86,13 @@ valuetype Figure {
 };
 
 module figure {
-    valuetype Shape: Figure {
+    valuetype AttributedFigure: Figure {
+    	public string stroke;
+    	public double strokeWidth;
+    	public string fill;
+    };
+
+    valuetype Shape: AttributedFigure {
         public Point origin;
         public Size size;
     };

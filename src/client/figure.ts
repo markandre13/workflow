@@ -36,7 +36,22 @@ export abstract class Figure extends valueimpl.Figure
     }
 }
 
-export abstract class Shape extends Figure implements valuetype.figure.Shape
+export abstract class AttributedFigure extends Figure implements valuetype.figure.AttributedFigure
+{
+    stroke!: string
+    strokeWidth!: number
+    fill!: string
+
+    constructor(init?: Partial<AttributedFigure>) {
+        super(init)
+        this.stroke = "#000"
+        this.strokeWidth = 1.0
+        this.fill = "#fff"
+        console.log("workflow.AttributedFigure.constructor()")
+    }
+}
+
+export abstract class Shape extends AttributedFigure implements valuetype.figure.Shape
 {
     origin!: Point
     size!: Size
@@ -91,14 +106,10 @@ export abstract class Shape extends Figure implements valuetype.figure.Shape
 export class Rectangle extends Shape implements valuetype.figure.Rectangle
 {
     path?: Path
-    stroke: string
-    fill: string
     
     constructor(init?: Partial<Rectangle>) {
         super(init)
         valuetype.figure.initRectangle(this, init)
-        this.stroke = "#000"
-        this.fill = "#f80"
     }
     
     distance(pt: Point): number {
@@ -135,14 +146,10 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
 export class Circle extends Shape implements valuetype.figure.Circle
 {
     path?: Path
-    stroke: string
-    fill: string
     
     constructor(init?: Partial<Circle>) {
         super(init)
         valuetype.figure.initCircle(this, init)
-        this.stroke = "#000"
-        this.fill = "#f80"
     }
     
     distance(pt: Point): number {

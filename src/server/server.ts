@@ -108,7 +108,7 @@ async function main() {
         { pid: 1,
           name: "Polisens mobila Utrednings STöd Project Board",
           description: "",
-          layers: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure.Rectangle","#V":{"id":1,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}},{"#T":"figure.Rectangle","#V":{"id":2,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}}}}],"id":20,"name":"Scrible"}}])
+          layers: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure.Rectangle","#V":{"id":1,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}},"fill": "#f80"}},{"#T":"figure.Rectangle","#V":{"id":2,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}},"fill":"#08f"}}],"id":20,"name":"Scrible"}}])
         }
     ])
 
@@ -124,6 +124,7 @@ async function main() {
     ORB.registerValueType("Matrix", Matrix)
     ORB.registerValueType("Rectangle", Rectangle)
     ORB.registerValueType("Figure", Figure)
+    ORB.registerValueType("figure.AttributedFigure", figure.AttributedFigure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
     ORB.registerValueType("figure.Circle", figure.Circle)
     ORB.registerValueType("figure.Group", valueimpl.figure.Group)
@@ -408,7 +409,22 @@ export abstract class Figure extends valueimpl.Figure
     }
 }
 
-export abstract class Shape extends Figure implements valuetype.figure.Shape
+export abstract class AttributedFigure extends Figure implements valuetype.figure.AttributedFigure
+{
+    stroke!: string
+    strokeWidth!: number
+    fill!: string
+
+    constructor(init?: Partial<AttributedFigure>) {
+        super(init)
+        valuetype.figure.initAttributedFigure(this, init)
+        this.stroke = "#000"
+        this.strokeWidth = 1.0
+        this.fill = "#fff"
+    }
+}
+
+export abstract class Shape extends AttributedFigure implements valuetype.figure.Shape
 {
     origin!: Point
     size!: Size
@@ -457,14 +473,12 @@ export abstract class Shape extends Figure implements valuetype.figure.Shape
 
 export class Rectangle extends Shape implements valuetype.figure.Rectangle
 {
-    stroke: string
-    fill: string
-    
     constructor(init?: Partial<Rectangle>) {
         super(init)
         valuetype.figure.initRectangle(this, init)
         this.stroke = "#000"
-        this.fill = "#f80"
+        this.strokeWidth = 1.0
+        this.fill = "#fff"
     }
     
 }
@@ -478,7 +492,7 @@ export class Circle extends Shape implements valuetype.figure.Circle
         super(init)
         valuetype.figure.initRectangle(this, init)
         this.stroke = "#000"
-        this.fill = "#f80"
+        this.fill = "#fff"
     }
     
 }
