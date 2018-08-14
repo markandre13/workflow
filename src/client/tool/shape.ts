@@ -45,6 +45,10 @@ export class ShapeTool extends Tool {
         this.shape = this.creator() as Shape
         this.shape.setHandlePosition(0, event)
         this.shape.setHandlePosition(2, event)
+        if (event.editor.strokeAndFillModel) {
+            this.shape.stroke = event.editor.strokeAndFillModel.stroke
+            this.shape.fill = event.editor.strokeAndFillModel.fill
+        }
         
         let path = this.shape.getPath() as Path
         Tool.setOutlineColors(path)

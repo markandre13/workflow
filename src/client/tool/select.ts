@@ -21,7 +21,7 @@ import {
     pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
 } from "../../shared/geometry"
 import { Path } from "../Path"
-import { Figure } from "../figure"
+import { Figure, AttributedFigure } from "../figure"
 import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor"
 import { Tool } from "./tool"
 
@@ -76,6 +76,13 @@ export class SelectTool extends Tool {
         if (event.editor.strokeAndFillModel) {
             event.editor.strokeAndFillModel.modified.add( () => {
                 console.log("SelectTool.strokeAndFillModel modified")
+                for(let figure of Tool.selection.selection) {
+                    if (figure instanceof AttributedFigure) {
+                        figure.stroke = event.editor.strokeAndFillModel!.stroke
+                        figure.fill = event.editor.strokeAndFillModel!.fill
+                        figure.update()
+                    }
+                }
             }, this)
         }
         Tool.selection.modified.trigger()
