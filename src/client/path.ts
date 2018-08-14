@@ -90,15 +90,16 @@ export class Path
           p2OrX1: Point|number, Y1?: number,
           X2?: number, Y2?: number): void
     {
-        // FIXME: fails when point is just an object
-        if (p0OrX0 instanceof Point &&
-            p1OrY0 instanceof Point &&
-            p2OrX1 instanceof Point)
+        if (typeof p0OrX0 === "object" &&
+            typeof p1OrY0 === "object" &&
+            typeof p2OrX1 === "object")
+        {
             this.path.push({type: 'C', values: [p0OrX0.x, p0OrX0.y,
                                                 p1OrY0.x, p1OrY0.y,
                                                 p2OrX1.x, p2OrX1.y]})
-        else
+        } else {
             this.path.push({type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1, X2, Y2]})
+        }
     }
 
     close() {
