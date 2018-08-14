@@ -46,7 +46,7 @@ export class Tool {
         let path = new Path(aPath)
         // FIXME: translate outline by (-1, +1)
         Tool.setOutlineColors(path)
-        path.update()
+        path.updateSVG()
         return path
     }
     

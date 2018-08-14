@@ -405,7 +405,7 @@ export abstract class Figure extends valueimpl.Figure
         throw Error("not implemented")
     }
     
-    update(): void {
+    updateSVG(): void {
     }
 }
 
@@ -510,26 +510,11 @@ export class Group extends Figure implements valuetype.figure.Group
         return true
     }
     
-    distance(pt: Point): number {
-        throw Error("not yet implemented")
-    }
-
-    bounds(): geometry.Rectangle {
-        throw Error("not yet implemented")
-    }
-    
     getHandlePosition(i: number): Point | undefined {
         return undefined
     }
 
     setHandlePosition(handle: number, pt: Point): void {
-    }
-    
-    getPath(): Path {
-       throw Error("not yet implemented")
-    }
-
-    update(): void {
     }
 }
 
@@ -547,26 +532,11 @@ export class Transform extends Group implements valuetype.figure.Transform {
         return true
     }
     
-    distance(pt: Point): number {
-        let m = new Matrix(this.matrix)
-        m.invert()
-        pt = m.transformPoint(pt)
-        return this.children[0].distance(pt)
-    }
-
-    bounds(): geometry.Rectangle {
-        throw Error("not implemented")
-    }
-    
     getHandlePosition(i: number): Point | undefined {
         return undefined
     }
 
     setHandlePosition(handle: number, pt: Point): void {
-    }
-    
-    getPath(): Path {
-        throw Error("not implemented")
     }
 }
 

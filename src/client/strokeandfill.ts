@@ -257,7 +257,7 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         swapFillAndStroke.line(41, 7)
         swapFillAndStroke.close()
         
-        swapFillAndStroke.update()
+        swapFillAndStroke.updateSVG()
         swapFillAndStroke.svg.setAttributeNS("", "stroke-width", "1")
         svg.appendChild(swapFillAndStroke.svg)
 
@@ -266,7 +266,7 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         swapFillAndStroke.curve(38.5, 2.5,
                                 38.5, 2.5,
                                 38.5, 7.5)
-        swapFillAndStroke.update()
+        swapFillAndStroke.updateSVG()
         swapFillAndStroke.svg.setAttributeNS("", "stroke", "#000")
         swapFillAndStroke.svg.setAttributeNS("", "stroke-width", "1")
         swapFillAndStroke.svg.setAttributeNS("", "fill", "none")

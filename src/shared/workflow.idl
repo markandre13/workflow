@@ -77,7 +77,7 @@ valuetype Figure {
     public unsigned long id;
 
     Path getPath();
-    void update();
+    void updateSVG();
     boolean transform(in Matrix matrix);
     Rectangle bounds();
     double distance(in Point point);

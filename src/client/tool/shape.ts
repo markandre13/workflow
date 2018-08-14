@@ -57,7 +57,7 @@ export class ShapeTool extends Tool {
 
     mousemove(event: EditorEvent) {
         this.shape!.setHandlePosition(2, event)
-        this.shape!.update()
+        this.shape!.updateSVG()
         Tool.setOutlineColors(this.shape!.getPath() as Path)
     }
 

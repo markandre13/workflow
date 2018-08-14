@@ -80,7 +80,7 @@ export class SelectTool extends Tool {
                     if (figure instanceof AttributedFigure) {
                         figure.stroke = event.editor.strokeAndFillModel!.stroke
                         figure.fill = event.editor.strokeAndFillModel!.fill
-                        figure.update()
+                        figure.updateSVG()
                     }
                 }
             }, this)
@@ -167,7 +167,7 @@ console.log("mouse up selection")
         this.createOutlines(editor)
         for(let [figure, path] of this.outlines) {
             path.transform(this.transformation)
-            path.update()
+            path.updateSVG()
         }
     }
     
@@ -208,7 +208,7 @@ console.log("mouse up selection")
         rectangle.size.height = Math.round(rectangle.size.height)
         path.appendRect(rectangle)
         path.transform(this.transformation)
-        path.update()
+        path.updateSVG()
         path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
         path.svg.setAttributeNS("", "fill", "none")
         editor.decorationOverlay.appendChild(path.svg)
@@ -219,7 +219,7 @@ console.log("mouse up selection")
         for(let handle=0; handle<16; ++handle) {
             let path = new Path()
             path.appendRect(this.getBoundaryHandle(handle))
-            path.update()
+            path.updateSVG()
             if (handle<8) {
                 path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
                 path.svg.setAttributeNS("", "fill", "#fff")
@@ -537,7 +537,7 @@ console.log("mouse up selection")
         let delta = pointMinusPoint(event, this.mouseDownAt!)
         for(let decorator of this.decoration) {
             decorator.translate(delta)
-            decorator.update()
+            decorator.updateSVG()
         }
 
         this.transformation.identity()

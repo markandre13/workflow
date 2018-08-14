@@ -26,12 +26,29 @@ declare global {
   }
 }
 
-export class Path
+export abstract class Graphic {
+    svg!: SVGElement
+    abstract updateSVG(): void
+    abstract transform(matrix: Matrix): void
+}
+
+export class Group extends Graphic {
+    constructor() {
+        super()
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    }
+    updateSVG(): void {
+    }
+    transform(matrix: Matrix): void {
+    }
+}
+
+export class Path extends Graphic
 {
     path: any
-    svg: SVGPathElement
   
     constructor(path?: Path) {
+        super()
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement;
         if (path === undefined) {
             this.path = []
@@ -60,8 +77,8 @@ export class Path
         this.path = []
     }
 
-    update() {
-        this.svg.setPathData(this.path)
+    updateSVG() {
+        (this.svg as SVGPathElement).setPathData(this.path)
     }
 
     move(point: Point): void
@@ -209,5 +226,29 @@ export class Path
                 m21: 0.0, m22: 1.0,
                 tX: pointOrX, tY: Y
             }))
+    }
+}
+
+export class AttributedPath extends Path
+{
+    stroke: string
+    strokeWidth: number
+    fill: string
+    
+    constructor(path?: AttributedPath) {
+        super(path)
+        this.stroke = "#000"
+        this.strokeWidth = 1.0
+        this.fill = "#fff"
+        this.svg.setAttributeNS("", "stroke", this.stroke)
+        this.svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
+        this.svg.setAttributeNS("", "fill", this.fill)
+    }
+    
+    updateSVG() {
+        super.updateSVG()
+        this.svg.setAttributeNS("", "stroke", this.stroke)
+        this.svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
+        this.svg.setAttributeNS("", "fill", this.fill)
     }
 }

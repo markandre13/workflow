@@ -66,7 +66,7 @@ export abstract class Shape extends AttributedFigure implements valuetype.figure
             return false
         this.origin = transform.transformPoint(this.origin)
         this.size   = transform.transformSize(this.size)
-        this.update()
+        this.updateSVG()
         return true
     }
     
@@ -125,18 +125,18 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
     getPath(): Path {
        if (this.path === undefined) {
            this.path = new Path()
-           this.update()
+           this.updateSVG()
        }
        return this.path
     }
 
-    update(): void {
+    updateSVG(): void {
         if (!this.path)
           return
         
         this.path.clear()
         this.path.appendRect(this)
-        this.path.update()
+        this.path.updateSVG()
 
         this.path.svg.setAttributeNS("", "stroke", this.stroke)
         this.path.svg.setAttributeNS("", "fill", this.fill)
@@ -180,18 +180,18 @@ export class Circle extends Shape implements valuetype.figure.Circle
     getPath(): Path {
        if (this.path === undefined) {
            this.path = new Path()
-           this.update()
+           this.updateSVG()
        }
        return this.path
     }
 
-    update(): void {
+    updateSVG(): void {
         if (!this.path)
           return
         
         this.path.clear()
         this.path.appendCircle(this)
-        this.path.update()
+        this.path.updateSVG()
 
         this.path.svg.setAttributeNS("", "stroke", this.stroke)
         this.path.svg.setAttributeNS("", "fill", this.fill)
@@ -230,7 +230,7 @@ export class Group extends Figure implements valuetype.figure.Group
        throw Error("not yet implemented")
     }
 
-    update(): void {
+    updateSVG(): void {
     }
 }
 
@@ -247,7 +247,7 @@ export class Transform extends Group implements valuetype.figure.Transform {
         this.matrix.append(transform)
         if (this.path) {
             this.path.transform(transform)
-            this.path.update()
+            this.path.updateSVG()
         }
         return true
     }
@@ -278,11 +278,11 @@ export class Transform extends Group implements valuetype.figure.Transform {
            let path = this.children[0]!.getPath() as Path
            this.path = new Path(path)
            this.path.transform(this.matrix)
-           this.path.update()
+           this.path.updateSVG()
        }
        return this.path
     }
 
-    update(): void {
+    updateSVG(): void {
     }
 }
