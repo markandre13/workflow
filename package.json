@@ -6,10 +6,10 @@
   "license": "GPL-3.0",
   "main": "index.html",
   "scripts": {
-    "build": "npm run build-idl && tsc -p tsconfig-server.json && webpack",
-    "build-idl": "corba-idl -d --ts-all src/shared/workflow.idl",
-    "build-client": "npm run build-idl && webpack",
-    "build-server": "npm run build-idl && tsc -p tsconfig-server.json",
+    "build": "npm run compile-idl && npm run compile-server && npm run compile-client",
+    "compile-idl": "corba-idl -d --ts-all src/shared/workflow.idl",
+    "compile-client": "webpack",
+    "compile-server": "tsc -p tsconfig-server.json",
     "test-ui": "npm run build-idl && webpack --config webpack-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
     "test-unit": "npm run build-idl && karma start"
   },
