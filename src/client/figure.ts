@@ -24,6 +24,7 @@ import {
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber, pointMinus
 } from "../shared/geometry"
 import { Path } from "./path"
+import * as ext from "./path"
 
 export abstract class Figure extends valueimpl.Figure
 {
@@ -32,7 +33,7 @@ export abstract class Figure extends valueimpl.Figure
     
     constructor(init?: Partial<Figure>) {
         super(init)
-        console.log("workflow.Figure.constructor()")
+//        console.log("workflow.Figure.constructor()")
     }
 }
 
@@ -47,7 +48,7 @@ export abstract class AttributedFigure extends Figure implements valuetype.figur
         this.stroke = "#000"
         this.strokeWidth = 1.0
         this.fill = "#fff"
-        console.log("workflow.AttributedFigure.constructor()")
+//        console.log("workflow.AttributedFigure.constructor()")
     }
 }
 
@@ -200,15 +201,25 @@ export class Circle extends Shape implements valuetype.figure.Circle
 
 export class Group extends Figure implements valuetype.figure.Group
 {
-    children!: Array<Figure>
+    group?: ext.Group // FIXME: private?
+    children!: Array<Figure> // FIXME: private
 
     constructor(init?: Partial<Group>) {
         super(init)
         valuetype.figure.initGroup(this, init)
+        this.group = new ext.Group()
+    }
+    
+    add(figure: Figure) {
+console.log("figure.Group.add()")
+        this.children.push(figure)
+        if (this.group)
+            this.group.add(figure.getGraphic() as ext.Graphic)
     }
 
     transform(transform: Matrix): boolean {
-        return true
+console.log("figure.Group.transform()")
+        return false
     }
     
     distance(pt: Point): number {
@@ -227,27 +238,44 @@ export class Group extends Figure implements valuetype.figure.Group
     }
     
     getGraphic(): Graphic {
-       throw Error("not yet implemented")
+console.log("figure.Group.getGraphic()")
+       if (this.group === undefined) {
+           this.group = new ext.Group()
+           for(let child of this.children) {
+               this.group.add(child.getGraphic() as ext.Graphic)
+           }
+       }
+       return this.group
     }
 
     updateGraphic(): void {
+console.log("figure.Group.updateGraphic()")
     }
 }
 
 export class Transform extends Group implements valuetype.figure.Transform {
-    path?: Path
-    matrix!: Matrix
+    matrix!: Matrix // FIXME?: why store a matrix here when there's also one in ext.Group?
 
     constructor(init?: Partial<Transform>) {
         super(init)
         valuetype.figure.initTransform(this, init)
     }
+    
+    add(figure: Figure) {
+console.log("figure.Transform.add()")
+        this.children.push(figure)
+        if (this.group !== undefined) {
+            let graphic = figure.getGraphic() as ext.Graphic
+            this.group.add(graphic)
+        }
+    }
 
-    transform(transform: Matrix): boolean {
-        this.matrix.append(transform)
-        if (this.path) {
-            this.path.transform(transform)
-            this.path.updateSVG()
+    transform(matrix: Matrix): boolean {
+console.log("figure.Transform.transform()")
+        this.matrix.append(matrix)
+        if (this.group !== undefined) {
+            this.group.transform(matrix)
+            this.group.updateSVG()
         }
         return true
     }
@@ -274,15 +302,18 @@ export class Transform extends Group implements valuetype.figure.Transform {
     }
     
     getGraphic(): Graphic {
-       if (this.path === undefined) {
-           let path = this.children[0]!.getGraphic() as Path
-           this.path = new Path(path) // FIXME: more generic clone?
-           this.path.transform(this.matrix)
-           this.path.updateSVG()
+console.log("figure.Transform.getGraphic()")
+       if (this.group === undefined) {
+           this.group = new ext.Group()
+           for(let child of this.children) {
+               this.group.add(child.getGraphic() as ext.Graphic)
+           }
+           this.group.transform(this.matrix)
        }
-       return this.path
+       return this.group
     }
 
     updateGraphic(): void {
+console.log("figure.Transform.updateGraphic()")
     }
 }

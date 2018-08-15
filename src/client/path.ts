@@ -51,13 +51,42 @@ export abstract class Graphic {
 }
 
 export class Group extends Graphic {
+    data: Array<Graphic>
+    matrix?: Matrix
+
     constructor() {
         super()
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        this.data = new Array<Graphic>()
     }
-    updateSVG(): void {
+
+    public add(graphic: Graphic) {
+console.log("path.Group.add()")
+        if (this.matrix) {
+console.log("  transform graphic while adding")
+            graphic.transform(this.matrix) // FIXME: should not modify argument?
+        }
+        this.data.push(graphic)
+        graphic.updateSVG()
+        this.svg.appendChild(graphic.svg)
     }
-    transform(matrix: Matrix): void {
+
+    public updateSVG(): void {
+console.log("path.Group.updateSVG()")
+        for(let graphic of this.data) {
+            graphic.updateSVG()
+        }
+    }
+
+    public transform(matrix: Matrix): void {
+        if (!this.matrix)
+            this.matrix = new Matrix(matrix)
+        else
+            this.matrix.append(matrix)
+console.log("path.Group.transform()")
+        for(let graphic of this.data) {
+            graphic.transform(matrix)
+        }
     }
 }
 
@@ -95,8 +124,36 @@ export class Path extends Graphic
         this.path = []
     }
 
-    updateSVG() {
-        (this.svg as SVGPathElement).setPathData(this.path)
+    // relativeMove
+    // relativeLine
+    // relativeCurve
+    // append(path)
+    transform(matrix: Matrix) {
+        for(let segment of this.path) {
+            switch(segment.type) {
+                case 'M':
+                case 'L':
+                    segment.values = matrix.transformArrayPoint(segment.values)
+                    break
+                case 'C': {
+                    let pt = matrix.transformArrayPoint([segment.values[0], segment.values[1]])
+                    segment.values[0] = pt[0]
+                    segment.values[1] = pt[1]
+                    pt = matrix.transformArrayPoint([segment.values[2], segment.values[3]])
+                    segment.values[2] = pt[0]
+                    segment.values[3] = pt[1]
+                    pt = matrix.transformArrayPoint([segment.values[4], segment.values[5]])
+                    segment.values[4] = pt[0]
+                    segment.values[5] = pt[1]
+                } break
+            }
+        }
+    }
+
+    updateSVG(): void {
+console.log("path.path.updateSVG")
+        let path = this.svg as SVGPathElement
+        path.setPathData(this.path)
     }
 
     move(point: Point): void
@@ -202,31 +259,6 @@ export class Path extends Graphic
         return rectangle
     }
     
-    // relativeMove
-    // relativeLine
-    // relativeCurve
-    // append(path)
-    transform(matrix: Matrix) {
-        for(let segment of this.path) {
-            switch(segment.type) {
-                case 'M':
-                case 'L':
-                    segment.values = matrix.transformArrayPoint(segment.values)
-                    break
-                case 'C': {
-                    let pt = matrix.transformArrayPoint([segment.values[0], segment.values[1]])
-                    segment.values[0] = pt[0]
-                    segment.values[1] = pt[1]
-                    pt = matrix.transformArrayPoint([segment.values[2], segment.values[3]])
-                    segment.values[2] = pt[0]
-                    segment.values[3] = pt[1]
-                    pt = matrix.transformArrayPoint([segment.values[4], segment.values[5]])
-                    segment.values[4] = pt[0]
-                    segment.values[5] = pt[1]
-                } break
-            }
-        }
-    }
 
 }
 
