@@ -30,6 +30,8 @@ export abstract class Graphic {
     svg!: SVGElement
     abstract updateSVG(): void
     abstract transform(matrix: Matrix): void
+    abstract setAttributes(attibutes: any): void
+    abstract clone(): Graphic
 
     translate(point: Point): void
     translate(x: number, y: number): void
@@ -54,13 +56,24 @@ export class Group extends Graphic {
     private data: Array<Graphic>
     private matrix?: Matrix
 
-    constructor() {
+    constructor(group?: Group) {
         super()
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.data = new Array<Graphic>()
+        if (group !== undefined) {
+            if (group.matrix)
+                this.transform(group.matrix)
+            for(let graphic of group.data) {
+                this.add(graphic.clone())
+            }
+        }
+    }
+    
+    clone(): Graphic {
+        return new Group(this)
     }
 
-    public add(graphic: Graphic) {
+    add(graphic: Graphic) {
 console.log("path.Group.add()")
         if (this.matrix) {
 console.log("  transform graphic while adding")
@@ -69,6 +82,12 @@ console.log("  transform graphic while adding")
         this.data.push(graphic)
         graphic.updateSVG()
         this.svg.appendChild(graphic.svg)
+    }
+    
+    setAttributes(attributes: any): void {
+        for(let graphic of this.data) {
+            graphic.setAttributes(attributes)
+        }
     }
 
     public updateSVG(): void {
@@ -120,8 +139,21 @@ export class Path extends Graphic
         }
     }
 
+    clone(): Graphic {
+        return new Path(this)
+    }
+
     clear() {
         this.path = []
+    }
+
+    setAttributes(attributes: any) {
+        if (attributes.stroke !== undefined)
+            this.svg.setAttributeNS("", "stroke", attributes.stroke)
+        if (attributes.strokeWidth !== undefined)
+            this.svg.setAttributeNS("", "stroke-width", String(attributes.strokeWidth))
+        if (attributes.fill !== undefined)
+            this.svg.setAttributeNS("", "fill", attributes.fill)
     }
 
     // relativeMove

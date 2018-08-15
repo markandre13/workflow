@@ -42,18 +42,21 @@ export class Tool {
         this.outlines = new Map<Figure, Path>()
     }
 
-    static createOutlineCopy(aPath: Graphic): Graphic {
-        let path = new Path(aPath as Path) // FIXME: clone
+    static createOutlineCopy(graphic: Graphic): Graphic {
+        let outlineGraphic = graphic.clone()
         // FIXME: translate outline by (-1, +1)
-        Tool.setOutlineColors(path)
-        path.updateSVG()
-        return path
+        Tool.setOutlineColors(outlineGraphic)
+        outlineGraphic.updateSVG()
+        return outlineGraphic
     }
     
-    static setOutlineColors(path: Graphic): void {
-        path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
-        path.svg.setAttributeNS("", "fill", "none")
-        // FIXME: if it's a group, iterate over all elements
+    static setOutlineColors(graphic: Graphic): void {
+        let attributes = {
+            stroke: "rgb(79,128,255)",
+            strokeWidth: 1,
+            fill: "none"
+        }
+        graphic.setAttributes(attributes)
     }
     
     createOutlines(editor: FigureEditor): void { // FIXME: rename into createOutlinesForSelection()
