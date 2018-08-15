@@ -226,7 +226,6 @@ console.log("FigureEditor.updateView(): no layers")
         let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
 this.layer = layer
         for(let figure of this.model!.layers[0].data) {
-console.log("append svg to svg layer")
             layer.appendChild((figure.getGraphic() as Graphic).svg)
             this.bounds.expandByRectangle(figure.bounds())
         }

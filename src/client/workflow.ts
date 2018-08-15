@@ -270,7 +270,8 @@ export class BoardListener_impl extends skel.BoardListener {
     }
 
     async transform(layerId: number, figureIdArray: Array<number>, matrix: Matrix, newIds: Array<number>) {
-//        console.log("BoardListener_impl.transform(", figureIDs, ", ", matrix, ")")
+        console.log("BoardListener_impl.transform(", figureIdArray, ", ", matrix, ", ", newIds, ")")
+
         // FIXME: too many casts
         
         let layer = this.layerById(layerId)
@@ -290,16 +291,19 @@ export class BoardListener_impl extends skel.BoardListener {
 
             let transform = new figure.Transform()
             transform.id = newIds.shift()!
-            transform.matrix = new Matrix(matrix)
-            transform.children.push(fig)
+            transform.transform(matrix)
             let oldGraphic = fig.getGraphic() as Graphic
+
+            let oldParentNode = oldGraphic.svg.parentNode!
+            let oldNextSibling = oldGraphic.svg.nextSibling
+            oldParentNode.removeChild(oldGraphic.svg)
+
+            transform.add(fig)
             let newGraphic = transform.getGraphic() as Graphic
-            (oldGraphic.svg as any).replaceWith(newGraphic.svg)
-//            (f.getPath() as Path).svg.replaceWith(
-//                (transform.getPath() as Path).svg
-//            )
+
+            oldParentNode.insertBefore(newGraphic.svg, oldNextSibling)
+
             layer.data[index] = transform
-            // ...
         }
     }
 }

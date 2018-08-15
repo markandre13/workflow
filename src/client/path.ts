@@ -51,8 +51,8 @@ export abstract class Graphic {
 }
 
 export class Group extends Graphic {
-    data: Array<Graphic>
-    matrix?: Matrix
+    private data: Array<Graphic>
+    private matrix?: Matrix
 
     constructor() {
         super()
