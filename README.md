@@ -10,7 +10,7 @@ development process itself:
     • release the algorithm (Act/Adjust)
 
 A tool to visualize the software development process and to give the team
-ownership of their process, is the Kanban board as described in Henrik
+ownership of it's process, is the Kanban board as described in Henrik
 Kniberg's seminal book <a
 href="https://www.crisp.se/file-uploads/Lean-from-the-trenches.pdf">Lean
 from the Trenches</a>.
