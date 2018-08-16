@@ -208,7 +208,7 @@ describe("figureeditor", function() {
         })
         
         describe("outline", function() {
-            it.only("rectangle", function() {
+            it("rectangle", function() {
                 let fig = new figure.Rectangle({
                     origin: { x: 10, y: 20 },
                     size: { width: 30, height: 40 }
@@ -222,7 +222,7 @@ describe("figureeditor", function() {
                 expect(outline.svg.getAttribute("d")).to.equal("M 10 20 L 40 20 L 40 60 L 10 60 Z")
             })
 
-            it.only("transform, rectangle", function() {            
+            it("transform, rectangle", function() {            
                 let fig000 = new figure.Rectangle({
                     origin: { x: 10, y: 20 },
                     size: { width: 30, height: 40 }
