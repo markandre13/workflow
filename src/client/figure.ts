@@ -207,18 +207,15 @@ export class Group extends Figure implements valuetype.figure.Group
     constructor(init?: Partial<Group>) {
         super(init)
         valuetype.figure.initGroup(this, init)
-        this.group = new ext.Group()
     }
     
     add(figure: Figure) {
-console.log("figure.Group.add()")
         this.children.push(figure)
         if (this.group)
             this.group.add(figure.getGraphic() as ext.Graphic)
     }
 
     transform(transform: Matrix): boolean {
-console.log("figure.Group.transform()")
         return false
     }
     
@@ -238,18 +235,17 @@ console.log("figure.Group.transform()")
     }
     
     getGraphic(): Graphic {
-console.log("figure.Group.getGraphic()")
        if (this.group === undefined) {
            this.group = new ext.Group()
            for(let child of this.children) {
-               this.group.add(child.getGraphic() as ext.Graphic)
+               let graphic = child.getGraphic() as ext.Graphic
+               this.group.add(graphic)
            }
        }
        return this.group
     }
 
     updateGraphic(): void {
-console.log("figure.Group.updateGraphic()")
     }
 }
 
@@ -262,7 +258,6 @@ export class Transform extends Group implements valuetype.figure.Transform {
     }
     
     add(figure: Figure) {
-console.log("figure.Transform.add()")
         this.children.push(figure)
         if (this.group !== undefined) {
             let graphic = figure.getGraphic() as ext.Graphic
@@ -271,7 +266,6 @@ console.log("figure.Transform.add()")
     }
 
     transform(matrix: Matrix): boolean {
-console.log("figure.Transform.transform()")
         this.matrix.append(matrix)
         if (this.group !== undefined) {
             this.group.transform(matrix)
@@ -302,7 +296,6 @@ console.log("figure.Transform.transform()")
     }
     
     getGraphic(): Graphic {
-console.log("figure.Transform.getGraphic()")
        if (this.group === undefined) {
            this.group = new ext.Group()
            for(let child of this.children) {
@@ -314,6 +307,5 @@ console.log("figure.Transform.getGraphic()")
     }
 
     updateGraphic(): void {
-console.log("figure.Transform.updateGraphic()")
     }
 }

@@ -208,16 +208,14 @@ layer?: SVGElement
     }
 
     updateModel() {
-        console.log("FigureEditor.updateModel()")
     }
 
     updateView() {
-        console.log("FigureEditor.updateView()")
         if (this.model === undefined) {
             return
         }
+
         if (this.model.layers.length === 0) {
-console.log("FigureEditor.updateView(): no layers")
             return
         }
         
@@ -225,8 +223,11 @@ console.log("FigureEditor.updateView(): no layers")
 
         let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
 this.layer = layer
+
         for(let figure of this.model!.layers[0].data) {
-            layer.appendChild((figure.getGraphic() as Graphic).svg)
+            let graphic = figure.getGraphic() as Graphic
+            graphic.updateSVG()
+            layer.appendChild(graphic.svg)
             this.bounds.expandByRectangle(figure.bounds())
         }
         this.svgView.insertBefore(layer, this.decorationOverlay)

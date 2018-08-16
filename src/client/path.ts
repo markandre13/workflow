@@ -74,9 +74,7 @@ export class Group extends Graphic {
     }
 
     add(graphic: Graphic) {
-console.log("path.Group.add()")
         if (this.matrix) {
-console.log("  transform graphic while adding")
             graphic.transform(this.matrix) // FIXME: should not modify argument?
         }
         this.data.push(graphic)
@@ -91,7 +89,6 @@ console.log("  transform graphic while adding")
     }
 
     public updateSVG(): void {
-console.log("path.Group.updateSVG()")
         for(let graphic of this.data) {
             graphic.updateSVG()
         }
@@ -102,7 +99,6 @@ console.log("path.Group.updateSVG()")
             this.matrix = new Matrix(matrix)
         else
             this.matrix.append(matrix)
-console.log("path.Group.transform()")
         for(let graphic of this.data) {
             graphic.transform(matrix)
         }
@@ -183,7 +179,6 @@ export class Path extends Graphic
     }
 
     updateSVG(): void {
-console.log("path.path.updateSVG")
         let path = this.svg as SVGPathElement
         path.setPathData(this.path)
     }

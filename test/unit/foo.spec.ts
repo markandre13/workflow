@@ -56,6 +56,27 @@ describe("figureeditor", function() {
         })
 
         describe("transform", function() {
+            it("transform from raw data", function() {
+                let fig000 = new figure.Rectangle({
+                    origin: { x: 10, y: 20 },
+                    size: { width: 30, height: 40 }
+                })
+                let fig001 = new figure.Transform()
+                
+                let matrix = new Matrix()
+                matrix.scale(2, 2)
+                fig001.matrix = matrix
+                fig001.children.push(fig000)
+
+                let grp001 = fig001.getGraphic() as path.Graphic
+                grp001.updateSVG()
+
+                expect(grp001.svg.tagName).to.equal("g")
+                expect(grp001.svg.children.length).to.equal(1)
+                expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
+                
+            })
+        
             it("transform, add, getGraphic", function() {
                 let fig000 = new figure.Rectangle({
                     origin: { x: 10, y: 20 },
@@ -70,6 +91,7 @@ describe("figureeditor", function() {
                 fig001.add(fig000)
 
                 let grp001 = fig001.getGraphic() as path.Graphic
+                grp001.updateSVG()
 
                 expect(grp001.svg.tagName).to.equal("g")
                 expect(grp001.svg.children.length).to.equal(1)
@@ -89,6 +111,7 @@ describe("figureeditor", function() {
                 fig001.transform(matrix)
                 
                 let grp001 = fig001.getGraphic() as path.Graphic
+                grp001.updateSVG()
                 
                 expect(grp001.svg.tagName).to.equal("g")
                 expect(grp001.svg.children.length).to.equal(1)
@@ -110,6 +133,8 @@ describe("figureeditor", function() {
 
                 fig001.add(fig000)
                 
+                grp001.updateSVG()
+                
                 expect(grp001.svg.tagName).to.equal("g")
                 expect(grp001.svg.children.length).to.equal(1)
                 expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
@@ -129,6 +154,8 @@ describe("figureeditor", function() {
                 let matrix = new Matrix()
                 matrix.scale(2, 2)
                 fig001.transform(matrix)
+                
+                grp001.updateSVG()
                 
                 expect(grp001.svg.tagName).to.equal("g")
                 expect(grp001.svg.children.length).to.equal(1)
@@ -150,6 +177,8 @@ describe("figureeditor", function() {
                 matrix.scale(2, 2)
                 fig001.transform(matrix)
                 
+                grp001.updateSVG()
+                
                 expect(grp001.svg.tagName).to.equal("g")
                 expect(grp001.svg.children.length).to.equal(1)
                 expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
@@ -169,6 +198,8 @@ describe("figureeditor", function() {
                 fig001.transform(matrix)
                 
                 fig001.add(fig000)
+
+                grp001.updateSVG()
 
                 expect(grp001.svg.tagName).to.equal("g")
                 expect(grp001.svg.children.length).to.equal(1)

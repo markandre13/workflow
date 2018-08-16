@@ -300,6 +300,7 @@ export class BoardListener_impl extends skel.BoardListener {
 
             transform.add(fig)
             let newGraphic = transform.getGraphic() as Graphic
+            newGraphic.updateSVG()
 
             oldParentNode.insertBefore(newGraphic.svg, oldNextSibling)
 
