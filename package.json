@@ -20,6 +20,7 @@
     "ws": "^5.1.1"
   },
   "devDependencies": {
+    "@atom/teletype-crdt": "^0.9.0",
     "@types/chai": "^4.1.4",
     "@types/http-server": "^0.10.0",
     "@types/knex": "^0.14.12",
