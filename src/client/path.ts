@@ -61,10 +61,11 @@ export class Group extends Graphic {
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.data = new Array<Graphic>()
         if (group !== undefined) {
-            if (group.matrix)
-                this.transform(group.matrix)
             for(let graphic of group.data) {
                 this.add(graphic.clone())
+            }
+            if (group.matrix) {
+                this.matrix = new Matrix(group.matrix)
             }
         }
     }

@@ -6,6 +6,7 @@ import { Point, Size, Rectangle, Matrix } from "shared/geometry"
 
 import * as path from "client/path"
 import * as figure from "client/figure"
+import * as tool from "client/tool"
 
 declare global {
     interface SVGPathElement {
@@ -74,7 +75,6 @@ describe("figureeditor", function() {
                 expect(grp001.svg.tagName).to.equal("g")
                 expect(grp001.svg.children.length).to.equal(1)
                 expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-                
             })
         
             it("transform, add, getGraphic", function() {
@@ -204,6 +204,45 @@ describe("figureeditor", function() {
                 expect(grp001.svg.tagName).to.equal("g")
                 expect(grp001.svg.children.length).to.equal(1)
                 expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
+            })
+        })
+        
+        describe("outline", function() {
+            it.only("rectangle", function() {
+                let fig = new figure.Rectangle({
+                    origin: { x: 10, y: 20 },
+                    size: { width: 30, height: 40 }
+                })
+                let graphic = fig.getGraphic() as path.Graphic
+                graphic.updateSVG()
+                
+                let outline = tool.Tool.createOutlineCopy(graphic)
+                
+                expect(outline.svg.tagName).to.equal("path")
+                expect(outline.svg.getAttribute("d")).to.equal("M 10 20 L 40 20 L 40 60 L 10 60 Z")
+            })
+
+            it.only("transform, rectangle", function() {            
+                let fig000 = new figure.Rectangle({
+                    origin: { x: 10, y: 20 },
+                    size: { width: 30, height: 40 }
+                })
+                let fig001 = new figure.Transform()
+                
+                let matrix = new Matrix()
+                matrix.scale(2, 2)
+                fig001.matrix = matrix
+                fig001.children.push(fig000)
+
+                let graphic = fig001.getGraphic() as path.Graphic
+                graphic.updateSVG()
+                
+                let outline = tool.Tool.createOutlineCopy(graphic)
+                outline.updateSVG()
+
+                expect(outline.svg.tagName).to.equal("g")
+                expect(outline.svg.children.length).to.equal(1)
+                expect(outline.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
             })
         })
         
