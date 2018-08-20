@@ -59,8 +59,8 @@ export class OrderedArray<T> {
         return this.array[index]
     }
 
-    shift(): T|undefined {
-        return this.array.shift()
+    shift(): T {
+        return this.array.shift()!
     }
 
     get length() {
