@@ -17,10 +17,39 @@
  */
 
 import * as valueimpl from "./workflow_valueimpl"
-import { Point, Size } from "./workflow_valueimpl"
 import * as valuetype from "./workflow_valuetype"
 
-export { Point, Size } from "./workflow_valueimpl"
+export class Point extends valueimpl.Point {
+    constructor()
+    constructor(point: Partial<Point>)
+    constructor(x: number, y: number)
+    constructor(xOrPoint?: number|Partial<Point>, y?: number) {
+        if (xOrPoint === undefined) {
+            super()
+        } else
+        if (typeof xOrPoint === "object") {
+            super(xOrPoint)
+        } else {
+            super({x: xOrPoint, y: y!})
+        }
+    }
+}
+
+export class Size extends valueimpl.Size {
+    constructor()
+    constructor(size: Partial<Size>)
+    constructor(width: number, height: number)
+    constructor(widthOrSize?: number|Partial<Size>, height?: number) {
+        if (widthOrSize === undefined) {
+            super()
+        } else
+        if (typeof widthOrSize === "object") {
+            super(widthOrSize)
+        } else {
+            super({width: widthOrSize, height: height!})
+        }
+    }
+}
 
 export function pointPlusSize(point: Point, size: Size): Point {
     return new Point({
@@ -57,10 +86,54 @@ export function pointMinus(a: Point) {
     })
 }
 
+export function isZero(a: number): boolean {
+    return Math.abs(a) <= Number.EPSILON
+}
+
+export function pointEqualsPoint(a: Point, b: Point): boolean {
+    return isZero(a.x-b.x) && isZero(a.y-b.y)
+}
+
+export function signedArea(p0: Point, p1: Point, p2: Point): number {
+  return (p0.x- p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (p0.y - p2.y)
+}
+
 export class Rectangle extends valueimpl.Rectangle {
   
-    constructor(rectangle?: Partial<valueimpl.Rectangle>) {
-        super(rectangle)
+//    constructor(rectangle?: Partial<valueimpl.Rectangle>) {
+//        super(rectangle)
+//    }
+ 
+    constructor()
+    constructor(rectangle: Partial<valueimpl.Rectangle>)
+    constructor(origin: Point, size: Size)
+    constructor(x: number, y: number, width: number, height: number)
+    constructor(xOrOriginOrRectangle?: number|Point|Partial<valueimpl.Rectangle>, yOrSize?: number|Size, width?: number, height?: number) {
+        if (xOrOriginOrRectangle === undefined) {
+            super()
+        } else
+        if (yOrSize === undefined) {
+            if ( !(xOrOriginOrRectangle instanceof Rectangle) ) {
+                throw Error("fuck")
+            }
+            super(xOrOriginOrRectangle)
+        } else
+        if (width === undefined) {
+            if ( !(xOrOriginOrRectangle instanceof Point) ||
+                 !(yOrSize instanceof Size) )
+            {
+                 throw Error("fuck")
+            }
+            super({origin: xOrOriginOrRectangle, size: yOrSize})
+        } else {
+            if ( typeof xOrOriginOrRectangle !== "number" ||
+                 typeof yOrSize !== "number" )
+            {
+                throw Error("fuck")
+            }
+            super({ origin: {x: xOrOriginOrRectangle, y: yOrSize},
+                     size:  {width: width, height: height! } })
+        }
     }
   
     set(x: number, y: number, width: number, height: number): Rectangle {
