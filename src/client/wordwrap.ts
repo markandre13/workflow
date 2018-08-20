@@ -121,65 +121,31 @@ class CornerEvents {
     }
 }
 
+export interface WordSource {
+    pullBox(): Size|undefined
+    placeBox(origin: Point): void
+}
+
 export class WordWrap {
     // FIXME? all these variables don't need to be class members...
-    text: string
-    path: Path
     bounds: Rectangle
     eventQueue: OrderedArray<SweepEvent>
 
-    constructor() {
-        this.text = "hello my dear friends this is a text box i want to make editable for the figure editor i am currently developing for my whiteboard and kanban app and which i later may extend to reimplement the network management programm i developed for international buisiness machines and volkswagen."
-
-        this.path = new Path()
-        this.path.setAttributes({stroke: "#000", fill: "none"})
-        let convex = false
-        if (convex) {
-            this.path.move(200,  40)
-            this.path.line(400, 180)
-            this.path.line(150, 250)
-            this.path.line( 20, 100)
-        } else {
-/*
-            this.path.move( 20,  40)
-            this.path.line(310,  40)
-            this.path.line(320, 130)
-            this.path.line(330,  40)
-            this.path.line(620,  40)
-            this.path.line(330, 450)
-            this.path.line(320, 310)
-            this.path.line(310, 450)
-*/
-            // FIXME: this has an overlap in the 1st line below the upper spike when the upper spikes bottom is as wide as
-            // the first box which will be place there
-            this.path.move( 20,  40)
-            this.path.line(310,  40)
-            this.path.line(320, 10)
-            this.path.line(330,  40)
-            this.path.line(620,  40)
-            this.path.line(330, 450)
-            this.path.line(320, 310)
-            this.path.line(310, 450)
-
-        }
-        this.path.close()
-        this.path.updateSVG()
-        document.getElementById("svg")!.appendChild(this.path.svg)
-        
-        this.bounds = this.path.bounds()
+    constructor(path: Path, wordsource: WordSource) {
+        this.bounds = path.bounds()
         
         this.eventQueue = new OrderedArray<SweepEvent>( (a, b) => { return SweepEvent.less(a, b) } )
-        this.initializeSweepBuffer()
+        this.initializeSweepBuffer(path)
         
         let slices = new Array<Slice>()
         let cursor = new Point(this.bounds.origin.x - 10, this.bounds.origin.y - 10)
         let horizontalSpace = 0
         let lineHeight = 20
         
-        let style = false
-        for(let counter=0; counter < 4; ++counter) {
+        let box = wordsource.pullBox()
+        
+        while(box) {
 
-            let box = new Size(style ? 40 : 25, 20)
             let point: Point
             
             if (cursor.y < this.bounds.origin.y) {
@@ -206,6 +172,11 @@ export class WordWrap {
                 } else {
                     cursor.y = leftEvent.p[0].y
                     // FIXME: code here is copied from below
+                    this.reduceSlices(cursor, box, slices)
+                    this.extendSlices(cursor, box, slices)
+                    if (slices.length===0) {
+                        break
+                    }
                     let [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
                     let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
                     point = new Point(left, cursor.y)
@@ -215,13 +186,21 @@ export class WordWrap {
                     horizontalSpace -= box.width
                 }
             } else {
+                if (slices.length === 0) {
+                    console.log("no more slices")
+                    break
+                }
                 horizontalSpace -= box.width
                 if (horizontalSpace >= 0) {
                     point = new Point(cursor)
                     cursor.x += box.width
                 } else {
-                    let sliceIndex, cornerEvents
-                    [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
+                    this.reduceSlices(cursor, box, slices)
+                    this.extendSlices(cursor, box, slices)
+                    if (slices.length===0) {
+                        break
+                    }
+                    let [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
                     if (sliceIndex !== -1) {
                         if (sliceIndex === 0) // FIXME: test case for this, sliceIndex === 0 should indicate an earlier line break
                             cursor.y += lineHeight as number
@@ -233,6 +212,11 @@ export class WordWrap {
                     } else {
                         cursor.x = this.bounds.origin.x - 10
                         cursor.y += lineHeight as number
+                        this.reduceSlices(cursor, box, slices)
+                        this.extendSlices(cursor, box, slices)
+                        if (slices.length===0) {
+                            break
+                        }
                         [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
                         let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
                         point = new Point(left, cursor.y)
@@ -244,19 +228,15 @@ export class WordWrap {
                         continue
                 }
             }
-
-            let rectangle = new Path()
-            rectangle.appendRect(new Rectangle(point, box))
-            rectangle.setAttributes({stroke: style ? "#f00" : "#f80", fill: "none"})
-            rectangle.updateSVG()
-            document.getElementById("svg")!.appendChild(rectangle.svg)
-            style = !style
+            
+            wordsource.placeBox(point)
+            box = wordsource.pullBox()
         }
     }
     
-    initializeSweepBuffer() {
+    initializeSweepBuffer(path: Path) {
         let first: Point|undefined, previous: Point|undefined, current: Point|undefined
-        for(let segment of this.path.path) {
+        for(let segment of path.path) {
             switch(segment.type) {
                 case 'M':
                     first = previous = new Point(segment.values[0], segment.values[1])
@@ -326,11 +306,6 @@ export class WordWrap {
     
     findSpaceAtCursorForBox(cursor: Point, box: Size, slices: Array<Slice>): [number, CornerEvents] {
     
-        this.reduceSlices(cursor, box, slices)
-        this.extendSlices(cursor, box, slices)
-        if (slices.length===0)
-            throw Error("findSpaceAtCursorForBox(): out of slices")
-
         let horizontalTopLine    = [ new Point(this.bounds.origin.x-10, cursor.y),
                                      new Point(this.bounds.origin.x+this.bounds.size.width+10, cursor.y) ],
             horizontalBottomLine = [ new Point(this.bounds.origin.x-10, cursor.y+box.height),

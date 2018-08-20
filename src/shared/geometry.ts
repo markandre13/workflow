@@ -94,6 +94,11 @@ export function pointEqualsPoint(a: Point, b: Point): boolean {
     return isZero(a.x-b.x) && isZero(a.y-b.y)
 }
 
+export function sizeEqualsSize(a: Size, b: Size): boolean {
+    return isZero(a.width-b.width) && isZero(a.height-b.height)
+}
+
+
 export function signedArea(p0: Point, p1: Point, p2: Point): number {
   return (p0.x- p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (p0.y - p2.y)
 }
@@ -249,6 +254,10 @@ export class Rectangle extends valueimpl.Rectangle {
         this.size.height += expansion
         return this
     }
+}
+
+export function rectangleEqualsRectangle(a: Rectangle, b: Rectangle): boolean {
+    return pointEqualsPoint(a.origin, b.origin) && sizeEqualsSize(a.size, b.size)
 }
 
 export class Matrix extends valueimpl.Matrix {
