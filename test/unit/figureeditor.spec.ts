@@ -35,12 +35,6 @@ declare global {
 }
 
 describe("figureeditor", function() {
-    before(function() {
-        ORB.registerValueType("Point", Point)
-        ORB.registerValueType("Size", Size)
-        ORB.registerValueType("Rectangle", Rectangle)
-        ORB.registerValueType("Matrix", Matrix)
-    })
     
     describe("figure to graphic", function() {
 
