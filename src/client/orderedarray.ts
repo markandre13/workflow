@@ -45,7 +45,6 @@ export class OrderedArray<T> {
             this.array.push(element)
         } else
         if (middleIndex < 0) {
-            // FIXME: not covered by current test cases
             this.array.splice(0, 0, element)
         } else
         if (this.order(element, this.array[middleIndex])) {
