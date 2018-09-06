@@ -98,17 +98,31 @@ export function sizeEqualsSize(a: Size, b: Size): boolean {
     return isZero(a.width-b.width) && isZero(a.height-b.height)
 }
 
-
 export function signedArea(p0: Point, p1: Point, p2: Point): number {
   return (p0.x- p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (p0.y - p2.y)
 }
 
+export function squaredLength(a: Point): number {
+    return a.x * a.x + a.y * a.y
+}
+
+export function dot(a: Point, b: Point): number {
+    return a.x * b.x + a.y * b.y
+}
+
+export function distancePointToLine(q: Point, p0: Point, p1: Point): number {
+    let b = pointMinusPoint(p1, p0),
+        a = pointMinusPoint(q, p0),
+        lb = squaredLength(b),
+        t = dot(a, b) / lb
+        if (t < 0.0 || t > 1.0) {
+            return Infinity
+        }
+        return Math.abs(b.y * a.x - b.x * a.y) / Math.sqrt(lb)
+}
+
 export class Rectangle extends valueimpl.Rectangle {
   
-//    constructor(rectangle?: Partial<valueimpl.Rectangle>) {
-//        super(rectangle)
-//    }
- 
     constructor()
     constructor(rectangle: Partial<valueimpl.Rectangle>)
     constructor(origin: Point, size: Size)
@@ -124,12 +138,16 @@ export class Rectangle extends valueimpl.Rectangle {
             super(xOrOriginOrRectangle)
         } else
         if (width === undefined) {
-            if ( !(xOrOriginOrRectangle instanceof Point) ||
-                 !(yOrSize instanceof Size) )
+            if ( !xOrOriginOrRectangle.hasOwnProperty("x") || // FIXME:
+                 !xOrOriginOrRectangle.hasOwnProperty("y") ||
+                 !yOrSize.hasOwnProperty("width") ||
+                 !yOrSize.hasOwnProperty("height") )
+//            if ( !(xOrOriginOrRectangle instanceof Point) ||
+//                 !(yOrSize instanceof Size) )
             {
                  throw Error("fuck")
             }
-            super({origin: xOrOriginOrRectangle, size: yOrSize})
+            super({origin: xOrOriginOrRectangle as Point, size: yOrSize as Size})
         } else {
             if ( typeof xOrOriginOrRectangle !== "number" ||
                  typeof yOrSize !== "number" )

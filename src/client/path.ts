@@ -143,6 +143,10 @@ export class Path extends Graphic
     clear() {
         this.path = []
     }
+    
+    empty(): boolean {
+        return this.path.length == 0
+    }
 
     setAttributes(attributes: any) {
         if (attributes.stroke !== undefined)
@@ -228,9 +232,9 @@ export class Path extends Graphic
     
     appendRect(rectangle: any) { // FIXME: drop any
         this.move(rectangle.origin)
-        this.line({x: rectangle.origin.x + rectangle.size.width, y: rectangle.origin.y                         })
-        this.line({x: rectangle.origin.x + rectangle.size.width, y: rectangle.origin.y + rectangle.size.height })
-        this.line({x: rectangle.origin.x                       , y: rectangle.origin.y + rectangle.size.height })
+        this.line(rectangle.origin.x + rectangle.size.width, rectangle.origin.y                        )
+        this.line(rectangle.origin.x + rectangle.size.width, rectangle.origin.y + rectangle.size.height)
+        this.line(rectangle.origin.x                       , rectangle.origin.y + rectangle.size.height)
         this.close()
     }
     

@@ -51,6 +51,8 @@ import { FigureEditor, ToolModel, Layer, LayerModel } from "./editor"
 import { StrokeAndFill, StrokeAndFillModel } from "./strokeandfill"
 import { ColorSwatch, ColorSwatchModel } from "./colorswatch"
 
+import { testWrap } from "./wordwrap"
+
 export async function runtest(test: Function) {
     window.customElements.define("toad-figureeditor", FigureEditor)
     try {
@@ -62,6 +64,7 @@ export async function runtest(test: Function) {
 }
 
 export async function main(url: string) {
+
 
     let orb = new ORB()
 //    orb.debug = 1
@@ -91,6 +94,14 @@ export async function main(url: string) {
 //    ORB.registerValueType("FigureModel", FigureModel)
     ORB.registerValueType("Layer", Layer)
     ORB.registerValueType("BoardModel", BoardModel)
+
+
+    if (true) {
+        document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
+        testWrap()
+        return
+    }
+
 
     try {
         await orb.connect(url)

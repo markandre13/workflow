@@ -84,8 +84,69 @@ describe("wordwrap", function() {
     beforeEach(function() {
         document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480">`
     })
+    
+    describe("pointForBoxInCorner" , function() {
+        it("cornerOpensLeftAndRight", function() {
+            let path = new Path()
+            path.setAttributes({stroke: "#000", fill: "none"})
+            path.move( 20, 100)
+            path.line(200,  40)
+            path.line(380, 100)
+            path.close()
+            path.updateSVG()
+            document.getElementById("svg")!.appendChild(path.svg)
+        
+            let wordwrap = new WordWrap(path)
+        
+            let e0 = wordwrap.eventQueue.shift()
+            let e1 = wordwrap.eventQueue.shift()
+        
+            let box = new Size(80, 20)
+            let pt = wordwrap.pointForBoxInCorner(box, e0, e1)
+            
+            expect(pt).not.to.be.undefined
+            expect(pointEqualsPoint(pt!, new Point(160, 53.33333333333333))).to.be.true
+            
+            path = new Path()
+            let rectangle = new Rectangle(pt!, box)
+            path.appendRect(rectangle)
+            path.setAttributes({stroke: "#f80", fill: "none"})
+            path.updateSVG()
+            document.getElementById("svg")!.appendChild(path.svg)
+        })
+    })
 
     it("rectangle", function() {
+        let path = new Path()
+        path.setAttributes({stroke: "#000", fill: "none"})
+        path.appendRect(new Rectangle(20,20,200,200))
+        path.close()
+        path.updateSVG()
+        document.getElementById("svg")!.appendChild(path.svg)
+
+        let boxsource = new BoxSource()
+        let wordwrap = new WordWrap(path, boxsource)
+        
+        expect(boxsource.rectangles.length).to.equal(52)
+
+        expect(rectangleEqualsRectangle(
+          boxsource.rectangles[0],
+          new Rectangle(172.90322580645162, 49.03225806451613, 40, 20)
+        )).to.be.true
+
+        expect(rectangleEqualsRectangle(
+          boxsource.rectangles[1],
+          new Rectangle(112.90322580645162, 69.03225806451613, 20, 20)
+        )).to.be.true
+
+        expect(rectangleEqualsRectangle(
+          boxsource.rectangles[51],
+          new Rectangle(171.8279569892473, 209.03225806451613, 20, 20)
+        )).to.be.true
+    })
+
+
+    it("rhomb", function() {
         let path = new Path()
         path.setAttributes({stroke: "#000", fill: "none"})
         path.move(200,  40)
