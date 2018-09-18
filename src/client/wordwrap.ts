@@ -805,11 +805,17 @@ function removeHandle(path: Path, mouseLocation: Point): boolean {
 }
 
 function insertHandle(path: Path, mouseLocation: Point) {
-    let index = 0, p0, p1
+    let index = 0, p0, p1, pm
     for(let entry of path.path) {
         if (entry.type !== "Z") {
             p0 = p1
             p1 = new Point(entry.values[0], entry.values[1])
+            if (entry.type === "M") {
+                pm = p1
+            }
+        } else {
+            p0 = p1
+            p1 = pm
         }
         if (p0 !== undefined) {
             if (distancePointToLine(mouseLocation, p0, p1!) < 2.5) {
