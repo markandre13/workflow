@@ -5,7 +5,7 @@ export class AccountPreferences extends Dialog
     constructor(user: any) {
         super()
 
-        this.open("src/AccountPreferences.html")
+        this.open("src/client/AccountPreferences.html")
         
         this.bind("fullname", user.fullname)
         this.bind("email", user.email)
