@@ -132,18 +132,18 @@ export class Rectangle extends valueimpl.Rectangle {
             super()
         } else
         if (yOrSize === undefined) {
-            if ( !(xOrOriginOrRectangle instanceof Rectangle) ) {
+            if ( !xOrOriginOrRectangle.hasOwnProperty("origin") ||
+                 !xOrOriginOrRectangle.hasOwnProperty("size") )
+            {
                 throw Error("fuck")
             }
-            super(xOrOriginOrRectangle)
+            super(xOrOriginOrRectangle as Rectangle)
         } else
         if (width === undefined) {
             if ( !xOrOriginOrRectangle.hasOwnProperty("x") || // FIXME:
                  !xOrOriginOrRectangle.hasOwnProperty("y") ||
                  !yOrSize.hasOwnProperty("width") ||
                  !yOrSize.hasOwnProperty("height") )
-//            if ( !(xOrOriginOrRectangle instanceof Point) ||
-//                 !(yOrSize instanceof Size) )
             {
                  throw Error("fuck")
             }
