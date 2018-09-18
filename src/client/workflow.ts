@@ -96,7 +96,7 @@ export async function main(url: string) {
     ORB.registerValueType("BoardModel", BoardModel)
 
 
-    if (true) {
+    if (false) {
         document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
         testWrap()
         return
