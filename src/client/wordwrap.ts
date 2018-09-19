@@ -639,7 +639,7 @@ const sliderTest: SliderTest[] = [ {
 //        {x: 140, y: 180},
     ],
     box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
-},/* {
+}, {
     title: "narrow/open/left&right/inside",
     polygon: [
         {x: 110, y: 180},
@@ -742,7 +742,7 @@ const sliderTest: SliderTest[] = [ {
     ],
     box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
 
-}*/]
+}]
 
 class BoxSource implements WordSource {
     remaining: number
@@ -781,12 +781,19 @@ class WordWrapTest {
     handleIndex = -1
     decoration = new Array<SVGElement>()
 
-    constructor(path: Path) {
+    constructor(title: string, path: Path) {
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         svg.style.border = "1px solid #ddd"
         svg.setAttributeNS("", "width", "320")
         svg.setAttributeNS("", "height", "200")
         svg.setAttributeNS("", "viewBox", "0 0 320 200")
+
+        let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
+        text.setAttributeNS("", "fill", "#000")
+        text.setAttributeNS("", "x", "2")
+        text.setAttributeNS("", "y", "194")
+        text.appendChild(document.createTextNode(title))
+        svg.appendChild(text)
 
         document.body.oncontextmenu = (event: Event): boolean => {
             event.preventDefault()
@@ -899,6 +906,7 @@ class WordWrapTest {
     }
 
     mouseDown(event: MouseEvent, svg: SVGElement, path: Path) {
+        event.preventDefault()
         let boundary = svg.getBoundingClientRect()
         let mouseLocation = new Point(event.x - boundary.left, event.y - boundary.top)
         switch(event.button) {
@@ -919,6 +927,7 @@ class WordWrapTest {
     }
         
     mouseMove(event: MouseEvent, svg: SVGElement, path: Path) {
+       event.preventDefault()
        let boundary = svg.getBoundingClientRect()
        let mouseLocation = new Point(event.x - boundary.left, event.y - boundary.top)
        if (this.handleIndex !== -1) {
@@ -931,13 +940,13 @@ class WordWrapTest {
     }
             
     mouseUp(event: MouseEvent, svg: SVGElement, path: Path) {
+        event.preventDefault()
         this.mouseMove(event, svg, path)
         if (this.handleIndex !== -1) {
             this.handleIndex = -1
             return
         }
     }
-
 
     doWrap(svg: SVGElement, path: Path) {
         for(let deco of this.decoration) {
@@ -952,7 +961,7 @@ class WordWrapTest {
         
         wordwrap.levelSlicesHorizontally(slices)
         
-        let box = new Size(125, 88)
+        let box = new Size(80, 40)
         
         const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
         
@@ -1003,34 +1012,9 @@ class WordWrapTest {
 
 export function testWrap() {
     document.body.innerHTML=""
-    
-    let path = new Path()
-    path.move(160+20, 10)
-    path.line(200,  55)
-    path.line(310, 100+20)
-    path.line(160-40, 190)
-    path.line(30, 100-20)
-    path.close()
-    new WordWrapTest(path)
 
-/*
     for(let test of sliderTest) {
-        let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-        svg.style.border = "1px solid #ddd"
-        svg.setAttributeNS("", "width", "320")
-        svg.setAttributeNS("", "height", "200")
-        svg.setAttributeNS("", "viewBox", "0 0 320 200")
-        document.body.appendChild(svg)
-        
-        let title = document.createElementNS("http://www.w3.org/2000/svg", "text")
-        title.setAttributeNS("", "fill", "#000")
-        title.setAttributeNS("", "x", "2")
-        title.setAttributeNS("", "y", "194")
-        title.appendChild(document.createTextNode(test.title))
-        svg.appendChild(title)
-        
         let path = new Path()
-        path.setAttributes({stroke: "#000", fill: "none"})
         for(let point of test.polygon) {
             if (path.empty())
                 path.move(point)
@@ -1038,24 +1022,6 @@ export function testWrap() {
                 path.line(point)
         }
         path.close()
-        path.updateSVG()
-        svg.appendChild(path.svg)
-
-        let wordwrap = new WordWrap(path)
-        
-        let e0 = wordwrap.eventQueue.shift()
-        let e1 = wordwrap.eventQueue.shift()
-        
-        let pt = wordwrap.pointForBoxInCorner(test.box.size, e0, e1)
-        
-        if (pt === undefined)
-            return
-        path = new Path()
-        let rectangle = new Rectangle(pt, test.box.size)
-        path.appendRect(rectangle)
-        path.setAttributes({stroke: "#f80", fill: "none"})
-        path.updateSVG()
-        svg.appendChild(path.svg)
+        new WordWrapTest(test.title, path)
     }
-*/
 }
