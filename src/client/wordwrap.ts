@@ -744,237 +744,274 @@ const sliderTest: SliderTest[] = [ {
 
 }*/]
 
-let handles = new Array<SVGElement>()
+class BoxSource implements WordSource {
+    remaining: number
+    style: boolean
+    box?: Size
+    rectangles: Array<Rectangle>
+    
+    constructor(remaining = 4096) {
+        this.remaining = remaining
+        this.style = true
+        this.rectangles = new Array<Rectangle>()
+    }
 
-function createHandle(x: number, y: number): SVGElement {
-    let handle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-    handle.setAttributeNS("", "stroke", "#48f")
-    handle.setAttributeNS("", "fill", "none")
-    handle.setAttributeNS("", "x", String(x-2.5))
-    handle.setAttributeNS("", "y", String(y-2.5))
-    handle.setAttributeNS("", "width", "5")
-    handle.setAttributeNS("", "height", "5")
-    return handle
-}
+    pullBox(): Size|undefined {
+        if (this.remaining === 0)
+            return undefined
+        --this.remaining
+        this.box = new Size(this.style ? 40 : 20, 20)
+        return this.box
+    }
 
-function createHandles(svg: SVGElement, path: Path) {
-    for(let entry of path.path) {
-        if (entry.type === "Z")
-            continue
-        let handle = createHandle(entry.values[0], entry.values[1])
-        svg.appendChild(handle)
-        handles.push(handle)
+    placeBox(origin: Point): void {
+        let rectangle = new Rectangle(origin, this.box!)
+        this.rectangles.push(rectangle)
+        let path = new Path()
+        path.appendRect(rectangle)
+        path.setAttributes({stroke: this.style ? "#f00" : "#f80", fill: "none"})
+        path.updateSVG()
+        document.getElementById("svg")!.appendChild(path.svg)
+        this.style = !this.style
     }
 }
 
-let handleIndex = -1
-
-function selectHandle(path: Path, mouseLocation: Point) {
-    handleIndex = 0
-    for(let entry of path.path) {
-        if (entry.type !== "Z") {
-            let handleBoundary = new Rectangle(entry.values[0]-2.5, entry.values[1]-2.5, 5, 5)
-            if (handleBoundary.contains(mouseLocation)) {
-                return
-            }
-        }
-        ++handleIndex
-    }
+class WordWrapTest {
+    handles = new Array<SVGElement>()
     handleIndex = -1
-}
+    decoration = new Array<SVGElement>()
 
-function removeHandle(path: Path, mouseLocation: Point): boolean {
-    let index = 0
-    for(let entry of path.path) {
-        if (entry.type !== "Z") {
-            let handleBoundary = new Rectangle(entry.values[0]-2.5, entry.values[1]-2.5, 5, 5)
-            if (handleBoundary.contains(mouseLocation)) {
-                if (path.path.length <= 4)
+    constructor(path: Path) {
+        let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        svg.style.border = "1px solid #ddd"
+        svg.setAttributeNS("", "width", "320")
+        svg.setAttributeNS("", "height", "200")
+        svg.setAttributeNS("", "viewBox", "0 0 320 200")
+
+        document.body.oncontextmenu = (event: Event): boolean => {
+            event.preventDefault()
+            return false
+        }
+        document.body.appendChild(svg)
+        
+        path.setAttributes({stroke: "#000", fill: "none"})
+        path.updateSVG()
+        svg.appendChild(path.svg)
+    
+        this.createHandles(svg, path)
+        svg.onmousedown = (event: MouseEvent) => { this.mouseDown(event, svg, path) }
+        svg.onmousemove = (event: MouseEvent) => { this.mouseMove(event, svg, path) }
+        svg.onmouseup   = (event: MouseEvent) => { this.mouseUp(event, svg, path) }
+    
+        this.doWrap(svg, path)
+    }
+
+    createHandle(x: number, y: number): SVGElement {
+        let handle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        handle.setAttributeNS("", "stroke", "#48f")
+        handle.setAttributeNS("", "fill", "none")
+        handle.setAttributeNS("", "x", String(x-2.5))
+        handle.setAttributeNS("", "y", String(y-2.5))
+        handle.setAttributeNS("", "width", "5")
+        handle.setAttributeNS("", "height", "5")
+        return handle
+    }
+
+    createHandles(svg: SVGElement, path: Path) {
+        for(let entry of path.path) {
+            if (entry.type === "Z")
+                continue
+            let handle = this.createHandle(entry.values[0], entry.values[1])
+            svg.appendChild(handle)
+            this.handles.push(handle)
+        }
+    }
+
+    selectHandle(path: Path, mouseLocation: Point) {
+        this.handleIndex = 0
+        for(let entry of path.path) {
+            if (entry.type !== "Z") {
+                let handleBoundary = new Rectangle(entry.values[0]-2.5, entry.values[1]-2.5, 5, 5)
+                if (handleBoundary.contains(mouseLocation)) {
+                    return
+                }
+            }
+            ++this.handleIndex
+        }
+        this.handleIndex = -1
+    }
+
+    removeHandle(path: Path, mouseLocation: Point): boolean {
+        let index = 0
+        for(let entry of path.path) {
+            if (entry.type !== "Z") {
+                let handleBoundary = new Rectangle(entry.values[0]-2.5, entry.values[1]-2.5, 5, 5)
+                if (handleBoundary.contains(mouseLocation)) {
+                    if (path.path.length <= 4)
+                        return true
+                    path.path.splice(index, 1)
+                    path.path[0].type = "M"
+                    path.updateSVG()
+                    this.handles[index].parentNode!.removeChild(this.handles[index]!)
+                    this.handles.splice(index, 1)
                     return true
-                path.path.splice(index, 1)
-                path.path[0].type = "M"
-                path.updateSVG()
-                handles[index].parentNode!.removeChild(handles[index]!)
-                handles.splice(index, 1)
-                return true
+                }
             }
+            ++index
         }
-        ++index
+        return false
     }
-    return false
-}
 
-function insertHandle(path: Path, mouseLocation: Point) {
-    let index = 0, p0, p1, pm
-    for(let entry of path.path) {
-        if (entry.type !== "Z") {
-            p0 = p1
-            p1 = new Point(entry.values[0], entry.values[1])
-            if (entry.type === "M") {
-                pm = p1
+    insertHandle(path: Path, mouseLocation: Point) {
+        let index = 0, p0, p1, pm
+        for(let entry of path.path) {
+            if (entry.type !== "Z") {
+                p0 = p1
+                p1 = new Point(entry.values[0], entry.values[1])
+                if (entry.type === "M") {
+                    pm = p1
+                }
+            } else {
+                p0 = p1
+                p1 = pm
             }
-        } else {
-            p0 = p1
-            p1 = pm
+            if (p0 !== undefined) {
+                if (distancePointToLine(mouseLocation, p0, p1!) < 2.5) {
+                    console.log("insert point")
+                    path.path.splice(index, 0, {
+                        type: "L",
+                        values: [mouseLocation.x, mouseLocation.y]
+                    })
+                    path.path[0].type = "M"
+                    path.path[1].type = "L"
+                    path.updateSVG()
+                    
+                    let handle = this.createHandle(mouseLocation.x, mouseLocation.y)
+                    this.handles[0].parentNode!.appendChild(handle)
+                    this.handles.splice(index, 0, handle)
+                    
+                    return true
+                }
+            }
+            ++index
         }
-        if (p0 !== undefined) {
-            if (distancePointToLine(mouseLocation, p0, p1!) < 2.5) {
-                console.log("insert point")
-                path.path.splice(index, 0, {
-                    type: "L",
-                    values: [mouseLocation.x, mouseLocation.y]
-                })
-                path.path[0].type = "M"
-                path.path[1].type = "L"
-                path.updateSVG()
-
-                let handle = createHandle(mouseLocation.x, mouseLocation.y)
-                handles[0].parentNode!.appendChild(handle)
-                handles.splice(index, 0, handle)
-
-                return true
-            }
-        }
-        ++index
+        return false
     }
-    return false
-}
 
-function mouseDown(event: MouseEvent, svg: SVGElement, path: Path) {
-    let boundary = svg.getBoundingClientRect()
-    let mouseLocation = new Point(event.x - boundary.left, event.y - boundary.top)
-    switch(event.button) {
-        case 0:
-            selectHandle(path, mouseLocation)
-            break
-        case 2:
-            if (removeHandle(path, mouseLocation)) {
-                doWrap(svg, path)
-                return
-            }
-            if (insertHandle(path, mouseLocation)) {
-                doWrap(svg, path)
-                return
-            }
-            break
-    }
-}
-
-function mouseMove(event: MouseEvent, svg: SVGElement, path: Path) {
+    mouseDown(event: MouseEvent, svg: SVGElement, path: Path) {
         let boundary = svg.getBoundingClientRect()
         let mouseLocation = new Point(event.x - boundary.left, event.y - boundary.top)
-        if (handleIndex !== -1) {
-            handles[handleIndex].setAttributeNS("", "x", String(mouseLocation.x-2.5))
-            handles[handleIndex].setAttributeNS("", "y", String(mouseLocation.y-2.5))
-            path.path[handleIndex].values = [mouseLocation.x, mouseLocation.y]
-            path.updateSVG()
-            doWrap(svg, path)
-        }
-}
-
-function mouseUp(event: MouseEvent, svg: SVGElement, path: Path) {
-    mouseMove(event, svg, path)
-    if (handleIndex !== -1) {
-        handleIndex = -1
-        return
-    }
-}
-
-let decoration = new Array<SVGElement>()
-
-function doWrap(svg: SVGElement, path: Path) {
-    for(let deco of decoration) {
-        svg.removeChild(deco)
-    }
-    decoration.length = 0
-
-    let wordwrap = new WordWrap(path)
-    
-    let slices = new Array<Slice>()
-    wordwrap.extendSlices(new Point(0,0), new Size(320,200), slices)
-    
-    wordwrap.levelSlicesHorizontally(slices)
-    
-    let box = new Size(125, 88)
-
-    const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
-
-    // walk down the level slices to find a place for the box
-    for(let slice of slices) {
-        for(let index=0; index<slice.left.length; ++index) {
-            let pt = wordwrap.pointForBoxInCorner(box, slice.left[index], slice.right[index])
-            if (pt !== undefined) {
-                let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-                rect.setAttributeNS("", "stroke", color[index])
-                rect.setAttributeNS("", "fill", "none")
-                rect.setAttributeNS("", "x", String(pt.x))
-                rect.setAttributeNS("", "width", String(box.width))
-                let topWidth = slice.right[index].p[0].x - slice.left[index].p[0].x
-                let bottomWidth = slice.right[index].p[1].x - slice.left[index].p[1].x
-                if (topWidth < bottomWidth) {
-                    rect.setAttributeNS("", "y", String(pt.y))
-                    rect.setAttributeNS("", "height", String(box.height))
-                } else {
-                    rect.setAttributeNS("", "y", String(pt.y-box.height))
-                    rect.setAttributeNS("", "height", String(box.height))
+        switch(event.button) {
+            case 0:
+                this.selectHandle(path, mouseLocation)
+                break
+            case 2:
+                if (this.removeHandle(path, mouseLocation)) {
+                    this.doWrap(svg, path)
+                    return
                 }
-                svg.appendChild(rect)
-                decoration.push(rect)
+                if (this.insertHandle(path, mouseLocation)) {
+                    this.doWrap(svg, path)
+                    return
+                }
+                break
+        }
+    }
+        
+    mouseMove(event: MouseEvent, svg: SVGElement, path: Path) {
+       let boundary = svg.getBoundingClientRect()
+       let mouseLocation = new Point(event.x - boundary.left, event.y - boundary.top)
+       if (this.handleIndex !== -1) {
+            this.handles[this.handleIndex].setAttributeNS("", "x", String(mouseLocation.x-2.5))
+            this.handles[this.handleIndex].setAttributeNS("", "y", String(mouseLocation.y-2.5))
+            path.path[this.handleIndex].values = [mouseLocation.x, mouseLocation.y]
+            path.updateSVG()
+            this.doWrap(svg, path)
+        }
+    }
+            
+    mouseUp(event: MouseEvent, svg: SVGElement, path: Path) {
+        this.mouseMove(event, svg, path)
+        if (this.handleIndex !== -1) {
+            this.handleIndex = -1
+            return
+        }
+    }
+
+
+    doWrap(svg: SVGElement, path: Path) {
+        for(let deco of this.decoration) {
+            svg.removeChild(deco)
+        }
+        this.decoration.length = 0
+        
+        let wordwrap = new WordWrap(path)
+        
+        let slices = new Array<Slice>()
+        wordwrap.extendSlices(new Point(0,0), new Size(320,200), slices)
+        
+        wordwrap.levelSlicesHorizontally(slices)
+        
+        let box = new Size(125, 88)
+        
+        const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
+        
+        // walk down the level slices to find a place for the box
+        for(let slice of slices) {
+            for(let index=0; index<slice.left.length; ++index) {
+                let pt = wordwrap.pointForBoxInCorner(box, slice.left[index], slice.right[index])
+                if (pt !== undefined) {
+                    let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+                    rect.setAttributeNS("", "stroke", color[index])
+                    rect.setAttributeNS("", "fill", "none")
+                    rect.setAttributeNS("", "x", String(pt.x))
+                    rect.setAttributeNS("", "width", String(box.width))
+                    let topWidth = slice.right[index].p[0].x - slice.left[index].p[0].x
+                    let bottomWidth = slice.right[index].p[1].x - slice.left[index].p[1].x
+                    if (topWidth < bottomWidth) {
+                        rect.setAttributeNS("", "y", String(pt.y))
+                        rect.setAttributeNS("", "height", String(box.height))
+                    } else {
+                        rect.setAttributeNS("", "y", String(pt.y-box.height))
+                        rect.setAttributeNS("", "height", String(box.height))
+                    }
+                    svg.appendChild(rect)
+                    this.decoration.push(rect)
+                }
+
+                let line = document.createElementNS("http://www.w3.org/2000/svg", "line")
+                line.setAttributeNS("", "stroke", color[index])
+                line.setAttributeNS("", "x1", String(slice.left[index].p[0].x))
+                line.setAttributeNS("", "y1", String(slice.left[index].p[0].y))
+                line.setAttributeNS("", "x2", String(slice.left[index].p[1].x))
+                line.setAttributeNS("", "y2", String(slice.left[index].p[1].y))
+                svg.appendChild(line)
+                this.decoration.push(line)
+
+                line = document.createElementNS("http://www.w3.org/2000/svg", "line")
+                line.setAttributeNS("", "stroke", color[index])
+                line.setAttributeNS("", "x1", String(slice.right[index].p[0].x))
+                line.setAttributeNS("", "y1", String(slice.right[index].p[0].y))
+                line.setAttributeNS("", "x2", String(slice.right[index].p[1].x))
+                line.setAttributeNS("", "y2", String(slice.right[index].p[1].y))
+                svg.appendChild(line)
+                this.decoration.push(line)
             }
-
-            let line = document.createElementNS("http://www.w3.org/2000/svg", "line")
-            line.setAttributeNS("", "stroke", color[index])
-            line.setAttributeNS("", "x1", String(slice.left[index].p[0].x))
-            line.setAttributeNS("", "y1", String(slice.left[index].p[0].y))
-            line.setAttributeNS("", "x2", String(slice.left[index].p[1].x))
-            line.setAttributeNS("", "y2", String(slice.left[index].p[1].y))
-            svg.appendChild(line)
-            decoration.push(line)
-
-            line = document.createElementNS("http://www.w3.org/2000/svg", "line")
-            line.setAttributeNS("", "stroke", color[index])
-            line.setAttributeNS("", "x1", String(slice.right[index].p[0].x))
-            line.setAttributeNS("", "y1", String(slice.right[index].p[0].y))
-            line.setAttributeNS("", "x2", String(slice.right[index].p[1].x))
-            line.setAttributeNS("", "y2", String(slice.right[index].p[1].y))
-            svg.appendChild(line)
-            decoration.push(line)
         }
     }
 }
 
 export function testWrap() {
     document.body.innerHTML=""
-
-    let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-    svg.style.border = "1px solid #ddd"
-    svg.setAttributeNS("", "width", "320")
-    svg.setAttributeNS("", "height", "200")
-    svg.setAttributeNS("", "viewBox", "0 0 320 200")
-
-    document.body.oncontextmenu = (event: Event): boolean => {
-        event.preventDefault()
-        return false
-    }
-    document.body.appendChild(svg)
-        
+    
     let path = new Path()
-    path.setAttributes({stroke: "#000", fill: "none"})
     path.move(160+20, 10)
     path.line(200,  55)
     path.line(310, 100+20)
     path.line(160-40, 190)
     path.line(30, 100-20)
     path.close()
-    path.updateSVG()
-    svg.appendChild(path.svg)
-    
-    createHandles(svg, path)
-    svg.onmousedown = (event: MouseEvent) => { mouseDown(event, svg, path) }
-    svg.onmousemove = (event: MouseEvent) => { mouseMove(event, svg, path) }
-    svg.onmouseup   = (event: MouseEvent) => { mouseUp(event, svg, path) }
-    
-    doWrap(svg, path)
+    new WordWrapTest(path)
 
 /*
     for(let test of sliderTest) {
