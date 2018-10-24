@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { OrderedArray } from "./orderedarray"
+import * as value     from "../shared/workflow_value"
 import {
     Point, Size, Rectangle, Matrix,
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
@@ -25,6 +25,8 @@ import {
 import { Path } from "./path"
 
 import { WordWrapTest } from "./wordwrap/wordwraptest"
+
+import { OrderedArray } from "./orderedarray"
 
 // description of an intersection between path segments
 export class IntersectionEnd {
@@ -620,18 +622,10 @@ export class WordWrap {
     }
 }
 
-// FIXME: we should create a wordwrap/ directory and split this file
-
-// FIXME: IDL should write interfaces with only attributes and interfaces with attributes and methods...
-interface IRectangle {
-    origin: Point
-    size: Size
-}
-
 interface SliderTest {
     title: string
-    polygon: Array<Point>
-    box: IRectangle
+    polygon?: Array<Point>
+    box?: value.Rectangle
 }
 
 // draw the expected box and the result
@@ -640,7 +634,36 @@ interface SliderTest {
 // middle mouse, dump test data for copy'n pasting it back?
 
 const sliderTest: SliderTest[] = [
+{ title: "protrude at the top" },
 {
+    title: "wide/open/left&right/wide",
+    polygon: [
+        {x:  70, y: 180},
+        {x: 110, y:  20},
+        {x: 210, y:  20},
+        {x: 250, y: 180},
+    ],
+    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+}, {
+    title: "wide/open/right",
+    polygon: [
+        {x:  10, y:  20},
+        {x: 120, y:  20},
+        {x: 310, y: 180},
+        {x: 100, y: 180},
+    ],
+    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+}, {
+    title: "wide/open/left",
+    polygon: [
+        {x: 200, y:  20},
+        {x: 310, y:  20},
+        {x: 220, y: 180},
+        {x:  10, y: 180},
+    ],
+    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+
+}/*, {
     title: "left dent",
     polygon: [
         {x: 115, y: 100},
@@ -762,8 +785,7 @@ const sliderTest: SliderTest[] = [
         {x:  10, y: 180},
     ],
     box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
-
-}]
+}*/]
 
 class BoxSource implements WordSource {
     remaining: number
@@ -802,14 +824,28 @@ export function testWrap() {
     document.body.innerHTML=""
 
     for(let test of sliderTest) {
-        let path = new Path()
-        for(let point of test.polygon) {
-            if (path.empty())
-                path.move(point)
-            else
-                path.line(point)
+        if (test.polygon) {
+            let path = new Path()
+            for(let point of test.polygon) {
+                if (path.empty())
+                    path.move(point)
+                else
+                    path.line(point)
+            }
+            path.close()
+            new WordWrapTest(test.title, path, test.box!)
+        } else {
+            if (test.title !== "") {
+                let heading = document.createElement("h1")
+                heading.appendChild(document.createTextNode(test.title))
+                document.body.appendChild(heading)
+            } else {
+                document.body.appendChild(document.createElement("br"))
+            }
         }
-        path.close()
-        new WordWrapTest(test.title, path)
     }
+    
+    let debug = document.createElement("pre")
+    debug.id = "debug"
+    document.body.appendChild(debug)
 }

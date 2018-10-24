@@ -34,6 +34,7 @@ import { Figure, FigureModel, BoardModel } from "../shared/workflow_valueimpl"
 import * as geometry from "../shared/geometry"
 import { Point, Size, Rectangle, Matrix } from "../shared/geometry"
 
+import * as value     from "../shared/workflow_value"
 import * as valuetype from "../shared/workflow_valuetype"
 import * as valueimpl from "../shared/workflow_valueimpl"
 
@@ -360,7 +361,7 @@ export class Layer extends FigureModel implements valuetype.Layer {
 
     constructor(init?: Partial<Layer>) {
         super(init)
-        valuetype.initLayer(this, init)
+        value.initLayer(this, init)
     }
 
     findFigureAt(point: Point): Figure | undefined {
@@ -419,7 +420,7 @@ export abstract class AttributedFigure extends Figure implements valuetype.figur
 
     constructor(init?: Partial<AttributedFigure>) {
         super(init)
-        valuetype.figure.initAttributedFigure(this, init)
+        value.figure.initAttributedFigure(this, init)
         this.stroke = "#000"
         this.strokeWidth = 1.0
         this.fill = "#fff"
@@ -433,7 +434,7 @@ export abstract class Shape extends AttributedFigure implements valuetype.figure
 
     constructor(init?: Partial<Shape>) {
         super(init)
-        valuetype.figure.initShape(this, init)
+        value.figure.initShape(this, init)
     }
 
     transform(transform: Matrix): boolean {
@@ -477,7 +478,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
 {
     constructor(init?: Partial<Rectangle>) {
         super(init)
-        valuetype.figure.initRectangle(this, init)
+        value.figure.initRectangle(this, init)
         this.stroke = "#000"
         this.strokeWidth = 1.0
         this.fill = "#fff"
@@ -492,7 +493,7 @@ export class Circle extends Shape implements valuetype.figure.Circle
     
     constructor(init?: Partial<Rectangle>) {
         super(init)
-        valuetype.figure.initRectangle(this, init)
+        value.figure.initRectangle(this, init)
         this.stroke = "#000"
         this.fill = "#fff"
     }
@@ -505,7 +506,7 @@ export class Group extends Figure implements valuetype.figure.Group
 
     constructor(init?: Partial<Group>) {
         super(init)
-        valuetype.figure.initGroup(this, init)
+        value.figure.initGroup(this, init)
     }
 
     transform(transform: Matrix): boolean {
@@ -526,7 +527,7 @@ export class Transform extends Group implements valuetype.figure.Transform {
 
     constructor(init?: Partial<Transform>) {
         super(init)
-        valuetype.figure.initTransform(this, init)
+        value.figure.initTransform(this, init)
     }
 
     transform(transform: Matrix): boolean {

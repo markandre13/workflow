@@ -16,13 +16,16 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as valueimpl from "../shared/workflow_valueimpl"
+import * as value     from "../shared/workflow_value"
 import * as valuetype from "../shared/workflow_valuetype"
+import * as valueimpl from "../shared/workflow_valueimpl"
+
 import * as geometry from "../shared/geometry"
 import {
     Point, Size, Matrix,
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber, pointMinus
 } from "../shared/geometry"
+
 import { Path } from "./path"
 import * as ext from "./path"
 
@@ -59,7 +62,7 @@ export abstract class Shape extends AttributedFigure implements valuetype.figure
 
     constructor(init?: Partial<Shape>) {
         super(init)
-        valuetype.figure.initShape(this, init)
+        value.figure.initShape(this, init)
     }
 
     transform(transform: Matrix): boolean {
@@ -110,7 +113,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle
     
     constructor(init?: Partial<Rectangle>) {
         super(init)
-        valuetype.figure.initRectangle(this, init)
+        value.figure.initRectangle(this, init)
     }
     
     distance(pt: Point): number {
@@ -150,7 +153,7 @@ export class Circle extends Shape implements valuetype.figure.Circle
     
     constructor(init?: Partial<Circle>) {
         super(init)
-        valuetype.figure.initCircle(this, init)
+        value.figure.initCircle(this, init)
     }
     
     distance(pt: Point): number {
@@ -206,7 +209,7 @@ export class Group extends Figure implements valuetype.figure.Group
 
     constructor(init?: Partial<Group>) {
         super(init)
-        valuetype.figure.initGroup(this, init)
+        value.figure.initGroup(this, init)
     }
     
     add(figure: Figure) {
@@ -254,7 +257,7 @@ export class Transform extends Group implements valuetype.figure.Transform {
 
     constructor(init?: Partial<Transform>) {
         super(init)
-        valuetype.figure.initTransform(this, init)
+        value.figure.initTransform(this, init)
     }
     
     add(figure: Figure) {

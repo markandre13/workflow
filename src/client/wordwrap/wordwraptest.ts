@@ -1,3 +1,4 @@
+import * as value from "../../shared/workflow_value"
 import {
     Point, Size, Rectangle, Matrix,
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
@@ -11,7 +12,7 @@ export class WordWrapTest {
     handleIndex = -1
     decoration = new Array<SVGElement>()
 
-    constructor(title: string, path: Path) {
+    constructor(title: string, path: Path, box: value.Rectangle) {
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         svg.style.border = "1px solid #ddd"
         svg.setAttributeNS("", "width", "320")
@@ -40,7 +41,7 @@ export class WordWrapTest {
         svg.onmousemove = (event: MouseEvent) => { this.mouseMove(event, svg, path) }
         svg.onmouseup   = (event: MouseEvent) => { this.mouseUp(event, svg, path) }
     
-        this.doWrap(svg, path)
+        this.doWrap(svg, path/*, box*/)
     }
 
     createHandle(x: number, y: number): SVGElement {
@@ -143,6 +144,21 @@ export class WordWrapTest {
             case 0:
                 this.selectHandle(path, mouseLocation)
                 break
+            case 1: {
+                let debug = document.getElementById("debug")!
+                let text = `{
+    title: "?",
+    polygon: [\n`
+    for(let entry of path.path) {
+        if (entry.type === "M" || entry.type === "L") {
+            text += `        {x: ${entry.values[0]}, y: ${entry.values[1]}},\n`
+        }
+    }
+    text += `    ],
+    box: { origin: { x: ?, y: ? }, size: { width: ?, height: ? } }
+}`
+                debug.innerText = text
+                } break
             case 2:
                 if (this.removeHandle(path, mouseLocation)) {
                     this.doWrap(svg, path)
@@ -161,8 +177,8 @@ export class WordWrapTest {
        let boundary = svg.getBoundingClientRect()
        let mouseLocation = new Point(event.x - boundary.left, event.y - boundary.top)
        if (this.handleIndex !== -1) {
-            this.handles[this.handleIndex].setAttributeNS("", "x", String(mouseLocation.x-2.5))
-            this.handles[this.handleIndex].setAttributeNS("", "y", String(mouseLocation.y-2.5))
+            this.handles[this.handleIndex].setAttributeNS("", "x", String(Math.round(mouseLocation.x)-2.5))
+            this.handles[this.handleIndex].setAttributeNS("", "y", String(Math.round(mouseLocation.y)-2.5))
             path.path[this.handleIndex].values = [mouseLocation.x, mouseLocation.y]
             path.updateSVG()
             this.doWrap(svg, path)
@@ -201,13 +217,17 @@ export class WordWrapTest {
         let wordwrap = new WordWrap(path)
         
         let slices = new Array<Slice>()
-        wordwrap.extendSlices(new Point(0,0), new Size(320,200), slices)
+        wordwrap.extendSlices(new Point(0,0), new Size(80,40), slices)
         
         wordwrap.levelSlicesHorizontally(slices)
         
         let box = new Size(80, 40)
         
         const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
+
+        // y = ...
+        
+        // protrude at top
         
         // walk down the level slices to find a place for the box
         for(let slice of slices) {

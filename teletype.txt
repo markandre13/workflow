@@ -1,0 +1,42 @@
+GIT REPOSITORIES
+
+    https://github.com/atom/teletype
+	Share your workspace with team members and collaborate on code in real time in Atom https://teletype.atom.io
+    https://github.com/atom/teletype-crdt
+	The string-wise sequence CRDT that enables peer-to-peer collaborative editing.
+	@atom/teletype-crdt
+    https://github.com/atom/teletype-server
+	The server-side application that facilitates peer discovery.
+    https://github.com/atom/teletype-client
+	The editor-agnostic library that manages the interaction with other clients.
+
+TELETYPE-CRDT
+
+      document.js -> document-tree, split-tree, point-helpers
+      document-tree.js -> splay-tree, point-helpers
+      split-tree.js -> splay-tree, point-helpers
+      splay-tree.js
+      point-helpers.js
+      -----
+      serialization.js -> teletype-crdt_pb
+      teletype-crdt_pb.js (generated protocol buffers code)
+
+      // const replica1 = buildDocument(1, 'ABCDEFG')
+      const replica1 = new Document({1, "ABCDEFG"})
+      replica1.testLocalDocument = new LocalDocument(replica1.getText())
+
+      // const replica2 = replicateDocument(2, replica1)
+      const replica2 = document.replicate(2)
+      replica2.testLocalDocument = new LocalDocument(replica2.getText())
+
+      // const ops1 = performInsert(replica1, {row: 0, column: 2}, '+++')
+      // performSetTextInRange(replica1, {row: 0, column: 2}, ZERO_POINT, '+++')
+      replica1.setTextInRange({row: 0, column: 2}, ZERO_POINT, '+++')
+      
+      const ops2 = performInsert(replica2, {row: 0, column: 2}, '***')
+      integrateOperations(replica1, ops2)
+      integrateOperations(replica2, ops1)
+
+      assert.equal(replica1.testLocalDocument.text, 'AB+++***CDEFG')
+      assert.equal(replica2.testLocalDocument.text, 'AB+++***CDEFG')
+
