@@ -154,17 +154,55 @@ export interface WordSource {
 export class WordWrap {
     // FIXME? all these variables don't need to be class members...
     bounds: Rectangle
-    eventQueue: OrderedArray<SweepEvent>
+    sweepBuffer: OrderedArray<SweepEvent>
 
     constructor(path: Path, wordsource?: WordSource) {
         this.bounds = path.bounds()
-        
-        this.eventQueue = new OrderedArray<SweepEvent>( (a, b) => { return SweepEvent.less(a, b) } )
-        this.initializeSweepBuffer(path)
+        this.sweepBuffer = new OrderedArray<SweepEvent>( (a, b) => { return SweepEvent.less(a, b) } )
+        this.fillSweepBufferFrom(path)
         
         if (wordsource === undefined)
             return
+            
+        this.placeWordBoxes(wordsource)
+    }
         
+    fillSweepBufferFrom(path: Path) {
+        let first: Point|undefined, previous: Point|undefined, current: Point|undefined
+        for(let segment of path.path) {
+            switch(segment.type) {
+                case 'M':
+                    first = previous = new Point(segment.values[0], segment.values[1])
+                    break
+                case 'L':
+                    current = new Point(segment.values[0], segment.values[1])
+                    this.addSweepLine(previous!, current!)
+                    previous = current
+                    break
+                case 'C':
+                    break
+                case 'Z':
+                    this.addSweepLine(previous!, first!)
+                    break
+            }
+        }
+    }
+    
+    private addSweepLine(p0: Point, p1: Point) {
+        if (isZero(p0.y - p1.y))
+            return
+            
+        if ( ( p0.y > p1.y) ||
+             ( p0.y === p1.y && p0.x > p1.x) )
+        {
+            [p0, p1] = [p1, p0]
+        }
+        
+        let sweepEvent = new SweepEvent(p0, p1)
+        this.sweepBuffer.insert(sweepEvent)
+    }
+
+    placeWordBoxes(wordsource: WordSource) {
         let slices = new Array<Slice>()
         let cursor = new Point(this.bounds.origin.x - 10, this.bounds.origin.y - 10)
         let horizontalSpace = 0
@@ -177,8 +215,8 @@ export class WordWrap {
             let point: Point
             
             if (cursor.y < this.bounds.origin.y) {
-                let leftEvent = this.eventQueue.shift()
-                let rightEvent = this.eventQueue.shift()
+                let leftEvent = this.sweepBuffer.shift()
+                let rightEvent = this.sweepBuffer.shift()
                 
                 let slice = new Slice()
                 slice.left.push(leftEvent)
@@ -262,46 +300,34 @@ export class WordWrap {
         }
     }
     
-    initializeSweepBuffer(path: Path) {
-        let first: Point|undefined, previous: Point|undefined, current: Point|undefined
-        for(let segment of path.path) {
-            switch(segment.type) {
-                case 'M':
-                    first = previous = new Point(segment.values[0], segment.values[1])
-                    break
-                case 'L':
-                    current = new Point(segment.values[0], segment.values[1])
-                    this.addSweepLine(previous!, current!)
-                    previous = current
-                    break
-                case 'C':
-                    break
-                case 'Z':
-                    this.addSweepLine(previous!, first!)
-                    break
-            }
-        }
-    }
-    
-    addSweepLine(p0: Point, p1: Point) {
-        if (isZero(p0.y - p1.y))
-            return
-            
-        if ( ( p0.y > p1.y) ||
-             ( p0.y === p1.y && p0.x > p1.x) )
-        {
-            [p0, p1] = [p1, p0]
-        }
-        
-        let sweepEvent = new SweepEvent(p0, p1)
-        this.eventQueue.insert(sweepEvent)
-    }
+
     
     pointForBoxInCorner(box: Size, e0: SweepEvent, e1: SweepEvent): Point | undefined {
         let a = e0.p[0],
             e = pointMinusPoint(e0.p[1], a),
             b = e1.p[0],
             f = pointMinusPoint(e1.p[1], b)
+
+        let sweepWidthTop = e1.p[0].x - e0.p[0].x
+        let sweepWidthBottom = e1.p[1].x - e0.p[1].x
+
+        if (sweepWidthTop >= box.width) {
+            if (e.x > 0) {
+                let line = [ new Point(this.bounds.origin.x                          - 10, e0.p[0].y + box.height),
+                             new Point(this.bounds.origin.x + this.bounds.size.width + 10, e0.p[0].y + box.height) ]
+                let p = _intersectLineLine(e0.p, line)
+                if (p === undefined)
+                    throw Error("fuck")
+                p.y = e0.p[0].y
+                return p
+            }
+            return e0.p[0]
+        }
+        
+        if (sweepWidthBottom < box.width)
+            return undefined
+            
+        // case:  \ \
         if (e.x > 0 && f.x > 0) {
             let d = new Point(box.width, -box.height)
             let E = e.y / e.x,
@@ -310,6 +336,7 @@ export class WordWrap {
             p.x -= box.width
             return p
         }
+        // case:  / /
         if (e.x < 0 && f.x < 0) {
             let d = new Point(box.width, box.height);
             let E = e.y / e.x,
@@ -320,6 +347,7 @@ export class WordWrap {
             return p
         }
         
+        // case: / \  (or \ / )
         let line = [ new Point(e1.p[0].x - box.width, e1.p[0].y),
                      new Point(e1.p[1].x - box.width, e1.p[1].y) ]
 
@@ -378,11 +406,11 @@ export class WordWrap {
     extendSlices(cursor: Point, box: Size, slices: Array<Slice>) {
         let top = cursor.y
         let bottom = cursor.y + box.height
-        while( this.eventQueue.length > 0 &&
-               ( (top <= this.eventQueue.at(0).p[0].y && this.eventQueue.at(0).p[0].y <= bottom) ||
-                 (top <= this.eventQueue.at(0).p[1].y && this.eventQueue.at(0).p[1].y <= bottom) ) )
+        while( this.sweepBuffer.length > 0 &&
+               ( (top <= this.sweepBuffer.at(0).p[0].y && this.sweepBuffer.at(0).p[0].y <= bottom) ||
+                 (top <= this.sweepBuffer.at(0).p[1].y && this.sweepBuffer.at(0).p[1].y <= bottom) ) )
         {
-            let segment: SweepEvent | undefined = this.eventQueue.shift()
+            let segment: SweepEvent | undefined = this.sweepBuffer.shift()
             for(let slice of slices) {
                 if ( pointEqualsPoint(slice.left[slice.left.length-1].p[1], segment.p[0]) ) {
 //                    console.log("extend slice on the left")
@@ -421,9 +449,9 @@ export class WordWrap {
                     // insert splice before index
                     let newSlice = new Slice()
                     newSlice.left.push(segment)
-                    if (this.eventQueue.length===0)
+                    if (this.sweepBuffer.length===0)
                         throw Error("fuck")
-                    newSlice.right.push(this.eventQueue.shift())
+                    newSlice.right.push(this.sweepBuffer.shift())
                     slices.splice(index, 0, newSlice)
                     appendAtEnd = false
                     break
@@ -444,9 +472,9 @@ export class WordWrap {
                     newSlice.left = slices[index].left
                     newSlice.right.push(segment)
                     slices[index].left = emptySegmentArray
-                    if (this.eventQueue.length===0)
+                    if (this.sweepBuffer.length===0)
                         throw Error("fuck")
-                    slices[index].left.push(this.eventQueue.shift())
+                    slices[index].left.push(this.sweepBuffer.shift())
                     slices.splice(index, 0, newSlice)
                     appendAtEnd = false
                     break
@@ -456,9 +484,9 @@ export class WordWrap {
                 // append splice
                 let newSlice = new Slice()
                 newSlice.left.push(segment)
-                if (this.eventQueue.length===0)
+                if (this.sweepBuffer.length===0)
                     throw Error("fuck")
-                newSlice.right.push(this.eventQueue.shift())
+                newSlice.right.push(this.sweepBuffer.shift())
                 slices.push(newSlice)
             }
         }
@@ -634,17 +662,35 @@ interface SliderTest {
 // middle mouse, dump test data for copy'n pasting it back?
 
 const sliderTest: SliderTest[] = [
-{ title: "protrude at the top" },
 {
-    title: "wide/open/left&right/wide",
+    title: "pointForBoxInCorner"
+},
+{
+    title: "wide/edge/right",
+    polygon: [
+        {x:  10, y:  20},
+        {x: 310, y: 180},
+        {x: 100, y: 180},
+    ],
+    box: { origin: { x: 76.42857142857144, y: 98.09523809523812 }, size: { width: 80, height: 40 } }
+}, {
+    title: "wide/edge/left",
+    polygon: [
+        {x: 310, y:  20},
+        {x: 220, y: 180},
+        {x:  10, y: 180},
+    ],
+    box: { origin: { x: 163.57142857142858, y: 98.09523809523807 }, size: { width: 80, height: 40 } }
+}, {
+    title: "wide/narrow/left&right",
     polygon: [
         {x:  70, y: 180},
-        {x: 110, y:  20},
-        {x: 210, y:  20},
+        {x: 150, y:  20},
+        {x: 170, y:  20},
         {x: 250, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
-}, {
+    box: { origin: { x: 120, y: 80 }, size: { width: 80, height: 40 } }
+}, { title: "" }, {
     title: "wide/open/right",
     polygon: [
         {x:  10, y:  20},
@@ -652,7 +698,7 @@ const sliderTest: SliderTest[] = [
         {x: 310, y: 180},
         {x: 100, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: 32.5, y: 20 }, size: { width: 80, height: 40 } }
 }, {
     title: "wide/open/left",
     polygon: [
@@ -661,9 +707,28 @@ const sliderTest: SliderTest[] = [
         {x: 220, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
-
-}/*, {
+    box: { origin: { x: 200, y: 20 }, size: { width: 80, height: 40 } }
+}, {
+    title: "wide/open/left&right/wide",
+    polygon: [
+        {x:  70, y: 180},
+        {x: 110, y:  20},
+        {x: 210, y:  20},
+        {x: 250, y: 180},
+    ],
+    box: { origin: { x: 110, y: 20 }, size: { width: 80, height: 40 } }
+}, { title: "" }, {
+    title: "narrow/open/left&right",
+    polygon: [
+        {x: 150, y:  20},
+        {x: 170, y:  20},
+        {x: 190, y: 180},
+        {x: 130, y: 180},
+    ],
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+}
+/*
+, {
     title: "left dent",
     polygon: [
         {x: 115, y: 100},
@@ -712,31 +777,6 @@ const sliderTest: SliderTest[] = [
     polygon: [
         {x:  70, y: 180},
         {x: 160, y:  20},
-        {x: 250, y: 180},
-    ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
-}, {
-    title: "edge/open/right",
-    polygon: [
-        {x:  10, y:  20},
-        {x: 310, y: 180},
-        {x: 100, y: 180},
-    ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
-}, {
-    title: "edge/open/left",
-    polygon: [
-        {x: 310, y:  20},
-        {x: 220, y: 180},
-        {x:  10, y: 180},
-    ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
-}, {
-    title: "median/open/left&right/wide",
-    polygon: [
-        {x:  70, y: 180},
-        {x: 150, y:  20},
-        {x: 170, y:  20},
         {x: 250, y: 180},
     ],
     box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }

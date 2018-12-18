@@ -41,7 +41,7 @@ export class WordWrapTest {
         svg.onmousemove = (event: MouseEvent) => { this.mouseMove(event, svg, path) }
         svg.onmouseup   = (event: MouseEvent) => { this.mouseUp(event, svg, path) }
     
-        this.doWrap(svg, path/*, box*/)
+        this.doWrap(svg, path, box)
     }
 
     createHandle(x: number, y: number): SVGElement {
@@ -208,20 +208,19 @@ export class WordWrapTest {
     // o does left border intersect with box?
     // ...
 
-    doWrap(svg: SVGElement, path: Path) {
+    doWrap(svg: SVGElement, path: Path, theBox?: value.Rectangle) {
         for(let deco of this.decoration) {
             svg.removeChild(deco)
         }
         this.decoration.length = 0
         
         let wordwrap = new WordWrap(path)
+        let box = theBox ? theBox.size : new Size(80, 40)
         
         let slices = new Array<Slice>()
-        wordwrap.extendSlices(new Point(0,0), new Size(80,40), slices)
+        wordwrap.extendSlices(new Point(0,0), box, slices)
         
         wordwrap.levelSlicesHorizontally(slices)
-        
-        let box = new Size(80, 40)
         
         const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
 
@@ -250,6 +249,14 @@ export class WordWrapTest {
                     }
                     svg.appendChild(rect)
                     this.decoration.push(rect)
+                    if (theBox && !pointEqualsPoint(pt, theBox.origin)) {
+                        console.log(pt)
+                        svg.style.background="#f88"
+                    }
+                } else {
+                    if (theBox && theBox.origin.x != -1) {
+                        svg.style.background="#f88"
+                    }
                 }
 
                 let line = document.createElementNS("http://www.w3.org/2000/svg", "line")
