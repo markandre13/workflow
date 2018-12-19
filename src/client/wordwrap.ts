@@ -299,8 +299,14 @@ export class WordWrap {
             box = wordsource.pullBox()
         }
     }
-    
 
+    pointForBoxInCorner2(box: Size, slices: Array<Slice>): Point | undefined {
+        let slice = slices[0]!
+        let index = 0
+        
+        let pt = this.pointForBoxInCorner(box, slice.left[index], slice.right[index])
+        return pt
+    }
     
     pointForBoxInCorner(box: Size, e0: SweepEvent, e1: SweepEvent): Point | undefined {
         let a = e0.p[0],
@@ -726,6 +732,38 @@ const sliderTest: SliderTest[] = [
         {x: 130, y: 180},
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+}, { 
+  title: "two stripes(?)"
+}, {
+    title: "xxx",
+    polygon: [
+        {x: 160, y:  20},
+        {x: 210, y: 100},
+        {x: 280, y: 180},
+        {x:  20, y: 180},
+        {x: 110, y: 100},
+    ],
+    box: { origin: { x: 120, y: 84 }, size: { width: 80, height: 40 } }
+}, {
+    title: "xxx",
+    polygon: [
+        {x: 200, y: 100},
+        {x:  20, y:  20},
+        {x: 100, y: 100},
+        {x:  80, y: 180},
+        {x: 280, y: 180},
+    ],
+    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+}, {
+    title: "xxx",
+    polygon: [
+        {x: 200, y: 100},
+        {x:  20, y:  20},
+        {x: 100, y: 100},
+        {x: 120, y: 180},
+        {x: 280, y: 180},
+    ],
+    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
 }
 /*
 , {

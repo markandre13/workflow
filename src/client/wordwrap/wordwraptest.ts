@@ -229,9 +229,12 @@ export class WordWrapTest {
         // protrude at top
         
         // walk down the level slices to find a place for the box
-        for(let slice of slices) {
-            for(let index=0; index<slice.left.length; ++index) {
-                let pt = wordwrap.pointForBoxInCorner(box, slice.left[index], slice.right[index])
+//        for(let slice of slices) {
+//            for(let index=0; index<slice.left.length; ++index) {
+                // let pt = wordwrap.pointForBoxInCorner(box, slice.left[index], slice.right[index])
+                let index = 0
+                let slice = slices[0]
+                let pt = wordwrap.pointForBoxInCorner2(box, slices)
                 if (pt !== undefined) {
                     let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
                     rect.setAttributeNS("", "stroke", color[index])
@@ -276,7 +279,7 @@ export class WordWrapTest {
                 line.setAttributeNS("", "y2", String(slice.right[index].p[1].y))
                 svg.appendChild(line)
                 this.decoration.push(line)
-            }
-        }
+//            }
+//        }
     }
 }
