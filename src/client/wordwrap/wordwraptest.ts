@@ -194,20 +194,6 @@ export class WordWrapTest {
         }
     }
 
-    // the algorithm
-    // 1. if the top is wide enough for the box and the bottom is >= than the top events,
-    //    then
-    //   1.1 if left event dx <= 0, place left
-    //   1.2 seek where left event meets box height
-    // 2. 
-    
-    // o width of the top
-    // o widening or narrowing from top to bottom
-    // o ...
-    // o is box within sides?
-    // o does left border intersect with box?
-    // ...
-
     doWrap(svg: SVGElement, path: Path, theBox?: value.Rectangle) {
         for(let deco of this.decoration) {
             svg.removeChild(deco)
@@ -224,62 +210,25 @@ export class WordWrapTest {
         
         const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
 
-        // y = ...
-        
-        // protrude at top
-        
-        // walk down the level slices to find a place for the box
-//        for(let slice of slices) {
-//            for(let index=0; index<slice.left.length; ++index) {
-                // let pt = wordwrap.pointForBoxInCorner(box, slice.left[index], slice.right[index])
-                let index = 0
-                let slice = slices[0]
-                let pt = wordwrap.pointForBoxInCorner2(box, slices)
-                if (pt !== undefined) {
-                    let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-                    rect.setAttributeNS("", "stroke", color[index])
-                    rect.setAttributeNS("", "fill", "none")
-                    rect.setAttributeNS("", "x", String(pt.x))
-                    rect.setAttributeNS("", "width", String(box.width))
-                    let topWidth = slice.right[index].p[0].x - slice.left[index].p[0].x
-                    let bottomWidth = slice.right[index].p[1].x - slice.left[index].p[1].x
-                    if (topWidth < bottomWidth) {
-                        rect.setAttributeNS("", "y", String(pt.y))
-                        rect.setAttributeNS("", "height", String(box.height))
-                    } else {
-                        rect.setAttributeNS("", "y", String(pt.y-box.height))
-                        rect.setAttributeNS("", "height", String(box.height))
-                    }
-                    svg.appendChild(rect)
-                    this.decoration.push(rect)
-                    if (theBox && !pointEqualsPoint(pt, theBox.origin)) {
-                        console.log(pt)
-                        svg.style.background="#f88"
-                    }
-                } else {
-                    if (theBox && theBox.origin.x != -1) {
-                        svg.style.background="#f88"
-                    }
-                }
-
-                let line = document.createElementNS("http://www.w3.org/2000/svg", "line")
-                line.setAttributeNS("", "stroke", color[index])
-                line.setAttributeNS("", "x1", String(slice.left[index].p[0].x))
-                line.setAttributeNS("", "y1", String(slice.left[index].p[0].y))
-                line.setAttributeNS("", "x2", String(slice.left[index].p[1].x))
-                line.setAttributeNS("", "y2", String(slice.left[index].p[1].y))
-                svg.appendChild(line)
-                this.decoration.push(line)
-
-                line = document.createElementNS("http://www.w3.org/2000/svg", "line")
-                line.setAttributeNS("", "stroke", color[index])
-                line.setAttributeNS("", "x1", String(slice.right[index].p[0].x))
-                line.setAttributeNS("", "y1", String(slice.right[index].p[0].y))
-                line.setAttributeNS("", "x2", String(slice.right[index].p[1].x))
-                line.setAttributeNS("", "y2", String(slice.right[index].p[1].y))
-                svg.appendChild(line)
-                this.decoration.push(line)
-//            }
-//        }
+        let pt = wordwrap.pointForBoxInCorner2(box, slices)
+        if (pt !== undefined) {
+            let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            rect.setAttributeNS("", "stroke", color[0])
+            rect.setAttributeNS("", "fill", "none")
+            rect.setAttributeNS("", "x", String(pt.x))
+            rect.setAttributeNS("", "width", String(box.width))
+            rect.setAttributeNS("", "y", String(pt.y))
+            rect.setAttributeNS("", "height", String(box.height))
+            svg.appendChild(rect)
+            this.decoration.push(rect)
+            if (theBox && !pointEqualsPoint(pt, theBox.origin)) {
+                console.log(pt)
+                svg.style.background="#f88"
+            }
+        } else {
+            if (theBox && theBox.origin.x != -1) {
+                svg.style.background="#f88"
+            }
+        }
     }
 }
