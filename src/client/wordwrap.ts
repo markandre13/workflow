@@ -320,16 +320,24 @@ export class WordWrap {
         let sweepWidthTop    = rightEvent.p[0].x - leftEvent.p[0].x
         let sweepWidthBottom = rightEvent.p[1].x - leftEvent.p[1].x
 
+        // box might be higher than events
         if (sweepWidthTop >= box.width) {
             // FIXME: what if the bottom narrows and there isn't enough space in the top?
             if (leftVector.x > 0) {
                 let line = [ new Point(this.bounds.origin.x                          - 10, leftEvent.p[0].y + box.height),
                              new Point(this.bounds.origin.x + this.bounds.size.width + 10, leftEvent.p[0].y + box.height) ]
-                let p = _intersectLineLine(leftEvent.p, line)
-                if (p === undefined)
+                let leftPoint = _intersectLineLine(leftEvent.p, line)
+                if (leftPoint === undefined)
                     throw Error("fuck")
-                p.y = leftEvent.p[0].y
-                return p
+                leftPoint.y = leftEvent.p[0].y
+                
+                let rightPoint = _intersectLineLine(rightEvent.p, line)
+                if (rightPoint) {
+                    if (rightPoint.x - box.width < leftPoint.x)
+                        return undefined
+                }
+                
+                return leftPoint
             }
             return leftEvent.p[0]
         }
@@ -357,14 +365,22 @@ export class WordWrap {
             return p
         }
         
-        // case: / \  (or \ / )
-        let line = [ new Point(rightEvent.p[0].x - box.width, rightEvent.p[0].y),
-                     new Point(rightEvent.p[1].x - box.width, rightEvent.p[1].y) ]
+        // case: / \ )
+        if (sweepWidthTop < sweepWidthBottom) {
+            let rightEventMovedToLeft = [
+                new Point(rightEvent.p[0].x - box.width, rightEvent.p[0].y),
+                new Point(rightEvent.p[1].x - box.width, rightEvent.p[1].y)
+            ]
 
-        let p = _intersectLineLine(leftEvent.p, line)
-        if (p !== undefined)
-            return p
+            let p = _intersectLineLine(leftEvent.p, rightEventMovedToLeft)
+            if (p !== undefined) {
+                if (p.y + box.height > leftEvent.p[1].y)
+                    return undefined
+                return p
+            }
+        }
        
+        // case: \ /
         if ( ( leftVector.x <= 0 && rightVector.x >=0 ) &&
              isZero(rightEvent.p[0].y - leftEvent.p[0].y) &&
              (rightEvent.p[0].x - leftEvent.p[0].x) >= box.width )
@@ -754,6 +770,7 @@ const sliderTest: SliderTest[] = [
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
+//    only: true,
     title: "narrow bottom/open/left&right",
     polygon: [
         {x: 160-10-40, y:  20},
