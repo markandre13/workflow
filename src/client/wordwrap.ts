@@ -301,9 +301,11 @@ export class WordWrap {
     }
 
     pointForBoxInCorner2(box: Size, slices: Array<Slice>): Point | undefined {
-        let slice = slices[0]!
+        if (slices.length === 0) {
+            throw Error("no slices")
+        }
+        let slice = slices[0]
         let index = 0
-        
         let pt = this.pointForBoxInCorner(box, slice.left[index], slice.right[index])
         return pt
     }
@@ -318,6 +320,7 @@ export class WordWrap {
         let sweepWidthBottom = e1.p[1].x - e0.p[1].x
 
         if (sweepWidthTop >= box.width) {
+            // FIXME: what if the bottom narrows and there isn't enough space in the top?
             if (e.x > 0) {
                 let line = [ new Point(this.bounds.origin.x                          - 10, e0.p[0].y + box.height),
                              new Point(this.bounds.origin.x + this.bounds.size.width + 10, e0.p[0].y + box.height) ]
@@ -410,12 +413,17 @@ export class WordWrap {
 
     // pull as much slices as are required for current line
     extendSlices(cursor: Point, box: Size, slices: Array<Slice>) {
+//console.log("extendSlices")
+//console.log("  this.sweepBuffer.length = " + this.sweepBuffer.length)
         let top = cursor.y
         let bottom = cursor.y + box.height
+//console.log("top = "+top)
+//console.log("bottom = "+bottom)
         while( this.sweepBuffer.length > 0 &&
                ( (top <= this.sweepBuffer.at(0).p[0].y && this.sweepBuffer.at(0).p[0].y <= bottom) ||
                  (top <= this.sweepBuffer.at(0).p[1].y && this.sweepBuffer.at(0).p[1].y <= bottom) ) )
         {
+//console.log("ZZZ")
             let segment: SweepEvent | undefined = this.sweepBuffer.shift()
             for(let slice of slices) {
                 if ( pointEqualsPoint(slice.left[slice.left.length-1].p[1], segment.p[0]) ) {
@@ -656,7 +664,9 @@ export class WordWrap {
     }
 }
 
+// FIXME: document attributes
 interface SliderTest {
+    only?: boolean
     title: string
     polygon?: Array<Point>
     box?: value.Rectangle
@@ -724,12 +734,30 @@ const sliderTest: SliderTest[] = [
     ],
     box: { origin: { x: 110, y: 20 }, size: { width: 80, height: 40 } }
 }, { title: "" }, {
-    title: "narrow/open/left&right",
+    title: "narrow top&bottom/open/left&right",
     polygon: [
         {x: 150, y:  20},
         {x: 170, y:  20},
         {x: 190, y: 180},
         {x: 130, y: 180},
+    ],
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+}, {
+    title: "narrow top/open/left&right",
+    polygon: [
+        {x: 160-10,    y:  20},
+        {x: 160+10,    y:  20},
+        {x: 160+10+40, y: 120},
+        {x: 160-10-40, y: 120},
+    ],
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+}, {
+    title: "narrow bottom/open/left&right",
+    polygon: [
+        {x: 160-10-40, y:  20},
+        {x: 160+10+40, y:  20},
+        {x: 160+10,    y: 120},
+        {x: 160-10,    y: 120},
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, { 
@@ -901,7 +929,18 @@ class BoxSource implements WordSource {
 export function testWrap() {
     document.body.innerHTML=""
 
+    let only = false
     for(let test of sliderTest) {
+        if (test.only === true) {
+            only = true
+            break
+        }
+    }
+
+    for(let test of sliderTest) {
+        if (only && test.only !== true) {
+            continue
+        }
         if (test.polygon) {
             let path = new Path()
             for(let point of test.polygon) {

@@ -205,7 +205,10 @@ export class WordWrapTest {
         
         let slices = new Array<Slice>()
         wordwrap.extendSlices(new Point(0,0), box, slices)
-        
+if (slices.length === 0) {
+    console.log("no slices")
+    console.log(wordwrap)
+}        
         wordwrap.levelSlicesHorizontally(slices)
         
         const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
