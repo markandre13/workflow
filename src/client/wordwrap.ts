@@ -310,27 +310,32 @@ export class WordWrap {
         return pt
     }
     
-    pointForBoxInCorner(box: Size, e0: SweepEvent, e1: SweepEvent): Point | undefined {
-        let a = e0.p[0],
-            e = pointMinusPoint(e0.p[1], a),
-            b = e1.p[0],
-            f = pointMinusPoint(e1.p[1], b)
+    pointForBoxInCorner(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
+        let a = leftEvent.p[0],
+            e = pointMinusPoint(leftEvent.p[1], a),
+            b = rightEvent.p[0],
+            f = pointMinusPoint(rightEvent.p[1], b)
 
-        let sweepWidthTop = e1.p[0].x - e0.p[0].x
-        let sweepWidthBottom = e1.p[1].x - e0.p[1].x
+        let leftPoint = a,
+            leftVector = e,
+            rightPoint = b,
+            rightVector = f
+
+        let sweepWidthTop    = rightEvent.p[0].x - leftEvent.p[0].x
+        let sweepWidthBottom = rightEvent.p[1].x - leftEvent.p[1].x
 
         if (sweepWidthTop >= box.width) {
             // FIXME: what if the bottom narrows and there isn't enough space in the top?
             if (e.x > 0) {
-                let line = [ new Point(this.bounds.origin.x                          - 10, e0.p[0].y + box.height),
-                             new Point(this.bounds.origin.x + this.bounds.size.width + 10, e0.p[0].y + box.height) ]
-                let p = _intersectLineLine(e0.p, line)
+                let line = [ new Point(this.bounds.origin.x                          - 10, leftEvent.p[0].y + box.height),
+                             new Point(this.bounds.origin.x + this.bounds.size.width + 10, leftEvent.p[0].y + box.height) ]
+                let p = _intersectLineLine(leftEvent.p, line)
                 if (p === undefined)
                     throw Error("fuck")
-                p.y = e0.p[0].y
+                p.y = leftEvent.p[0].y
                 return p
             }
-            return e0.p[0]
+            return leftEvent.p[0]
         }
         
         if (sweepWidthBottom < box.width)
@@ -357,18 +362,18 @@ export class WordWrap {
         }
         
         // case: / \  (or \ / )
-        let line = [ new Point(e1.p[0].x - box.width, e1.p[0].y),
-                     new Point(e1.p[1].x - box.width, e1.p[1].y) ]
+        let line = [ new Point(rightEvent.p[0].x - box.width, rightEvent.p[0].y),
+                     new Point(rightEvent.p[1].x - box.width, rightEvent.p[1].y) ]
 
-        let p = _intersectLineLine(e0.p, line)
+        let p = _intersectLineLine(leftEvent.p, line)
         if (p !== undefined)
             return p
        
         if ( ( e.x <= 0 && f.x >=0 ) &&
-             isZero(e1.p[0].y - e0.p[0].y) &&
-             (e1.p[0].x - e0.p[0].x) >= box.width )
+             isZero(rightEvent.p[0].y - leftEvent.p[0].y) &&
+             (rightEvent.p[0].x - leftEvent.p[0].x) >= box.width )
         {
-            return e0.p[0]
+            return leftEvent.p[0]
         }
             
         return undefined
@@ -743,6 +748,7 @@ const sliderTest: SliderTest[] = [
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
+//    only: true,
     title: "narrow top/open/left&right",
     polygon: [
         {x: 160-10,    y:  20},
