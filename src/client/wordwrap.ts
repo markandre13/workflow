@@ -311,22 +311,18 @@ export class WordWrap {
     }
     
     pointForBoxInCorner(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
-        let a = leftEvent.p[0],
-            e = pointMinusPoint(leftEvent.p[1], a),
-            b = rightEvent.p[0],
-            f = pointMinusPoint(rightEvent.p[1], b)
 
-        let leftPoint = a,
-            leftVector = e,
-            rightPoint = b,
-            rightVector = f
+        let leftPoint = leftEvent.p[0],
+            leftVector = pointMinusPoint(leftEvent.p[1], leftPoint),
+            rightPoint = rightEvent.p[0],
+            rightVector = pointMinusPoint(rightEvent.p[1], rightPoint)
 
         let sweepWidthTop    = rightEvent.p[0].x - leftEvent.p[0].x
         let sweepWidthBottom = rightEvent.p[1].x - leftEvent.p[1].x
 
         if (sweepWidthTop >= box.width) {
             // FIXME: what if the bottom narrows and there isn't enough space in the top?
-            if (e.x > 0) {
+            if (leftVector.x > 0) {
                 let line = [ new Point(this.bounds.origin.x                          - 10, leftEvent.p[0].y + box.height),
                              new Point(this.bounds.origin.x + this.bounds.size.width + 10, leftEvent.p[0].y + box.height) ]
                 let p = _intersectLineLine(leftEvent.p, line)
@@ -342,20 +338,20 @@ export class WordWrap {
             return undefined
             
         // case:  \ \
-        if (e.x > 0 && f.x > 0) {
+        if (leftVector.x > 0 && rightVector.x > 0) {
             let d = new Point(box.width, -box.height)
-            let E = e.y / e.x,
-                v = ( a.y + E * ( b.x - a.x - d.x ) + d.y - b.y ) / ( f.y - E * f.x )
-            let p = pointPlusPoint(b, pointMultiplyNumber(f, v))
+            let E = leftVector.y / leftVector.x,
+                v = ( leftPoint.y + E * ( rightPoint.x - leftPoint.x - d.x ) + d.y - rightPoint.y ) / ( rightVector.y - E * rightVector.x )
+            let p = pointPlusPoint(rightPoint, pointMultiplyNumber(rightVector, v))
             p.x -= box.width
             return p
         }
         // case:  / /
-        if (e.x < 0 && f.x < 0) {
+        if (leftVector.x < 0 && rightVector.x < 0) {
             let d = new Point(box.width, box.height);
-            let E = e.y / e.x,
-                v = ( a.y + E * ( b.x - a.x - d.x ) + d.y - b.y ) / ( f.y - E * f.x )
-            let p = pointPlusPoint(b, pointMultiplyNumber(f, v))
+            let E = leftVector.y / leftVector.x,
+                v = ( leftPoint.y + E * ( rightPoint.x - leftPoint.x - d.x ) + d.y - rightPoint.y ) / ( rightVector.y - E * rightVector.x )
+            let p = pointPlusPoint(rightPoint, pointMultiplyNumber(rightVector, v))
             p.x -= box.width
             p.y -= box.height
             return p
@@ -369,7 +365,7 @@ export class WordWrap {
         if (p !== undefined)
             return p
        
-        if ( ( e.x <= 0 && f.x >=0 ) &&
+        if ( ( leftVector.x <= 0 && rightVector.x >=0 ) &&
              isZero(rightEvent.p[0].y - leftEvent.p[0].y) &&
              (rightEvent.p[0].x - leftEvent.p[0].x) >= box.width )
         {
