@@ -51,7 +51,7 @@ import { FigureEditor, ToolModel, Layer, LayerModel } from "./editor"
 import { StrokeAndFill, StrokeAndFillModel } from "./strokeandfill"
 import { ColorSwatch, ColorSwatchModel } from "./colorswatch"
 
-import { testWrap } from "./wordwrap"
+import { testWrap } from "./wordwrap/wordwrap"
 
 export async function runtest(test: Function) {
     window.customElements.define("toad-figureeditor", FigureEditor)

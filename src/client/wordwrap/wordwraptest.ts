@@ -5,7 +5,7 @@ import {
     pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine
 } from "../../shared/geometry"
 import { Path } from "../path"
-import { WordWrap, Slice } from "../wordwrap"
+import { WordWrap, Slice } from "./wordwrap"
 
 export class WordWrapTest {
     handles = new Array<SVGElement>()
@@ -225,7 +225,6 @@ if (slices.length === 0) {
             svg.appendChild(rect)
             this.decoration.push(rect)
             if (theBox && !pointEqualsPoint(pt, theBox.origin)) {
-                console.log(pt)
                 svg.style.background="#f88"
             }
         } else {

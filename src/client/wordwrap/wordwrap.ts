@@ -16,20 +16,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as value     from "../shared/workflow_value"
+import * as value from "../../shared/workflow_value"
 import {
     Point, Size, Rectangle, Matrix,
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
     pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine
-} from "../shared/geometry"
-import { Path } from "./path"
+} from "../../shared/geometry"
+import { Path } from "../path"
 
-import { WordWrapTest } from "./wordwrap/wordwraptest"
+import { WordWrapTest } from "./wordwraptest"
 
-import { OrderedArray } from "./orderedarray"
+import { OrderedArray } from "../orderedarray"
 
 // description of an intersection between path segments
-export class IntersectionEnd {
+export class IntersectionPoint {
     type: string	// 'L'line or 'C'urve, as used in Path // FIXME: enum?
     src: Array<Point>	// data for L or C
     u: number		// position of intersection on src within [0, 1]
@@ -43,14 +43,14 @@ export class IntersectionEnd {
 }
 
 export class Intersection {
-    seg0: IntersectionEnd
-    seg1: IntersectionEnd
+    seg0: IntersectionPoint
+    seg1: IntersectionPoint
     
     constructor(t0: string, s0: Array<Point>, u0: number, p0: Point,
                 t1: string, s1: Array<Point>, u1: number, p1: Point)
     {
-        this.seg0 = new IntersectionEnd(t0, s0, u0, p0)
-        this.seg1 = new IntersectionEnd(t1, s1, u1, p1)
+        this.seg0 = new IntersectionPoint(t0, s0, u0, p0)
+        this.seg1 = new IntersectionPoint(t1, s1, u1, p1)
     }
 }
 
