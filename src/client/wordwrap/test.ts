@@ -28,7 +28,7 @@ import { WordWrapTestRunner } from "./testrunner"
 import { WordSource } from "./wordwrap"
 
 // FIXME: document attributes
-interface SliderTest {
+interface WordWrapTest {
     only?: boolean
     title: string
     polygon?: Array<Point>
@@ -40,7 +40,7 @@ interface SliderTest {
 // line breaks, headings
 // middle mouse, dump test data for copy'n pasting it back?
 
-const sliderTest: SliderTest[] = [
+const wordWrapTest: WordWrapTest[] = [
 {
     title: "pointForBoxInCorner"
 },
@@ -294,14 +294,14 @@ export function testWrap() {
     document.body.innerHTML=""
 
     let only = false
-    for(let test of sliderTest) {
+    for(let test of wordWrapTest) {
         if (test.only === true) {
             only = true
             break
         }
     }
 
-    for(let test of sliderTest) {
+    for(let test of wordWrapTest) {
         if (only && test.only !== true) {
             continue
         }
