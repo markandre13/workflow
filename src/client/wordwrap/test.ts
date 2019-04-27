@@ -132,13 +132,13 @@ const wordWrapTest: WordWrapTest[] = [
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, { title: "" }, {
-    title: "below slice",
+    title: "bottom is below slice",
     polygon: [
         {x: 110, y:  20},
         {x: 257, y:  80},
         {x: 297, y: 170},
         {x:  65, y: 170},
-        {x: 136, y:  70},
+        {x: 120, y:  70},
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {

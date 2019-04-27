@@ -103,11 +103,22 @@ export class SweepEvent
     type: string
     p: Array<Point>
     
-    constructor(p0: Point, p1: Point) {
-        this.type = "L"
-        this.p = new Array<Point>()
-        this.p.push(p0)
-        this.p.push(p1)
+    constructor(event: SweepEvent)
+    constructor(p0: Point, p1: Point)
+    constructor(p0OrEvent: Point|SweepEvent, p1?: Point) {
+        if (p1 === undefined) {
+            let e = p0OrEvent as SweepEvent
+            this.type = e.type
+            this.p = new Array<Point>()
+            for(let p of e.p) {
+                this.p.push(p)
+            }
+        } else {
+            this.type = "L"
+            this.p = new Array<Point>()
+            this.p.push(p0OrEvent as Point)
+            this.p.push(p1)
+        }
     }
 
     static less(e0: SweepEvent, e1: SweepEvent): boolean {
@@ -332,7 +343,7 @@ export class WordWrap {
             return undefined
 
         // too low
-        if (point.y > leftEvent.p[1].y)
+        if (point.y+box.height > leftEvent.p[1].y)
             return undefined
 
         // too high
@@ -398,7 +409,7 @@ export class WordWrap {
             return undefined
 
         if (this.trace)
-            console.log(leftVector, rightVector)
+            console.log("left and right vector:", leftVector, rightVector)
             
         // case:  \ \
         if (leftVector.x > 0 && rightVector.x > 0) {
