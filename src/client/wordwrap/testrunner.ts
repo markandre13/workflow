@@ -25,6 +25,10 @@ import {
 import { Path } from "../path"
 import { WordWrap, Slice } from "./wordwrap"
 
+/**
+ * Execute a single wordwrap test along with appending a visual
+ * representation to the browser window.
+ */
 export class WordWrapTestRunner {
     handles = new Array<SVGElement>()
     handleIndex = -1
@@ -60,6 +64,46 @@ export class WordWrapTestRunner {
         svg.onmouseup   = (event: MouseEvent) => { this.mouseUp(event, svg, path) }
     
         this.doWrap(svg, path, box)
+    }
+
+    doWrap(svg: SVGElement, path: Path, theBox?: value.Rectangle) {
+        for(let deco of this.decoration) {
+            svg.removeChild(deco)
+        }
+        this.decoration.length = 0
+        
+        let wordwrap = new WordWrap(path)
+        let box = theBox ? theBox.size : new Size(80, 40)
+        
+        let slices = new Array<Slice>()
+        wordwrap.extendSlices(new Point(0,0), box, slices)
+if (slices.length === 0) {
+    console.log("no slices")
+    console.log(wordwrap)
+}        
+        wordwrap.levelSlicesHorizontally(slices)
+        
+        const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
+
+        let pt = wordwrap.pointForBoxInCorner2(box, slices)
+        if (pt !== undefined) {
+            let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            rect.setAttributeNS("", "stroke", color[0])
+            rect.setAttributeNS("", "fill", "none")
+            rect.setAttributeNS("", "x", String(pt.x))
+            rect.setAttributeNS("", "width", String(box.width))
+            rect.setAttributeNS("", "y", String(pt.y))
+            rect.setAttributeNS("", "height", String(box.height))
+            svg.appendChild(rect)
+            this.decoration.push(rect)
+            if (theBox && !pointEqualsPoint(pt, theBox.origin)) {
+                svg.style.background="#f88"
+            }
+        } else {
+            if (theBox && theBox.origin.x != -1) {
+                svg.style.background="#f88"
+            }
+        }
     }
 
     createHandle(x: number, y: number): SVGElement {
@@ -212,43 +256,4 @@ export class WordWrapTestRunner {
         }
     }
 
-    doWrap(svg: SVGElement, path: Path, theBox?: value.Rectangle) {
-        for(let deco of this.decoration) {
-            svg.removeChild(deco)
-        }
-        this.decoration.length = 0
-        
-        let wordwrap = new WordWrap(path)
-        let box = theBox ? theBox.size : new Size(80, 40)
-        
-        let slices = new Array<Slice>()
-        wordwrap.extendSlices(new Point(0,0), box, slices)
-if (slices.length === 0) {
-    console.log("no slices")
-    console.log(wordwrap)
-}        
-        wordwrap.levelSlicesHorizontally(slices)
-        
-        const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
-
-        let pt = wordwrap.pointForBoxInCorner2(box, slices)
-        if (pt !== undefined) {
-            let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-            rect.setAttributeNS("", "stroke", color[0])
-            rect.setAttributeNS("", "fill", "none")
-            rect.setAttributeNS("", "x", String(pt.x))
-            rect.setAttributeNS("", "width", String(box.width))
-            rect.setAttributeNS("", "y", String(pt.y))
-            rect.setAttributeNS("", "height", String(box.height))
-            svg.appendChild(rect)
-            this.decoration.push(rect)
-            if (theBox && !pointEqualsPoint(pt, theBox.origin)) {
-                svg.style.background="#f88"
-            }
-        } else {
-            if (theBox && theBox.origin.x != -1) {
-                svg.style.background="#f88"
-            }
-        }
-    }
 }
