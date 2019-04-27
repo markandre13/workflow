@@ -34,7 +34,7 @@ export class WordWrapTestRunner {
     handleIndex = -1
     decoration = new Array<SVGElement>()
 
-    constructor(title: string, path: Path, box: value.Rectangle) {
+    constructor(title: string, path: Path, box: value.Rectangle, trace: boolean) {
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         svg.style.border = "1px solid #ddd"
         svg.setAttributeNS("", "width", "320")
@@ -63,16 +63,16 @@ export class WordWrapTestRunner {
         svg.onmousemove = (event: MouseEvent) => { this.mouseMove(event, svg, path) }
         svg.onmouseup   = (event: MouseEvent) => { this.mouseUp(event, svg, path) }
     
-        this.doWrap(svg, path, box)
+        this.doWrap(svg, path, box, trace)
     }
 
-    doWrap(svg: SVGElement, path: Path, theBox?: value.Rectangle) {
+    doWrap(svg: SVGElement, path: Path, theBox?: value.Rectangle, trace?: boolean) {
         for(let deco of this.decoration) {
             svg.removeChild(deco)
         }
         this.decoration.length = 0
         
-        let wordwrap = new WordWrap(path)
+        let wordwrap = new WordWrap(path, undefined, trace == true)
         let box = theBox ? theBox.size : new Size(80, 40)
         
         let slices = new Array<Slice>()
@@ -82,13 +82,12 @@ if (slices.length === 0) {
     console.log(wordwrap)
 }        
         wordwrap.levelSlicesHorizontally(slices)
-        
-        const color = ["#f00", "#f80", "#0f0", "#00f", "#08f"]
 
         let pt = wordwrap.pointForBoxInCorner2(box, slices)
+
         if (pt !== undefined) {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-            rect.setAttributeNS("", "stroke", color[0])
+            rect.setAttributeNS("", "stroke", "#f00")
             rect.setAttributeNS("", "fill", "none")
             rect.setAttributeNS("", "x", String(pt.x))
             rect.setAttributeNS("", "width", String(box.width))

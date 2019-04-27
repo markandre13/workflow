@@ -29,9 +29,15 @@ import { WordSource } from "./wordwrap"
 
 // FIXME: document attributes
 interface WordWrapTest {
+    //! if true, execute only this test
     only?: boolean
+    //! if true, let the algorithm generate a trace
+    trace?: boolean
+    //! a title to be shown when rendered
     title: string
+    //! the polygon into which the box is to be placed
     polygon?: Array<Point>
+    //! the box to be placed
     box?: value.Rectangle
 }
 
@@ -125,7 +131,38 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 160-10,    y: 120},
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
-}, { 
+}, { title: "" }, {
+    title: "below slice",
+    polygon: [
+        {x: 110, y:  20},
+        {x: 257, y:  80},
+        {x: 297, y: 170},
+        {x:  65, y: 170},
+        {x: 136, y:  70},
+    ],
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+}, {
+    title: "wide top but not enough/open/right",
+    polygon: [
+        {x:  10, y:  20},
+        {x: 101, y:  20},
+        {x: 310, y: 180},
+        {x: 100, y: 180},
+    ],
+    box: { origin: { x: 41.19747899159664, y: 35.46218487394958 }, size: { width: 80, height: 40 } }
+}, {
+    title: "wide top but not enough/open/left",
+    polygon: [
+        {x: 200, y:  20},
+        {x: 285, y:  20},
+        {x: 220, y: 180},
+        {x:  10, y: 180},
+    ],
+    box: { origin: { x: 182.89999999999998, y: 34.39999999999999 }, size: { width: 80, height: 40 } }
+}
+
+
+/*, { 
   title: "two stripes(?)"
 }, {
     title: "xxx",
@@ -138,7 +175,7 @@ const wordWrapTest: WordWrapTest[] = [
     ],
     box: { origin: { x: 120, y: 84 }, size: { width: 80, height: 40 } }
 }, {
-    title: "xxx",
+    title: "box outside corner left",
     polygon: [
         {x: 200, y: 100},
         {x:  20, y:  20},
@@ -148,7 +185,7 @@ const wordWrapTest: WordWrapTest[] = [
     ],
     box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
 }, {
-    title: "xxx",
+    title: "box outside corner right",
     polygon: [
         {x: 200, y: 100},
         {x:  20, y:  20},
@@ -158,7 +195,6 @@ const wordWrapTest: WordWrapTest[] = [
     ],
     box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
 }
-/*
 , {
     title: "left dent",
     polygon: [
@@ -314,7 +350,7 @@ export function testWrap() {
                     path.line(point)
             }
             path.close()
-            new WordWrapTestRunner(test.title, path, test.box!)
+            new WordWrapTestRunner(test.title, path, test.box!, test.trace == true)
         } else {
             if (test.title !== "") {
                 let heading = document.createElement("h1")
