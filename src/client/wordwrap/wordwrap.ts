@@ -24,7 +24,7 @@ import {
 } from "../../shared/geometry"
 import { Path } from "../path"
 
-import { WordWrapTest } from "./wordwraptest"
+import { WordWrapTestRunner } from "./testrunner"
 
 import { OrderedArray } from "../orderedarray"
 
@@ -944,7 +944,6 @@ class BoxSource implements WordSource {
     }
 }
 
-
 export function testWrap() {
     document.body.innerHTML=""
 
@@ -969,7 +968,7 @@ export function testWrap() {
                     path.line(point)
             }
             path.close()
-            new WordWrapTest(test.title, path, test.box!)
+            new WordWrapTestRunner(test.title, path, test.box!)
         } else {
             if (test.title !== "") {
                 let heading = document.createElement("h1")
