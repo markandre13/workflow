@@ -320,6 +320,44 @@ export class WordWrap {
         }
     }
 
+    pointForBoxInSlices(box: Size): Point|undefined {
+        if (this.trace)
+            console.log("WordWrap.pointForBoxInSlices")
+        let slices = new Array<Slice>()
+        this.extendSlices(new Point(0,0), box, slices)
+        if (slices.length === 0) {
+            console.log("no slices")
+        }        
+        this.levelSlicesHorizontally(slices)
+        console.log(slices.length)
+        let slice = slices[0]
+        let index = 0
+        let point = this.pointForBoxInCorner(box, slice.left[index], slice.right[index])
+        if (point === undefined) {
+            let yMax = Math.max(slice.left[index].p[1].y, slice.right[index].p[1].y) + 10
+            let verticalLine = [ new Point(slice.left[index].p[1].x, slice.left[index].p[0].y),
+                                 new Point(slice.left[index].p[1].x, yMax) ]
+            let crossingPoint = _intersectLineLine(verticalLine, slice.right[index].p)
+            if (crossingPoint === undefined)
+                throw Error("fuck slices")
+            //return crossingPoint
+            //crossingPoint = new Point(slice.left[index].p[0])
+            //
+            let left  = new SweepEvent(crossingPoint, verticalLine[1])
+            let right = new SweepEvent(crossingPoint, slice.right[index].p[1])
+            if (this.trace)
+                console.log("2DN RUN")
+            point = this.pointForBoxInCornerCore(box, left, right)
+            //if (this.trace) {
+            //    console.log(left)
+            //    console.log(right)
+            //    console.log(point)
+            //}
+            //return new Point(slice.left[index].p[1].x, slice.left[index].p[1].y-20)
+        }
+        return point
+    }
+
     pointForBoxInCorner(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
         if (this.trace)
             console.log("WordWrap.pointForBoxInCorner")
@@ -430,11 +468,6 @@ export class WordWrap {
 
             let p = _intersectLineLine(leftEvent.p, rightEventMovedToLeft)
             if (p !== undefined) {
-                if (p.y + box.height > leftEvent.p[1].y) {
-                    if (this.trace)
-                        console.log("[6] return undefined")
-                    return undefined
-                }
                 if (this.trace)
                     console.log("[7] return ", p)
                 return p

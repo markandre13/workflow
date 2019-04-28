@@ -174,21 +174,24 @@ const wordWrapTest: WordWrapTest[] = [
     ],
     box: { origin: { x: 182.89999999999998, y: 34.39999999999999 }, size: { width: 80, height: 40 } }
 }, { 
-    title: "xxx: place 1st box in two stripes",
+    title: "pointForBoxInSlices: place 1st box in two stripes",
     strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
-        let slices = new Array<Slice>()
-        wordwrap.extendSlices(new Point(0,0), box, slices)
-        if (slices.length === 0) {
-            console.log("no slices")
-            console.log(wordwrap)
-        }        
-        wordwrap.levelSlicesHorizontally(slices)
-        let slice = slices[0]
-        let index = 0
-        return wordwrap.pointForBoxInCorner(box, slice.left[index], slice.right[index])
+        return wordwrap.pointForBoxInSlices(box)
     }
 }, {
+    title: "bottom is below slice",
+    trace: true,
+    polygon: [
+        {x: 110, y:  20},
+        {x: 300, y: 100},
+        {x: 300, y: 170},
+        {x:  10, y: 170},
+        {x: 120, y:  80},
+    ],
+    box: { origin: { x: 120, y: 57.89473684210527 }, size: { width: 80, height: 40 } }
+} /*, {
     title: "xxx",
+    only: true,
     polygon: [
         {x: 160, y:  20},
         {x: 210, y: 100},
@@ -197,7 +200,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 110, y: 100},
     ],
     box: { origin: { x: 120, y: 84 }, size: { width: 80, height: 40 } }
-} /*, {
+}, {
     title: "box outside corner left",
     polygon: [
         {x: 200, y: 100},
