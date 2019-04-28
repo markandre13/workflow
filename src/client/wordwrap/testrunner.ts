@@ -25,6 +25,8 @@ import {
 import { Path } from "../path"
 import { WordWrap, Slice } from "./wordwrap"
 
+export type Placer = (wordwrap: WordWrap, box: Size) => Point|undefined
+
 /**
  * Execute a single wordwrap test along with appending a visual
  * representation to the browser window.
@@ -34,7 +36,11 @@ export class WordWrapTestRunner {
     handleIndex = -1
     decoration = new Array<SVGElement>()
 
-    constructor(title: string, path: Path, box: value.Rectangle, trace: boolean) {
+    placer: Placer
+
+    constructor(title: string, path: Path, box: value.Rectangle, trace: boolean, placer: Placer) {
+        this.placer = placer
+    
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         svg.style.border = "1px solid #ddd"
         svg.setAttributeNS("", "width", "320")
@@ -75,15 +81,7 @@ export class WordWrapTestRunner {
         let wordwrap = new WordWrap(path, undefined, trace == true)
         let box = theBox ? theBox.size : new Size(80, 40)
         
-        let slices = new Array<Slice>()
-        wordwrap.extendSlices(new Point(0,0), box, slices)
-if (slices.length === 0) {
-    console.log("no slices")
-    console.log(wordwrap)
-}        
-        wordwrap.levelSlicesHorizontally(slices)
-
-        let pt = wordwrap.pointForBoxInCorner2(box, slices)
+        let pt = this.placer(wordwrap, box)
 
         if (pt !== undefined) {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")

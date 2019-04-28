@@ -182,7 +182,7 @@ export class WordWrap {
         this.placeWordBoxes(wordsource)
     }
     
-    initializeSweepBufferFrom(path: Path) {
+    private initializeSweepBufferFrom(path: Path) {
         let first: Point|undefined, previous: Point|undefined, current: Point|undefined
         for(let segment of path.path) {
             switch(segment.type) {
@@ -320,24 +320,9 @@ export class WordWrap {
         }
     }
 
-    pointForBoxInCorner2(box: Size, slices: Array<Slice>): Point | undefined {
-        if (this.trace)
-            console.log("WordWrap.pointForBoxInCorner2")
-        if (slices.length === 0) {
-            throw Error("no slices")
-        }
-        let slice = slices[0]
-        let index = 0
-        let pt = this.pointForBoxInCorner(box, slice.left[index], slice.right[index])
-        
-        if (pt === undefined) {
-            
-        }
-        
-        return pt
-    }
-    
     pointForBoxInCorner(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
+        if (this.trace)
+            console.log("WordWrap.pointForBoxInCorner")
         let point = this.pointForBoxInCornerCore(box, leftEvent, rightEvent)
         if (point === undefined)
             return undefined

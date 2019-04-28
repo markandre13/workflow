@@ -24,8 +24,8 @@ import {
 } from "../../shared/geometry"
 import { Path } from "../path"
 
-import { WordWrapTestRunner } from "./testrunner"
-import { WordSource } from "./wordwrap"
+import { WordWrapTestRunner, Placer } from "./testrunner"
+import { WordWrap, Slice, WordSource } from "./wordwrap"
 
 // FIXME: document attributes
 interface WordWrapTest {
@@ -39,6 +39,8 @@ interface WordWrapTest {
     polygon?: Array<Point>
     //! the box to be placed
     box?: value.Rectangle
+    
+    strategy?: Placer
 }
 
 // draw the expected box and the result
@@ -48,7 +50,19 @@ interface WordWrapTest {
 
 const wordWrapTest: WordWrapTest[] = [
 {
-    title: "pointForBoxInCorner"
+    title: "pointForBoxInCorner: place 1st box in a single stripe",
+    strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
+        let slices = new Array<Slice>()
+        wordwrap.extendSlices(new Point(0,0), box, slices)
+        if (slices.length === 0) {
+            console.log("no slices")
+            console.log(wordwrap)
+        }        
+        wordwrap.levelSlicesHorizontally(slices)
+        let slice = slices[0]
+        let index = 0
+        return wordwrap.pointForBoxInCorner(box, slice.left[index], slice.right[index])
+    }
 },
 {
     title: "wide/edge/right",
@@ -159,11 +173,20 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  10, y: 180},
     ],
     box: { origin: { x: 182.89999999999998, y: 34.39999999999999 }, size: { width: 80, height: 40 } }
-}
-
-
-/*, { 
-  title: "two stripes(?)"
+}, { 
+    title: "xxx: place 1st box in two stripes",
+    strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
+        let slices = new Array<Slice>()
+        wordwrap.extendSlices(new Point(0,0), box, slices)
+        if (slices.length === 0) {
+            console.log("no slices")
+            console.log(wordwrap)
+        }        
+        wordwrap.levelSlicesHorizontally(slices)
+        let slice = slices[0]
+        let index = 0
+        return wordwrap.pointForBoxInCorner(box, slice.left[index], slice.right[index])
+    }
 }, {
     title: "xxx",
     polygon: [
@@ -174,7 +197,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 110, y: 100},
     ],
     box: { origin: { x: 120, y: 84 }, size: { width: 80, height: 40 } }
-}, {
+} /*, {
     title: "box outside corner left",
     polygon: [
         {x: 200, y: 100},
@@ -328,17 +351,13 @@ class BoxSource implements WordSource {
 
 export function testWrap() {
     document.body.innerHTML=""
-
-    let only = false
-    for(let test of wordWrapTest) {
-        if (test.only === true) {
-            only = true
-            break
-        }
-    }
+    let only = isAtLeastOneTestIsMarkedAsOnly(wordWrapTest)
+    let strategy: Placer|undefined
 
     for(let test of wordWrapTest) {
-        if (only && test.only !== true) {
+        if (test.strategy)
+            strategy = test.strategy
+        if (only && !test.only) {
             continue
         }
         if (test.polygon) {
@@ -350,7 +369,7 @@ export function testWrap() {
                     path.line(point)
             }
             path.close()
-            new WordWrapTestRunner(test.title, path, test.box!, test.trace == true)
+            new WordWrapTestRunner(test.title, path, test.box!, test.trace == true, strategy!)
         } else {
             if (test.title !== "") {
                 let heading = document.createElement("h1")
@@ -365,4 +384,13 @@ export function testWrap() {
     let debug = document.createElement("pre")
     debug.id = "debug"
     document.body.appendChild(debug)
+}
+
+function isAtLeastOneTestIsMarkedAsOnly(wordWrapTest: WordWrapTest[]): boolean {
+    for(let test of wordWrapTest) {
+        if (test.only === true) {
+            return true
+        }
+    }
+    return false
 }
