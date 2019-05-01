@@ -27,6 +27,38 @@ import { Path } from "../path"
 import { WordWrapTestRunner, Placer } from "./testrunner"
 import { WordWrap, Slice, WordSource } from "./wordwrap"
 
+class BoxSource implements WordSource {
+    remaining: number
+    style: boolean
+    box?: Size
+    rectangles: Array<Rectangle>
+    
+    constructor(remaining = 4096) {
+        this.remaining = remaining
+        this.style = true
+        this.rectangles = new Array<Rectangle>()
+    }
+
+    pullBox(): Size|undefined {
+        if (this.remaining === 0)
+            return undefined
+        --this.remaining
+        this.box = new Size(this.style ? 40 : 20, 20)
+        return this.box
+    }
+
+    placeBox(origin: Point): void {
+        let rectangle = new Rectangle(origin, this.box!)
+        this.rectangles.push(rectangle)
+        let path = new Path()
+        path.appendRect(rectangle)
+        path.setAttributes({stroke: this.style ? "#f00" : "#f80", fill: "none"})
+        path.updateSVG()
+        document.getElementById("svg")!.appendChild(path.svg)
+        this.style = !this.style
+    }
+}
+
 // FIXME: document attributes
 interface WordWrapTest {
     //! if true, execute only this test
@@ -126,7 +158,6 @@ const wordWrapTest: WordWrapTest[] = [
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
-//    only: true,
     title: "narrow top/open/left&right",
     polygon: [
         {x: 160-10,    y:  20},
@@ -136,7 +167,6 @@ const wordWrapTest: WordWrapTest[] = [
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
-//    only: true,
     title: "narrow bottom/open/left&right",
     polygon: [
         {x: 160-10-40, y:  20},
@@ -189,6 +219,18 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 120, y:  80},
     ],
     box: { origin: { x: 120, y: 57.89473684210527 }, size: { width: 80, height: 40 } }
+}, {
+    title: "bottom is below slice with intersection",
+    trace: true,
+    polygon: [
+        {x: 110, y:  20},
+        {x: 300, y: 100},
+        {x: 300, y: 170},
+        {x: 170, y:  90},
+        {x:  10, y: 170},
+        {x: 120, y:  80},
+    ],
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 } /*, {
     title: "xxx",
     only: true,
@@ -320,37 +362,6 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
 }*/]
 
-class BoxSource implements WordSource {
-    remaining: number
-    style: boolean
-    box?: Size
-    rectangles: Array<Rectangle>
-    
-    constructor(remaining = 4096) {
-        this.remaining = remaining
-        this.style = true
-        this.rectangles = new Array<Rectangle>()
-    }
-
-    pullBox(): Size|undefined {
-        if (this.remaining === 0)
-            return undefined
-        --this.remaining
-        this.box = new Size(this.style ? 40 : 20, 20)
-        return this.box
-    }
-
-    placeBox(origin: Point): void {
-        let rectangle = new Rectangle(origin, this.box!)
-        this.rectangles.push(rectangle)
-        let path = new Path()
-        path.appendRect(rectangle)
-        path.setAttributes({stroke: this.style ? "#f00" : "#f80", fill: "none"})
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
-        this.style = !this.style
-    }
-}
 
 export function testWrap() {
     document.body.innerHTML=""

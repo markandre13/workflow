@@ -10,7 +10,7 @@ module.exports = (config) => {
     ],
     preprocessors: { 
       "**/*.ts": ["karma-typescript"],
-      "": ['coverage'] // get's accidentily executed when installed
+      "": ['coverage'] // get's accidently executed when installed
     },
     reporters: ["mocha", "karma-typescript"],
     karmaTypescriptConfig: {

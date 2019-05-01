@@ -46,7 +46,7 @@ index 70658e7..90a6a7b 100644
 import { expect } from "chai"
 import { Point, Size, Rectangle, pointEqualsPoint, rectangleEqualsRectangle } from "shared/geometry"
 import { Path } from "client/path"
-import { WordWrap, WordSource, Slice, SweepEvent } from "client/wordwrap"
+import { WordWrap, WordSource, Slice, SweepEvent } from "client/wordwrap/wordwrap"
 
 class BoxSource implements WordSource {
     remaining: number
@@ -98,8 +98,8 @@ describe("wordwrap", function() {
         
             let wordwrap = new WordWrap(path)
         
-            let e0 = wordwrap.eventQueue.shift()
-            let e1 = wordwrap.eventQueue.shift()
+            let e0 = wordwrap.sweepBuffer.shift()
+            let e1 = wordwrap.sweepBuffer.shift()
         
             let box = new Size(80, 20)
             let pt = wordwrap.pointForBoxInCorner(box, e0, e1)
@@ -343,46 +343,87 @@ describe("wordwrap", function() {
         expect(boxsource.rectangles.length).to.not.equal(0)
     })
     
-    it("levelSlicesHorizontally", function() {
-        let path = new Path()
-        path.move(160+20, 10)
-        path.line(310, 100+20)
-        path.line(160-20, 190)
-        path.line(10, 100-20)
-        path.close()
-        
-        let wordwrap = new WordWrap(path)
-        expect(wordwrap.eventQueue.length).to.equal(4)
-        
-        let slices = new Array<Slice>()
-        wordwrap.extendSlices(new Point(0,0), new Size(320,200), slices)
-        
-        expect(wordwrap.eventQueue.length).to.equal(0)
-        expect(slices.length).to.equal(1)
-        expect(slices[0].left.length).to.equal(2)
-        expect(slices[0].right.length).to.equal(2)
-        
-        wordwrap.levelSlicesHorizontally(slices)
-        
-        expect(slices[0].left.length).to.equal(3)
-        expect(slices[0].right.length).to.equal(3)
-        
-        expect(pointEqualsPoint(slices[0].left[0].p[0], new Point(180,  10))).to.be.true
-        expect(pointEqualsPoint(slices[0].left[0].p[1], new Point( 10,  80))).to.be.true
+    describe("levelSlicesHorizontally", function() {
 
-        expect(pointEqualsPoint(slices[0].left[1].p[0], new Point( 10,  80))).to.be.true
-        expect(pointEqualsPoint(slices[0].left[1].p[1], new Point(57.27272727272727, 120))).to.be.true
+        it("more sweepevents on the left than on the right", function() {
+            // Given
+            //
+            //        (110, 20)
+            //             \   ────
+            //              \      ───
+            //           (120, 80)    (252.5, 80)
+            //              /               ───
+            //             /                   ────
+            //       (95.5, 100)                (300, 100)
+            //          /
+            //         /
+            //     (10,170)
+            let slice = new Slice()
+            slice.left.push( new SweepEvent(new Point(110,20),
+                                            new Point(120, 80)))
+            slice.left.push( new SweepEvent(new Point(120,80),
+                                            new Point(95.55555555555556, 100)))
+            slice.left.push( new SweepEvent(new Point(95.55555555555556, 100),
+                                            new Point(10, 170)))
+            slice.right.push(new SweepEvent(new Point(110,20),
+                                            new Point(252.5, 80)))
+            slice.right.push(new SweepEvent(new Point(252.5, 80),
+                                            new Point(300, 100)))
+            let slices = new Array<Slice>()
+            slices.push(slice)
+            let wordwrap = new WordWrap(new Path().appendRect(new Rectangle(0,0,320,200)))
+            
+            // When
+            wordwrap.levelSlicesHorizontally(slices)
+            
+            // Then (not sure if this expection is correct at least we don't get an exception)
+            expect(slices.length).to.equal(1)
+            expect(slices[0].left.length).to.equal(3)
+            expect(slices[0].right.length).to.equal(2)
+        })
+    
+        it("test1", function() {
+    
+            let path = new Path()
+            path.move(160+20, 10)
+            path.line(310, 100+20)
+            path.line(160-20, 190)
+            path.line(10, 100-20)
+            path.close()
+        
+            let wordwrap = new WordWrap(path)
+            expect(wordwrap.sweepBuffer.length).to.equal(4)
+        
+            let slices = new Array<Slice>()
+            wordwrap.extendSlices(new Point(0,0), new Size(320,200), slices)
+        
+            expect(wordwrap.sweepBuffer.length).to.equal(0)
+            expect(slices.length).to.equal(1)
+            expect(slices[0].left.length).to.equal(2)
+            expect(slices[0].right.length).to.equal(2)
+        
+            wordwrap.levelSlicesHorizontally(slices)
+        
+            expect(slices[0].left.length).to.equal(3)
+            expect(slices[0].right.length).to.equal(3)
+        
+            expect(pointEqualsPoint(slices[0].left[0].p[0], new Point(180,  10))).to.be.true
+            expect(pointEqualsPoint(slices[0].left[0].p[1], new Point( 10,  80))).to.be.true
 
-        expect(pointEqualsPoint(slices[0].left[2].p[0], new Point(57.27272727272727, 120))).to.be.true
-        expect(pointEqualsPoint(slices[0].left[2].p[1], new Point(140, 190))).to.be.true
+            expect(pointEqualsPoint(slices[0].left[1].p[0], new Point( 10,  80))).to.be.true
+            expect(pointEqualsPoint(slices[0].left[1].p[1], new Point(57.27272727272727, 120))).to.be.true
 
-        expect(pointEqualsPoint(slices[0].right[0].p[0], new Point(180,  10))).to.be.true
-        expect(pointEqualsPoint(slices[0].right[0].p[1], new Point(262.72727272727275, 80))).to.be.true
+            expect(pointEqualsPoint(slices[0].left[2].p[0], new Point(57.27272727272727, 120))).to.be.true
+            expect(pointEqualsPoint(slices[0].left[2].p[1], new Point(140, 190))).to.be.true
 
-        expect(pointEqualsPoint(slices[0].right[1].p[0], new Point(262.72727272727275, 80))).to.be.true
-        expect(pointEqualsPoint(slices[0].right[1].p[1], new Point(310,  120))).to.be.true
+            expect(pointEqualsPoint(slices[0].right[0].p[0], new Point(180,  10))).to.be.true
+            expect(pointEqualsPoint(slices[0].right[0].p[1], new Point(262.72727272727275, 80))).to.be.true
 
-        expect(pointEqualsPoint(slices[0].right[2].p[0], new Point(310,  120))).to.be.true
-        expect(pointEqualsPoint(slices[0].right[2].p[1], new Point(140, 190))).to.be.true
+            expect(pointEqualsPoint(slices[0].right[1].p[0], new Point(262.72727272727275, 80))).to.be.true
+            expect(pointEqualsPoint(slices[0].right[1].p[1], new Point(310,  120))).to.be.true
+
+            expect(pointEqualsPoint(slices[0].right[2].p[0], new Point(310,  120))).to.be.true
+            expect(pointEqualsPoint(slices[0].right[2].p[1], new Point(140, 190))).to.be.true
+        })
     })
 })

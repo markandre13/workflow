@@ -3,7 +3,7 @@ const path = require("path")
 module.exports = {
   mode: "development",
   entry: "./src/client/workflow.ts",
-  devtool: "source-map",
+  devtool: "inline-source-map",
   module: {
     rules: [
       {
@@ -23,7 +23,7 @@ module.exports = {
     extensions: [ ".ts", ".js" ]
   },
   optimization: {
-    minimize: true
+    minimize: false
   },
   output: {
     library: "workflow",

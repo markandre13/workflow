@@ -81,7 +81,13 @@ export class WordWrapTestRunner {
         let wordwrap = new WordWrap(path, undefined, trace == true)
         let box = theBox ? theBox.size : new Size(80, 40)
         
-        let pt = this.placer(wordwrap, box)
+        let pt
+        try {
+            pt = this.placer(wordwrap, box)
+        }
+        catch(e) {
+            console.log(e)
+        }
 
         if (pt !== undefined) {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")

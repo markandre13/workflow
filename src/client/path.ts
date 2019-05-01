@@ -29,14 +29,13 @@ declare global {
 export abstract class Graphic {
     svg!: SVGElement
     abstract updateSVG(): void
-    abstract transform(matrix: Matrix): void
-    abstract setAttributes(attibutes: any): void
+    abstract transform(matrix: Matrix): Graphic
+    abstract setAttributes(attibutes: any): Graphic
     abstract clone(): Graphic
 
-    translate(point: Point): void
-    translate(x: number, y: number): void
-    translate(pointOrX: Point|number, Y?: number): void
-    {
+    translate(point: Point): Graphic
+    translate(x: number, y: number): Graphic
+    translate(pointOrX: Point|number, Y?: number): Graphic {
         if (typeof pointOrX === "object")
             this.transform(new Matrix({
                 m11: 1.0, m12: 0.0,
@@ -49,6 +48,7 @@ export abstract class Graphic {
                 m21: 0.0, m22: 1.0,
                 tX: pointOrX, tY: Y
             }))
+        return this
     }
 }
 
@@ -74,19 +74,21 @@ export class Group extends Graphic {
         return new Group(this)
     }
 
-    add(graphic: Graphic) {
+    add(graphic: Graphic): Graphic {
         if (this.matrix) {
             graphic.transform(this.matrix) // FIXME: should not modify argument?
         }
         this.data.push(graphic)
         graphic.updateSVG()
         this.svg.appendChild(graphic.svg)
+        return this
     }
     
-    setAttributes(attributes: any): void {
+    setAttributes(attributes: any): Graphic {
         for(let graphic of this.data) {
             graphic.setAttributes(attributes)
         }
+        return this
     }
 
     public updateSVG(): void {
@@ -95,7 +97,7 @@ export class Group extends Graphic {
         }
     }
 
-    public transform(matrix: Matrix): void {
+    public transform(matrix: Matrix): Graphic {
         if (!this.matrix)
             this.matrix = new Matrix(matrix)
         else
@@ -103,6 +105,7 @@ export class Group extends Graphic {
         for(let graphic of this.data) {
             graphic.transform(matrix)
         }
+        return this
     }
 }
 
@@ -140,28 +143,30 @@ export class Path extends Graphic
         return new Path(this)
     }
 
-    clear() {
+    clear(): Path {
         this.path = []
+        return this
     }
     
     empty(): boolean {
         return this.path.length == 0
     }
 
-    setAttributes(attributes: any) {
+    setAttributes(attributes: any): Path {
         if (attributes.stroke !== undefined)
             this.svg.setAttributeNS("", "stroke", attributes.stroke)
         if (attributes.strokeWidth !== undefined)
             this.svg.setAttributeNS("", "stroke-width", String(attributes.strokeWidth))
         if (attributes.fill !== undefined)
             this.svg.setAttributeNS("", "fill", attributes.fill)
+        return this
     }
 
     // relativeMove
     // relativeLine
     // relativeCurve
     // append(path)
-    transform(matrix: Matrix) {
+    transform(matrix: Matrix): Path {
         for(let segment of this.path) {
             switch(segment.type) {
                 case 'M':
@@ -181,6 +186,7 @@ export class Path extends Graphic
                 } break
             }
         }
+        return this
     }
 
     updateSVG(): void {
@@ -188,31 +194,33 @@ export class Path extends Graphic
         path.setPathData(this.path)
     }
 
-    move(point: Point): void
-    move(x: number, y: number): void
-    move(pointOrX: Point|number, Y?: number): void
+    move(point: Point): Path
+    move(x: number, y: number): Path
+    move(pointOrX: Point|number, Y?: number): Path
     {
         if (typeof pointOrX === "object")
             this.path.push({type: 'M', values: [pointOrX.x, pointOrX.y]})
         else
             this.path.push({type: 'M', values: [pointOrX, Y]})
+        return this
     }
 
-    line(point: Point): void
-    line(x: number, y: number): void
-    line(pointOrX: Point|number, Y?: number): void
+    line(point: Point): Path
+    line(x: number, y: number): Path
+    line(pointOrX: Point|number, Y?: number): Path
     {
         if (typeof pointOrX === "object")
             this.path.push({type: 'L', values: [pointOrX.x, pointOrX.y]})
         else
             this.path.push({type: 'L', values: [pointOrX, Y]})
+        return this
     }
 
-    curve(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number): void
-    curve(p0: Point, p1: Point, p2: Point): void
+    curve(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number): Path
+    curve(p0: Point, p1: Point, p2: Point): Path
     curve(p0OrX0: Point|number, p1OrY0: Point|number,
           p2OrX1: Point|number, Y1?: number,
-          X2?: number, Y2?: number): void
+          X2?: number, Y2?: number): Path
     {
         if (typeof p0OrX0 === "object" &&
             typeof p1OrY0 === "object" &&
@@ -224,21 +232,24 @@ export class Path extends Graphic
         } else {
             this.path.push({type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1, X2, Y2]})
         }
+        return this
     }
 
-    close() {
+    close(): Path {
         this.path.push({type: 'Z'})
+        return this
     }
     
-    appendRect(rectangle: any) { // FIXME: drop any
+    appendRect(rectangle: any): Path { // FIXME: drop any
         this.move(rectangle.origin)
         this.line(rectangle.origin.x + rectangle.size.width, rectangle.origin.y                        )
         this.line(rectangle.origin.x + rectangle.size.width, rectangle.origin.y + rectangle.size.height)
         this.line(rectangle.origin.x                       , rectangle.origin.y + rectangle.size.height)
         this.close()
+        return this
     }
     
-    appendCircle(rectangle: any) { // FIXME: drop any
+    appendCircle(rectangle: any): Path { // FIXME: drop any
         // Michael Goldapp, "Approximation of circular arcs by cubic polynomials"
         // Computer Aided Geometric Design (#8 1991 pp.227-238) Tor Dokken and   
         // Morten Daehlen, "Good Approximations of circles by curvature-continuous
@@ -265,7 +276,8 @@ export class Path extends Graphic
         this.curve({x: cx - rx    , y: cy-ry*f},
                    {x: cx - rx * f, y: cy-ry},  
                    {x: cx         , y: cy-ry})
-        this.close() 
+        this.close()
+        return this
     }
     
     bounds(): Rectangle {

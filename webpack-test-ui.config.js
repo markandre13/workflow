@@ -31,7 +31,7 @@ module.exports = {
     modules: [ "./src", "./node_modules", "." ]
   },
   optimization: {
-    minimize: true
+    minimize: false
   },
   output: {
     library: "unittest",

@@ -9,7 +9,8 @@
         "strict": true,
         "allowJs": false,
         "noImplicitAny": true,
-        "sourceMap": true
+        "inlineSourceMap": true,
+        "inlineSources": true,
     },
     "include": [
         "src/client",

@@ -325,6 +325,8 @@ export class WordWrap {
             console.log("WordWrap.pointForBoxInSlices")
         let slices = new Array<Slice>()
         this.extendSlices(new Point(0,0), box, slices)
+        if (this.trace)
+            console.log("number of slices "+slices.length)
         if (slices.length === 0) {
             console.log("no slices")
         }        
@@ -348,6 +350,16 @@ export class WordWrap {
             if (this.trace)
                 console.log("2DN RUN")
             point = this.pointForBoxInCornerCore(box, left, right)
+            
+            if (point === undefined)
+                return undefined
+            
+            this.reduceSlices(point, box, slices)    
+            this.extendSlices(point, box, slices)
+            this.levelSlicesHorizontally(slices)
+            
+            return point
+            
             //if (this.trace) {
             //    console.log(left)
             //    console.log(right)
@@ -625,7 +637,8 @@ export class WordWrap {
     levelSlicesHorizontally(slices: Array<Slice>) {
         for(let slice of slices) {
             for (let index=0; index<slice.left.length; ++index) {
-
+                if ( index >= slice.left.length || index >= slice.right.length )
+                    return
                 if ( slice.left[index].p[1].y > slice.right[index].p[1].y ) {
                     // split left event
                     let pt = _intersectLineLine(
