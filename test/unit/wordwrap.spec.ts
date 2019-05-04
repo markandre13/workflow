@@ -536,10 +536,7 @@ describe("wordwrap", function() {
             
             // When
             cursor.y = 70
-            wordwrap.trace = true
             wordwrap.extendSlices(cursor, box, slices)
-            
-            console.log(JSON.stringify(slices, null, 4))
             
             // Then
             expect(slices.length).to.equal(2)
@@ -552,26 +549,20 @@ describe("wordwrap", function() {
             expect(slices[0].left[1].p[1]).to.eql(dot[4])
 
             // left slice: right
-            expect(slices[0].right.length).to.equal(3)		// y=70 but slice y= 90 - 170 ?
-
-            expect(slices[0].right[0].p[0]).to.eql(dot[0])		// from previous
-            expect(slices[0].right[0].p[1]).to.eql({x:252.5, y:80})
-            
-            expect(slices[0].right[1].p[0]).to.eql({x:252.5, y:80})	// new split
-            expect(slices[0].right[1].p[1]).to.eql({x:-1, y:90})
-            
+            expect(slices[0].right.length).to.equal(3)
+            expect(slices[0].right[0].p[0]).to.eql(dot[0])
+            expect(slices[0].right[0].p[1]).to.eql({x:252.5,  y:80})
+            expect(slices[0].right[1].p[0]).to.eql({x:252.5,  y:80})
+            expect(slices[0].right[1].p[1]).to.eql({x:276.25, y:90})	// SURE?
             expect(slices[0].right[2].p[0]).to.eql(dot[3])
             expect(slices[0].right[2].p[1]).to.eql(dot[4])
             
             // right slice: left
-            expect(slices[1].left.length).to.equal(1)		// uh, y=70 but slice y= 90 - 170 ?
-            
+            expect(slices[1].left.length).to.equal(3)
             expect(slices[1].left[0].p[0]).to.eql(dot[0])
             expect(slices[1].left[0].p[1]).to.eql(dot[5])
-            
             expect(slices[1].left[1].p[0]).to.eql(dot[5])
-            expect(slices[1].left[1].p[1]).to.eql({x:-1, y:90})
-            
+            expect(slices[1].left[1].p[1]).to.eql({x:107.77777777777779, y:90}) // SURE?
             expect(slices[1].left[2].p[0]).to.eql(dot[3])
             expect(slices[1].left[2].p[1]).to.eql(dot[2])
             
@@ -584,9 +575,53 @@ describe("wordwrap", function() {
             expect(slices[1].right[2].p[0]).to.eql(dot[1])
             expect(slices[1].right[2].p[1]).to.eql(dot[2])
             
-            wordwrap.trace = true
+            // When
             wordwrap.levelSlicesHorizontally(slices)
 
+//            console.log(JSON.stringify(slices, null, 4))
+
+            // Then
+            expect(slices.length).to.equal(2)
+            
+            // left slice: left
+            expect(slices[0].left.length).to.equal(3)
+            expect(slices[0].left[0].p[0]).to.eql(dot[0])
+            expect(slices[0].left[0].p[1]).to.eql(dot[5])
+            expect(slices[0].left[1].p[0]).to.eql(dot[5])
+            expect(slices[0].left[1].p[1]).to.eql({x:107.77777777777777, y:90}) // SURE?
+            expect(slices[0].left[2].p[0]).to.eql({x:107.77777777777777, y:90}) // SURE?
+            expect(slices[0].left[2].p[1]).to.eql(dot[4])
+
+            // left slice: right
+            expect(slices[0].right.length).to.equal(3)
+            expect(slices[0].right[0].p[0]).to.eql(dot[0])
+            expect(slices[0].right[0].p[1]).to.eql({x:252.5,  y:80})
+            expect(slices[0].right[1].p[0]).to.eql({x:252.5,  y:80})
+            expect(slices[0].right[1].p[1]).to.eql({x:276.25, y:90})
+            expect(slices[0].right[2].p[0]).to.eql(dot[3])
+            expect(slices[0].right[2].p[1]).to.eql(dot[4])
+            
+            // right slice: left
+            expect(slices[1].left.length).to.equal(4)
+            expect(slices[1].left[0].p[0]).to.eql(dot[0])
+            expect(slices[1].left[0].p[1]).to.eql(dot[5])
+            expect(slices[1].left[1].p[0]).to.eql(dot[5])
+            expect(slices[1].left[1].p[1]).to.eql({x:107.77777777777779, y:90})
+            expect(slices[1].left[2].p[0]).to.eql(dot[3])
+            expect(slices[1].left[2].p[1]).to.eql({x:186.25, y:100}) // SURE?
+            expect(slices[1].left[3].p[0]).to.eql({x:186.25, y:100}) // SURE?
+            expect(slices[1].left[3].p[1]).to.eql(dot[2])
+            
+            // right slice: right
+            expect(slices[1].right.length).to.equal(4)
+            expect(slices[1].right[0].p[0]).to.eql(dot[0])
+            expect(slices[1].right[0].p[1]).to.eql({x:252.5, y:80})
+            expect(slices[1].right[1].p[0]).to.eql({x:252.5, y:80})
+            expect(slices[1].right[1].p[1]).to.eql({x:276.25, y:90}) // SURE?
+            expect(slices[1].right[2].p[0]).to.eql({x:276.25, y:90}) // SURE?
+            expect(slices[1].right[2].p[1]).to.eql(dot[1])
+            expect(slices[1].right[3].p[0]).to.eql(dot[1])
+            expect(slices[1].right[3].p[1]).to.eql(dot[2])
         })
 
         it("dd", function() {

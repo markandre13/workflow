@@ -636,20 +636,32 @@ export class WordWrap {
                     let newSlice = new Slice()
                     let emptySegmentArray = newSlice.left
                     
-                    // the old slice's left becomes the new slice's left
+                    // the new slice's left becomes the old slice's left
                     newSlice.left = slices[index].left
-                    // the new segment becomes the new slice's right
+                    // the new segment becomes the new slice's right HERE WE NEED TO EXTEND SHIT
+                    
+                    // COPY FROM THE OLD SLICE'S RIGHT DOWN TO TOP OF SEGMENT
+                    for(let i=0; i<slices[index].right.length; ++i) {
+                        newSlice.right.push(new SweepEvent(slices[index].right[i]))
+                    }
+                    newSlice.right[slices[index].right.length-1].p[1] = intersectionsRight[0].seg0.pt
                     newSlice.right.push(segment)
                     
                     // the old slice's left get's the next segment from the sweep buffer
                     slices[index].left = emptySegmentArray
                     if (this.sweepBuffer.length===0)
                         throw Error("fuck")
+                    // COPY FROM THE OLD SLICE'S LEFT DOWN TO TOP OF SEGMENT
+                    for(let i=0; i<newSlice.left.length; ++i) {
+                        slices[index].left.push(new SweepEvent(newSlice.left[i]))
+                    }
+                    slices[index].left[slices[index].left.length-1].p[1] = intersectionsLeft[0].seg0.pt
                     slices[index].left.push(this.sweepBuffer.shift())
                     
                     // insert the new slice
                     slices.splice(index, 0, newSlice)
                     appendAtEnd = false
+                    
                     break
                 }
             }
