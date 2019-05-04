@@ -381,6 +381,233 @@ describe("wordwrap", function() {
             expect(slices[0].left.length).to.equal(3)
             expect(slices[0].right.length).to.equal(2)
         })
+        
+        it("slice and cut it step by step 001", function() {
+            // Given a path and a box
+            //
+            //                (110,40)
+            //               /        \
+            //           (60,50)   (160,50)
+            //            /              \
+            //        (10,80)         (210,80)
+            //           |                |
+            //        (10,190)--------(210,190)
+            //
+            let dot = [
+                {x:  10, y:  80}, // 0
+                {x:  60, y:  50}, // 1
+                {x: 110, y:  40}, // 2
+                {x: 160, y:  50}, // 3
+                {x: 210, y:  80}, // 4
+                {x: 210, y: 190}, // 5
+                {x:  10, y: 190}, // 6
+            ]
+            let path = new Path(dot)
+            let wordwrap = new WordWrap(path)
+            
+            let cursor = new Point(0,0)
+            let box = new Size(80,40)
+            let slices = new Array<Slice>()
+            
+            // When
+            wordwrap.extendSlices(cursor, box, slices)
+            
+            // Then we should've pulled the two lines from the top
+            expect(slices.length).to.equal(1)
+            expect(slices[0].left[0].p[0]).to.eql(dot[2])
+            expect(slices[0].left[0].p[1]).to.eql(dot[1])
+            expect(slices[0].right[0].p[0]).to.eql(dot[2])
+            expect(slices[0].right[0].p[1]).to.eql(dot[3])
+            
+            // When we level were no leveling is needed
+            wordwrap.levelSlicesHorizontally(slices)
+
+            // Then nothing should have changed
+            expect(slices.length).to.equal(1)
+            expect(slices[0].left[0].p[0]).to.eql(dot[2])
+            expect(slices[0].left[0].p[1]).to.eql(dot[1])
+            expect(slices[0].right[0].p[0]).to.eql(dot[2])
+            expect(slices[0].right[0].p[1]).to.eql(dot[3])
+            
+            // When we move a little bit lower
+            cursor.y = 45
+            wordwrap.extendSlices(cursor, box, slices)
+
+            // Then we should have aquired more slices
+            expect(slices.length).to.equal(1)
+            expect(slices[0].left.length).to.equal(3)
+            expect(slices[0].left[0].p[0]).to.eql(dot[2])
+            expect(slices[0].left[0].p[1]).to.eql(dot[1])
+            expect(slices[0].left[1].p[0]).to.eql(dot[1])
+            expect(slices[0].left[1].p[1]).to.eql(dot[0])
+            expect(slices[0].left[2].p[0]).to.eql(dot[0])
+            expect(slices[0].left[2].p[1]).to.eql(dot[6])
+
+            expect(slices[0].right.length).to.equal(3)
+            expect(slices[0].right[0].p[0]).to.eql(dot[2])
+            expect(slices[0].right[0].p[1]).to.eql(dot[3])
+            expect(slices[0].right[1].p[0]).to.eql(dot[3])
+            expect(slices[0].right[1].p[1]).to.eql(dot[4])
+            expect(slices[0].right[2].p[0]).to.eql(dot[4])
+            expect(slices[0].right[2].p[1]).to.eql(dot[5])
+
+            // When reducing were no reducing is possible
+            wordwrap.reduceSlices(cursor, box, slices)
+            
+            // Then nothing should have changed
+            expect(slices.length).to.equal(1)
+            expect(slices[0].left.length).to.equal(3)
+            expect(slices[0].left[0].p[0]).to.eql(dot[2])
+            expect(slices[0].left[0].p[1]).to.eql(dot[1])
+            expect(slices[0].left[1].p[0]).to.eql(dot[1])
+            expect(slices[0].left[1].p[1]).to.eql(dot[0])
+            expect(slices[0].left[2].p[0]).to.eql(dot[0])
+            expect(slices[0].left[2].p[1]).to.eql(dot[6])
+
+            expect(slices[0].right.length).to.equal(3)
+            expect(slices[0].right[0].p[0]).to.eql(dot[2])
+            expect(slices[0].right[0].p[1]).to.eql(dot[3])
+            expect(slices[0].right[1].p[0]).to.eql(dot[3])
+            expect(slices[0].right[1].p[1]).to.eql(dot[4])
+            expect(slices[0].right[2].p[0]).to.eql(dot[4])
+            expect(slices[0].right[2].p[1]).to.eql(dot[5])
+            
+            // When we level were no leveling is needed
+            wordwrap.levelSlicesHorizontally(slices)
+
+            console.log(JSON.stringify(slices, null, 4))
+
+        })
+
+        it.only("slice and cut it step by step 002", function() {
+            //
+            //   (110,20)---
+            //         \    ---
+            //          \      ---
+            //     (120,80)        ---
+            //         /    (170,90)  ---
+            //        |    /        \    ---
+            //       /    /          \   (300,100)
+            //      |    /            \    |
+            //     (10,170)           (300,170)
+            //
+            let dot = [
+                {x: 110, y:  20}, // 0
+                {x: 300, y: 100}, // 1
+                {x: 300, y: 170}, // 2
+                {x: 170, y:  90}, // 3
+                {x:  10, y: 170}, // 4
+                {x: 120, y:  80}, // 5
+            ]
+            let path = new Path(dot)
+            let wordwrap = new WordWrap(path)
+            
+            let cursor = new Point(0,0)
+            let box = new Size(80,40)
+            let slices = new Array<Slice>()
+            
+            // When
+            wordwrap.extendSlices(cursor, box, slices)
+            
+            // Then
+            expect(slices.length).to.equal(1)
+            expect(slices[0].left.length).to.equal(1)
+            expect(slices[0].left[0].p[0]).to.eql(dot[0])
+            expect(slices[0].left[0].p[1]).to.eql(dot[5])
+
+            expect(slices[0].right.length).to.equal(1)
+            expect(slices[0].right[0].p[0]).to.eql(dot[0])
+            expect(slices[0].right[0].p[1]).to.eql(dot[1])
+
+            // When
+            wordwrap.levelSlicesHorizontally(slices)
+
+            // Then
+            expect(slices.length).to.equal(1)
+            expect(slices[0].left.length).to.equal(1)
+            expect(slices[0].left[0].p[0]).to.eql(dot[0])
+            expect(slices[0].left[0].p[1]).to.eql(dot[5])
+
+            expect(slices[0].right.length).to.equal(2)
+            expect(slices[0].right[0].p[0]).to.eql(dot[0])
+            expect(slices[0].right[0].p[1]).to.eql({x:252.5, y:80})
+            expect(slices[0].right[1].p[0]).to.eql({x:252.5, y:80})
+            expect(slices[0].right[1].p[1]).to.eql(dot[1])
+            
+            // When
+            cursor.y = 70
+            wordwrap.trace = true
+            wordwrap.extendSlices(cursor, box, slices)
+            
+            console.log(JSON.stringify(slices, null, 4))
+            
+            // Then
+            expect(slices.length).to.equal(2)
+            
+            // left slice: left
+            expect(slices[0].left.length).to.equal(2)
+            expect(slices[0].left[0].p[0]).to.eql(dot[0])
+            expect(slices[0].left[0].p[1]).to.eql(dot[5])
+            expect(slices[0].left[1].p[0]).to.eql(dot[5])
+            expect(slices[0].left[1].p[1]).to.eql(dot[4])
+
+            // left slice: right
+            expect(slices[0].right.length).to.equal(3)		// y=70 but slice y= 90 - 170 ?
+
+            expect(slices[0].right[0].p[0]).to.eql(dot[0])		// from previous
+            expect(slices[0].right[0].p[1]).to.eql({x:252.5, y:80})
+            
+            expect(slices[0].right[1].p[0]).to.eql({x:252.5, y:80})	// new split
+            expect(slices[0].right[1].p[1]).to.eql({x:-1, y:90})
+            
+            expect(slices[0].right[2].p[0]).to.eql(dot[3])
+            expect(slices[0].right[2].p[1]).to.eql(dot[4])
+            
+            // right slice: left
+            expect(slices[1].left.length).to.equal(1)		// uh, y=70 but slice y= 90 - 170 ?
+            
+            expect(slices[1].left[0].p[0]).to.eql(dot[0])
+            expect(slices[1].left[0].p[1]).to.eql(dot[5])
+            
+            expect(slices[1].left[1].p[0]).to.eql(dot[5])
+            expect(slices[1].left[1].p[1]).to.eql({x:-1, y:90})
+            
+            expect(slices[1].left[2].p[0]).to.eql(dot[3])
+            expect(slices[1].left[2].p[1]).to.eql(dot[2])
+            
+            // right slice: right
+            expect(slices[1].right.length).to.equal(3)
+            expect(slices[1].right[0].p[0]).to.eql(dot[0])
+            expect(slices[1].right[0].p[1]).to.eql({x:252.5, y:80})
+            expect(slices[1].right[1].p[0]).to.eql({x:252.5, y:80})
+            expect(slices[1].right[1].p[1]).to.eql(dot[1])
+            expect(slices[1].right[2].p[0]).to.eql(dot[1])
+            expect(slices[1].right[2].p[1]).to.eql(dot[2])
+            
+            wordwrap.trace = true
+            wordwrap.levelSlicesHorizontally(slices)
+
+        })
+
+        it("dd", function() {
+            let slice = new Slice()
+            slice.left.push( new SweepEvent(new Point(110,20),
+                                            new Point(120, 80)))
+            slice.left.push( new SweepEvent(new Point(120,80),
+                                            new Point(10, 170)))
+                                            
+            slice.right.push(new SweepEvent(new Point(170,90),
+                                            new Point(10, 170)))
+                                            
+//            slice.right.push(new SweepEvent(new Point(252.5, 80),
+//                                            new Point(300, 100)))
+            let slices = new Array<Slice>()
+            slices.push(slice)
+            let wordwrap = new WordWrap(new Path().appendRect(new Rectangle(0,0,320,200)))
+            
+            // When
+            wordwrap.levelSlicesHorizontally(slices)
+        })
     
         it("test1", function() {
     

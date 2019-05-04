@@ -113,12 +113,24 @@ export class Path extends Graphic
 {
     path: any
   
-    constructor(path?: Path) {
+    constructor()
+    constructor(path: Path)
+    constructor(path: Array<Point>)
+    constructor(path?: Path|Array<Point>) {
         super()
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement;
         if (path === undefined) {
             this.path = []
-        } else {
+        } else
+        if (path instanceof Array) {
+            this.path = []
+            this.path.push({type: 'M', values: [path[0].x, path[0].y]})
+            for(let i=1; i<path.length; ++i) {
+                 this.path.push({type: 'L', values: [path[i].x, path[i].y]})
+            }
+            this.path.push({type: 'Z'})
+        } else
+        if (path instanceof Path) {
             this.path = [] // FIXME: improve
             for(let entry of path.path) {
                 switch(entry.type) {
@@ -313,7 +325,7 @@ export class AttributedPath extends Path
     fill: string
     
     constructor(path?: AttributedPath) {
-        super(path)
+        super(path as Path)
         this.stroke = "#000"
         this.strokeWidth = 1.0
         this.fill = "#fff"

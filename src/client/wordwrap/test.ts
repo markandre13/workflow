@@ -210,7 +210,6 @@ const wordWrapTest: WordWrapTest[] = [
     }
 }, {
     title: "bottom is below slice",
-    trace: true,
     polygon: [
         {x: 110, y:  20},
         {x: 300, y: 100},
@@ -221,6 +220,7 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 120, y: 57.89473684210527 }, size: { width: 80, height: 40 } }
 }, {
     title: "bottom is below slice with intersection",
+    only: true,
     trace: true,
     polygon: [
         {x: 110, y:  20},
@@ -229,6 +229,20 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 170, y:  90},
         {x:  10, y: 170},
         {x: 120, y:  80},
+    ],
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+}, {
+    title: "evaluate multiple slices to place box",
+    trace: true,
+    only: false,
+    polygon: [
+        {x: 10, y:  80},
+        {x: 60, y:  50},
+        {x: 110, y: 40},
+        {x: 160, y: 50},
+        {x: 210, y: 80},
+        {x: 210, y: 190},
+        {x:  10, y: 190},
     ],
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 } /*, {
