@@ -121,6 +121,7 @@ export function distancePointToLine(q: Point, p0: Point, p1: Point): number {
         return Math.abs(b.y * a.x - b.x * a.y) / Math.sqrt(lb)
 }
 
+
 export class Rectangle extends valueimpl.Rectangle {
   
     constructor()
@@ -227,7 +228,7 @@ export class Rectangle extends valueimpl.Rectangle {
 
         return (f0 & f1)==0;
     }
-
+    
     expandByPoint(p: Point): Rectangle {
         if (p.x < this.origin.x) {
             this.size.width += this.origin.x - p.x ; this.origin.x = p.x
@@ -276,6 +277,109 @@ export class Rectangle extends valueimpl.Rectangle {
 
 export function rectangleEqualsRectangle(a: Rectangle, b: Rectangle): boolean {
     return pointEqualsPoint(a.origin, b.origin) && sizeEqualsSize(a.size, b.size)
+}
+
+// this function gives the maximum
+function maxi(arr: Array<number>, n: number): number {
+    let  m = 0
+    for (let i = 0; i < n; ++i)
+        if (m < arr[i])
+            m = arr[i]
+    return m
+}
+
+// this function gives the minimum
+function mini(arr: Array<number>, n: number): number {
+    let m = 1
+    for (let i = 0; i < n; ++i)
+        if (m > arr[i])
+            m = arr[i]
+    return m
+}
+
+function liang_barsky_clipper(
+    xmin: number, ymin: number, xmax: number, ymax: number, // rectangle
+    x1: number, y1: number, x2: number, y2: number): boolean         // line
+{
+    let p1 = -(x2 - x1),
+        p2 = -p1,
+        p3 = -(y2 - y1),
+        p4 = -p3,
+        q1 = x1 - xmin,
+        q2 = xmax - x1,
+        q3 = y1 - ymin,
+        q4 = ymax - y1,
+        posarr = [1, 0, 0, 0, 0],
+        negarr = [0, 0, 0, 0, 0],
+        posind = 1,
+        negind = 1
+
+    if ((p1 == 0 && q1 < 0) || (p3 == 0 && q3 < 0)) {
+        // line is parallel to rectangle
+        return false
+    }
+    if (p1 != 0) {
+        let r1 = q1 / p1,
+            r2 = q2 / p2
+        if (p1 < 0) {
+            negarr[negind++] = r1 // for negative p1, add it to negative array
+            posarr[posind++] = r2 // and add p2 to positive array
+        } else {
+            negarr[negind++] = r2
+            posarr[posind++] = r1
+        }
+    }
+    if (p3 != 0) {
+        let r3 = q3 / p3,
+            r4 = q4 / p4
+        if (p3 < 0) {
+            negarr[negind++] = r3
+            posarr[posind++] = r4
+        } else {
+            negarr[negind++] = r4;
+            posarr[posind++] = r3;
+        }
+    }
+
+    let rn1 = maxi(negarr, negind), // maximum of negative array
+        rn2 = mini(posarr, posind); // minimum of positive array
+
+    if (rn1 > rn2)  { // reject
+        // line is outside the clipping window!
+        return false
+    }
+    
+    if (rn1 === rn2) // SURE?
+        return false
+
+//    console.log("rn1=", rn1)
+//    console.log("rn2=", rn2)
+
+    return true
+    /*
+     // computing new points
+    let xn1 = x1 + p2 * rn1,
+        yn1 = y1 + p4 * rn1,
+        xn2 = x1 + p2 * rn2,
+        yn2 = y1 + p4 * rn2
+    */
+}
+
+export function intersectsRectLine(rect: Rectangle, line: Array<Point>): boolean {
+    let xmin = rect.origin.x,
+        ymin = rect.origin.y,
+        xmax = rect.origin.x + rect.size.width,
+        ymax = rect.origin.y + rect.size.height
+    if (xmin > xmax)
+        [xmin, xmax] = [xmax, xmin]
+    if (ymin > ymax)
+        [ymin, ymax] = [ymax, ymin]
+
+    for(let i=1; i<line.length; ++i) {
+        if (liang_barsky_clipper(xmin, ymin, xmax, ymax, line[i-1].x, line[i-1].y, line[i].x, line[i].y))
+            return true
+    }
+    return false
 }
 
 export class Matrix extends valueimpl.Matrix {

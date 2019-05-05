@@ -20,7 +20,8 @@ import * as value from "../../shared/workflow_value"
 import {
     Point, Size, Rectangle, Matrix,
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
-    pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine
+    pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine,
+    intersectsRectLine
 } from "../../shared/geometry"
 import { Path } from "../path"
 
@@ -353,6 +354,19 @@ export class WordWrap {
                     this.extendSlices(point, box, slices)
                     this.levelSlicesHorizontally(slices)
 
+                    // iterate of slices and ensure that point, box does not overlap with themø
+                    let rect = new Rectangle(point, box)
+                    for(let i=0; i<slices.length; ++i) {
+                        let slice = slices[i]
+                        for(let j=0; j<slice.left.length; ++j) {
+                            if (intersectsRectLine(rect, slice.left[j].p))
+                                return undefined
+                        }
+                        for(let j=0; j<slice.right.length; ++j) {
+                            if (intersectsRectLine(rect, slice.right[j].p))
+                                return undefined
+                        }
+                    }
                     return point
                 }
             }
