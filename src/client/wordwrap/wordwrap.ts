@@ -21,7 +21,7 @@ import {
     Point, Size, Rectangle, Matrix,
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
     pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine,
-    intersectsRectLine
+    intersectsRectLine, lineCrossesRect2
 } from "../../shared/geometry"
 import { Path } from "../path"
 
@@ -173,40 +173,57 @@ function overlapsWithSlices(rectangle: Rectangle, slices: Array<Slice>) {
     return false
 }
 
-function withinSlices(rectangle: Rectangle, slices: Array<Slice>) {
-    let rectTop    = rectangle.origin.x,
+function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: boolean = false) {
+    if (trace)
+        console.log("WITHINSLICES ------------------------")
+    let rectTop    = rectangle.origin.y,
         rectBottom = rectTop + rectangle.size.height,
         rectLeft   = rectangle.origin.x,
         rectRight  = rectLeft + rectangle.size.width
     for(let i=0; i<slices.length; ++i) {
-        let slice = slices[i]
+        let slice = slices[i],
+            leftOfBoxIsInside = true,
+            rightOfBoxIsInside = true
         for(let j=0; j<slice.left.length; ++j) {
-            if (rectTop < slice.left[j].p[0].y)
+            if (slice.left[j].p[1].y < rectTop)
                 continue
-            if (rectBottom > slice.left[j].p[1].y)
+            if (rectBottom < slice.left[j].p[0].y)
+                break
+            if (rectRight < slice.left[j].p[0].x && rectRight < slice.left[j].p[1].x) {
+                leftOfBoxIsInside = false
+                break
+            }
+            if (slice.left[j].p[0].x <= rectLeft && slice.left[j].p[1].x <= rectLeft)
                 continue
-            if (rectRight >= slice.left[j].p[0].x && rectRight >= slice.left[j].p[1].x)
-                continue
-            if (rectRight < slice.left[j].p[0].x && rectRight < slice.left[j].p[1].x)
-                return false // FIXME: not in this slice, but maybe the next
-            if (intersectsRectLine(rectangle, slice.left[j].p))
-                return false
+            if (lineCrossesRect2(rectangle, slice.left[j].p)) {
+                leftOfBoxIsInside = false
+                break
+            } 
         }
+        if (!leftOfBoxIsInside)
+            continue
         for(let j=0; j<slice.right.length; ++j) {
-            if (rectTop < slice.right[j].p[0].y)
+            if (slice.right[j].p[1].y < rectTop)
                 continue
-            if (rectBottom > slice.right[j].p[1].y)
-                continue
+            if (rectBottom < slice.right[j].p[0].y)
+                break
+            if (slice.right[j].p[0].x < rectLeft && slice.right[j].p[1].x < rectLeft) {
+                rightOfBoxIsInside = false
+                break
+            }
             if (rectRight <= slice.right[j].p[0].x && rectRight <= slice.right[j].p[1].x)
                 continue
-            if (rectRight > slice.right[j].p[0].x && rectRight > slice.right[j].p[1].x)
-                return false // FIXME: not in this slice, but maybe the next
-            if (intersectsRectLine(rectangle, slice.right[j].p))
-                return false
+            if (lineCrossesRect2(rectangle, slice.right[j].p)) {
+                rightOfBoxIsInside = false
+                break
+            } 
         }
-
+        if (rightOfBoxIsInside)
+            return true
     }
-    return true
+    if (trace)
+        console.log("WITHINSLICES => FALSE")
+    return false
 
 }
 
@@ -410,7 +427,7 @@ export class WordWrap {
                 // iterate over slices and ensure that point, box does not overlap with them
                 let rect = new Rectangle(point, box)
 
-                if (withinSlices(rect, slices)) {
+                if (withinSlices(rect, slices, this.trace)) {
                     if (this.trace)
                         console.log("pointForBoxInSlices => point (3)")
                     return point

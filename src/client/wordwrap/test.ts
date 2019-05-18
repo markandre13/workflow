@@ -267,6 +267,7 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 100, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
 }, {
     title: "box outside corner right",
+    trace: true,
     polygon: [
         {x: 200, y: 100},
         {x:  20, y:  20},

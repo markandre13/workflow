@@ -386,7 +386,7 @@ function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boolean
   return true
 }
 
-function lineCrossesRect(
+export function lineCrossesRect(
     xmin: number, ymin: number, xmax: number, ymax: number,     // rectangle
     x1: number, y1: number, x2: number, y2: number): boolean    // line
 {
@@ -400,6 +400,13 @@ function lineCrossesRect(
     if (lineCrossesLine(line, [{x: xmax, y: ymin}, {x: xmax, y: ymax}]))
         return true
     return false
+}
+
+export function lineCrossesRect2(r: Rectangle, l: Array<Point>): boolean {
+    return lineCrossesRect(
+        r.origin.x, r.origin.x + r.size.width, r.origin.y, r.origin.y + r.size.height,
+        l[0].x, l[0].y, l[1].x, l[1].y
+    )
 }
 
 export function intersectsRectLine(rect: Rectangle, line: Array<Point>): boolean {
