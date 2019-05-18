@@ -35,6 +35,7 @@ export class WordWrapTestRunner {
     handles = new Array<SVGElement>()
     handleIndex = -1
     decoration = new Array<SVGElement>()
+    point?: Point
 
     placer: Placer
 
@@ -88,6 +89,8 @@ export class WordWrapTestRunner {
         catch(e) {
             console.log(e)
         }
+
+        this.point = pt
 
         if (pt !== undefined) {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
@@ -219,8 +222,12 @@ export class WordWrapTestRunner {
             text += `        {x: ${entry.values[0]}, y: ${entry.values[1]}},\n`
         }
     }
+    let point = this.point
+    if (point == undefined) {
+        point = new Point(-1, -1)
+    }
     text += `    ],
-    box: { origin: { x: ?, y: ? }, size: { width: ?, height: ? } }
+    box: { origin: { x: ${point.x}, y: ${point.y} }, size: { width: ?, height: ? } }
 }`
                 debug.innerText = text
                 } break

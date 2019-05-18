@@ -298,8 +298,8 @@ function mini(arr: Array<number>, n: number): number {
 }
 
 function liang_barsky_clipper(
-    xmin: number, ymin: number, xmax: number, ymax: number, // rectangle
-    x1: number, y1: number, x2: number, y2: number): boolean         // line
+    xmin: number, ymin: number, xmax: number, ymax: number,     // rectangle
+    x1: number, y1: number, x2: number, y2: number): boolean    // line
 {
     let p1 = -(x2 - x1),
         p2 = -p1,
@@ -349,8 +349,8 @@ function liang_barsky_clipper(
         return false
     }
     
-    if (rn1 === rn2) // SURE?
-        return false
+    // if (rn1 === rn2) // SURE?
+    //     return false
 
 //    console.log("rn1=", rn1)
 //    console.log("rn2=", rn2)
@@ -365,6 +365,43 @@ function liang_barsky_clipper(
     */
 }
 
+function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boolean
+{
+  let ax = lineA[1].x - lineA[0].x,
+      ay = lineA[1].y - lineA[0].y,
+      bx = lineB[1].x - lineB[0].x,
+      by = lineB[1].y - lineB[0].y,
+      cross = ax*by - ay*bx
+
+  if (isZero(cross))
+    return false
+     
+  let 
+    dx = lineA[0].x - lineB[0].x,
+    dy = lineA[0].y - lineB[0].y,
+    a = (bx * dy - by * dx) / cross,
+    b = (ax * dy - ay * dx) / cross;
+  if (a<=0.0 || a>=1.0 || b<=0.0 || b>=1.0)
+    return false
+  return true
+}
+
+function lineCrossesRect(
+    xmin: number, ymin: number, xmax: number, ymax: number,     // rectangle
+    x1: number, y1: number, x2: number, y2: number): boolean    // line
+{
+    let line = [{x: x1, y: y1}, {x: x2, y: y2}]
+    if (lineCrossesLine(line, [{x: xmin, y: ymin}, {x: xmax, y: ymin}]))
+        return true
+    if (lineCrossesLine(line, [{x: xmin, y: ymax}, {x: xmax, y: ymax}]))
+        return true
+    if (lineCrossesLine(line, [{x: xmin, y: ymin}, {x: xmin, y: ymax}]))
+        return true
+    if (lineCrossesLine(line, [{x: xmax, y: ymin}, {x: xmax, y: ymax}]))
+        return true
+    return false
+}
+
 export function intersectsRectLine(rect: Rectangle, line: Array<Point>): boolean {
     let xmin = rect.origin.x,
         ymin = rect.origin.y,
@@ -376,7 +413,7 @@ export function intersectsRectLine(rect: Rectangle, line: Array<Point>): boolean
         [ymin, ymax] = [ymax, ymin]
 
     for(let i=1; i<line.length; ++i) {
-        if (liang_barsky_clipper(xmin, ymin, xmax, ymax, line[i-1].x, line[i-1].y, line[i].x, line[i].y))
+        if (lineCrossesRect(xmin, ymin, xmax, ymax, line[i-1].x, line[i-1].y, line[i].x, line[i].y))
             return true
     }
     return false

@@ -173,6 +173,43 @@ function overlapsWithSlices(rectangle: Rectangle, slices: Array<Slice>) {
     return false
 }
 
+function withinSlices(rectangle: Rectangle, slices: Array<Slice>) {
+    let rectTop    = rectangle.origin.x,
+        rectBottom = rectTop + rectangle.size.height,
+        rectLeft   = rectangle.origin.x,
+        rectRight  = rectLeft + rectangle.size.width
+    for(let i=0; i<slices.length; ++i) {
+        let slice = slices[i]
+        for(let j=0; j<slice.left.length; ++j) {
+            if (rectTop < slice.left[j].p[0].y)
+                continue
+            if (rectBottom > slice.left[j].p[1].y)
+                continue
+            if (rectRight >= slice.left[j].p[0].x && rectRight >= slice.left[j].p[1].x)
+                continue
+            if (rectRight < slice.left[j].p[0].x && rectRight < slice.left[j].p[1].x)
+                return false
+            if (intersectsRectLine(rectangle, slice.left[j].p))
+                return true
+        }
+        for(let j=0; j<slice.right.length; ++j) {
+            if (rectTop < slice.right[j].p[0].y)
+                continue
+            if (rectBottom > slice.right[j].p[1].y)
+                continue
+            if (rectRight <= slice.right[j].p[0].x && rectRight <= slice.right[j].p[1].x)
+                continue
+            if (rectRight > slice.right[j].p[0].x && rectRight > slice.right[j].p[1].x)
+                return false
+            if (intersectsRectLine(rectangle, slice.right[j].p))
+                return true
+        }
+
+    }
+    return false
+
+}
+
 export interface WordSource {
     pullBox(): Size|undefined
     placeBox(origin: Point): void
@@ -372,24 +409,29 @@ export class WordWrap {
 
                     // iterate over slices and ensure that point, box does not overlap with them
                     let rect = new Rectangle(point, box)
-                    if (overlapsWithSlices(rect, slices)) {
-                        // CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE
+                    if (withinSlices(rect, slices)) {
+                        if (this.trace)
+                            console.log("CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE (1)")
                         for(let sliceIndex=0; sliceIndex<slices.length; ++sliceIndex) {
                             let slice = slices[sliceIndex]
                             for(let rightIndex=0; rightIndex<slice.right.length; ++rightIndex) {
                                 for(let leftIndex=0; leftIndex<slice.right.length; ++leftIndex) {
-                                    point = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
+                                    point = this.pointForBoxInCorner(box, slice.left[leftIndex], slice.right[rightIndex])
                                     if (point === undefined)
                                         continue
                                     rect.origin = point
-                                    if (!overlapsWithSlices(rect, slices)) {
+                                    if (!withinSlices(rect, slices)) {
+                                        if (this.trace)
+                                            console.log("pointForBoxInSlices => point (1)")
                                         return rect.origin
                                     }
                                 }
                             }
                         }
+                        console.log("pointForBoxInSlices => undefined (2)")
                         return undefined
                     }
+                    console.log("pointForBoxInSlices => point (3)")
                     return point
                 }
             }
@@ -402,7 +444,8 @@ export class WordWrap {
             this.levelSlicesHorizontally(slices)
             this.reduceSlices(point, box, slices)    
             
-            console.log("CRAWL SLICES")
+            if (this.trace)
+                console.log("CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE (2)")
 
                         // CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE
                         let rect = new Rectangle(point, box)
@@ -410,21 +453,22 @@ export class WordWrap {
                             let slice = slices[sliceIndex]
                             for(let rightIndex=0; rightIndex<slice.right.length; ++rightIndex) {
                                 for(let leftIndex=0; leftIndex<slice.right.length; ++leftIndex) {
-                                    point = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
+                                    point = this.pointForBoxInCorner(box, slice.left[leftIndex], slice.right[rightIndex])
                                     if (point === undefined)
                                         continue
-                                    console.log("  => got a point")
-                                    return point
-//                                    rect.origin = point
-//                                    if (!overlapsWithSlices(rect, slices)) {
-//                                        return rect.origin
-//                                    }
+                                    // console.log("  => got a point")
+                                    // return point
+                                   rect.origin = point
+                                   if (!withinSlices(rect, slices)) {
+                                    console.log("pointForBoxInSlices => point (3)")
+                                       return rect.origin
+                                   }
                                 }
                             }
                         }
 
 
-            
+                        console.log("pointForBoxInSlices => undefined (4)")
             return undefined
             
             //if (this.trace) {
@@ -520,8 +564,12 @@ export class WordWrap {
                 v = ( leftPoint.y + E * ( rightPoint.x - leftPoint.x - d.x ) + d.y - rightPoint.y ) / ( rightVector.y - E * rightVector.x )
             let p = pointPlusPoint(rightPoint, pointMultiplyNumber(rightVector, v))
             p.x -= box.width
-            if (this.trace)
+            if (this.trace) {
                 console.log("[4] return ", p)
+                console.log("p    :", p)
+                console.log("left :", leftEvent.p)
+                console.log("right:", rightEvent.p)
+            }
             return p
         }
 
