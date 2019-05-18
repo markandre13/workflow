@@ -234,7 +234,7 @@ const wordWrapTest: WordWrapTest[] = [
 }, {
     title: "evaluate multiple slices to place box",
     only: false,
-    trace: true,
+    trace: false,
     polygon: [
         {x: 10, y:  80},
         {x: 60, y:  50},

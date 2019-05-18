@@ -419,16 +419,14 @@ export class WordWrap {
                     console.log("CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE (1)")
                 for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
                     let slice = slices[sliceIndex]
-                    for (let rightIndex = 0; rightIndex < slice.right.length; ++rightIndex) {
-                        for (let leftIndex = 0; leftIndex < slice.right.length; ++leftIndex) {
-                            point = this.pointForBoxInCorner(box, slice.left[leftIndex], slice.right[rightIndex])
+                    for (let leftIndex = 0; leftIndex < slice.right.length; ++leftIndex) {
+                        for (let rightIndex = 0; rightIndex < slice.right.length; ++rightIndex) {
+                            point = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
                             if (point === undefined)
                                 continue
                             rect.origin = point
                             if (withinSlices(rect, slices)) {
-                                if (this.trace)
-                                    console.log("pointForBoxInSlices => point (1)")
-                                return rect.origin
+                                
                             }
                             if (this.trace)
                                 console.log("pointForBoxInSlices point ${point} not within slices (1)")
@@ -456,9 +454,12 @@ export class WordWrap {
         let rect = new Rectangle(point, box)
         for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
             let slice = slices[sliceIndex]
-            for (let rightIndex = 0; rightIndex < slice.right.length; ++rightIndex) {
-                for (let leftIndex = 0; leftIndex < slice.right.length; ++leftIndex) {
-                    point = this.pointForBoxInCorner(box, slice.left[leftIndex], slice.right[rightIndex])
+            for (let leftIndex = 0; leftIndex < slice.right.length; ++leftIndex) {
+                for (let rightIndex = 0; rightIndex < slice.right.length; ++rightIndex) {
+                    if (this.trace) {
+                        console.log("CHECK", slice.left[leftIndex], slice.right[rightIndex])
+                    }
+                    point = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
                     if (point === undefined)
                         continue
                     rect.origin = point
