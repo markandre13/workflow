@@ -16,7 +16,7 @@
   "dependencies": {
     "knex": "^0.16.5",
     "scrypt": "^6.0.3",
-    "sqlite3": "^4.0.6",
+    "sqlite3": "^4.0.8",
     "ws": "^6.2.1"
   },
   "devDependencies": {
@@ -25,8 +25,8 @@
     "@types/http-server": "^0.10.0",
     "@types/knex": "^0.16.1",
     "@types/mocha": "^5.2.6",
-    "@types/node": "^11.13.8",
-    "@types/puppeteer": "^1.12.3",
+    "@types/node": "^11.13.11",
+    "@types/puppeteer": "^1.12.4",
     "@types/sqlite3": "^3.1.5",
     "@types/ws": "^6.0.1",
     "chai": "^4.2.0",
@@ -40,15 +40,15 @@
     "karma-source-map-support": "^1.4.0",
     "karma-typescript": "^4.0.0",
     "mocha": "^6.1.4",
-    "puppeteer": "^1.15.0",
+    "puppeteer": "^1.16.0",
     "requirejs": "^2.3.6",
     "sourcemapped-stacktrace": "^1.1.9",
     "toad.js": "latest",
-    "ts-loader": "^5.4.4",
+    "ts-loader": "^5.4.5",
     "ts-mocha": "^6.0.0",
     "ts-node": "^8.1.0",
     "typescript": "^3.4.5",
-    "webpack": "^4.30.0",
-    "webpack-cli": "^3.3.1"
+    "webpack": "^4.31.0",
+    "webpack-cli": "^3.3.2"
   }
 }
