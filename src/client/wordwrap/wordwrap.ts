@@ -158,6 +158,21 @@ export class CornerEvents {
     }
 }
 
+function overlapsWithSlices(rectangle: Rectangle, slices: Array<Slice>) {
+    for(let i=0; i<slices.length; ++i) {
+        let slice = slices[i]
+        for(let j=0; j<slice.left.length; ++j) {
+            if (intersectsRectLine(rectangle, slice.left[j].p))
+                return true
+        }
+        for(let j=0; j<slice.right.length; ++j) {
+            if (intersectsRectLine(rectangle, slice.right[j].p))
+                return true
+        }
+    }
+    return false
+}
+
 export interface WordSource {
     pullBox(): Size|undefined
     placeBox(origin: Point): void
@@ -348,24 +363,32 @@ export class WordWrap {
                     console.log("2DN RUN")
                 point = this.pointForBoxInCornerCore(box, left, right)
                 if (point) {
-                    console.log("CHECK FOR OVERLAPS")
+                    if (this.trace)
+                        console.log("CHECK FOR OVERLAPS")
 
                     this.reduceSlices(point, box, slices)    
                     this.extendSlices(point, box, slices)
                     this.levelSlicesHorizontally(slices)
 
-                    // iterate of slices and ensure that point, box does not overlap with themø
+                    // iterate over slices and ensure that point, box does not overlap with them
                     let rect = new Rectangle(point, box)
-                    for(let i=0; i<slices.length; ++i) {
-                        let slice = slices[i]
-                        for(let j=0; j<slice.left.length; ++j) {
-                            if (intersectsRectLine(rect, slice.left[j].p))
-                                return undefined
+                    if (overlapsWithSlices(rect, slices)) {
+                        // CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE
+                        for(let sliceIndex=0; sliceIndex<slices.length; ++sliceIndex) {
+                            let slice = slices[sliceIndex]
+                            for(let rightIndex=0; rightIndex<slice.right.length; ++rightIndex) {
+                                for(let leftIndex=0; leftIndex<slice.right.length; ++leftIndex) {
+                                    point = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
+                                    if (point === undefined)
+                                        continue
+                                    rect.origin = point
+                                    if (!overlapsWithSlices(rect, slices)) {
+                                        return rect.origin
+                                    }
+                                }
+                            }
                         }
-                        for(let j=0; j<slice.right.length; ++j) {
-                            if (intersectsRectLine(rect, slice.right[j].p))
-                                return undefined
-                        }
+                        return undefined
                     }
                     return point
                 }
@@ -377,8 +400,30 @@ export class WordWrap {
             this.reduceSlices(point, box, slices)    
             this.extendSlices(point, box, slices)
             this.levelSlicesHorizontally(slices)
+            this.reduceSlices(point, box, slices)    
             
             console.log("CRAWL SLICES")
+
+                        // CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE
+                        let rect = new Rectangle(point, box)
+                        for(let sliceIndex=0; sliceIndex<slices.length; ++sliceIndex) {
+                            let slice = slices[sliceIndex]
+                            for(let rightIndex=0; rightIndex<slice.right.length; ++rightIndex) {
+                                for(let leftIndex=0; leftIndex<slice.right.length; ++leftIndex) {
+                                    point = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
+                                    if (point === undefined)
+                                        continue
+                                    console.log("  => got a point")
+                                    return point
+//                                    rect.origin = point
+//                                    if (!overlapsWithSlices(rect, slices)) {
+//                                        return rect.origin
+//                                    }
+                                }
+                            }
+                        }
+
+
             
             return undefined
             
