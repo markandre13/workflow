@@ -245,9 +245,8 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  10, y: 190},
     ],
     box: { origin: { x: 70, y: 48 }, size: { width: 80, height: 40 } }
-} /*, {
+} , {
     title: "xxx",
-    only: true,
     polygon: [
         {x: 160, y:  20},
         {x: 210, y: 100},
@@ -265,7 +264,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  80, y: 180},
         {x: 280, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: 100, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
 }, {
     title: "box outside corner right",
     polygon: [
@@ -276,8 +275,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 280, y: 180},
     ],
     box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
-}
-, {
+}, {
     title: "left dent",
     polygon: [
         {x: 115, y: 100},
@@ -320,7 +318,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 150, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "edge/open/left&right/inside",
     polygon: [
@@ -328,7 +326,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 160, y:  20},
         {x: 250, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: 120, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
 }, {
     title: "median/open/right",
     polygon: [
@@ -337,7 +335,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 310, y: 180},
         {x: 100, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: 71.57894736842104, y: 89.47368421052632 }, size: { width: 80, height: 40 } }
 }, {
     title: "median/open/left",
     polygon: [
@@ -346,7 +344,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 220, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: 168.42105263157896, y: 89.4736842105263 }, size: { width: 80, height: 40 } }
 }, {
     title: "wide/open/left&right/wide",
     polygon: [
@@ -355,7 +353,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 210, y:  20},
         {x: 250, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: 110, y: 20 }, size: { width: 80, height: 40 } }
 }, {
     title: "wide/open/right",
     polygon: [
@@ -364,7 +362,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 310, y: 180},
         {x: 100, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: 32.5, y: 20 }, size: { width: 80, height: 40 } }
 }, {
     title: "wide/open/left",
     polygon: [
@@ -373,8 +371,8 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 220, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
-}*/]
+    box: { origin: { x: 200, y: 20 }, size: { width: 80, height: 40 } }
+}]
 
 
 export function testWrap() {
