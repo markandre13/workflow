@@ -180,6 +180,21 @@ function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: boolean
         rectBottom = rectTop + rectangle.size.height,
         rectLeft   = rectangle.origin.x,
         rectRight  = rectLeft + rectangle.size.width
+    
+    // PRECONDITION
+    for(let i=0; i<slices.length; ++i) {
+        let slice = slices[i]
+        if (rectTop < slice.left[0].p[0].y)
+            throw Error("withinSlices(): rectangle's top is outside of left slice")
+        if (rectBottom > slice.left[slice.left.length-1].p[1].y)
+            throw Error("withinSlices(): rectangle's bottom is outside of left slice")
+        if (rectTop < slice.right[0].p[0].y)
+            throw Error("withinSlices(): rectangle's top is outside of right slice")
+        if (rectBottom > slice.right[slice.right.length-1].p[1].y)
+            throw Error("withinSlices(): rectangle's bottom is outside of right slice")
+    }
+
+    // ALGORITHM
     for(let i=0; i<slices.length; ++i) {
         let slice = slices[i],
             leftOfBoxIsInside = true,
@@ -218,8 +233,15 @@ function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: boolean
                 break
             } 
         }
-        if (rightOfBoxIsInside)
+        if (rightOfBoxIsInside) {
+            if (trace) {
+                console.log(rectangle)
+                console.log(slices)
+                console.log("WITHINSLICES => TRUE")
+            }
+
             return true
+        }
     }
     if (trace)
         console.log("WITHINSLICES => FALSE")
@@ -428,7 +450,7 @@ export class WordWrap {
                 let rect = new Rectangle(point, box)
 
                 if (withinSlices(rect, slices, this.trace)) {
-                    if (this.trace)
+                    if (this.trace) 
                         console.log("pointForBoxInSlices => point (3)")
                     return point
                 }

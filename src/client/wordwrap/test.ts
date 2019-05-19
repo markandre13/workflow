@@ -221,7 +221,7 @@ const wordWrapTest: WordWrapTest[] = [
 }, {
     title: "bottom is below slice with intersection",
     only: false,
-    trace: false,
+    trace: true,
     polygon: [
         {x: 110, y:  20},
         {x: 300, y: 100},
