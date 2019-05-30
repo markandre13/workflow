@@ -402,6 +402,32 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  10, y: 180},
     ],
     box: { origin: { x: 165.08771929824562, y: 76.14035087719299 }, size: { width: 80, height: 40 } }
+}, {
+    title: "2nd slice with down spike",
+    polygon: [
+        {x: 110, y:  20},
+        {x: 190, y:  20},
+        {x: 200, y:  90},
+        {x: 210, y:  20},
+        {x: 310, y: 180},
+        {x: 170, y: 180},
+        {x: 160, y:  50},
+        {x:  90, y: 180},
+        {x:  10, y: 180},
+    ],
+    box: { origin: { x: 166.15384615384616, y: 90 }, size: { width: 80, height: 40 } }
+}, {
+    title: "1st slice",
+    polygon: [
+        {x: 110, y:  20},
+        {x: 210, y:  20},
+        {x: 310, y: 180},
+        {x: 170, y: 180},
+        {x: 160, y:  50},
+        {x: 150, y: 180},
+        {x:  10, y: 180},
+    ],
+    box: { origin: { x: 74.91228070175438, y: 76.14035087719299 }, size: { width: 80, height: 40 } }
 }]
 
 
