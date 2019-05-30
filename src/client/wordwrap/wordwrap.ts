@@ -246,6 +246,8 @@ export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: 
             if (lineCrossesRect2(slice.left[j].p, rectangle)) {
                 if (trace)
                     console.log("WITHINSLICES: LEFT CROSSES RECT")
+                console.log(rectangle)
+                console.log(slice.left[j].p)
                 leftOfBoxIsInside = false
                 break
             } 
@@ -532,6 +534,18 @@ export class WordWrap {
                                 return rect.origin
                             }
                         }
+
+                        possiblePoint = this.pointForBoxInCorner(box, slice.left[leftIndex], slice.right[rightIndex])
+                        if (possiblePoint !== undefined) {
+                            rect.origin = possiblePoint
+                            if (withinSlices(rect, slices, this.trace)) {
+                                if (this.trace) {
+                                    console.log("pointForBoxInSlices => point (2)")
+                                }
+                                return rect.origin
+                            }
+                        }
+
                         possiblePoint = this.pointForBoxAtEdge(box, slice.left[leftIndex], slice.right[rightIndex])
                         if (possiblePoint !== undefined) {
                             this.reduceSlices(possiblePoint, box, slices)
@@ -540,7 +554,7 @@ export class WordWrap {
                             rect.origin = possiblePoint
                             if (withinSlices(rect, slices)) {
                                 if (this.trace) {
-                                    console.log("pointForBoxInSlices => point (2)")
+                                    console.log("pointForBoxInSlices => point (3)")
                                 }
                                 return rect.origin
                             }

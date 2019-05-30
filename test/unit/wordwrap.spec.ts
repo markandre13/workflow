@@ -737,6 +737,12 @@ describe("wordwrap", function() {
             let line = [new Point(115, 100), new Point(140, 180)]
             expect(lineCrossesRect2(line, rectangle)).to.be.true
         })
+
+        it.only("test002", ()=> {
+            let rectangle = new Rectangle(168.42105263157896, 89.4736842105263, 80, 40)
+            let line = [new Point(290, 20), new Point(10, 180)]
+            expect(lineCrossesRect2(line, rectangle)).to.be.false
+        })
     })
 
     describe("lineCrossesLine()", ()=> {

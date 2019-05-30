@@ -87,11 +87,11 @@ export function pointMinus(a: Point) {
 }
 
 export function isZero(a: number): boolean {
-    return Math.abs(a) <= Number.EPSILON
+    return Math.abs(a) <= Number.EPSILON * 2.0
 }
 
 export function isOne(a: number): boolean {
-    return (1.0 - Math.abs(a)) <= Number.EPSILON
+    return (1.0 - Math.abs(a)) <= Number.EPSILON * 2.0
 }
 
 export function pointEqualsPoint(a: Point, b: Point): boolean {
@@ -376,6 +376,8 @@ function liang_barsky_clipper(
 
 export function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boolean
 {
+    console.log("lineCrossesLine")
+
     let ax = lineA[1].x - lineA[0].x,
         ay = lineA[1].y - lineA[0].y,
         bx = lineB[1].x - lineB[0].x,
@@ -396,6 +398,8 @@ export function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boole
     if (a<=0.0 || a>=1.0 || b<=0.0 || b>=1.0)
         return false
   
+    console.log("=> TRUE", a, b)
+
     return true
 }
 
