@@ -173,6 +173,11 @@ export class Rectangle extends valueimpl.Rectangle {
                this.origin.y <= p.y && p.y <= this.origin.y + this.size.height
     }
     
+    inside(p: Point): boolean {
+        return this.origin.x < p.x && p.x < this.origin.x + this.size.width &&
+               this.origin.y < p.y && p.y < this.origin.y + this.size.height
+    }
+    
     containsRectangle(r: Rectangle): boolean {
         return this.contains(r.origin) &&
                this.contains(new Point({x: r.origin.x + r.size.width, y: r.origin.y                    })) &&
@@ -365,7 +370,7 @@ function liang_barsky_clipper(
     */
 }
 
-function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boolean
+export function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boolean
 {
   let ax = lineA[1].x - lineA[0].x,
       ay = lineA[1].y - lineA[0].y,
@@ -376,19 +381,19 @@ function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boolean
   if (isZero(cross))
     return false
      
-  let 
-    dx = lineA[0].x - lineB[0].x,
-    dy = lineA[0].y - lineB[0].y,
-    a = (bx * dy - by * dx) / cross,
-    b = (ax * dy - ay * dx) / cross;
+  let dx = lineA[0].x - lineB[0].x,
+      dy = lineA[0].y - lineB[0].y,
+      a = (bx * dy - by * dx) / cross,
+      b = (ax * dy - ay * dx) / cross
   if (a<=0.0 || a>=1.0 || b<=0.0 || b>=1.0)
-    return false
+        return false
   return true
 }
 
 export function lineCrossesRect(
-    xmin: number, ymin: number, xmax: number, ymax: number,     // rectangle
-    x1: number, y1: number, x2: number, y2: number): boolean    // line
+    x1: number, y1: number, x2: number, y2: number,         // line
+    xmin: number, ymin: number, xmax: number, ymax: number  // rectangle
+): boolean
 {
     let line = [{x: x1, y: y1}, {x: x2, y: y2}]
     if (lineCrossesLine(line, [{x: xmin, y: ymin}, {x: xmax, y: ymin}]))
@@ -402,10 +407,10 @@ export function lineCrossesRect(
     return false
 }
 
-export function lineCrossesRect2(r: Rectangle, l: Array<Point>): boolean {
+export function lineCrossesRect2(l: Array<Point>, r: Rectangle): boolean {
     return lineCrossesRect(
-        r.origin.x, r.origin.x + r.size.width, r.origin.y, r.origin.y + r.size.height,
-        l[0].x, l[0].y, l[1].x, l[1].y
+        l[0].x, l[0].y, l[1].x, l[1].y,
+        r.origin.x, r.origin.y, r.origin.x + r.size.width, r.origin.y + r.size.height
     )
 }
 

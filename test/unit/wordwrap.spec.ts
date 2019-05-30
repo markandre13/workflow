@@ -44,9 +44,9 @@ index 70658e7..90a6a7b 100644
 */
 
 import { expect } from "chai"
-import { Point, Size, Rectangle, pointEqualsPoint, rectangleEqualsRectangle } from "shared/geometry"
+import { Point, Size, Rectangle, pointEqualsPoint, rectangleEqualsRectangle, lineCrossesRect2, lineCrossesLine } from "shared/geometry"
 import { Path } from "client/path"
-import { WordWrap, WordSource, Slice, SweepEvent } from "client/wordwrap/wordwrap"
+import { WordWrap, WordSource, Slice, SweepEvent, withinSlices } from "client/wordwrap/wordwrap"
 
 class BoxSource implements WordSource {
     remaining: number
@@ -479,7 +479,7 @@ describe("wordwrap", function() {
 
         })
 
-        it.only("slice and cut it step by step 002", function() {
+        it("slice and cut it step by step 002", function() {
             //
             //   (110,20)---
             //         \    ---
@@ -688,4 +688,54 @@ describe("wordwrap", function() {
             expect(pointEqualsPoint(slices[0].right[2].p[1], new Point(140, 190))).to.be.true
         })
     })
+    
+    describe("withinSlices()", ()=> {
+        it("test001", ()=> {
+            let rectangle = new Rectangle(120, 57.89473684210527, 80, 40)
+            
+            let slice = new Slice()
+            slice.left.push(new SweepEvent(new Point(110, 20), new Point(120, 80)))
+            slice.left.push(new SweepEvent(new Point(120, 80), new Point(95.55555555555556, 100)))
+            slice.left.push(new SweepEvent(new Point(95.55555555555556, 100), new Point(10, 170)))
+            slice.right.push(new SweepEvent(new Point(110, 20), new Point(252.5, 80)))
+            slice.right.push(new SweepEvent(new Point(252.5, 80), new Point(300, 100)))
+            let slices = new Array<Slice>()
+            slices.push(slice)
+
+            expect(withinSlices(rectangle, slices, true)).to.be.true
+        })
+
+        it("test002", ()=> {
+            let rectangle = new Rectangle(120, 91.11111111111111, 80, 40)
+            
+            let slice = new Slice()
+            slice.left.push(new SweepEvent(new Point(160,  20), new Point(115, 100)))
+            slice.left.push(new SweepEvent(new Point(115, 100), new Point(140, 180)))
+            slice.right.push(new SweepEvent(new Point(160,  20), new Point(205, 100)))
+            slice.right.push(new SweepEvent(new Point(205, 100), new Point(160, 180)))
+            let slices = new Array<Slice>()
+            slices.push(slice)
+
+            expect(withinSlices(rectangle, slices, true)).to.be.false
+        })
+    })
+
+    describe("lineCrossesRect()", ()=> {
+        it.only("test001", ()=> {
+            let rectangle = new Rectangle(120, 91.11111111111111, 80, 40)
+            let line = [new Point(115, 100), new Point(140, 180)]
+            expect(lineCrossesRect2(line, rectangle)).to.be.true
+        })
+    })
+
+    describe("lineCrossesLine()", ()=> {
+        it.only("test001", ()=> {
+            let line0 = [new Point(120, 91.11111111111111), new Point(120, 131.11111111111111)]
+            let line1 = [new Point(115, 100), new Point(140, 180)]
+
+            expect(lineCrossesLine(line0, line1)).to.be.true
+            expect(lineCrossesLine(line1, line0)).to.be.true
+        })
+    })
+
 })

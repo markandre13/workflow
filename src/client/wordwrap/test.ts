@@ -81,6 +81,7 @@ interface WordWrapTest {
 // middle mouse, dump test data for copy'n pasting it back?
 
 const wordWrapTest: WordWrapTest[] = [
+/*
 {
     title: "pointForBoxInCorner: place 1st box in a single stripe",
     strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
@@ -203,13 +204,15 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  10, y: 180},
     ],
     box: { origin: { x: 182.89999999999998, y: 34.39999999999999 }, size: { width: 80, height: 40 } }
-}, { 
+},*/ { 
     title: "pointForBoxInSlices: place 1st box in two stripes",
     strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
         return wordwrap.pointForBoxInSlices(box)
     }
 }, {
     title: "bottom is below slice",
+    // only: true,
+    // trace: true,
     polygon: [
         {x: 110, y:  20},
         {x: 300, y: 100},
@@ -221,7 +224,7 @@ const wordWrapTest: WordWrapTest[] = [
 }, {
     title: "bottom is below slice with intersection",
     only: false,
-    trace: true,
+    trace: false,
     polygon: [
         {x: 110, y:  20},
         {x: 300, y: 100},
@@ -246,7 +249,9 @@ const wordWrapTest: WordWrapTest[] = [
     ],
     box: { origin: { x: 70, y: 48 }, size: { width: 80, height: 40 } }
 } , {
-    title: "xxx",
+    title: "need move down to place box",
+    only: false,
+    trace: false,
     polygon: [
         {x: 160, y:  20},
         {x: 210, y: 100},
@@ -267,7 +272,6 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 100, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
 }, {
     title: "box outside corner right",
-    trace: true,
     polygon: [
         {x: 200, y: 100},
         {x:  20, y:  20},
@@ -275,7 +279,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 120, y: 180},
         {x: 280, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: 108.75, y: 95 }, size: { width: 80, height: 40 } }
 }, {
     title: "left dent",
     polygon: [
@@ -285,7 +289,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 160, y: 180},
         {x: 140, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "connected",
     polygon: [
@@ -293,9 +297,8 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 160, y:  20},
         {x: 205, y: 100},
         {x: 160, y: 180},
-//        {x: 140, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "narrow/open/left&right/inside",
     polygon: [
@@ -303,7 +306,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 160, y:  20},
         {x: 210, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "narrow/open/right",
     polygon: [
@@ -311,7 +314,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 310, y: 180},
         {x: 170, y: 180},
     ],
-    box: { origin: { x: 0, y: 0 }, size: { width: 80, height: 40 } }
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "narrow/open/left",
     polygon: [
@@ -330,6 +333,8 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 120, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
 }, {
     title: "median/open/right",
+    trace: true,
+    only: true,
     polygon: [
         {x:  10, y:  20},
         {x:  30, y:  20},
@@ -373,6 +378,32 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  10, y: 180},
     ],
     box: { origin: { x: 200, y: 20 }, size: { width: 80, height: 40 } }
+}, {
+    title: "2nd slice",
+    only: false,
+    trace: false,
+    polygon: [
+        {x: 110, y:  20},
+        {x: 210, y:  20},
+        {x: 310, y: 180},
+        {x: 230, y: 180},
+        {x: 160, y:  50},
+        {x:  90, y: 180},
+        {x:  10, y: 180},
+    ],
+    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+}, {
+    title: "2nd slice",
+    polygon: [
+        {x: 110, y:  20},
+        {x: 210, y:  20},
+        {x: 310, y: 180},
+        {x: 170, y: 180},
+        {x: 160, y:  50},
+        {x:  90, y: 180},
+        {x:  10, y: 180},
+    ],
+    box: { origin: { x: 165.08771929824562, y: 76.14035087719299 }, size: { width: 80, height: 40 } }
 }]
 
 
@@ -396,7 +427,7 @@ export function testWrap() {
                     path.line(point)
             }
             path.close()
-            new WordWrapTestRunner(test.title, path, test.box!, test.trace == true, strategy!)
+            new WordWrapTestRunner(test.title, path, test.box!, test.trace == false, strategy!)
         } else {
             if (test.title !== "") {
                 let heading = document.createElement("h1")

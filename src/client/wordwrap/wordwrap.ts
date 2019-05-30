@@ -173,9 +173,12 @@ function overlapsWithSlices(rectangle: Rectangle, slices: Array<Slice>) {
     return false
 }
 
-function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: boolean = false) {
+export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: boolean = false) {
     if (trace)
         console.log("WITHINSLICES ------------------------")
+    // console.log(rectangle)
+    // console.log(slices)
+    // return true
     let rectTop    = rectangle.origin.y,
         rectBottom = rectTop + rectangle.size.height,
         rectLeft   = rectangle.origin.x,
@@ -185,13 +188,13 @@ function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: boolean
     for(let i=0; i<slices.length; ++i) {
         let slice = slices[i]
         if (rectTop < slice.left[0].p[0].y)
-            throw Error("withinSlices(): rectangle's top is outside of left slice")
+            return false
         if (rectBottom > slice.left[slice.left.length-1].p[1].y)
-            throw Error("withinSlices(): rectangle's bottom is outside of left slice")
+            return false
         if (rectTop < slice.right[0].p[0].y)
-            throw Error("withinSlices(): rectangle's top is outside of right slice")
+            return false
         if (rectBottom > slice.right[slice.right.length-1].p[1].y)
-            throw Error("withinSlices(): rectangle's bottom is outside of right slice")
+            return false
     }
 
     // ALGORITHM
@@ -200,20 +203,40 @@ function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: boolean
             leftOfBoxIsInside = true,
             rightOfBoxIsInside = true
         for(let j=0; j<slice.left.length; ++j) {
-            if (slice.left[j].p[1].y < rectTop)
+            // console.log("---------------------------")
+            // console.log("left", j)
+            // console.log(slice.left[j].p)
+            if (slice.left[j].p[1].y < rectTop) {
+                // console.log("too high")
                 continue
-            if (rectBottom < slice.left[j].p[0].y)
+            }
+            if (rectBottom < slice.left[j].p[0].y) {
+                // console.log("too low")
                 break
+            }
             if (rectRight < slice.left[j].p[0].x && rectRight < slice.left[j].p[1].x) {
+                // console.log("left of box")
                 leftOfBoxIsInside = false
                 break
             }
-            if (slice.left[j].p[0].x <= rectLeft && slice.left[j].p[1].x <= rectLeft)
+            if (slice.left[j].p[0].x <= rectLeft && slice.left[j].p[1].x <= rectLeft) {
+                // console.log("right of box")
                 continue
-            if (lineCrossesRect2(rectangle, slice.left[j].p)) {
+            }
+            // console.log("at least one endpoint within rectangle?")
+            if (rectangle.contains(slice.left[j].p[0]) || rectangle.contains(slice.left[j].p[1])) {
+                // console.log("yes")
+                console.log("WITHINSLICES => FALSE (1)")
+                return false
+            }
+            // console.log("no")
+            // console.log("event crosses rectangle?")
+            if (lineCrossesRect2(slice.left[j].p, rectangle)) {
+                // console.log("yes")
                 leftOfBoxIsInside = false
                 break
             } 
+            // console.log("no")
         }
         if (!leftOfBoxIsInside)
             continue
@@ -228,7 +251,11 @@ function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: boolean
             }
             if (rectRight <= slice.right[j].p[0].x && rectRight <= slice.right[j].p[1].x)
                 continue
-            if (lineCrossesRect2(rectangle, slice.right[j].p)) {
+            if (rectangle.contains(slice.right[j].p[0]) || rectangle.contains(slice.right[j].p[1])) {
+                console.log("WITHINSLICES => FALSE (2)")
+                return false
+            }
+            if (lineCrossesRect2(slice.right[j].p, rectangle)) {
                 rightOfBoxIsInside = false
                 break
             } 
@@ -365,7 +392,8 @@ export class WordWrap {
                 }
             } else {
                 if (slices.length === 0) {
-                    console.log("no more slices")
+                    if (this.trace)
+                        console.log("no more slices")
                     break
                 }
                 horizontalSpace -= box.width
@@ -412,105 +440,107 @@ export class WordWrap {
         }
     }
 
+    // *******************************************************************************************************
     pointForBoxInSlices(box: Size): Point|undefined {
         if (this.trace)
             console.log("WordWrap.pointForBoxInSlices")
 
         let slices = new Array<Slice>()
-        this.extendSlices(new Point(0,0), box, slices)
-        this.levelSlicesHorizontally(slices)
-        let slice = slices[0]
-        let index = 0
-        let point = this.pointForBoxInCorner(box, slice.left[index], slice.right[index])
-        if (point !== undefined) {
-            if (this.trace)
-                console.log("pointForBoxInSlices => point (1)")
-            return point
-        }
+        // this.extendSlices(new Point(0,0), box, slices) // FIXME: y to top of sweep buffer
+        // this.levelSlicesHorizontally(slices)
+        // let slice = slices[0]
+        // let index = 0
+        // let point = this.pointForBoxInCorner(box, slice.left[index], slice.right[index])
 
-        let yMax = Math.max(slice.left[index].p[1].y, slice.right[index].p[1].y) + 10
-        let verticalLine = [new Point(slice.left[index].p[1].x, slice.left[index].p[0].y),
-                            new Point(slice.left[index].p[1].x, yMax)]
-        let crossingPoint = _intersectLineLine(verticalLine, slice.right[index].p)
-        if (crossingPoint !== undefined) {
-            let left = new SweepEvent(crossingPoint, verticalLine[1])
-            let right = new SweepEvent(crossingPoint, slice.right[index].p[1])
-            if (this.trace)
-                console.log("2DN RUN")
-            point = this.pointForBoxInCornerCore(box, left, right)
-            if (point) {
-                if (this.trace)
-                    console.log("CHECK FOR OVERLAPS")
+        // if (point !== undefined) {
+        //     if (this.trace)
+        //         console.log("pointForBoxInSlices => point (1)")
 
-                this.reduceSlices(point, box, slices)
-                this.extendSlices(point, box, slices)
-                this.levelSlicesHorizontally(slices)
+        //     // this.reduceSlices(point, box, slices)
+        //     this.extendSlices(point, box, slices)
+        //     this.levelSlicesHorizontally(slices)
+        //     if (withinSlices(new Rectangle(point, box), slices, this.trace))
+        //         return point
+        // }
 
-                // iterate over slices and ensure that point, box does not overlap with them
-                let rect = new Rectangle(point, box)
+        // point = this.pointForBoxAtEdge(box, slice.left[index], slice.right[index])
+        // if (point) {
+        //     if (this.trace)
+        //         console.log("CHECK FOR OVERLAPS")
 
-                if (withinSlices(rect, slices, this.trace)) {
-                    if (this.trace) 
-                        console.log("pointForBoxInSlices => point (3)")
-                    return point
-                }
-                if (this.trace)
-                    console.log("CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE (1)")
-                for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
-                    let slice = slices[sliceIndex]
-                    for (let leftIndex = 0; leftIndex < slice.right.length; ++leftIndex) {
-                        for (let rightIndex = 0; rightIndex < slice.right.length; ++rightIndex) {
-                            point = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
-                            if (point === undefined)
-                                continue
-                            rect.origin = point
-                            if (withinSlices(rect, slices)) {
-                                
-                            }
-                            if (this.trace)
-                                console.log("pointForBoxInSlices point ${point} not within slices (1)")
+        //     // this.reduceSlices(point, box, slices)
+        //     this.extendSlices(point, box, slices)
+        //     this.levelSlicesHorizontally(slices)
+
+        //     // iterate over slices and ensure that point, box does not overlap with them
+        //     let rect = new Rectangle(point, box)
+
+        //     if (withinSlices(rect, slices, this.trace)) {
+        //         if (this.trace)
+        //             console.log("pointForBoxInSlices => point (3)")
+        //         return point
+        //     }
+        // }
+
+        // if (this.trace)
+        //         console.log("CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE (2)")
+        let point = new Point(this.bounds.origin)
+        while (true) {
+
+            //            this.levelSlicesHorizontally(slices)
+            this.extendSlices(point, box, slices)
+            this.levelSlicesHorizontally(slices)
+            this.reduceSlices(point, box, slices)
+
+            if (slices.length === 0)
+                break
+
+            // CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE
+            let rect = new Rectangle(point, box)
+            for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
+                let slice = slices[sliceIndex]
+                for (let leftIndex = 0; leftIndex < slice.right.length; ++leftIndex) {
+                    for (let rightIndex = 0; rightIndex < slice.right.length; ++rightIndex) {
+                        if (this.trace) {
+                            console.log("CHECK", slice.left[leftIndex], slice.right[rightIndex])
                         }
-                    }
-                }
-                if (this.trace)
-                    console.log("pointForBoxInSlices => undefined (2)")
-                return undefined
-            }
-        }
 
-        point = new Point(this.bounds.origin)
+                        let possiblePoint = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
+                        if (possiblePoint !== undefined) {
+                            rect.origin = possiblePoint
+                            if (withinSlices(rect, slices)) {
+                                if (this.trace) {
+                                    console.log("pointForBoxInSlices => point (4)")
+                                    console.log(rect)
+                                    console.log(slices)
+                                }
+                                return rect.origin
+                            }
+                        }
 
-        //            this.levelSlicesHorizontally(slices)
-        this.reduceSlices(point, box, slices)
-        this.extendSlices(point, box, slices)
-        this.levelSlicesHorizontally(slices)
-        this.reduceSlices(point, box, slices)
+                        possiblePoint = this.pointForBoxAtEdge(box, slice.left[leftIndex], slice.right[rightIndex])
+                        if (possiblePoint !== undefined) {
+                            this.reduceSlices(possiblePoint, box, slices)
+                            this.extendSlices(possiblePoint, box, slices)
+                            this.levelSlicesHorizontally(slices)
+                            rect.origin = possiblePoint
+                            if (withinSlices(rect, slices)) {
+                                if (this.trace) {
+                                    console.log("pointForBoxInSlices => point (4)")
+                                    console.log(rect)
+                                    console.log(slices)
+                                }
+                                return rect.origin
+                            }
+                        }
 
-        if (this.trace)
-            console.log("CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE (2)")
-
-        // CRAWL OVER SLICES AND FIND MOST TOP,LEFT ONE
-        let rect = new Rectangle(point, box)
-        for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
-            let slice = slices[sliceIndex]
-            for (let leftIndex = 0; leftIndex < slice.right.length; ++leftIndex) {
-                for (let rightIndex = 0; rightIndex < slice.right.length; ++rightIndex) {
-                    if (this.trace) {
-                        console.log("CHECK", slice.left[leftIndex], slice.right[rightIndex])
-                    }
-                    point = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
-                    if (point === undefined)
-                        continue
-                    rect.origin = point
-                    if (withinSlices(rect, slices)) {
                         if (this.trace)
-                            console.log("pointForBoxInSlices => point (4)")
-                        return rect.origin
+                            console.log("pointForBoxInSlices point ${point} not within slices (4)")
+                        
                     }
-                    if (this.trace)
-                        console.log("pointForBoxInSlices point ${point} not within slices (4)")
                 }
             }
+            point.y += box.height
         }
 
         if (this.trace)
@@ -523,16 +553,19 @@ export class WordWrap {
     pointForBoxInCorner(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
         if (this.trace)
             console.log("WordWrap.pointForBoxInCorner")
-        let point = this.pointForBoxInCornerCore(box, leftEvent, rightEvent)
-        if (point === undefined)
+        // let point = this.pointForBoxInCornerCore(box, leftEvent, rightEvent)
+        // if (point === undefined)
+        //     return undefined
+
+        // // too low
+        // if (point.y+box.height > leftEvent.p[1].y)
+        //     return undefined
+
+        if (leftEvent.p[0].y !== rightEvent.p[0].y)
             return undefined
 
-        // too low
-        if (point.y+box.height > leftEvent.p[1].y)
-            return undefined
-
-        // too high
-        if (point.y < leftEvent.p[0].y) {
+        // // too high
+        // if (point.y < leftEvent.p[0].y) {
             let leftPoint = leftEvent.p[0],
                 leftVector = pointMinusPoint(leftEvent.p[1], leftPoint),
                 rightPoint = rightEvent.p[0],
@@ -570,8 +603,9 @@ export class WordWrap {
                     console.log("[2] return ", leftEvent.p[0])
                 return leftEvent.p[0]
             }
-        }
-        return point
+            return undefined
+        // }
+        // return point
     }
     
     pointForBoxInCornerCore(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
@@ -653,6 +687,22 @@ export class WordWrap {
         if (this.trace)
             console.log("[9] return undefined")
         return undefined
+    }
+
+    //            _
+    //            \ ----
+    //             \    ----
+    //              X       ----
+    pointForBoxAtEdge(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
+        let yMax = Math.max(leftEvent.p[1].y, rightEvent.p[1].y) + 10
+        let verticalLine = [new Point(leftEvent.p[1].x, leftEvent.p[0].y),
+                            new Point(leftEvent.p[1].x, yMax)]
+        let crossingPoint = _intersectLineLine(verticalLine, rightEvent.p)
+        if (crossingPoint === undefined)
+            return undefined
+        let left = new SweepEvent(crossingPoint, verticalLine[1])
+        let right = new SweepEvent(crossingPoint, rightEvent.p[1])
+        return this.pointForBoxInCornerCore(box, left, right)
     }
     
     findSpaceAtCursorForBox(cursor: Point, box: Size, slices: Array<Slice>): [number, CornerEvents] {

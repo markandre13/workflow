@@ -65,6 +65,7 @@ valuetype Rectangle {
     Rectangle set(in double x, in double y, in double width, in double height);
     boolean contains(in Point point);
     boolean containsRectangle(in Rectangle rectangle);
+    boolean inside(in Point point);
     boolean intersects(in Rectangle rectangle);
     Rectangle expandByPoint(in Point point);
     Point center();
