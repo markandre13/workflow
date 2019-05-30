@@ -90,6 +90,10 @@ export function isZero(a: number): boolean {
     return Math.abs(a) <= Number.EPSILON
 }
 
+export function isOne(a: number): boolean {
+    return (1.0 - Math.abs(a)) <= Number.EPSILON
+}
+
 export function pointEqualsPoint(a: Point, b: Point): boolean {
     return isZero(a.x-b.x) && isZero(a.y-b.y)
 }
@@ -372,22 +376,27 @@ function liang_barsky_clipper(
 
 export function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boolean
 {
-  let ax = lineA[1].x - lineA[0].x,
-      ay = lineA[1].y - lineA[0].y,
-      bx = lineB[1].x - lineB[0].x,
-      by = lineB[1].y - lineB[0].y,
-      cross = ax*by - ay*bx
+    let ax = lineA[1].x - lineA[0].x,
+        ay = lineA[1].y - lineA[0].y,
+        bx = lineB[1].x - lineB[0].x,
+        by = lineB[1].y - lineB[0].y,
+        cross = ax*by - ay*bx
 
-  if (isZero(cross))
-    return false
-     
-  let dx = lineA[0].x - lineB[0].x,
-      dy = lineA[0].y - lineB[0].y,
-      a = (bx * dy - by * dx) / cross,
-      b = (ax * dy - ay * dx) / cross
-  if (a<=0.0 || a>=1.0 || b<=0.0 || b>=1.0)
+    if (isZero(cross))
         return false
-  return true
+     
+    let dx = lineA[0].x - lineB[0].x,
+        dy = lineA[0].y - lineB[0].y,
+        a = (bx * dy - by * dx) / cross,
+        b = (ax * dy - ay * dx) / cross
+  
+    if (isZero(a) || isOne(a) || isZero(b) || isOne(b))
+        return false
+        
+    if (a<=0.0 || a>=1.0 || b<=0.0 || b>=1.0)
+        return false
+  
+    return true
 }
 
 export function lineCrossesRect(

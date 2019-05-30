@@ -718,10 +718,21 @@ describe("wordwrap", function() {
 
             expect(withinSlices(rectangle, slices, true)).to.be.false
         })
+
+        it("test003", ()=> {
+            let rectangle = new Rectangle(71.57894736842104, 89.47368421052632, 80, 40)
+            let slice = new Slice()
+            slice.left.push(new SweepEvent(new Point(10,  20), new Point(100, 180)))
+            slice.right.push(new SweepEvent(new Point(30,  20), new Point(310, 180)))
+            let slices = new Array<Slice>()
+            slices.push(slice)
+
+            expect(withinSlices(rectangle, slices, true)).to.be.true
+        })
     })
 
     describe("lineCrossesRect()", ()=> {
-        it.only("test001", ()=> {
+        it("test001", ()=> {
             let rectangle = new Rectangle(120, 91.11111111111111, 80, 40)
             let line = [new Point(115, 100), new Point(140, 180)]
             expect(lineCrossesRect2(line, rectangle)).to.be.true
@@ -729,7 +740,7 @@ describe("wordwrap", function() {
     })
 
     describe("lineCrossesLine()", ()=> {
-        it.only("test001", ()=> {
+        it("test001", ()=> {
             let line0 = [new Point(120, 91.11111111111111), new Point(120, 131.11111111111111)]
             let line1 = [new Point(115, 100), new Point(140, 180)]
 

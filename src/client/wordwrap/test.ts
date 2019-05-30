@@ -333,8 +333,6 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 120, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
 }, {
     title: "median/open/right",
-    trace: true,
-    only: true,
     polygon: [
         {x:  10, y:  20},
         {x:  30, y:  20},
@@ -427,7 +425,7 @@ export function testWrap() {
                     path.line(point)
             }
             path.close()
-            new WordWrapTestRunner(test.title, path, test.box!, test.trace == false, strategy!)
+            new WordWrapTestRunner(test.title, path, test.box!, test.trace == true, strategy!)
         } else {
             if (test.title !== "") {
                 let heading = document.createElement("h1")

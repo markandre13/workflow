@@ -174,11 +174,11 @@ function overlapsWithSlices(rectangle: Rectangle, slices: Array<Slice>) {
 }
 
 export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: boolean = false) {
-    if (trace)
+    if (trace) {
         console.log("WITHINSLICES ------------------------")
-    // console.log(rectangle)
-    // console.log(slices)
-    // return true
+        console.log(rectangle)
+        console.log(slices)
+    }
     let rectTop    = rectangle.origin.y,
         rectBottom = rectTop + rectangle.size.height,
         rectLeft   = rectangle.origin.x,
@@ -187,14 +187,26 @@ export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: 
     // PRECONDITION
     for(let i=0; i<slices.length; ++i) {
         let slice = slices[i]
-        if (rectTop < slice.left[0].p[0].y)
+        if (rectTop < slice.left[0].p[0].y) {
+            if (trace)
+                console.log("WITHINSLICES => FALSE (1)")
             return false
-        if (rectBottom > slice.left[slice.left.length-1].p[1].y)
+        }
+        if (rectBottom > slice.left[slice.left.length-1].p[1].y) {
+            if (trace)
+                console.log("WITHINSLICES => FALSE (2)")
             return false
-        if (rectTop < slice.right[0].p[0].y)
+        }
+        if (rectTop < slice.right[0].p[0].y) {
+            if (trace)
+                console.log("WITHINSLICES => FALSE (3)")
             return false
-        if (rectBottom > slice.right[slice.right.length-1].p[1].y)
+        }
+        if (rectBottom > slice.right[slice.right.length-1].p[1].y) {
+            if (trace)
+                console.log("WITHINSLICES => FALSE (4)")
             return false
+        }
     }
 
     // ALGORITHM
@@ -226,20 +238,24 @@ export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: 
             // console.log("at least one endpoint within rectangle?")
             if (rectangle.contains(slice.left[j].p[0]) || rectangle.contains(slice.left[j].p[1])) {
                 // console.log("yes")
-                console.log("WITHINSLICES => FALSE (1)")
+                console.log("WITHINSLICES => FALSE (5)")
                 return false
             }
             // console.log("no")
             // console.log("event crosses rectangle?")
             if (lineCrossesRect2(slice.left[j].p, rectangle)) {
-                // console.log("yes")
+                if (trace)
+                    console.log("WITHINSLICES: LEFT CROSSES RECT")
                 leftOfBoxIsInside = false
                 break
             } 
             // console.log("no")
         }
-        if (!leftOfBoxIsInside)
+        if (!leftOfBoxIsInside) {
+            if (trace)
+                console.log("WITHINSLICES: leftOfBoxIsInside")
             continue
+        }
         for(let j=0; j<slice.right.length; ++j) {
             if (slice.right[j].p[1].y < rectTop)
                 continue
@@ -252,10 +268,12 @@ export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: 
             if (rectRight <= slice.right[j].p[0].x && rectRight <= slice.right[j].p[1].x)
                 continue
             if (rectangle.contains(slice.right[j].p[0]) || rectangle.contains(slice.right[j].p[1])) {
-                console.log("WITHINSLICES => FALSE (2)")
+                console.log("WITHINSLICES => FALSE (6)")
                 return false
             }
             if (lineCrossesRect2(slice.right[j].p, rectangle)) {
+                if (trace)
+                    console.log("WITHINSLICES: RIGHT LINE CROSSES RECT")
                 rightOfBoxIsInside = false
                 break
             } 
@@ -266,12 +284,11 @@ export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: 
                 console.log(slices)
                 console.log("WITHINSLICES => TRUE")
             }
-
             return true
         }
     }
     if (trace)
-        console.log("WITHINSLICES => FALSE")
+        console.log("WITHINSLICES => FALSE (7)")
     return false
 
 }
@@ -443,7 +460,7 @@ export class WordWrap {
     // *******************************************************************************************************
     pointForBoxInSlices(box: Size): Point|undefined {
         if (this.trace)
-            console.log("WordWrap.pointForBoxInSlices")
+            console.log("======================== WordWrap.pointForBoxInSlices ========================")
 
         let slices = new Array<Slice>()
         // this.extendSlices(new Point(0,0), box, slices) // FIXME: y to top of sweep buffer
@@ -499,25 +516,22 @@ export class WordWrap {
             let rect = new Rectangle(point, box)
             for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
                 let slice = slices[sliceIndex]
-                for (let leftIndex = 0; leftIndex < slice.right.length; ++leftIndex) {
+                for (let leftIndex = 0; leftIndex < slice.left.length; ++leftIndex) {
                     for (let rightIndex = 0; rightIndex < slice.right.length; ++rightIndex) {
                         if (this.trace) {
-                            console.log("CHECK", slice.left[leftIndex], slice.right[rightIndex])
+                            console.log("CHECK ", sliceIndex, leftIndex, rightIndex, slice.left[leftIndex], slice.right[rightIndex])
                         }
 
                         let possiblePoint = this.pointForBoxInCornerCore(box, slice.left[leftIndex], slice.right[rightIndex])
                         if (possiblePoint !== undefined) {
                             rect.origin = possiblePoint
-                            if (withinSlices(rect, slices)) {
+                            if (withinSlices(rect, slices, this.trace)) {
                                 if (this.trace) {
-                                    console.log("pointForBoxInSlices => point (4)")
-                                    console.log(rect)
-                                    console.log(slices)
+                                    console.log("pointForBoxInSlices => point (1)")
                                 }
                                 return rect.origin
                             }
                         }
-
                         possiblePoint = this.pointForBoxAtEdge(box, slice.left[leftIndex], slice.right[rightIndex])
                         if (possiblePoint !== undefined) {
                             this.reduceSlices(possiblePoint, box, slices)
@@ -526,9 +540,7 @@ export class WordWrap {
                             rect.origin = possiblePoint
                             if (withinSlices(rect, slices)) {
                                 if (this.trace) {
-                                    console.log("pointForBoxInSlices => point (4)")
-                                    console.log(rect)
-                                    console.log(slices)
+                                    console.log("pointForBoxInSlices => point (2)")
                                 }
                                 return rect.origin
                             }
