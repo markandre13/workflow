@@ -356,115 +356,83 @@ export class WordWrap {
     }
 
     placeWordBoxes(wordsource: WordSource) {
-        if (this.trace)
-            console.log("placeWordBoxes")
+        console.log("placeWordBoxes")
         let slices = new Array<Slice>()
-        let cursor = new Point(this.bounds.origin.x - 10, this.bounds.origin.y - 10)
+        // let cursor = new Point(this.bounds.origin.x - 10, this.bounds.origin.y - 10)
         let horizontalSpace = 0
         let lineHeight = 20
         
         let box = wordsource.pullBox()
-        
-        while(box) {
+        if (box === undefined) {
+            console.log("placeWordBoxes: no boxes to be placed")
+            return
+        }
+        let cursor = this.pointForBoxInSlices(box, slices)
+        if (cursor === undefined) {
+            console.log("placeWordBoxes: failed to find an initial point")
+            return
+        }
+        wordsource.placeBox(cursor)
 
+        let sliceIndex = 0 // FIXME: fixed index
+        let cornerEvents = this.findCornersAtCursorForBoxAtSlice(cursor, box, slices[sliceIndex])
+
+        let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
+
+        
+        horizontalSpace = right - left
+
+        cursor.x = box.width
+        horizontalSpace -= box.width
+
+        box = wordsource.pullBox()
+        while (box) {
             let point: Point
-            
-            if (cursor.y < this.bounds.origin.y) { // FIXME: make clear that this is a start condition
-                
-                // move two lines from the sweek buffer into a slice
-                let leftEvent = this.sweepBuffer.shift()
-                let rightEvent = this.sweepBuffer.shift()
-                let slice = new Slice()
-                slice.left.push(leftEvent)
-                slice.right.push(rightEvent)
-                slices.push(slice)
-                
-                // top of slice is a closed edge /\
-                if (pointEqualsPoint(leftEvent.p[0], rightEvent.p[0])) {
-                    // FIXME? not checking the lower boundary
-                    let cornerPoint = this.pointForBoxAtTop(box, slice.left[0], slice.right[0])
-                    if (cornerPoint !== undefined) {
-                        point = cornerPoint
-                        horizontalSpace = 0 // none, we neatly fitted into a corner
-                        cursor.y = point.y
-                    } else {
-                        // FIXME: we still have no valid cursor.y
-                        throw Error("no cornerPoint")
-                    }
-                } else {
-                    cursor.y = leftEvent.p[0].y
-                    // adjust slices to cover box being placed at cursor.y
-                    this.reduceSlices(cursor, box, slices)
-                    this.extendSlices(cursor, box, slices)
-                    if (slices.length===0) {
-                        break
-                    }
-                    
-                    // find a place for the box
-                    let [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
+            if (horizontalSpace >= box.width) {
+                point = new Point(cursor)
+                cursor.x += box.width
+                horizontalSpace -= box.width
+            } else {
+                this.reduceSlices(cursor, box, slices)
+                this.extendSlices(cursor, box, slices)
+                //    if (slices.length===0) {
+                //      break
+                //    }
+                let [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
+                if (sliceIndex !== -1) {
+                    if (sliceIndex === 0) // FIXME: test case for this, sliceIndex === 0 should indicate an earlier line break
+                        cursor.y += lineHeight as number
                     let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
                     point = new Point(left, cursor.y)
                     horizontalSpace = right - left
-                    
+                    cursor.x = left + box.width
+                    horizontalSpace -= box.width
+                } else {
+                    cursor.x = this.bounds.origin.x - 10
+                    cursor.y += lineHeight as number
+                    this.reduceSlices(cursor, box, slices)
+                    this.extendSlices(cursor, box, slices)
+                    if (slices.length === 0) {
+                        break
+                    }
+                    [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
+                    let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
+                    point = new Point(left, cursor.y)
+                    horizontalSpace = right - left
                     cursor.x = left + box.width
                     horizontalSpace -= box.width
                 }
-            } else {
-                if (slices.length === 0) {
-                    if (this.trace)
-                        console.log("no more slices")
-                    break
-                }
-                horizontalSpace -= box.width
-                if (horizontalSpace >= 0) {
-                    point = new Point(cursor)
-                    cursor.x += box.width
-                } else {
-                    this.reduceSlices(cursor, box, slices)
-                    this.extendSlices(cursor, box, slices)
-                    if (slices.length===0) {
-                        break
-                    }
-                    let [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
-                    if (sliceIndex !== -1) {
-                        if (sliceIndex === 0) // FIXME: test case for this, sliceIndex === 0 should indicate an earlier line break
-                            cursor.y += lineHeight as number
-                        let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
-                        point = new Point(left, cursor.y)
-                        horizontalSpace = right - left
-                        cursor.x = left + box.width
-                        horizontalSpace -= box.width
-                    } else {
-                        cursor.x = this.bounds.origin.x - 10
-                        cursor.y += lineHeight as number
-                        this.reduceSlices(cursor, box, slices)
-                        this.extendSlices(cursor, box, slices)
-                        if (slices.length===0) {
-                            break
-                        }
-                        [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
-                        let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
-                        point = new Point(left, cursor.y)
-                        horizontalSpace = right - left
-                        cursor.x = left + box.width
-                        horizontalSpace -= box.width
-                    }
-                    if (horizontalSpace < 0)
-                        continue
-                }
+                if (horizontalSpace < 0)
+                    continue
             }
-            
             wordsource.placeBox(point)
             box = wordsource.pullBox()
         }
     }
 
-    // *******************************************************************************************************
-    pointForBoxInSlices(box: Size): Point|undefined {
+    pointForBoxInSlices(box: Size, slices: Array<Slice>): Point|undefined {
         if (this.trace)
             console.log("======================== WordWrap.pointForBoxInSlices ========================")
-
-        let slices = new Array<Slice>()
         
         let point = new Point(this.bounds.origin)
         while (true) {

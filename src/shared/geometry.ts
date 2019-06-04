@@ -376,7 +376,7 @@ function liang_barsky_clipper(
 
 export function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boolean
 {
-    console.log("lineCrossesLine")
+    // console.log("lineCrossesLine")
 
     let ax = lineA[1].x - lineA[0].x,
         ay = lineA[1].y - lineA[0].y,
@@ -398,7 +398,7 @@ export function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boole
     if (a<=0.0 || a>=1.0 || b<=0.0 || b>=1.0)
         return false
   
-    console.log("=> TRUE", a, b)
+    // console.log("=> TRUE", a, b)
 
     return true
 }

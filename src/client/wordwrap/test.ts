@@ -44,18 +44,13 @@ class BoxSource implements WordSource {
             return undefined
         --this.remaining
         this.box = new Size(this.style ? 40 : 20, 20)
+        this.style = !this.style
         return this.box
     }
 
     placeBox(origin: Point): void {
         let rectangle = new Rectangle(origin, this.box!)
         this.rectangles.push(rectangle)
-        let path = new Path()
-        path.appendRect(rectangle)
-        path.setAttributes({stroke: this.style ? "#f00" : "#f80", fill: "none"})
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
-        this.style = !this.style
     }
 }
 
@@ -207,7 +202,7 @@ const wordWrapTest: WordWrapTest[] = [
 },*/ { 
     title: "pointForBoxInSlices: place 1st box in two stripes",
     strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
-        return wordwrap.pointForBoxInSlices(box)
+        return wordwrap.pointForBoxInSlices(box, new Array<Slice>())
     }
 }, {
     title: "bottom is below slice",
@@ -428,44 +423,107 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  10, y: 180},
     ],
     box: { origin: { x: 74.91228070175438, y: 76.14035087719299 }, size: { width: 80, height: 40 } }
-}]
-
+} /*, { 
+    title: "pointForBoxInSlices: place 1st box in two stripes",
+    strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
+        let source = new BoxSource()
+        // return wordwrap.pointForBoxInSlices(box)
+    }
+}, {
+    title: "bottom is below slice",
+    // only: true,
+    // trace: true,
+    polygon: [
+        {x: 110, y:  20},
+        {x: 300, y: 100},
+        {x: 300, y: 170},
+        {x:  10, y: 170},
+        {x: 120, y:  80},
+    ],
+    box: { origin: { x: 120, y: 57.89473684210527 }, size: { width: 80, height: 40 } }
+}*/]
 
 export function testWrap() {
     document.body.innerHTML=""
-    let only = isAtLeastOneTestIsMarkedAsOnly(wordWrapTest)
-    let strategy: Placer|undefined
 
-    for(let test of wordWrapTest) {
-        if (test.strategy)
-            strategy = test.strategy
-        if (only && !test.only) {
-            continue
-        }
-        if (test.polygon) {
-            let path = new Path()
-            for(let point of test.polygon) {
-                if (path.empty())
-                    path.move(point)
-                else
-                    path.line(point)
-            }
-            path.close()
-            new WordWrapTestRunner(test.title, path, test.box!, test.trace == true, strategy!)
-        } else {
-            if (test.title !== "") {
-                let heading = document.createElement("h1")
-                heading.appendChild(document.createTextNode(test.title))
-                document.body.appendChild(heading)
-            } else {
-                document.body.appendChild(document.createElement("br"))
-            }
-        }
+    let boxes = new BoxSource()
+    let path = new Path()
+    // bug
+    // path.move(110, 20)
+    // path.line(310, 100)
+    // path.line(280, 190)
+    // path.line(20, 100)
+    // path.line(40,190)
+    // path.line(10, 80)
+    // path.close()
+    path.move(110, 20)
+    path.line(310, 100)
+    path.line(280, 190)
+    path.line(100, 100)
+    path.line(40,190)
+    path.line(10, 80)
+    path.close()
+    let wrap = new WordWrap(path, boxes, false)
+
+    let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+    svg.style.border = "1px solid #ddd"
+    svg.setAttributeNS("", "width", "320")
+    svg.setAttributeNS("", "height", "200")
+    svg.setAttributeNS("", "viewBox", "0 0 320 200")
+
+    path.setAttributes({stroke: "#000", fill: "none"})
+    path.updateSVG()
+    svg.appendChild(path.svg)
+
+    console.log("got "+boxes.rectangles.length+" boxes")
+    for(let r of boxes.rectangles) {
+        let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        rect.setAttributeNS("", "stroke", "#f00")
+        rect.setAttributeNS("", "fill", "none")
+        rect.setAttributeNS("", "x", String(r.origin.x))
+        rect.setAttributeNS("", "width", String(r.size.width))
+        rect.setAttributeNS("", "y", String(r.origin.y))
+        rect.setAttributeNS("", "height", String(r.size.height))
+        svg.appendChild(rect)
     }
+
+    document.body.appendChild(svg)
+
+    return 0
+
+    // let only = isAtLeastOneTestIsMarkedAsOnly(wordWrapTest)
+    // let strategy: Placer|undefined
+
+    // for(let test of wordWrapTest) {
+    //     if (test.strategy)
+    //         strategy = test.strategy
+    //     if (only && !test.only) {
+    //         continue
+    //     }
+    //     if (test.polygon) {
+    //         let path = new Path()
+    //         for(let point of test.polygon) {
+    //             if (path.empty())
+    //                 path.move(point)
+    //             else
+    //                 path.line(point)
+    //         }
+    //         path.close()
+    //         new WordWrapTestRunner(test.title, path, test.box!, test.trace == true, strategy!)
+    //     } else {
+    //         if (test.title !== "") {
+    //             let heading = document.createElement("h1")
+    //             heading.appendChild(document.createTextNode(test.title))
+    //             document.body.appendChild(heading)
+    //         } else {
+    //             document.body.appendChild(document.createElement("br"))
+    //         }
+    //     }
+    // }
     
-    let debug = document.createElement("pre")
-    debug.id = "debug"
-    document.body.appendChild(debug)
+    // let debug = document.createElement("pre")
+    // debug.id = "debug"
+    // document.body.appendChild(debug)
 }
 
 function isAtLeastOneTestIsMarkedAsOnly(wordWrapTest: WordWrapTest[]): boolean {
