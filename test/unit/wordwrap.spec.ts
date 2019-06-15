@@ -789,15 +789,19 @@ describe("wordwrap", function() {
                 console.log("    left")
                 for(let event of slice.left) {
                     console.log("      ", event.p)
+                    if (pointEqualsPoint(event.p[0], event.p[1]))
+                        console.log("        EVENT IS A POINT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 }
                 console.log("    right")
                 for(let event of slice.right) {
                     console.log("      ", event.p)
+                    if (pointEqualsPoint(event.p[0], event.p[1]))
+                        console.log("        EVENT IS A POINT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 }
             }
         }
 
-        it.only("test002", ()=> {
+        it.only("extendSlices is able to crawl down", ()=> {
             let path = new Path()
             path.move(110, 20)
             path.line(310, 100)
@@ -819,7 +823,29 @@ describe("wordwrap", function() {
 
             printSlices(slices)
 
-            // expect(slices.length).to.equal(2)
+            expect(slices.length).to.equal(2)
+
+            expect(slices[0].left.length).to.equal(2)
+            expect(pointEqualsPoint(slices[0].left[0].p[0], new Point(10,  80))).to.be.true
+            expect(pointEqualsPoint(slices[0].left[0].p[1], new Point(15.454545454545453, 100))).to.be.true
+            expect(pointEqualsPoint(slices[0].left[1].p[0], new Point(15.454545454545453, 100))).to.be.true
+            expect(pointEqualsPoint(slices[0].left[1].p[1], new Point(40, 190))).to.be.true
+            expect(slices[0].right.length).to.equal(2)
+            expect(pointEqualsPoint(slices[0].right[0].p[0], new Point(260, 80))).to.be.true
+            expect(pointEqualsPoint(slices[0].right[0].p[1], new Point(310,100))).to.be.true
+            expect(pointEqualsPoint(slices[0].right[1].p[0], new Point(100,100))).to.be.true
+            expect(pointEqualsPoint(slices[0].right[1].p[1], new Point( 40,190))).to.be.true
+
+            expect(slices[0].left.length).to.equal(2)
+            expect(pointEqualsPoint(slices[1].left[0].p[0], new Point(10,  80))).to.be.true
+            expect(pointEqualsPoint(slices[1].left[0].p[1], new Point(15.454545454545453, 100))).to.be.true
+            expect(pointEqualsPoint(slices[1].left[1].p[0], new Point(100, 100))).to.be.true
+            expect(pointEqualsPoint(slices[1].left[1].p[1], new Point(280, 190))).to.be.true
+            expect(slices[0].right.length).to.equal(2)
+            expect(pointEqualsPoint(slices[1].right[0].p[0], new Point(260, 80))).to.be.true
+            expect(pointEqualsPoint(slices[1].right[0].p[1], new Point(310,100))).to.be.true
+            expect(pointEqualsPoint(slices[1].right[1].p[0], new Point(310,100))).to.be.true
+            expect(pointEqualsPoint(slices[1].right[1].p[1], new Point(280,190))).to.be.true
         })
     })
 

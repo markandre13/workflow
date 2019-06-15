@@ -154,12 +154,16 @@ function printSlices(slices: Array<Slice>) {
         for(let event of slice.left) {
             console.log("            ", event.p[0])
             console.log("            ", event.p[1])
+            if (pointEqualsPoint(event.p[0], event.p[1]))
+                console.log("            EVENT IS A SINGULARITY *********************************************************")
         }
         console.log("        ]")
         console.log("        right = [")
         for(let event of slice.right) {
             console.log("            ", event.p[0])
             console.log("            ", event.p[1])
+            if (pointEqualsPoint(event.p[0], event.p[1]))
+                console.log("            EVENT IS A SINGULARITY *********************************************************")
         }
         console.log("        ]")
         console.log("    }")
@@ -755,8 +759,13 @@ export class WordWrap {
                 console.log("fetch from sweep y=["+segment.p[0].y+" - "+segment.p[1].y+"]")
 
             // try to use sweep event as continuation of a existing slice
-            if (this.appendEventToSlices(slices, segment))
+            if (this.appendEventToSlices(slices, segment)) {
+                console.log("after appendEventToSlices")
+                printSlices(slices)
                 continue
+            }
+            console.log("after appendEventToSlices")
+            printSlices(slices)
             
             // sweep event does not continuate an existing slice, insert a new one
             if (this.trace)
@@ -765,12 +774,23 @@ export class WordWrap {
                             "  "+
                             segment.p[1].x+", "+segment.p[1].y)
             this.appendEventAsNewSlice(slices, segment, this.trace)
+            console.log("after appendEventAsNewSlice")
+            printSlices(slices)
         }
+        console.log("done [0]")
+        printSlices(slices)
 
         this.levelSlicesHorizontally(slices)
+        console.log("done [1]")
+        printSlices(slices)
+
         this.mergeAndDropSlices(cursor, box, slices)
+        console.log("done [2]")
+        printSlices(slices)
 
         this.dropEventsInSlices(cursor, box, slices)
+        console.log("done [3]")
+        printSlices(slices)
     }
 
     appendEventToSlices(slices: Array<Slice>, segment: SweepEvent): Boolean {
@@ -858,6 +878,12 @@ export class WordWrap {
                     newSlice.right.push(new SweepEvent(slices[sliceIndex].right[i]))
                 }
                 newSlice.right[slices[sliceIndex].right.length-1].p[1] = intersectionsRight[0].seg0.pt
+                if (pointEqualsPoint(newSlice.right[slices[sliceIndex].right.length-1].p[0],
+                                     newSlice.right[slices[sliceIndex].right.length-1].p[1]))
+                {
+                    newSlice.right.pop()
+                    // throw Error("singularity")
+                }
                 newSlice.right.push(segment)
                 
                 // the old slice's left get's the next segment from the sweep buffer
@@ -870,6 +896,12 @@ export class WordWrap {
                     slices[sliceIndex].left.push(new SweepEvent(newSlice.left[i]))
                 }
                 slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1] = intersectionsLeft[0].seg0.pt
+                if (pointEqualsPoint(slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[0],
+                                     slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1]) )
+                {
+                    slices[sliceIndex].left.pop()
+                    // throw Error("singularity")
+                }
                 slices[sliceIndex].left.push(this.sweepBuffer.shift())
                 
                 // insert the new slice
@@ -906,17 +938,19 @@ export class WordWrap {
                         console.log("split left event")
                     // split left event
                     let pt = _intersectLineLine(
-                        slice.left[index].p,
                         [ new Point( this.bounds.origin.x - 10, slice.right[index].p[1].y),
-                          new Point( this.bounds.origin.x + this.bounds.size.width + 10, slice.right[index].p[1].y) ])
+                          new Point( this.bounds.origin.x + this.bounds.size.width + 10, slice.right[index].p[1].y) ],
+                        slice.left[index].p)
                     if (pt === undefined) {
                         console.log(slice.right[index].p[1].y)
                         console.log( slice.left[index].p )
                         throw Error("fuck")
                     }
-                    let event = new SweepEvent(slice.left[index].p[0], pt)
-                    slice.left[index].p[0] = pt
-                    slice.left.splice(index, 0, event)
+                    if (!pointEqualsPoint(slice.left[index].p[0], pt)) {
+                        let event = new SweepEvent(slice.left[index].p[0], pt)
+                        slice.left[index].p[0] = pt
+                        slice.left.splice(index, 0, event)
+                    }
                 } else
                 if ( slice.left[index].p[1].y < slice.right[index].p[1].y ) {
                     if (this.trace)
@@ -931,9 +965,11 @@ export class WordWrap {
                         console.log(slice.left[index].p[1].y)
                         throw Error("failed to split right event on left event")
                     }
-                    let event = new SweepEvent(slice.right[index].p[0], pt)
-                    slice.right[index].p[0] = pt
-                    slice.right.splice(index, 0, event)
+                    if (!pointEqualsPoint(slice.right[index].p[0], pt)) {
+                        let event = new SweepEvent(slice.right[index].p[0], pt)
+                        slice.right[index].p[0] = pt
+                        slice.right.splice(index, 0, event)
+                    }
                 }
             }
         }
