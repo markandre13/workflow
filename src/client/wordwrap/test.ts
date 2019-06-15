@@ -446,7 +446,7 @@ const wordWrapTest: WordWrapTest[] = [
 export function testWrap() {
     document.body.innerHTML=""
 
-    let boxes = new BoxSource()
+    let boxes = new BoxSource(15)
     let path = new Path()
     // bug
     // path.move(110, 20)

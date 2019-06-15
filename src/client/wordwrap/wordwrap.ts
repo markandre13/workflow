@@ -145,6 +145,28 @@ export class Slice {
     }
 }
 
+// FIXME: make Array<Slice> a class with print function
+function printSlices(slices: Array<Slice>) {
+    console.log("slices = [")
+    for(let slice of slices) {
+        console.log("    Slice {")
+        console.log("        left = [")
+        for(let event of slice.left) {
+            console.log("            ", event.p[0])
+            console.log("            ", event.p[1])
+        }
+        console.log("        ]")
+        console.log("        right = [")
+        for(let event of slice.right) {
+            console.log("            ", event.p[0])
+            console.log("            ", event.p[1])
+        }
+        console.log("        ]")
+        console.log("    }")
+    }
+    console.log("]")
+}
+
 // the events within a slice which surround a space available for a word to be placed
 export class CornerEvents {
     topLeftEvent = -1
@@ -360,7 +382,7 @@ export class WordWrap {
         let slices = new Array<Slice>()
         // let cursor = new Point(this.bounds.origin.x - 10, this.bounds.origin.y - 10)
         let horizontalSpace = 0
-        let lineHeight = 20
+        let lineHeight = 20 // FIXME: shouldn't be fixed
         
         let box = wordsource.pullBox()
         if (box === undefined) {
@@ -378,30 +400,32 @@ export class WordWrap {
         let cornerEvents = this.findCornersAtCursorForBoxAtSlice(cursor, box, slices[sliceIndex])
 
         let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
-
-        
         horizontalSpace = right - left
 
-        cursor.x = box.width
+        cursor.x += box.width
         horizontalSpace -= box.width
 
         box = wordsource.pullBox()
         while (box) {
+            console.log(".................next box")
             let point: Point
             if (horizontalSpace >= box.width) {
+                console.log("next to it")
                 point = new Point(cursor)
                 cursor.x += box.width
                 horizontalSpace -= box.width
             } else {
-                this.reduceSlices(cursor, box, slices)
+                this.mergeAndDropSlices(cursor, box, slices)
                 this.extendSlices(cursor, box, slices)
+                this.levelSlicesHorizontally(slices)
                 //    if (slices.length===0) {
                 //      break
                 //    }
                 let [sliceIndex, cornerEvents] = this.findSpaceAtCursorForBox(cursor, box, slices)
+                console.log("findSpaceAtCursorForBox found next slice ", sliceIndex)
                 if (sliceIndex !== -1) {
                     if (sliceIndex === 0) // FIXME: test case for this, sliceIndex === 0 should indicate an earlier line break
-                        cursor.y += lineHeight as number
+                        cursor.y += lineHeight
                     let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
                     point = new Point(left, cursor.y)
                     horizontalSpace = right - left
@@ -409,9 +433,10 @@ export class WordWrap {
                     horizontalSpace -= box.width
                 } else {
                     cursor.x = this.bounds.origin.x - 10
-                    cursor.y += lineHeight as number
-                    this.reduceSlices(cursor, box, slices)
+                    cursor.y += lineHeight
+                    this.mergeAndDropSlices(cursor, box, slices)
                     this.extendSlices(cursor, box, slices)
+                    this.levelSlicesHorizontally(slices)
                     if (slices.length === 0) {
                         break
                     }
@@ -425,6 +450,8 @@ export class WordWrap {
                 if (horizontalSpace < 0)
                     continue
             }
+            console.log("--> place box at", point)
+            console.log("cursor is at ", cursor)
             wordsource.placeBox(point)
             box = wordsource.pullBox()
         }
@@ -439,7 +466,7 @@ export class WordWrap {
 
             this.extendSlices(point, box, slices)
             this.levelSlicesHorizontally(slices)
-            this.reduceSlices(point, box, slices)
+            this.mergeAndDropSlices(point, box, slices)
 
             if (slices.length === 0)
                 break
@@ -478,7 +505,7 @@ export class WordWrap {
 
                         possiblePoint = this.pointForBoxAtEdge(box, slice.left[leftIndex], slice.right[rightIndex])
                         if (possiblePoint !== undefined) {
-                            this.reduceSlices(possiblePoint, box, slices)
+                            this.mergeAndDropSlices(possiblePoint, box, slices)
                             this.extendSlices(possiblePoint, box, slices)
                             this.levelSlicesHorizontally(slices)
                             rect.origin = possiblePoint
@@ -652,7 +679,9 @@ export class WordWrap {
     }
     
     findSpaceAtCursorForBox(cursor: Point, box: Size, slices: Array<Slice>): [number, CornerEvents] {
-    
+        console.log("findSpaceAtCursorForBox")
+        console.log(cursor)
+        console.log(slices)
         let horizontalTopLine    = [ new Point(this.bounds.origin.x-10, cursor.y),
                                      new Point(this.bounds.origin.x+this.bounds.size.width+10, cursor.y) ],
             horizontalBottomLine = [ new Point(this.bounds.origin.x-10, cursor.y+box.height),
@@ -673,6 +702,7 @@ export class WordWrap {
                 if (intersections.length !== 1)
                     throw Error("fuck")
                 if (cursor.x < intersections[0].seg0.pt.x) {
+                    console.log("findSpaceAtCursorForBox => found 1", [index, cornerEvents])
                     return [index, cornerEvents]
                 }
             } else {
@@ -680,11 +710,13 @@ export class WordWrap {
                 if (intersections.length !== 1)
                     throw Error("fuck")
                 if (cursor.x < intersections[0].seg0.pt.x) {
+                    console.log("findSpaceAtCursorForBox => found 2", [index, cornerEvents])
                     return [index, cornerEvents]
                 }
             }
 
         }
+        console.log("findSpaceAtCursorForBox => found nothing")
         return [-1, new CornerEvents()]
     }
 
@@ -697,126 +729,165 @@ export class WordWrap {
         let top = cursor.y
         let bottom = cursor.y + box.height
         if (this.trace) {
-            console.log("  segment y=["+top+" - "+bottom+"]")
+            console.log("  extend slices to cover y=["+top+" - "+bottom+"]")
+            console.log("  sweepBuffer has "+this.sweepBuffer.length+" entries")
         }
-        while( this.sweepBuffer.length > 0 &&
-               ( (top <= this.sweepBuffer.at(0).p[0].y && this.sweepBuffer.at(0).p[0].y <= bottom) ||
-                 (top <= this.sweepBuffer.at(0).p[1].y && this.sweepBuffer.at(0).p[1].y <= bottom) ) )
+
+        // for all sweep buffer elements within [top - bottom]
+        while( !this.sweepBuffer.empty() &&
+                this.sweepBuffer.at(0).p[0].y <= bottom )
+            //    ( (top <= this.sweepBuffer.at(0).p[0].y && this.sweepBuffer.at(0).p[0].y <= bottom) ||
+            //      (top <= this.sweepBuffer.at(0).p[1].y && this.sweepBuffer.at(0).p[1].y <= bottom) ) )
         {
+            console.log("--- looping ---")
+            console.log("before leveling")
+            printSlices(slices)
+            this.levelSlicesHorizontally(slices)
+            console.log("after leveling & before reducing")
+            printSlices(slices)
+            this.mergeAndDropSlices(cursor, box, slices)
+            console.log("after reducing")
+            printSlices(slices)
+
+            // get next sweep event
             let segment: SweepEvent | undefined = this.sweepBuffer.shift()
             if (this.trace)
                 console.log("fetch from sweep y=["+segment.p[0].y+" - "+segment.p[1].y+"]")
-            for(let slice of slices) {
-                if ( pointEqualsPoint(slice.left[slice.left.length-1].p[1], segment.p[0]) ) {
-                    if(this.trace)
-                        console.log("extend slice on the left")
-                    slice.left.push(segment)
-                    segment = undefined
-                    break
-                } else
-                if ( pointEqualsPoint(slice.right[slice.right.length-1].p[1], segment.p[0]) ) {
-                    if (this.trace)
-                        console.log("extend slice on the right")
-                    slice.right.push(segment)
-                    segment = undefined
-                    break
-                }
-            }
-            if (segment === undefined) {
+
+            // try to use sweep event as continuation of a existing slice
+            if (this.appendEventToSlices(slices, segment))
                 continue
-            }
             
+            // sweep event does not continuate an existing slice, insert a new one
             if (this.trace)
                 console.log("going to create a new slice because of segment "+
                             segment.p[0].x+", "+segment.p[0].y+
                             "  "+
                             segment.p[1].x+", "+segment.p[1].y)
-            let top = segment.p[0].y,
-                line = [ new Point(this.bounds.origin.x-10, top),
-                         new Point(this.bounds.origin.x+this.bounds.size.width+10, top) ],
-                intersectionsLeft = new Array<Intersection>(),
-                intersectionsRight = new Array<Intersection>()
-            let appendAtEnd = true
-            for(let index = 0; index < slices.length; ++index) {
-                intersectionsLeft.length = intersectionsRight.length = 0
+            this.appendEventAsNewSlice(slices, segment, this.trace)
+        }
+
+        this.levelSlicesHorizontally(slices)
+        this.mergeAndDropSlices(cursor, box, slices)
+
+        this.dropEventsInSlices(cursor, box, slices)
+    }
+
+    appendEventToSlices(slices: Array<Slice>, segment: SweepEvent): Boolean {
+        for(let slice of slices) {
+            if (slice.left.length==0) {
+                console.log("Upsi, left slice is empty")
+            }
+            if (slice.right.length==0)
+                console.log("Upsi, right slice is empty")
+            if ( pointEqualsPoint(slice.left[slice.left.length-1].p[1], segment.p[0]) ) {
+                if(this.trace)
+                    console.log("extend slice on the left")
+                slice.left.push(segment)
+                return true
+            } else
+            if ( pointEqualsPoint(slice.right[slice.right.length-1].p[1], segment.p[0]) ) {
                 if (this.trace)
-                    console.log("check for intersections with the slice's left")
-                for(let j=0; j<slices[index].left.length; ++j) {
-                    if (slices[index].left[j].p[0].y <= top && top <= slices[index].left[j].p[1].y) {
-                        intersectLineLine(intersectionsLeft, line, slices[index].left[j].p)
-                    }
-                }
-                if (intersectionsLeft.length !== 1)
-                    throw Error("fuck")
-                    
-                if (segment.p[0].x < intersectionsLeft[0].seg0.pt.x) {
-                    if (this.trace)
-                        console.log("new segment is outside the slide on the left")
-                    let newSlice = new Slice()
-                    newSlice.left.push(segment)
-                    if (this.sweepBuffer.length===0)
-                        throw Error("fuck")
-                    newSlice.right.push(this.sweepBuffer.shift())
-                    slices.splice(index, 0, newSlice)
-                    appendAtEnd = false
-                    break
-                }
-                    
-                if (this.trace)
-                    console.log("check for intersections with the slice's right")
-                for(let j=0; j<slices[index].right.length; ++j) {
-                    if (slices[index].right[j].p[0].y <= top && top <= slices[index].right[j].p[1].y) {
-                        intersectLineLine(intersectionsRight, line, slices[index].right[j].p)
-                    }
-                }
-                if (intersectionsRight.length !== 1)
-                    throw Error("fuck")
-                    
-                if (segment.p[0].x < intersectionsRight[0].seg0.pt.x) {
-                    if (this.trace)
-                        console.log("new segment is inside the slice")
-                    let newSlice = new Slice()
-                    let emptySegmentArray = newSlice.left
-                    
-                    // the new slice's left becomes the old slice's left
-                    newSlice.left = slices[index].left
-                    // the new segment becomes the new slice's right HERE WE NEED TO EXTEND SHIT
-                    
-                    // COPY FROM THE OLD SLICE'S RIGHT DOWN TO TOP OF SEGMENT
-                    for(let i=0; i<slices[index].right.length; ++i) {
-                        newSlice.right.push(new SweepEvent(slices[index].right[i]))
-                    }
-                    newSlice.right[slices[index].right.length-1].p[1] = intersectionsRight[0].seg0.pt
-                    newSlice.right.push(segment)
-                    
-                    // the old slice's left get's the next segment from the sweep buffer
-                    slices[index].left = emptySegmentArray
-                    if (this.sweepBuffer.length===0)
-                        throw Error("fuck")
-                    // COPY FROM THE OLD SLICE'S LEFT DOWN TO TOP OF SEGMENT
-                    for(let i=0; i<newSlice.left.length; ++i) {
-                        slices[index].left.push(new SweepEvent(newSlice.left[i]))
-                    }
-                    slices[index].left[slices[index].left.length-1].p[1] = intersectionsLeft[0].seg0.pt
-                    slices[index].left.push(this.sweepBuffer.shift())
-                    
-                    // insert the new slice
-                    slices.splice(index, 0, newSlice)
-                    appendAtEnd = false
-                    
-                    break
+                    console.log("extend slice on the right")
+                slice.right.push(segment)
+                return true
+            }
+        }
+        return false
+    }
+
+    appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent, trace = false) {
+        let top = segment.p[0].y,
+            line = [ new Point(this.bounds.origin.x-10, top),
+                     new Point(this.bounds.origin.x + this.bounds.size.width+10, top) ],
+            intersectionsLeft = new Array<Intersection>(),
+            intersectionsRight = new Array<Intersection>()
+        let appendNewSliceAtRight = true
+        for(let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
+            intersectionsLeft.length = intersectionsRight.length = 0
+
+            // check for intersections with the slice's left side
+            if (trace)
+                console.log("check for intersections with the slice's left")
+            for(let j=0; j<slices[sliceIndex].left.length; ++j) {
+                if (slices[sliceIndex].left[j].p[0].y <= top && top <= slices[sliceIndex].left[j].p[1].y) {
+                    intersectLineLine(intersectionsLeft, line, slices[sliceIndex].left[j].p)
                 }
             }
-            if (appendAtEnd) {
-                if (this.trace)
-                    console.log("new segment is outside the slide on the right")
+            // if (intersectionsLeft.length !== 1)
+            //     throw Error("fuck") // FIXME: why an exception?
+            
+            // if new sweep event is left of the slice's left, create a new slice left of the slice
+            if (segment.p[0].x < intersectionsLeft[0].seg0.pt.x) {
+                if (trace)
+                    console.log("new segment is outside the slide on the left")
                 let newSlice = new Slice()
                 newSlice.left.push(segment)
                 if (this.sweepBuffer.length===0)
                     throw Error("fuck")
                 newSlice.right.push(this.sweepBuffer.shift())
-                slices.push(newSlice)
+                slices.splice(sliceIndex, 0, newSlice)
+                appendNewSliceAtRight = false
+                break
             }
+                
+            // check for intersections with the slice's right side
+            if (this.trace)
+                console.log("check for intersections with the slice's right")
+            for(let j=0; j<slices[sliceIndex].right.length; ++j) {
+                if (slices[sliceIndex].right[j].p[0].y <= top && top <= slices[sliceIndex].right[j].p[1].y) {
+                    intersectLineLine(intersectionsRight, line, slices[sliceIndex].right[j].p)
+                }
+            }
+            // if (intersectionsRight.length !== 1)
+            //     throw Error("fuck") // FIXME: why an exception?
+            
+            // if new sweep event is left of the slice's right, split the slice into two slices
+            if (segment.p[0].x < intersectionsRight[0].seg0.pt.x) {
+                if (this.trace)
+                    console.log("new segment is inside the slice")
+                let newSlice = new Slice()
+                let emptySegmentArray = newSlice.left
+                
+                // the new slice's left becomes the old slice's left
+                newSlice.left = slices[sliceIndex].left
+                // the new segment becomes the new slice's right HERE WE NEED TO EXTEND SHIT
+                
+                // COPY FROM THE OLD SLICE'S RIGHT DOWN TO TOP OF SEGMENT
+                for(let i=0; i<slices[sliceIndex].right.length; ++i) {
+                    newSlice.right.push(new SweepEvent(slices[sliceIndex].right[i]))
+                }
+                newSlice.right[slices[sliceIndex].right.length-1].p[1] = intersectionsRight[0].seg0.pt
+                newSlice.right.push(segment)
+                
+                // the old slice's left get's the next segment from the sweep buffer
+                slices[sliceIndex].left = emptySegmentArray
+                if (this.sweepBuffer.length===0)
+                    throw Error("fuck")
+                    
+                // COPY FROM THE OLD SLICE'S LEFT DOWN TO TOP OF SEGMENT
+                for(let i=0; i<newSlice.left.length; ++i) {
+                    slices[sliceIndex].left.push(new SweepEvent(newSlice.left[i]))
+                }
+                slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1] = intersectionsLeft[0].seg0.pt
+                slices[sliceIndex].left.push(this.sweepBuffer.shift())
+                
+                // insert the new slice
+                slices.splice(sliceIndex, 0, newSlice)
+                appendNewSliceAtRight = false
+                
+                break
+            }
+        }
+        if (appendNewSliceAtRight) {
+            if (this.trace)
+                console.log("new segment is outside the slide on the right")
+            let newSlice = new Slice()
+            newSlice.left.push(segment)
+            if (this.sweepBuffer.length===0)
+                throw Error("fuck")
+            newSlice.right.push(this.sweepBuffer.shift())
+            slices.push(newSlice)
         }
     }
     
@@ -867,8 +938,9 @@ export class WordWrap {
             }
         }
     }
-    
-    reduceSlices(cursor: Point, box: Size, slices: Array<Slice>) {
+
+    dropEventsInSlices(cursor: Point, box: Size, slices: Array<Slice>) {
+        // drop events
         for(let slice of slices) {
             while(slice.left.length>0 && slice.left[0].p[1].y < cursor.y) {
                 slice.left.shift()
@@ -877,7 +949,10 @@ export class WordWrap {
                 slice.right.shift()
             }
         }
-
+    }
+    
+    mergeAndDropSlices(cursor: Point, box: Size, slices: Array<Slice>) {
+        // drop and merge slices
         for(let index=0; index<slices.length;) {
             if ( slices[index].left.length === 0 && slices[index].right.length === 0 ) {
                 // drop empty slice

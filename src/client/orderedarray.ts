@@ -68,4 +68,8 @@ export class OrderedArray<T> {
     set length(a) {
         this.array.length = a
     }
+
+    empty() {
+        return this.array.length === 0
+    }
 }

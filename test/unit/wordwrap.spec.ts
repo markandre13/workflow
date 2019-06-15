@@ -85,36 +85,38 @@ describe("wordwrap", function() {
         document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480">`
     })
     
-    describe("pointForBoxInCorner" , function() {
-        it("cornerOpensLeftAndRight", function() {
-            let path = new Path()
-            path.setAttributes({stroke: "#000", fill: "none"})
-            path.move( 20, 100)
-            path.line(200,  40)
-            path.line(380, 100)
-            path.close()
-            path.updateSVG()
-            document.getElementById("svg")!.appendChild(path.svg)
+
+    // FIXME: that function is gone/renamed, hence this test is disabled
+    // describe("pointForBoxInCorner" , function() {
+    //     it("cornerOpensLeftAndRight", function() {
+    //         let path = new Path()
+    //         path.setAttributes({stroke: "#000", fill: "none"})
+    //         path.move( 20, 100)
+    //         path.line(200,  40)
+    //         path.line(380, 100)
+    //         path.close()
+    //         path.updateSVG()
+    //         document.getElementById("svg")!.appendChild(path.svg)
         
-            let wordwrap = new WordWrap(path)
+    //         let wordwrap = new WordWrap(path)
         
-            let e0 = wordwrap.sweepBuffer.shift()
-            let e1 = wordwrap.sweepBuffer.shift()
+    //         let e0 = wordwrap.sweepBuffer.shift()
+    //         let e1 = wordwrap.sweepBuffer.shift()
         
-            let box = new Size(80, 20)
-            let pt = wordwrap.pointForBoxInCorner(box, e0, e1)
+    //         let box = new Size(80, 20)
+    //         let pt = wordwrap.pointForBoxInCorner(box, e0, e1)
             
-            expect(pt).not.to.be.undefined
-            expect(pointEqualsPoint(pt!, new Point(160, 53.33333333333333))).to.be.true
+    //         expect(pt).not.to.be.undefined
+    //         expect(pointEqualsPoint(pt!, new Point(160, 53.33333333333333))).to.be.true
             
-            path = new Path()
-            let rectangle = new Rectangle(pt!, box)
-            path.appendRect(rectangle)
-            path.setAttributes({stroke: "#f80", fill: "none"})
-            path.updateSVG()
-            document.getElementById("svg")!.appendChild(path.svg)
-        })
-    })
+    //         path = new Path()
+    //         let rectangle = new Rectangle(pt!, box)
+    //         path.appendRect(rectangle)
+    //         path.setAttributes({stroke: "#f80", fill: "none"})
+    //         path.updateSVG()
+    //         document.getElementById("svg")!.appendChild(path.svg)
+    //     })
+    // })
 
     it("rectangle", function() {
         let path = new Path()
@@ -452,7 +454,8 @@ describe("wordwrap", function() {
             expect(slices[0].right[2].p[1]).to.eql(dot[5])
 
             // When reducing were no reducing is possible
-            wordwrap.reduceSlices(cursor, box, slices)
+            wordwrap.mergeAndDropSlices(cursor, box, slices)
+            wordwrap.dropEventsInSlices(cursor, box, slices)
             
             // Then nothing should have changed
             expect(slices.length).to.equal(1)
@@ -738,7 +741,7 @@ describe("wordwrap", function() {
             expect(lineCrossesRect2(line, rectangle)).to.be.true
         })
 
-        it.only("test002", ()=> {
+        it("test002", ()=> {
             let rectangle = new Rectangle(168.42105263157896, 89.4736842105263, 80, 40)
             let line = [new Point(290, 20), new Point(10, 180)]
             expect(lineCrossesRect2(line, rectangle)).to.be.false
@@ -752,6 +755,71 @@ describe("wordwrap", function() {
 
             expect(lineCrossesLine(line0, line1)).to.be.true
             expect(lineCrossesLine(line1, line0)).to.be.true
+        })
+    })
+
+    describe("findSpaceAtCursorForBox()", ()=> {
+        // 
+        //  \           /
+        //   \  |      /
+        //    \ | /\  /
+        //     \/   \/
+        it("test001", ()=> {
+            let path = new Path()
+            let cursor = new Point(78,90)
+            let slices = new Array<Slice>()
+
+            let slice = new Slice()
+            slice.left.push( new SweepEvent(new Point(10,  80), new Point(40, 190)))
+            slice.right.push(new SweepEvent(new Point(100,100), new Point(40, 190)))
+            slices.push(slice)
+            slice.left.push( new SweepEvent(new Point(100,100), new Point(280,190)))
+            slice.right.push(new SweepEvent(new Point(310,100), new Point(280,190)))
+            slices.push(slice)
+
+            let wordwrap = new WordWrap(new Path())
+            let [sliceIndex, cornerEvents] = wordwrap.findSpaceAtCursorForBox(cursor, new Size(40,20), slices)
+            console.log(sliceIndex)
+        })
+
+        function printSlices(slices: Array<Slice>) {
+            console.log("Array<Slice>")
+            for(let slice of slices) {
+                console.log("  Slice")
+                console.log("    left")
+                for(let event of slice.left) {
+                    console.log("      ", event.p)
+                }
+                console.log("    right")
+                for(let event of slice.right) {
+                    console.log("      ", event.p)
+                }
+            }
+        }
+
+        it.only("test002", ()=> {
+            let path = new Path()
+            path.move(110, 20)
+            path.line(310, 100)
+            path.line(280, 190)
+            path.line(100, 100)
+            path.line(40,190)
+            path.line(10, 80)
+            path.close()
+
+            let wordwrap = new WordWrap(path)
+
+            let cursor = new Point(78,90)
+            let box = new Size(40, 20)
+
+            let slices = new Array<Slice>()
+
+            wordwrap.trace = true
+            wordwrap.extendSlices(cursor, box, slices)
+
+            printSlices(slices)
+
+            // expect(slices.length).to.equal(2)
         })
     })
 
