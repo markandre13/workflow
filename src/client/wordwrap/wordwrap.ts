@@ -654,51 +654,6 @@ export class WordWrap {
         return this.pointForBoxInCornerCore(box, left, right)
     }
     
-    findSpaceAtCursorForBox(cursor: Point, box: Size, slices: Array<Slice>): [number, CornerEvents] {
-        console.log("findSpaceAtCursorForBox")
-        let horizontalTopLine    = [ new Point(this.bounds.origin.x-10, cursor.y),
-                                     new Point(this.bounds.origin.x+this.bounds.size.width+10, cursor.y) ],
-            horizontalBottomLine = [ new Point(this.bounds.origin.x-10, cursor.y+box.height),
-                                     new Point(this.bounds.origin.x+this.bounds.size.width+10, cursor.y+box.height) ]
-
-        for(let sliceIndex=0; sliceIndex<slices.length; ++sliceIndex) { // FIXME: could be optimized by using the last index from findSpaceAtCursorFoxBox instead of 0
-            console.log("===== examine slice "+sliceIndex+" =====")
-            let cornerEvents = this.findCornersAtCursorForBoxAtSlice(cursor, box, slices[sliceIndex])
-            let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
-
-            console.log(left, right)
-
-            // check that the slice is the next one by being right of cursor.x
-
-            // let intersections = new Array<Intersection>()
-
-            // if (cornerEvents.topLeftEvent !== -1) {
-                // intersectLineLine(intersections, slices[index].left[cornerEvents.topLeftEvent].p, horizontalTopLine)
-                // if (intersections.length !== 1)
-                //     throw Error("fuck")
-                // console.log("  topLeftEvent intersection")
-                // console.log(slices[index].left[cornerEvents.topLeftEvent].p)
-                // console.log(intersections[0].seg0.pt)
-                // if (cursor.x < intersections[0].seg0.pt.x) {
-                //     console.log("findSpaceAtCursorForBox => found 1", [index, cornerEvents])
-                //     return [index, cornerEvents]
-                // }
-            // } else {
-            //     intersectLineLine(intersections, slices[index].left[cornerEvents.bottomLeftEvent].p, horizontalBottomLine)
-            //     if (intersections.length !== 1)
-            //         throw Error("fuck")
-            //     console.log("  bottomLeftEvent", intersections[0].seg0.pt)
-            //     if (cursor.x < intersections[0].seg0.pt.x) {
-            //         console.log("findSpaceAtCursorForBox => found 2", [index, cornerEvents])
-            //         return [index, cornerEvents]
-            //     }
-            // }
-
-        }
-        // console.log("findSpaceAtCursorForBox => found nothing")
-        return [-1, new CornerEvents()]
-    }
-
     // pull as much slices as are required for current line
     extendSlices(cursor: Point, box: Size, slices: Array<Slice>) {
         if (this.trace) {
@@ -715,8 +670,6 @@ export class WordWrap {
         // for all sweep buffer elements within [top - bottom]
         while( !this.sweepBuffer.empty() &&
                 this.sweepBuffer.at(0).p[0].y <= bottom )
-            //    ( (top <= this.sweepBuffer.at(0).p[0].y && this.sweepBuffer.at(0).p[0].y <= bottom) ||
-            //      (top <= this.sweepBuffer.at(0).p[1].y && this.sweepBuffer.at(0).p[1].y <= bottom) ) )
         {
             this.levelSlicesHorizontally(slices)
             this.mergeAndDropSlices(cursor, box, slices)
