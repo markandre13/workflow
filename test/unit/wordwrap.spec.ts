@@ -759,29 +759,6 @@ describe("wordwrap", function() {
     })
 
     describe("findSpaceAtCursorForBox()", ()=> {
-        // 
-        //  \           /
-        //   \  |      /
-        //    \ | /\  /
-        //     \/   \/
-        it("test001", ()=> {
-            let path = new Path()
-            let cursor = new Point(78,90)
-            let slices = new Array<Slice>()
-
-            let slice = new Slice()
-            slice.left.push( new SweepEvent(new Point(10,  80), new Point(40, 190)))
-            slice.right.push(new SweepEvent(new Point(100,100), new Point(40, 190)))
-            slices.push(slice)
-            slice.left.push( new SweepEvent(new Point(100,100), new Point(280,190)))
-            slice.right.push(new SweepEvent(new Point(310,100), new Point(280,190)))
-            slices.push(slice)
-
-            let wordwrap = new WordWrap(new Path())
-            let [sliceIndex, cornerEvents] = wordwrap.findSpaceAtCursorForBox(cursor, new Size(40,20), slices)
-            console.log(sliceIndex)
-        })
-
         function printSlices(slices: Array<Slice>) {
             console.log("Array<Slice>")
             for(let slice of slices) {
@@ -801,7 +778,8 @@ describe("wordwrap", function() {
             }
         }
 
-        it.only("extendSlices is able to crawl down", ()=> {
+        it("extendSlices() is able to crawl down", ()=> {
+            // Given
             let path = new Path()
             path.move(110, 20)
             path.line(310, 100)
@@ -812,17 +790,14 @@ describe("wordwrap", function() {
             path.close()
 
             let wordwrap = new WordWrap(path)
-
             let cursor = new Point(78,90)
             let box = new Size(40, 20)
-
             let slices = new Array<Slice>()
 
-            wordwrap.trace = true
+            // When
             wordwrap.extendSlices(cursor, box, slices)
 
-            printSlices(slices)
-
+            // Then
             expect(slices.length).to.equal(2)
 
             expect(slices[0].left.length).to.equal(2)
@@ -847,6 +822,38 @@ describe("wordwrap", function() {
             expect(pointEqualsPoint(slices[1].right[1].p[0], new Point(310,100))).to.be.true
             expect(pointEqualsPoint(slices[1].right[1].p[1], new Point(280,190))).to.be.true
         })
+
+        // 
+        //  \           /
+        //   \  |      /
+        //    \ | /\  /
+        //     \/   \/
+        it.only("findSpaceAtCursorForBox() is able to return the 2nd slice", ()=> {
+            // Given
+            let path = new Path()
+            path.move(110, 20)
+            path.line(310, 100)
+            path.line(280, 190)
+            path.line(100, 100)
+            path.line(40,190)
+            path.line(10, 80)
+            path.close()
+
+            let wordwrap = new WordWrap(path)
+            let cursor = new Point(78,90)
+            let box = new Size(40, 20)
+            let slices = new Array<Slice>()
+
+            wordwrap.extendSlices(cursor, box, slices)
+
+            printSlices(slices)
+            wordwrap.trace = true
+            
+            // When
+            let [sliceIndex, cornerEvents] = wordwrap.findSpaceAtCursorForBox(cursor, new Size(40,20), slices)
+            console.log(sliceIndex)
+        })
+
     })
 
 })

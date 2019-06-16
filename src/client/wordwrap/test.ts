@@ -202,7 +202,7 @@ const wordWrapTest: WordWrapTest[] = [
 },*/ { 
     title: "pointForBoxInSlices: place 1st box in two stripes",
     strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
-        return wordwrap.pointForBoxInSlices(box, new Array<Slice>())
+        return wordwrap.pointForBoxInSlices(box, new Array<Slice>())[1]
     }
 }, {
     title: "bottom is below slice",
@@ -446,7 +446,7 @@ const wordWrapTest: WordWrapTest[] = [
 export function testWrap() {
     document.body.innerHTML=""
 
-    let boxes = new BoxSource(15)
+    let boxes = new BoxSource()
     let path = new Path()
     // bug
     // path.move(110, 20)
