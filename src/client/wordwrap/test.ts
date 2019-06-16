@@ -445,6 +445,7 @@ const wordWrapTest: WordWrapTest[] = [
 , { 
     title: "placeWordBoxes()",
     strategy: (wordwrap: WordWrap, box: Size, svg: SVGElement): Point|undefined => {
+        wordwrap.trace = false
         let boxes = new BoxSource()
         wordwrap.placeWordBoxes(boxes)
 
@@ -485,7 +486,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 40, y:190},
         {x: 10, y: 80},
     ],
-    box: { origin: { x: -1, y: -1 }, size: { width: 20, height: 20 } }
+    box: { origin: { x: 258.2113821138212, y: 139.1056910569106  }, size: { width: 20, height: 20 } }
 }]
 
 export function testWrap() {

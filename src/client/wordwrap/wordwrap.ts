@@ -657,7 +657,7 @@ export class WordWrap {
     // pull as much slices as are required for current line
     extendSlices(cursor: Point, box: Size, slices: Array<Slice>) {
         if (this.trace) {
-            console.log("extendSlices")
+            console.log("============== extendSlices =======================")
             console.log("  this.sweepBuffer.length = " + this.sweepBuffer.length)
         }
         let top = cursor.y
@@ -893,15 +893,16 @@ export class WordWrap {
     }
     
     mergeAndDropSlices(cursor: Point, box: Size, slices: Array<Slice>) {
-        // drop and merge slices
         for(let index=0; index<slices.length;) {
-            if ( slices[index].left.length === 0 && slices[index].right.length === 0 ) {
+            if ( ( slices[index].left.length  === 0 || slices[index].left [slices[index].left .length-1].p[1].y < cursor.y ) &&
+                 ( slices[index].right.length === 0 || slices[index].right[slices[index].right.length-1].p[1].y < cursor.y ) )
+            {
                 // drop empty slice
                 slices.splice(index, 1)
             } else
             if ( slices.length>=2 &&
-                 slices[index  ].right.length === 0 &&
-                 slices[index+1].left.length === 0 )
+                 ( slices[index  ].right.length === 0 || slices[index  ].right[slices[index  ].right.length-1].p[1].y < cursor.y) &&
+                 ( slices[index+1].left .length === 0 || slices[index+1].left [slices[index+1].left .length-1].p[1].y < cursor.y) )
             {
                 // merge slices
                 slices[index].right = slices[index+1].right

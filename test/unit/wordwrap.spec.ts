@@ -822,6 +822,30 @@ describe("wordwrap", function() {
             expect(pointEqualsPoint(slices[1].right[1].p[0], new Point(310,100))).to.be.true
             expect(pointEqualsPoint(slices[1].right[1].p[1], new Point(280,190))).to.be.true
         })
+
+        it("extendSlices() joins neighbouring empty right and empty left", ()=> {
+            // Given
+            let path = new Path()
+            path.move( 20,  10)
+            path.line(190,  50)
+            path.line(310,  10)
+            path.line(280, 190)
+            path.line(100, 100)
+            path.line( 40, 190)
+            path.line( 10,  80)
+            path.close()
+
+            let wordwrap = new WordWrap(path)
+            let cursor = new Point(0,60)
+            let box = new Size(40, 20)
+            let slices = new Array<Slice>()
+
+            // When
+            wordwrap.extendSlices(cursor, box, slices)
+
+            // Then
+            expect(slices.length).to.equal(1)
+        })
         
     })
 
