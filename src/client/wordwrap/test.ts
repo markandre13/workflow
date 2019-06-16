@@ -202,7 +202,8 @@ const wordWrapTest: WordWrapTest[] = [
 },*/ { 
     title: "pointForBoxInSlices: place 1st box in two stripes",
     strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
-        return wordwrap.pointForBoxInSlices(box, new Array<Slice>())[1]
+        let [slice, point] = wordwrap.pointForBoxInSlices(box, new Array<Slice>())
+        return slice === -1 ? undefined : point
     }
 }, {
     title: "bottom is below slice",
@@ -218,8 +219,6 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 120, y: 57.89473684210527 }, size: { width: 80, height: 40 } }
 }, {
     title: "bottom is below slice with intersection",
-    only: false,
-    trace: false,
     polygon: [
         {x: 110, y:  20},
         {x: 300, y: 100},
@@ -231,8 +230,6 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "evaluate multiple slices to place box",
-    only: false,
-    trace: false,
     polygon: [
         {x: 10, y:  80},
         {x: 60, y:  50},
@@ -245,8 +242,6 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 70, y: 48 }, size: { width: 80, height: 40 } }
 } , {
     title: "need move down to place box",
-    only: false,
-    trace: false,
     polygon: [
         {x: 160, y:  20},
         {x: 210, y: 100},

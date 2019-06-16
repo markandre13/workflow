@@ -85,6 +85,7 @@ export class WordWrapTestRunner {
         let pt
         try {
             pt = this.placer(wordwrap, box, svg)
+            console.log("PLACER RETURNED POINT", pt)
         }
         catch(e) {
             console.log(e)

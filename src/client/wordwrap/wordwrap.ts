@@ -441,8 +441,8 @@ export class WordWrap {
         while (true) {
 
             this.extendSlices(point, box, slices)
-            this.levelSlicesHorizontally(slices)
-            this.mergeAndDropSlices(point, box, slices)
+            // this.levelSlicesHorizontally(slices)
+            // this.mergeAndDropSlices(point, box, slices)
 
             if (slices.length === 0)
                 break
@@ -481,9 +481,9 @@ export class WordWrap {
 
                         possiblePoint = this.pointForBoxAtEdge(box, slice.left[leftIndex], slice.right[rightIndex])
                         if (possiblePoint !== undefined) {
-                            this.mergeAndDropSlices(possiblePoint, box, slices)
+                            // this.mergeAndDropSlices(possiblePoint, box, slices)
                             this.extendSlices(possiblePoint, box, slices)
-                            this.levelSlicesHorizontally(slices)
+                            // this.levelSlicesHorizontally(slices)
                             rect.origin = possiblePoint
                             if (withinSlices(rect, slices)) {
                                 if (this.trace) {
@@ -656,16 +656,16 @@ export class WordWrap {
     
     // pull as much slices as are required for current line
     extendSlices(cursor: Point, box: Size, slices: Array<Slice>) {
-        if (this.trace) {
-            console.log("============== extendSlices =======================")
-            console.log("  this.sweepBuffer.length = " + this.sweepBuffer.length)
-        }
+        // if (this.trace) {
+        //     console.log("============== extendSlices =======================")
+        //     console.log("  this.sweepBuffer.length = " + this.sweepBuffer.length)
+        // }
         let top = cursor.y
         let bottom = cursor.y + box.height
-        if (this.trace) {
-            console.log("  extend slices to cover y=["+top+" - "+bottom+"]")
-            console.log("  sweepBuffer has "+this.sweepBuffer.length+" entries")
-        }
+        // if (this.trace) {
+        //     console.log("  extend slices to cover y=["+top+" - "+bottom+"]")
+        //     console.log("  sweepBuffer has "+this.sweepBuffer.length+" entries")
+        // }
 
         // for all sweep buffer elements within [top - bottom]
         while( !this.sweepBuffer.empty() &&
@@ -676,8 +676,8 @@ export class WordWrap {
 
             // get next sweep event
             let segment: SweepEvent | undefined = this.sweepBuffer.shift()
-            if (this.trace)
-                console.log("fetch from sweep y=["+segment.p[0].y+" - "+segment.p[1].y+"]")
+            // if (this.trace)
+            //     console.log("fetch from sweep y=["+segment.p[0].y+" - "+segment.p[1].y+"]")
 
             // try to use sweep event as continuation of a existing slice
             if (this.appendEventToSlices(slices, segment)) {
@@ -685,11 +685,11 @@ export class WordWrap {
             }
             
             // sweep event does not continuate an existing slice, insert a new one
-            if (this.trace)
-                console.log("going to create a new slice because of segment "+
-                            segment.p[0].x+", "+segment.p[0].y+
-                            "  "+
-                            segment.p[1].x+", "+segment.p[1].y)
+            // if (this.trace)
+            //     console.log("going to create a new slice because of segment "+
+            //                 segment.p[0].x+", "+segment.p[0].y+
+            //                 "  "+
+            //                 segment.p[1].x+", "+segment.p[1].y)
             this.appendEventAsNewSlice(slices, segment, this.trace)
         }
 
@@ -706,14 +706,14 @@ export class WordWrap {
             if (slice.right.length==0)
                 console.log("Upsi, right slice is empty")
             if ( pointEqualsPoint(slice.left[slice.left.length-1].p[1], segment.p[0]) ) {
-                if(this.trace)
-                    console.log("extend slice on the left")
+                // if(this.trace)
+                //     console.log("extend slice on the left")
                 slice.left.push(segment)
                 return true
             } else
             if ( pointEqualsPoint(slice.right[slice.right.length-1].p[1], segment.p[0]) ) {
-                if (this.trace)
-                    console.log("extend slice on the right")
+                // if (this.trace)
+                //     console.log("extend slice on the right")
                 slice.right.push(segment)
                 return true
             }
@@ -732,20 +732,18 @@ export class WordWrap {
             intersectionsLeft.length = intersectionsRight.length = 0
 
             // check for intersections with the slice's left side
-            if (trace)
-                console.log("check for intersections with the slice's left")
+            // if (trace)
+            //     console.log("check for intersections with the slice's left")
             for(let j=0; j<slices[sliceIndex].left.length; ++j) {
                 if (slices[sliceIndex].left[j].p[0].y <= top && top <= slices[sliceIndex].left[j].p[1].y) {
                     intersectLineLine(intersectionsLeft, line, slices[sliceIndex].left[j].p)
                 }
             }
-            // if (intersectionsLeft.length !== 1)
-            //     throw Error("fuck") // FIXME: why an exception?
             
             // if new sweep event is left of the slice's left, create a new slice left of the slice
             if (segment.p[0].x < intersectionsLeft[0].seg0.pt.x) {
-                if (trace)
-                    console.log("new segment is outside the slide on the left")
+                // if (trace)
+                //     console.log("new segment is outside the slide on the left")
                 let newSlice = new Slice()
                 newSlice.left.push(segment)
                 if (this.sweepBuffer.length===0)
@@ -757,20 +755,18 @@ export class WordWrap {
             }
                 
             // check for intersections with the slice's right side
-            if (this.trace)
-                console.log("check for intersections with the slice's right")
+            // if (this.trace)
+            //     console.log("check for intersections with the slice's right")
             for(let j=0; j<slices[sliceIndex].right.length; ++j) {
                 if (slices[sliceIndex].right[j].p[0].y <= top && top <= slices[sliceIndex].right[j].p[1].y) {
                     intersectLineLine(intersectionsRight, line, slices[sliceIndex].right[j].p)
                 }
             }
-            // if (intersectionsRight.length !== 1)
-            //     throw Error("fuck") // FIXME: why an exception?
             
             // if new sweep event is left of the slice's right, split the slice into two slices
             if (segment.p[0].x < intersectionsRight[0].seg0.pt.x) {
-                if (this.trace)
-                    console.log("new segment is inside the slice")
+                // if (this.trace)
+                //     console.log("new segment is inside the slice")
                 let newSlice = new Slice()
                 let emptySegmentArray = newSlice.left
                 
@@ -817,8 +813,8 @@ export class WordWrap {
             }
         }
         if (appendNewSliceAtRight) {
-            if (this.trace)
-                console.log("new segment is outside the slide on the right")
+            // if (this.trace)
+            //     console.log("new segment is outside the slide on the right")
             let newSlice = new Slice()
             newSlice.left.push(segment)
             if (this.sweepBuffer.length===0)
@@ -830,17 +826,17 @@ export class WordWrap {
     
     // cut events vertically so that left and right event at the same index have the same y values
     levelSlicesHorizontally(slices: Array<Slice>) {
-        if (this.trace)
-            console.log("levelSlicesHorizontally")
+        // if (this.trace)
+        //     console.log("levelSlicesHorizontally")
         for(let slice of slices) {
-            if (this.trace)
-                console.log("  handle a slice")
+            // if (this.trace)
+            //     console.log("  handle a slice")
             for (let index=0; index<slice.left.length; ++index) {
                 if ( index >= slice.left.length || index >= slice.right.length )
                     break
                 if ( slice.left[index].p[1].y > slice.right[index].p[1].y ) {
-                    if (this.trace)
-                        console.log("split left event")
+                    // if (this.trace)
+                    //     console.log("split left event")
                     // split left event
                     let pt = _intersectLineLine(
                         [ new Point( this.bounds.origin.x - 10, slice.right[index].p[1].y),
@@ -858,8 +854,8 @@ export class WordWrap {
                     }
                 } else
                 if ( slice.left[index].p[1].y < slice.right[index].p[1].y ) {
-                    if (this.trace)
-                        console.log("split right event")
+                    // if (this.trace)
+                    //     console.log("split right event")
                     // split right event
                     let pt = _intersectLineLine(
                         slice.right[index].p,
