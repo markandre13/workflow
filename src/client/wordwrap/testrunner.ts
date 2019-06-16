@@ -25,7 +25,7 @@ import {
 import { Path } from "../path"
 import { WordWrap, Slice } from "./wordwrap"
 
-export type Placer = (wordwrap: WordWrap, box: Size) => Point|undefined
+export type Placer = (wordwrap: WordWrap, box: Size, svg: SVGElement) => Point|undefined
 
 /**
  * Execute a single wordwrap test along with appending a visual
@@ -84,7 +84,7 @@ export class WordWrapTestRunner {
         
         let pt
         try {
-            pt = this.placer(wordwrap, box)
+            pt = this.placer(wordwrap, box, svg)
         }
         catch(e) {
             console.log(e)
