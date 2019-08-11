@@ -28,6 +28,7 @@ import { Path } from "../path"
 import { WordWrapTestRunner } from "./testrunner"
 
 import { OrderedArray } from "../orderedarray"
+import { AssertionError } from "assert";
 
 // description of an intersection between path segments
 export class IntersectionPoint {
@@ -146,29 +147,104 @@ export class Slice {
 }
 
 // FIXME: make Array<Slice> a class with print function
-function printSlices(slices: Array<Slice>) {
-    console.log("slices = [")
-    for(let slice of slices) {
-        console.log("    Slice {")
-        console.log("        left = [")
-        for(let event of slice.left) {
-            console.log("            ", event.p[0])
-            console.log("            ", event.p[1])
-            if (pointEqualsPoint(event.p[0], event.p[1]))
-                console.log("            EVENT IS A SINGULARITY *********************************************************")
+export function printSlices(slices: Array<Slice>, asScript = false) {
+    if (!asScript) {
+        for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
+            let slice = slices[sliceIndex]
+            console.log(`-------------------------- slice ${sliceIndex}: leftTop=${slice.left[0].p[0].x}, ${slice.left[0].p[0].y}, rightTop=${slice.right[0].p[0].x}, ${slice.right[0].p[0].y}  --------------------------`)
+            for (let i = 0; i < slice.left.length; ++i) {
+                console.log(`left[${i}]  : ${slice.left[i].p[0].x}, ${slice.left[i].p[0].y} -> ${slice.left[i].p[1].x}, ${slice.left[i].p[1].y}`)
+            }
+            for (let i = 0; i < slice.right.length; ++i) {
+                console.log(`right[${i}]: ${slice.right[i].p[0].x}, ${slice.right[i].p[0].y} -> ${slice.right[i].p[1].x}, ${slice.right[i].p[1].y}`)
+            }
         }
-        console.log("        ]")
-        console.log("        right = [")
-        for(let event of slice.right) {
-            console.log("            ", event.p[0])
-            console.log("            ", event.p[1])
-            if (pointEqualsPoint(event.p[0], event.p[1]))
-                console.log("            EVENT IS A SINGULARITY *********************************************************")
+    } else {
+        console.log("slices = [")
+        for(let slice of slices) {
+            console.log("    Slice {")
+            console.log("        left = [")
+            for(let event of slice.left) {
+                console.log("            ", event.p[0])
+                console.log("            ", event.p[1])
+                if (pointEqualsPoint(event.p[0], event.p[1]))
+                    console.log("            EVENT IS A SINGULARITY *********************************************************")
+            }
+            console.log("        ]")
+            console.log("        right = [")
+            for(let event of slice.right) {
+                console.log("            ", event.p[0])
+                console.log("            ", event.p[1])
+                if (pointEqualsPoint(event.p[0], event.p[1]))
+                    console.log("            EVENT IS A SINGULARITY *********************************************************")
+            }
+            console.log("        ]")
+            console.log("    }")
         }
-        console.log("        ]")
-        console.log("    }")
+        console.log("]")
     }
-    console.log("]")
+}
+
+export function validateSlices(slices: Array<Slice>) {
+    let okay = true
+    for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
+        let slice = slices[sliceIndex]
+        for (let i = 0; i < slice.left.length; ++i) {
+            if (slice.left[i].p[0].y > slice.left[i].p[1].y) {
+                okay = false
+                console.log(`!!!!! slice ${sliceIndex}, left ${i}: edge doesn't point down`)
+                throw Error()
+            }
+        }
+        for (let i = 0; i < slice.right.length; ++i) {
+            if (slice.right[i].p[0].y > slice.right[i].p[1].y) {
+                okay = false
+                console.log(`!!!!! slice ${sliceIndex}, right ${i}: edge doesn't point down`)
+                throw Error()
+            }
+        }
+
+        let leftIndex = 0, rightIndex = 0
+        while(leftIndex < slice.left.length && slice.left[leftIndex].p[0].y < slice.right[rightIndex].p[0].y) {
+            ++leftIndex
+        }
+        while(rightIndex < slice.right.length && slice.left[leftIndex].p[0].y > slice.right[rightIndex].p[0].y) {
+            ++rightIndex
+        }
+        while(leftIndex < slice.left.length &&
+              rightIndex < slice.right.length && 
+              slice.left[leftIndex].p[0].y == slice.right[rightIndex].p[0].y &&
+              slice.left[leftIndex].p[1].y == slice.right[rightIndex].p[1].y)
+        {
+            ++leftIndex
+            ++rightIndex
+        }
+        if (leftIndex < slice.left.length && rightIndex < slice.right.length) {
+            okay = false
+            console.log(`!!!!! slice ${sliceIndex}, left ${leftIndex}, right ${rightIndex}: heights do not fit`)
+        }
+
+
+        // if (slice.left.length != slice.right.length) {
+        //     okay = false
+        //     console.log(`slice ${sliceIndex}, number of edges on left and right differ`)
+        // } else {
+        //     for(let i = 0; i < slice.left.length; ++i) {
+        //         if (slice.left[i].p[0].y != slice.right[i].p[0].y) {
+        //             okay = false
+        //             console.log(`slice ${sliceIndex}, top of left and right edges at ${i} differs`)
+        //         }
+        //         if (slice.left[i].p[0].y != slice.right[i].p[0].y) {
+        //             okay = false
+        //             console.log(`slice ${sliceIndex}, bottom of left and right edges at ${i} differs`)
+        //         }
+        //     }
+        // }
+    }
+    if (!okay) {
+        console.log('!!!!! ************ POSSIBLE ERROR *******************')
+        // throw Error("validateSlices failed")
+    }
 }
 
 // the events within a slice which surround a space available for a word to be placed
@@ -321,6 +397,109 @@ export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: 
 
 }
 
+export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent, sweepBuffer: OrderedArray<SweepEvent>, bounds: Rectangle, trace = false) {
+    console.log(">>>>>>>>>>")
+    let top = segment.p[0].y,
+        line = [ new Point(bounds.origin.x-10, top),
+                 new Point(bounds.origin.x + bounds.size.width+10, top) ],
+        intersectionsLeft = new Array<Intersection>(),
+        intersectionsRight = new Array<Intersection>()
+    let appendNewSliceAtRight = true
+    for(let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
+        intersectionsLeft.length = intersectionsRight.length = 0
+
+        // check for intersections with the slice's left side
+        if (trace)
+            console.log("check for intersections with the slice's left")
+        for(let j=0; j<slices[sliceIndex].left.length; ++j) {
+            if (slices[sliceIndex].left[j].p[0].y <= top && top <= slices[sliceIndex].left[j].p[1].y) {
+                intersectLineLine(intersectionsLeft, line, slices[sliceIndex].left[j].p)
+            }
+        }
+        
+        // if new sweep event is left of the slice's left, create a new slice left of the slice
+        if (segment.p[0].x < intersectionsLeft[0].seg0.pt.x) {
+            if (trace)
+                console.log("new segment is outside the slide on the left")
+            let newSlice = new Slice()
+            newSlice.left.push(segment)
+            if (sweepBuffer.length===0)
+                throw Error("fuck")
+            newSlice.right.push(sweepBuffer.shift())
+            slices.splice(sliceIndex, 0, newSlice)
+            appendNewSliceAtRight = false
+            break
+        }
+            
+        // check for intersections with the slice's right side
+        if (trace)
+            console.log("check for intersections with the slice's right")
+        for(let j=0; j<slices[sliceIndex].right.length; ++j) {
+            if (slices[sliceIndex].right[j].p[0].y <= top && top <= slices[sliceIndex].right[j].p[1].y) {
+                intersectLineLine(intersectionsRight, line, slices[sliceIndex].right[j].p)
+            }
+        }
+        
+        // if new sweep event is left of the slice's right, split the slice into two slices
+        if (segment.p[0].x < intersectionsRight[0].seg0.pt.x) {
+            if (trace) {
+                console.log(`new segment is inside the slice`)
+                console.log(segment)
+            }
+
+            let newSlice = new Slice()
+            let emptySegmentArray = newSlice.left
+            
+            // the new slice's left becomes the old slice's left
+            newSlice.left = slices[sliceIndex].left
+            // the new segment becomes the new slice's right HERE WE NEED TO EXTEND SHIT
+            
+            // COPY FROM THE OLD SLICE'S RIGHT DOWN TO TOP OF SEGMENT
+            for(let i=0; i<slices[sliceIndex].right.length; ++i) {
+                newSlice.right.push(new SweepEvent(slices[sliceIndex].right[i]))
+            }
+            newSlice.right[slices[sliceIndex].right.length-1].p[1] = intersectionsRight[0].seg0.pt
+            if (pointEqualsPoint(newSlice.right[slices[sliceIndex].right.length-1].p[0],
+                                 newSlice.right[slices[sliceIndex].right.length-1].p[1]))
+            {
+                newSlice.right.pop()
+                // throw Error("singularity")
+            }
+            newSlice.right.push(segment)
+            
+            // the old slice's left get's the next segment from the sweep buffer
+            slices[sliceIndex].left = emptySegmentArray
+                
+            // COPY FROM THE OLD SLICE'S LEFT DOWN TO TOP OF SEGMENT
+            for(let i=0; i<newSlice.left.length; ++i) {
+                slices[sliceIndex].left.push(new SweepEvent(newSlice.left[i]))
+            }
+            slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1] = intersectionsLeft[0].seg0.pt
+            if (pointEqualsPoint(slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[0],
+                                 slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1]) )
+            {
+                slices[sliceIndex].left.pop()
+                // throw Error("singularity")
+            }
+            slices[sliceIndex].left.push(sweepBuffer.shift())
+            
+            // insert the new slice
+            slices.splice(sliceIndex, 0, newSlice)
+            appendNewSliceAtRight = false
+            break
+        }
+        console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+    }
+    if (appendNewSliceAtRight) {
+        // if (this.trace)
+        //     console.log("new segment is outside the slide on the right")
+        let newSlice = new Slice()
+        newSlice.left.push(segment)
+        newSlice.right.push(sweepBuffer.shift())
+        slices.push(newSlice)
+    }
+}
+
 export interface WordSource {
     pullBox(): Size|undefined
     placeBox(origin: Point): void
@@ -433,6 +612,14 @@ export class WordWrap {
         }
     }
 
+    printSlices(slices: Array<Slice>) {
+        printSlices(slices)
+    }
+
+    validateSlices(slices: Array<Slice>) {
+        validateSlices(slices)
+    }
+
     pointForBoxInSlices(box: Size, slices: Array<Slice>): [number, Point] {
         if (this.trace)
             console.log("======================== WordWrap.pointForBoxInSlices ========================")
@@ -440,9 +627,27 @@ export class WordWrap {
         let point = new Point(this.bounds.origin)
         while (true) {
 
+            if (this.trace)
+                console.log(`-------------------------- extend & level slices to accomodate ${point.y} to ${point.y+box.height} -----------------------------------------`)
+
+            // console.log("####### BEFORE EXTENDSLICES")
+            // this.printSlices(slices)
+            // this.validateSlices(slices)
             this.extendSlices(point, box, slices)
+
+            // console.log("####### BEFORE SLICE HORIZONTALLY")
+            // this.printSlices(slices)
+            // this.validateSlices(slices)
             // this.levelSlicesHorizontally(slices)
+
+            // console.log("####### BEFORE MERGE AND DROP")
+            // this.printSlices(slices)
+            // this.validateSlices(slices)
             // this.mergeAndDropSlices(point, box, slices)
+
+            // console.log("####### AFTER MERGE AND DROP")
+            // this.printSlices(slices)
+            // this.validateSlices(slices)
 
             if (slices.length === 0)
                 break
@@ -494,7 +699,7 @@ export class WordWrap {
                         }
 
                         if (this.trace)
-                            console.log("pointForBoxInSlices point ${point} not within slices (4)")
+                            console.log(`pointForBoxInSlices point ${point.x}, ${point.y} not within slices (4)`)
                         
                     }
                 }
@@ -671,31 +876,53 @@ export class WordWrap {
         while( !this.sweepBuffer.empty() &&
                 this.sweepBuffer.at(0).p[0].y <= bottom )
         {
+            console.log("####### LOOP: BEFORE LEVEL HORIZONTALLY")
+            this.printSlices(slices)
+            this.validateSlices(slices)
             this.levelSlicesHorizontally(slices)
+
+            console.log("####### LOOP: BEFORE MERGE AND DROP SLICES")
+            this.printSlices(slices)
+            this.validateSlices(slices)
             this.mergeAndDropSlices(cursor, box, slices)
 
             // get next sweep event
             let segment: SweepEvent | undefined = this.sweepBuffer.shift()
-            // if (this.trace)
-            //     console.log("fetch from sweep y=["+segment.p[0].y+" - "+segment.p[1].y+"]")
 
             // try to use sweep event as continuation of a existing slice
+            console.log("####### LOOP: BEFORE APPEND EVENT TO SLICES")
+            this.printSlices(slices)
+            this.validateSlices(slices)
+    
             if (this.appendEventToSlices(slices, segment)) {
+                console.log("####### LOOP: ADDED EVENT TO SLICE")
+                this.printSlices(slices)
+                this.validateSlices(slices)
                 continue
             }
-            
-            // sweep event does not continuate an existing slice, insert a new one
-            // if (this.trace)
-            //     console.log("going to create a new slice because of segment "+
-            //                 segment.p[0].x+", "+segment.p[0].y+
-            //                 "  "+
-            //                 segment.p[1].x+", "+segment.p[1].y)
+            console.log("####### LOOP: ADDED NEW SLICE")
             this.appendEventAsNewSlice(slices, segment, this.trace)
+            this.printSlices(slices)
+            this.validateSlices(slices)
         }
-
+        console.log("####### FINISH: BEFORE LEVEL HORIZONTALLY")
+        this.printSlices(slices)
+        this.validateSlices(slices)
         this.levelSlicesHorizontally(slices)
+
+        console.log("####### FINISH: BEFORE MERGE AND DROP SLICES")
+        this.printSlices(slices)
+        this.validateSlices(slices)
         this.mergeAndDropSlices(cursor, box, slices)
+
+        console.log("####### FINISH: BEFORE DROP EVENTS")
+        this.printSlices(slices)
+        this.validateSlices(slices)
         this.dropEventsInSlices(cursor, box, slices)
+
+        console.log("####### FINISH: DONE EXTENDING")
+        this.printSlices(slices)
+        this.validateSlices(slices)
     }
 
     appendEventToSlices(slices: Array<Slice>, segment: SweepEvent): Boolean {
@@ -722,106 +949,7 @@ export class WordWrap {
     }
 
     appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent, trace = false) {
-        let top = segment.p[0].y,
-            line = [ new Point(this.bounds.origin.x-10, top),
-                     new Point(this.bounds.origin.x + this.bounds.size.width+10, top) ],
-            intersectionsLeft = new Array<Intersection>(),
-            intersectionsRight = new Array<Intersection>()
-        let appendNewSliceAtRight = true
-        for(let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
-            intersectionsLeft.length = intersectionsRight.length = 0
-
-            // check for intersections with the slice's left side
-            // if (trace)
-            //     console.log("check for intersections with the slice's left")
-            for(let j=0; j<slices[sliceIndex].left.length; ++j) {
-                if (slices[sliceIndex].left[j].p[0].y <= top && top <= slices[sliceIndex].left[j].p[1].y) {
-                    intersectLineLine(intersectionsLeft, line, slices[sliceIndex].left[j].p)
-                }
-            }
-            
-            // if new sweep event is left of the slice's left, create a new slice left of the slice
-            if (segment.p[0].x < intersectionsLeft[0].seg0.pt.x) {
-                // if (trace)
-                //     console.log("new segment is outside the slide on the left")
-                let newSlice = new Slice()
-                newSlice.left.push(segment)
-                if (this.sweepBuffer.length===0)
-                    throw Error("fuck")
-                newSlice.right.push(this.sweepBuffer.shift())
-                slices.splice(sliceIndex, 0, newSlice)
-                appendNewSliceAtRight = false
-                break
-            }
-                
-            // check for intersections with the slice's right side
-            // if (this.trace)
-            //     console.log("check for intersections with the slice's right")
-            for(let j=0; j<slices[sliceIndex].right.length; ++j) {
-                if (slices[sliceIndex].right[j].p[0].y <= top && top <= slices[sliceIndex].right[j].p[1].y) {
-                    intersectLineLine(intersectionsRight, line, slices[sliceIndex].right[j].p)
-                }
-            }
-            
-            // if new sweep event is left of the slice's right, split the slice into two slices
-            if (segment.p[0].x < intersectionsRight[0].seg0.pt.x) {
-                // if (this.trace)
-                //     console.log("new segment is inside the slice")
-                let newSlice = new Slice()
-                let emptySegmentArray = newSlice.left
-                
-                // the new slice's left becomes the old slice's left
-                newSlice.left = slices[sliceIndex].left
-                // the new segment becomes the new slice's right HERE WE NEED TO EXTEND SHIT
-                
-                // COPY FROM THE OLD SLICE'S RIGHT DOWN TO TOP OF SEGMENT
-                for(let i=0; i<slices[sliceIndex].right.length; ++i) {
-                    newSlice.right.push(new SweepEvent(slices[sliceIndex].right[i]))
-                }
-                newSlice.right[slices[sliceIndex].right.length-1].p[1] = intersectionsRight[0].seg0.pt
-                if (pointEqualsPoint(newSlice.right[slices[sliceIndex].right.length-1].p[0],
-                                     newSlice.right[slices[sliceIndex].right.length-1].p[1]))
-                {
-                    newSlice.right.pop()
-                    // throw Error("singularity")
-                }
-                newSlice.right.push(segment)
-                
-                // the old slice's left get's the next segment from the sweep buffer
-                slices[sliceIndex].left = emptySegmentArray
-                if (this.sweepBuffer.length===0)
-                    throw Error("fuck")
-                    
-                // COPY FROM THE OLD SLICE'S LEFT DOWN TO TOP OF SEGMENT
-                for(let i=0; i<newSlice.left.length; ++i) {
-                    slices[sliceIndex].left.push(new SweepEvent(newSlice.left[i]))
-                }
-                slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1] = intersectionsLeft[0].seg0.pt
-                if (pointEqualsPoint(slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[0],
-                                     slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1]) )
-                {
-                    slices[sliceIndex].left.pop()
-                    // throw Error("singularity")
-                }
-                slices[sliceIndex].left.push(this.sweepBuffer.shift())
-                
-                // insert the new slice
-                slices.splice(sliceIndex, 0, newSlice)
-                appendNewSliceAtRight = false
-                
-                break
-            }
-        }
-        if (appendNewSliceAtRight) {
-            // if (this.trace)
-            //     console.log("new segment is outside the slide on the right")
-            let newSlice = new Slice()
-            newSlice.left.push(segment)
-            if (this.sweepBuffer.length===0)
-                throw Error("fuck")
-            newSlice.right.push(this.sweepBuffer.shift())
-            slices.push(newSlice)
-        }
+        appendEventAsNewSlice(slices, segment, this.sweepBuffer, this.bounds, trace)
     }
     
     // cut events vertically so that left and right event at the same index have the same y values

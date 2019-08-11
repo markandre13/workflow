@@ -46,7 +46,9 @@ index 70658e7..90a6a7b 100644
 import { expect } from "chai"
 import { Point, Size, Rectangle, pointEqualsPoint, rectangleEqualsRectangle, lineCrossesRect2, lineCrossesLine } from "shared/geometry"
 import { Path } from "client/path"
-import { WordWrap, WordSource, Slice, SweepEvent, withinSlices } from "client/wordwrap/wordwrap"
+import { WordWrap, WordSource, Slice, SweepEvent, withinSlices, appendEventAsNewSlice, printSlices } from "client/wordwrap/wordwrap"
+import { OrderedArray } from "client/orderedarray"
+import { validateSlices } from "../../src/client/wordwrap/wordwrap";
 
 class BoxSource implements WordSource {
     remaining: number
@@ -847,6 +849,31 @@ describe("wordwrap", function() {
             expect(slices.length).to.equal(1)
         })
         
+    })
+
+    describe("appendEventAsNewSlice()", ()=> {
+        it.only("001", ()=> {
+            let slices = new Array<Slice>()
+            let  slice = new Slice()
+            slice.left.push(new SweepEvent({x:110, y:20}, {x:66.25, y: 90}))
+            slice.left.push(new SweepEvent({x:66.25, y: 90}, {x:10, y: 180}))
+            slice.right.push(new SweepEvent({x:190, y: 20}, {x:200, y: 90}))
+            slices.push(slice)
+            slice = new Slice()
+            slice.left.push(new SweepEvent({x:210, y:20}, {x:200, y: 90}))
+            slice.right.push(new SweepEvent({x:210, y:20}, {x:253.75, y: 90}))
+            slice.right.push(new SweepEvent({x:253.75, y: 90}, {x:310, y: 180}))
+            slices.push(slice)
+
+            let sweepBuffer = new OrderedArray<SweepEvent>( (a, b) => { return SweepEvent.less(a, b) } )
+            sweepBuffer.insert(new SweepEvent({x:160, y:50}, {x:170, y:180}))
+
+            let event = new SweepEvent({x:160, y: 50}, {x: 90, y: 180})
+            appendEventAsNewSlice(slices, event, sweepBuffer, new Rectangle(0,0,320,200), true)
+
+            printSlices(slices)
+            validateSlices(slices)
+        })
     })
 
 })

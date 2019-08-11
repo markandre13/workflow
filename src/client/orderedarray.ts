@@ -59,6 +59,9 @@ export class OrderedArray<T> {
     }
 
     shift(): T {
+        if (this.array.length == 0) {
+            throw Error("OrderedArray.shift(): empty, can not shift")
+        }
         return this.array.shift()!
     }
 
