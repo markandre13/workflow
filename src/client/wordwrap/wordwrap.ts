@@ -455,10 +455,14 @@ export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent,
             // the new segment becomes the new slice's right HERE WE NEED TO EXTEND SHIT
             
             // COPY FROM THE OLD SLICE'S RIGHT DOWN TO TOP OF SEGMENT
-            for(let i=0; i<slices[sliceIndex].right.length; ++i) {
+            for(let i=0; i<slices[sliceIndex].right.length && slices[sliceIndex].right[i].p[0].y < top; ++i) {
                 newSlice.right.push(new SweepEvent(slices[sliceIndex].right[i]))
             }
             newSlice.right[slices[sliceIndex].right.length-1].p[1] = intersectionsRight[0].seg0.pt
+            console.log('copied old slices right to new slices right and tweaked last point to intersection')
+            let s = newSlice.right[slices[sliceIndex].right.length-1]
+            console.log(`${s.p[0].x}, ${s.p[0].y} -> ${s.p[1].x}, ${s.p[1].y}`)
+
             if (pointEqualsPoint(newSlice.right[slices[sliceIndex].right.length-1].p[0],
                                  newSlice.right[slices[sliceIndex].right.length-1].p[1]))
             {
@@ -471,10 +475,14 @@ export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent,
             slices[sliceIndex].left = emptySegmentArray
                 
             // COPY FROM THE OLD SLICE'S LEFT DOWN TO TOP OF SEGMENT
-            for(let i=0; i<newSlice.left.length; ++i) {
+            for(let i=0; i<newSlice.left.length && newSlice.left[i].p[0].y < top; ++i) {
                 slices[sliceIndex].left.push(new SweepEvent(newSlice.left[i]))
             }
             slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1] = intersectionsLeft[0].seg0.pt
+            console.log('copied new slices left to old slices left and tweaked last point to intersection')
+            s = slices[sliceIndex].left[slices[sliceIndex].left.length-1]
+            console.log(`${s.p[0].x}, ${s.p[0].y} -> ${s.p[1].x}, ${s.p[1].y}`)
+
             if (pointEqualsPoint(slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[0],
                                  slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1]) )
             {

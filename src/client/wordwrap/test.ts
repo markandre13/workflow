@@ -394,8 +394,8 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 165.08771929824562, y: 76.14035087719299 }, size: { width: 80, height: 40 } }
 }, {
     title: "2nd slice with down spike",
-    only: true,
-    trace: true,
+    // only: true,
+    // trace: true,
     polygon: [
         {x: 110, y:  20},
         {x: 190, y:  20},
