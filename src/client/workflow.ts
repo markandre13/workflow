@@ -64,8 +64,6 @@ export async function runtest(test: Function) {
 }
 
 export async function main(url: string) {
-
-
     let orb = new ORB()
 //    orb.debug = 1
 
@@ -96,12 +94,12 @@ export async function main(url: string) {
     ORB.registerValueType("BoardModel", BoardModel)
 
 
-    if (true) {
-        document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
-        testWrap()
-        return
-    }
-
+    // FIXME: this test should be able to run as a unit test but also create visual output
+    // if (true) {
+    //     document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
+    //     testWrap()
+    //     return
+    // }
 
     try {
         await orb.connect(url)
