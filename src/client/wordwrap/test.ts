@@ -22,7 +22,7 @@ import {
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
     pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine
 } from "../../shared/geometry"
-import { Path } from "../path"
+import { Path } from "../paths/Path"
 
 import { WordWrapTestRunner, Placer } from "./testrunner"
 import { WordWrap, Slice, WordSource } from "./wordwrap"

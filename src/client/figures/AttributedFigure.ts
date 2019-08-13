@@ -1,5 +1,5 @@
 /*
- *  The TOAD JavaScript/TypeScript GUI Library
+ *  workflow - A collaborative real-time white- and kanban board
  *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -16,5 +16,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// https://svgwg.org/specs/paths/#InterfaceSVGPathData
-// https://github.com/jarek-foksa/path-data-polyfill.js
+import { Figure } from "./Figure"
+import * as valuetype from "../../shared/workflow_valuetype"
+
+export abstract class AttributedFigure extends Figure implements valuetype.figure.AttributedFigure {
+    stroke!: string
+    strokeWidth!: number
+    fill!: string
+    constructor(init?: Partial<AttributedFigure>) {
+        super(init)
+        this.stroke = "#000"
+        this.strokeWidth = 1.0
+        this.fill = "#fff"
+        //        console.log("workflow.AttributedFigure.constructor()")
+    }
+}

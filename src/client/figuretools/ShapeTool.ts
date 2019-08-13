@@ -16,14 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {
-    Point, Rectangle, Matrix,
-    pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
-} from "../../shared/geometry"
-import { Graphic, Path } from "../path"
-import { Figure, Shape } from "../figure"
-import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor"
-import { Tool } from "./tool"
+import { AbstractPath } from "../paths/AbstractPath"
+import { Shape } from "../figures/Shape"
+import { EditorEvent } from "../figureeditor/EditorEvent"
+import { Tool } from "./Tool"
 
 export class ShapeTool extends Tool {
     creator: Function
@@ -50,7 +46,7 @@ export class ShapeTool extends Tool {
             this.shape.fill = event.editor.strokeAndFillModel.fill
         }
         
-        let path = this.shape.getGraphic() as Graphic
+        let path = this.shape.getGraphic() as AbstractPath
         Tool.setOutlineColors(path)
         event.editor.decorationOverlay.appendChild(path.svg)
     }
@@ -58,7 +54,7 @@ export class ShapeTool extends Tool {
     mousemove(event: EditorEvent) {
         this.shape!.setHandlePosition(2, event)
         this.shape!.updateGraphic()
-        Tool.setOutlineColors(this.shape!.getGraphic() as Graphic)
+        Tool.setOutlineColors(this.shape!.getGraphic() as AbstractPath)
     }
 
     mouseup(event: EditorEvent) {
@@ -75,7 +71,7 @@ export class ShapeTool extends Tool {
             shape.size.height = -shape.size.height
         }
 
-        let path = shape.getGraphic() as Graphic
+        let path = shape.getGraphic() as AbstractPath
         event.editor.decorationOverlay.removeChild(path.svg)
 
         event.editor.addFigure(shape)

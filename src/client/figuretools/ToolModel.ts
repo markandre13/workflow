@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export { Tool } from "./tool/tool"
-export { SelectTool } from "./tool/select"
-export { ShapeTool } from "./tool/shape"
+import { OptionModel } from "toad.js"
+import { Tool } from "../figuretools"
+
+export class ToolModel extends OptionModel<Tool> {
+}

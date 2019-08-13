@@ -17,8 +17,8 @@
  */
 
 import { ActionView, Model } from "toad.js"
-import { Path } from "./path"
-import { Point, Rectangle } from "../shared/geometry"
+// import { Path } from "./path"
+import { Point, Rectangle } from "../../shared/geometry"
 
 let strokeandfillStyle = document.createElement("style")
 strokeandfillStyle.textContent=`

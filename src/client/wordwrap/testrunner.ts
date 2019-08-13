@@ -22,7 +22,7 @@ import {
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
     pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine
 } from "../../shared/geometry"
-import { Path } from "../path"
+import { Path } from "../paths/Path"
 import { WordWrap, Slice } from "./wordwrap"
 
 export type Placer = (wordwrap: WordWrap, box: Size, svg: SVGElement) => Point|undefined

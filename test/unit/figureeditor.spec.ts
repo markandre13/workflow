@@ -22,9 +22,9 @@ import { ORB } from "corba.js"
 
 import { Point, Size, Rectangle, Matrix } from "shared/geometry"
 
-import * as path from "client/path"
-import * as figure from "client/figure"
-import * as tool from "client/tool"
+import * as path from "client/paths"
+import * as figure from "client/figures"
+import * as tool from "client/figuretools"
 
 declare global {
     interface SVGPathElement {

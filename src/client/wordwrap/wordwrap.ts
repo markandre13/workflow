@@ -16,19 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as value from "../../shared/workflow_value"
 import {
     Point, Size, Rectangle, Matrix,
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
     pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine,
     intersectsRectLine, lineCrossesRect2
 } from "../../shared/geometry"
-import { Path } from "../path"
+import { Path } from "../paths/Path"
 
 import { WordWrapTestRunner } from "./testrunner"
 
 import { OrderedArray } from "../orderedarray"
-import { AssertionError } from "assert";
 
 // description of an intersection between path segments
 export class IntersectionPoint {

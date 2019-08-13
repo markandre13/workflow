@@ -20,10 +20,13 @@ import {
     Point, Rectangle, Matrix,
     pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
 } from "../../shared/geometry"
-import { Graphic, Path } from "../path"
-import { Figure, AttributedFigure } from "../figure"
-import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor"
-import { Tool } from "./tool"
+import { AbstractPath } from "../paths/AbstractPath"
+import { Path } from "../paths/Path"
+import { Figure } from "../figures/Figure"
+import { AttributedFigure } from "../figures/AttributedFigure"
+import { EditorEvent } from "../figureeditor/EditorEvent"
+import { FigureEditor } from "../figureeditor/FigureEditor"
+import { Tool } from "./Tool"
 
 enum State {
     NONE,
@@ -36,12 +39,12 @@ export class SelectTool extends Tool {
     state: State
 
     boundary: Rectangle
-    decoration: Array<Graphic>
+    decoration: Array<AbstractPath>
     mouseDownAt?: Point
 
     marqueeRectangle?: Rectangle
     svgMarquee?: SVGElement
-    marqueeOutlines: Map<Figure, Graphic>
+    marqueeOutlines: Map<Figure, AbstractPath>
     
     selectedHandle: number
     handleStart: Point
@@ -55,8 +58,8 @@ export class SelectTool extends Tool {
         super()
         this.state = State.NONE
         this.boundary = new Rectangle()
-        this.decoration = new Array<Graphic>()
-        this.marqueeOutlines = new Map<Figure, Graphic>()
+        this.decoration = new Array<AbstractPath>()
+        this.marqueeOutlines = new Map<Figure, AbstractPath>()
         
         this.selectedHandle = 0
         this.handleStart = new Point()
@@ -521,7 +524,7 @@ console.log("mouse up selection")
             if (!this.marqueeRectangle!.containsRectangle(figure.bounds()))
                 continue
 
-            let outline = Tool.createOutlineCopy(figure.getGraphic() as Graphic)
+            let outline = Tool.createOutlineCopy(figure.getGraphic() as AbstractPath)
             editor.decorationOverlay.appendChild(outline.svg)
             this.marqueeOutlines.set(figure, outline)
         }

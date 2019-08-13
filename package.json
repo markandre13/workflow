@@ -17,6 +17,7 @@
     "knex": "^0.16.5",
     "scrypt": "^6.0.3",
     "sqlite3": "^4.0.9",
+    "tslint": "^5.18.0",
     "ws": "^6.2.1"
   },
   "devDependencies": {

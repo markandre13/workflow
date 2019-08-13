@@ -16,19 +16,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {
-    Point, Rectangle, Matrix,
-    pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
-} from "../../shared/geometry"
-import { Graphic, Path } from "../path"
-import { Figure } from "../figure"
-import { FigureEditor, FigureSelectionModel, EditorEvent } from "../editor"
+import { AbstractPath } from "../paths/AbstractPath"
+import { Path } from "../paths/Path"
+import { Figure } from "../figures/Figure"
+import { EditorEvent } from "../figureeditor/EditorEvent"
+import { FigureSelectionModel } from "../figureeditor/FigureSelectionModel"
+import { FigureEditor } from "../figureeditor/FigureEditor"
 
 export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()
 
-    handles: Map<Figure, Array<Graphic>>
-    outlines: Map<Figure, Graphic>
+    handles: Map<Figure, Array<AbstractPath>>
+    outlines: Map<Figure, AbstractPath>
 
     activate(e: EditorEvent) {}
     deactivate(e: EditorEvent) {}
@@ -42,7 +41,7 @@ export class Tool {
         this.outlines = new Map<Figure, Path>()
     }
 
-    static createOutlineCopy(graphic: Graphic): Graphic {
+    static createOutlineCopy(graphic: AbstractPath): AbstractPath {
         let outlineGraphic = graphic.clone()
         // FIXME: translate outline by (-1, +1)
         Tool.setOutlineColors(outlineGraphic)
@@ -50,7 +49,7 @@ export class Tool {
         return outlineGraphic
     }
     
-    static setOutlineColors(graphic: Graphic): void {
+    static setOutlineColors(graphic: AbstractPath): void {
         let attributes = {
             stroke: "rgb(79,128,255)",
             strokeWidth: 1,
@@ -63,7 +62,7 @@ export class Tool {
         for(let figure of Tool.selection.selection) {
             if (this.outlines.has(figure))
                 continue
-            let outline = Tool.createOutlineCopy(figure.getGraphic() as Graphic)
+            let outline = Tool.createOutlineCopy(figure.getGraphic() as AbstractPath)
             editor.decorationOverlay.appendChild(outline.svg)
             this.outlines.set(figure, outline)
         }
