@@ -1,0 +1,9 @@
+You'll need toad.js and corba.js from github, not the npm versions
+
+In case karma doesn't print enough errors:
+
+const reportError = (error) => {
+      process.emit('infrastructure_error', error)
+      disconnectBrowsers(1)
+      this.log.error(error);  // Add this line in lib/server.js
+    }

@@ -16,19 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-import { ORB } from "corba.js"
-import { Point, Size, Rectangle, Matrix } from "shared/geometry"
-import { FigureEditor } from "../../src/client/figureeditor/FigureEditor"
-
-before(function() {
-    ORB.registerValueType("Point", Point)
-    ORB.registerValueType("Size", Size)
-    ORB.registerValueType("Rectangle", Rectangle)
-    ORB.registerValueType("Matrix", Matrix)
-
-    window.customElements.define("toad-figureeditor", FigureEditor)
-})
-
-after(function() {
-})
+export * from "./figureeditor/EditorEvent"
+export * from "./figureeditor/FigureEditor"
+export * from "./figureeditor/FigureSelectionModel"
+export * from "./figureeditor/Layer"
+export * from "./figureeditor/LayerModel"

@@ -18,13 +18,15 @@
 
 
 import { expect } from "chai"
-
+import { Signal } from "toad.js"
 
 import { Matrix } from "../../src/shared/geometry"
 
 import * as path from "../../src/client/paths"
 import * as figure from "../../src/client/figures"
 import * as tool from "../../src/client/figuretools"
+import { EditorEvent, FigureEditor, Layer, LayerModel } from "../../src/client/figureeditor"
+import { Tool, SelectTool } from "../../src/client/figuretools";
 
 declare global {
     interface SVGPathElement {
@@ -34,7 +36,7 @@ declare global {
     }
 }
 
-describe("figureeditor", function() {
+describe.only("figureeditor", function() {
     
     describe("figure to path", function() {
 
@@ -257,6 +259,57 @@ describe("figureeditor", function() {
                 expect(outline.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
             })
         })
+    })
+
+    describe("SelectTool", ()=> {
+
+        class MyLayerModel implements LayerModel {
+            modified: Signal
+            layers: Array<Layer>
+            
+            constructor() {
+                this.modified = new Signal()
+                this.layers = new Array<Layer>()
+            }
+            transform(layerID: number, indices: Array<number>, matrix: Matrix): void {
+                // this.board!.transform(layerID, indices, matrix)
+            }
+            add(layerID: number, figure: figure.Figure) {
+                // this.board!.add(layerID, figure)
+            }
+        }
+
+        it("select figure", ()=> {
+            // GIVEN
+            let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
+
+            let selectTool = new SelectTool()
+            figureeditor.setTool(selectTool)
+
+            let model = new MyLayerModel()
+            let layer = new Layer()
+            let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+            fig.stroke = "#00"
+            fig.fill = "#f00"
+            layer.data.push(fig)
+            model.layers.push(layer)
+            figureeditor.setModel(model)
+
+            let event = new EditorEvent(figureeditor, false)
+            event.x = 50
+            event.y = 50
+
+            expect(Tool.selection.has(fig)).to.be.false
+
+            // WHEN
+            selectTool.mousedown(event)
+
+            // THEN
+            expect(Tool.selection.has(fig)).to.be.true
+
+            // let figureeditor = new FigureEditor()
+        })
+        
     })
 })
 
