@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export { Tool } from "./figuretools/Tool"
-export { SelectTool } from "./figuretools/SelectTool"
-export { ShapeTool } from "./figuretools/ShapeTool"
+export * from "./figuretools/Tool"
+export * from "./figuretools/SelectTool"
+export * from "./figuretools/ShapeTool"
+export * from "./figuretools/ToolModel"

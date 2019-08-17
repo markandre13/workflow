@@ -44,14 +44,14 @@ export class Circle extends Shape implements valuetype.figure.Circle {
         dy -= ey
         return Math.sqrt(dx * dx + dy * dy)
     }
-    getGraphic(): Graphic {
+    getPath(): Path {
         if (this.path === undefined) {
             this.path = new Path()
-            this.updateGraphic()
+            this.updatePath()
         }
         return this.path
     }
-    updateGraphic(): void {
+    updatePath(): void {
         if (!this.path)
             return
         this.path.clear()

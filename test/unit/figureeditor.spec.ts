@@ -20,11 +20,11 @@ import { expect } from "chai"
 
 import { ORB } from "corba.js"
 
-import { Point, Size, Rectangle, Matrix } from "shared/geometry"
+import { Point, Size, Rectangle, Matrix } from "../../src/shared/geometry"
 
-import * as path from "client/paths"
-import * as figure from "client/figures"
-import * as tool from "client/figuretools"
+import * as path from "../../src/client/paths"
+import * as figure from "../../src/client/figures"
+import * as tool from "../../src/client/figuretools"
 
 declare global {
     interface SVGPathElement {
@@ -36,14 +36,14 @@ declare global {
 
 describe("figureeditor", function() {
     
-    describe("figure to graphic", function() {
+    describe("figure to path", function() {
 
         it("rectangle", function() {
             let fig000 = new figure.Rectangle({
                 origin: { x: 10, y: 20 },
                 size: { width: 30, height: 40 }
             })
-            let grp000 = fig000.getGraphic() as path.Graphic
+            let grp000 = fig000.getPath() as path.Path
             expect(grp000.svg.tagName).to.equal("path")
             expect(grp000.svg.getAttribute("d")).to.equal("M 10 20 L 40 20 L 40 60 L 10 60 Z")
         })
@@ -60,7 +60,7 @@ describe("figureeditor", function() {
             let fig002 = new figure.Group()
             fig002.add(fig000)
             fig002.add(fig001)
-            let grp002 = fig002.getGraphic() as path.Graphic
+            let grp002 = fig002.getPath() as path.Path
             grp002.updateSVG()
             expect(grp002.svg.tagName).to.equal("g")
             expect(grp002.svg.children.length).to.equal(2)
@@ -81,7 +81,7 @@ describe("figureeditor", function() {
                 fig001.matrix = matrix
                 fig001.children.push(fig000)
 
-                let grp001 = fig001.getGraphic() as path.Graphic
+                let grp001 = fig001.getPath() as path.Path
                 grp001.updateSVG()
 
                 expect(grp001.svg.tagName).to.equal("g")
@@ -89,7 +89,7 @@ describe("figureeditor", function() {
                 expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
             })
         
-            it("transform, add, getGraphic", function() {
+            it("transform, add, getPath", function() {
                 let fig000 = new figure.Rectangle({
                     origin: { x: 10, y: 20 },
                     size: { width: 30, height: 40 }
@@ -102,7 +102,7 @@ describe("figureeditor", function() {
 
                 fig001.add(fig000)
 
-                let grp001 = fig001.getGraphic() as path.Graphic
+                let grp001 = fig001.getPath() as path.Path
                 grp001.updateSVG()
 
                 expect(grp001.svg.tagName).to.equal("g")
@@ -110,7 +110,7 @@ describe("figureeditor", function() {
                 expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
             })
             
-            it("add, transform, getGraphic", function() {
+            it("add, transform, getPath", function() {
                 let fig000 = new figure.Rectangle({
                     origin: { x: 10, y: 20 },
                     size: { width: 30, height: 40 }
@@ -122,7 +122,7 @@ describe("figureeditor", function() {
                 matrix.scale(2, 2)
                 fig001.transform(matrix)
                 
-                let grp001 = fig001.getGraphic() as path.Graphic
+                let grp001 = fig001.getPath() as path.Path
                 grp001.updateSVG()
                 
                 expect(grp001.svg.tagName).to.equal("g")
@@ -130,7 +130,7 @@ describe("figureeditor", function() {
                 expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
             })
 
-            it("transform, getGraphic, add", function() {
+            it("transform, getPath, add", function() {
                 let fig000 = new figure.Rectangle({
                     origin: { x: 10, y: 20 },
                     size: { width: 30, height: 40 }
@@ -141,7 +141,7 @@ describe("figureeditor", function() {
                 matrix.scale(2, 2)
                 fig001.transform(matrix)
 
-                let grp001 = fig001.getGraphic() as path.Graphic
+                let grp001 = fig001.getPath() as path.Path
 
                 fig001.add(fig000)
                 
@@ -152,7 +152,7 @@ describe("figureeditor", function() {
                 expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
             })
 
-            it("add, getGraphic, transform", function() {
+            it("add, getPath, transform", function() {
                 let fig000 = new figure.Rectangle({
                     origin: { x: 10, y: 20 },
                     size: { width: 30, height: 40 }
@@ -161,29 +161,7 @@ describe("figureeditor", function() {
 
                 fig001.add(fig000)
 
-                let grp001 = fig001.getGraphic() as path.Graphic
-
-                let matrix = new Matrix()
-                matrix.scale(2, 2)
-                fig001.transform(matrix)
-                
-                grp001.updateSVG()
-                
-                expect(grp001.svg.tagName).to.equal("g")
-                expect(grp001.svg.children.length).to.equal(1)
-                expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-            })
-
-            it("getGraphic, add, transform", function() {
-                let fig000 = new figure.Rectangle({
-                    origin: { x: 10, y: 20 },
-                    size: { width: 30, height: 40 }
-                })
-                let fig001 = new figure.Transform()
-
-                let grp001 = fig001.getGraphic() as path.Graphic
-
-                fig001.add(fig000)
+                let grp001 = fig001.getPath() as path.Path
 
                 let matrix = new Matrix()
                 matrix.scale(2, 2)
@@ -196,14 +174,36 @@ describe("figureeditor", function() {
                 expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
             })
 
-            it("getGraphic, transform, add", function() {
+            it("getPath, add, transform", function() {
                 let fig000 = new figure.Rectangle({
                     origin: { x: 10, y: 20 },
                     size: { width: 30, height: 40 }
                 })
                 let fig001 = new figure.Transform()
 
-                let grp001 = fig001.getGraphic() as path.Graphic
+                let grp001 = fig001.getPath() as path.Path
+
+                fig001.add(fig000)
+
+                let matrix = new Matrix()
+                matrix.scale(2, 2)
+                fig001.transform(matrix)
+                
+                grp001.updateSVG()
+                
+                expect(grp001.svg.tagName).to.equal("g")
+                expect(grp001.svg.children.length).to.equal(1)
+                expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
+            })
+
+            it("getPath, transform, add", function() {
+                let fig000 = new figure.Rectangle({
+                    origin: { x: 10, y: 20 },
+                    size: { width: 30, height: 40 }
+                })
+                let fig001 = new figure.Transform()
+
+                let grp001 = fig001.getPath() as path.Path
 
                 let matrix = new Matrix()
                 matrix.scale(2, 2)
@@ -225,10 +225,10 @@ describe("figureeditor", function() {
                     origin: { x: 10, y: 20 },
                     size: { width: 30, height: 40 }
                 })
-                let graphic = fig.getGraphic() as path.Graphic
-                graphic.updateSVG()
+                let path = fig.getPath() as path.Path
+                path.updateSVG()
                 
-                let outline = tool.Tool.createOutlineCopy(graphic)
+                let outline = tool.Tool.createOutlineCopy(path)
                 
                 expect(outline.svg.tagName).to.equal("path")
                 expect(outline.svg.getAttribute("d")).to.equal("M 10 20 L 40 20 L 40 60 L 10 60 Z")
@@ -246,10 +246,10 @@ describe("figureeditor", function() {
                 fig001.matrix = matrix
                 fig001.children.push(fig000)
 
-                let graphic = fig001.getGraphic() as path.Graphic
-                graphic.updateSVG()
+                let path = fig001.getPath() as path.Path
+                path.updateSVG()
                 
-                let outline = tool.Tool.createOutlineCopy(graphic)
+                let outline = tool.Tool.createOutlineCopy(path)
                 outline.updateSVG()
 
                 expect(outline.svg.tagName).to.equal("g")

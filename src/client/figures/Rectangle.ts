@@ -36,14 +36,14 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
         }
         return Number.MAX_VALUE
     }
-    getGraphic(): Graphic {
+    getPath(): Path {
         if (this.path === undefined) {
             this.path = new Path()
-            this.updateGraphic()
+            this.updatePath()
         }
         return this.path
     }
-    updateGraphic(): void {
+    updatePath(): void {
         if (!this.path)
             return
         this.path.clear()

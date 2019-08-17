@@ -41,28 +41,28 @@ export class Tool {
         this.outlines = new Map<Figure, Path>()
     }
 
-    static createOutlineCopy(graphic: AbstractPath): AbstractPath {
-        let outlineGraphic = graphic.clone()
+    static createOutlineCopy(path: AbstractPath): AbstractPath {
+        let outlinePath = path.clone()
         // FIXME: translate outline by (-1, +1)
-        Tool.setOutlineColors(outlineGraphic)
-        outlineGraphic.updateSVG()
-        return outlineGraphic
+        Tool.setOutlineColors(outlinePath)
+        outlinePath.updateSVG()
+        return outlinePath
     }
     
-    static setOutlineColors(graphic: AbstractPath): void {
+    static setOutlineColors(path: AbstractPath): void {
         let attributes = {
             stroke: "rgb(79,128,255)",
             strokeWidth: 1,
             fill: "none"
         }
-        graphic.setAttributes(attributes)
+        path.setAttributes(attributes)
     }
     
     createOutlines(editor: FigureEditor): void { // FIXME: rename into createOutlinesForSelection()
         for(let figure of Tool.selection.selection) {
             if (this.outlines.has(figure))
                 continue
-            let outline = Tool.createOutlineCopy(figure.getGraphic() as AbstractPath)
+            let outline = Tool.createOutlineCopy(figure.getPath() as AbstractPath)
             editor.decorationOverlay.appendChild(outline.svg)
             this.outlines.set(figure, outline)
         }

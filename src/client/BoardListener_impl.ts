@@ -18,12 +18,11 @@
 
 import { ORB } from "corba.js"
 import { Matrix } from "../shared/geometry"
-import { Figure } from "./figures/Figure"
-import { AbstractPath } from "./paths/AbstractPath"
+import { Figure, Transform } from "./figures"
+import { AbstractPath } from "./paths"
 import { BoardModel } from "./BoardModel"
 
 import * as skel from "../shared/workflow_skel"
-import * as Transform from "./figures/Transform"
 
 export class BoardListener_impl extends skel.BoardListener {
     boardmodel: BoardModel
@@ -56,17 +55,17 @@ export class BoardListener_impl extends skel.BoardListener {
                 continue;
             if (fig.transform(matrix))
                 continue;
-            let transform = new Transform.Transform()
+            let transform = new Transform()
             transform.id = newIds.shift()!
             transform.transform(matrix)
-            let oldGraphic = fig.getGraphic() as AbstractPath
-            let oldParentNode = oldGraphic.svg.parentNode!
-            let oldNextSibling = oldGraphic.svg.nextSibling
-            oldParentNode.removeChild(oldGraphic.svg)
+            let oldPath = fig.getPath() as AbstractPath
+            let oldParentNode = oldPath.svg.parentNode!
+            let oldNextSibling = oldPath.svg.nextSibling
+            oldParentNode.removeChild(oldPath.svg)
             transform.add(fig)
-            let newGraphic = transform.getGraphic() as AbstractPath
-            newGraphic.updateSVG();
-            oldParentNode.insertBefore(newGraphic.svg, oldNextSibling)
+            let newPath = transform.getPath() as AbstractPath
+            newPath.updateSVG();
+            oldParentNode.insertBefore(newPath.svg, oldNextSibling)
             layer.data[index] = transform
         }
     }

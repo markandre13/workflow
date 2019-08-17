@@ -23,9 +23,6 @@ import {
     intersectsRectLine, lineCrossesRect2
 } from "../../shared/geometry"
 import { Path } from "../paths/Path"
-
-import { WordWrapTestRunner } from "./testrunner"
-
 import { OrderedArray } from "../orderedarray"
 
 // description of an intersection between path segments

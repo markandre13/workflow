@@ -16,16 +16,16 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { GenericView, Model } from "toad.js";
-import { Rectangle, Matrix } from "../../shared/geometry";
-import { AbstractPath } from "../paths/AbstractPath";
-import { Figure } from "../../shared/workflow_valuetype";
-import { Tool } from "../figuretools";
-import { StrokeAndFillModel } from "../widgets/strokeandfill";
-import { ToolModel } from "../figuretools/ToolModel";
-import { Layer } from "./Layer";
-import { LayerModel } from "./LayerModel";
-import { EditorEvent } from "./EditorEvent";
+import { GenericView, Model } from "toad.js"
+import { Rectangle, Matrix } from "../../shared/geometry"
+import { AbstractPath } from "../paths"
+import { Figure } from "../../shared/workflow_valuetype"
+import { Tool } from "../figuretools"
+import { StrokeAndFillModel } from "../widgets/strokeandfill"
+import { ToolModel } from "../figuretools/ToolModel"
+import { Layer } from "./Layer"
+import { LayerModel } from "./LayerModel"
+import { EditorEvent } from "./EditorEvent"
 
 export class FigureEditor extends GenericView<LayerModel> {
     scrollView: HTMLDivElement;
@@ -132,9 +132,9 @@ export class FigureEditor extends GenericView<LayerModel> {
         let layer = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.layer = layer;
         for (let figure of this.model!.layers[0].data) {
-            let graphic = figure.getGraphic() as AbstractPath;
-            graphic.updateSVG();
-            layer.appendChild(graphic.svg);
+            let path = figure.getPath() as AbstractPath;
+            path.updateSVG();
+            layer.appendChild(path.svg);
             this.bounds.expandByRectangle(figure.bounds());
         }
         this.svgView.insertBefore(layer, this.decorationOverlay);

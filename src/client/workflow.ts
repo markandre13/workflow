@@ -23,7 +23,6 @@ import {
 } from "../shared/geometry"
 
 import * as figure from "./figures"
-import * as AttributedFigure from "./figures/AttributedFigure";
 import { Layer } from "./figureeditor/Layer";
 import { FigureEditor } from "./figureeditor/FigureEditor";
 import { StrokeAndFill } from "./widgets/strokeandfill"

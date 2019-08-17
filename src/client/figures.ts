@@ -16,10 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export { Figure } from "./figures/Figure"
-export { AttributedFigure } from "./figures/AttributedFigure"
-export { Shape } from "./figures/Shape"
-export { Rectangle } from "./figures/Rectangle"
-export { Circle } from "./figures/Circle"
-export { Group } from "./figures/Group"
-export { Transform } from "./figures/Transform"
+export * from "./figures/Figure"
+export * from "./figures/AttributedFigure"
+export * from "./figures/Shape"
+export * from "./figures/Rectangle"
+export * from "./figures/Circle"
+export * from "./figures/Group"
+export * from "./figures/Transform"

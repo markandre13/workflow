@@ -18,7 +18,6 @@
 
 console.log('booting workflow server v0.1')
 
-import * as WebSocket from "ws"
 import * as knex from "knex"
 import * as crypto from "crypto"
 //import * as scrypt from "scrypt"
@@ -26,7 +25,6 @@ var scrypt = require("scrypt")
 var scryptParameters = scrypt.paramsSync(0.1)
 
 import { ORB } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
-import * as iface from "../shared/workflow"
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
 import { Figure, FigureModel, BoardModel } from "../shared/workflow_valueimpl"
@@ -394,11 +392,11 @@ export abstract class Figure extends valueimpl.Figure
         console.log("workflow.Figure.constructor()")
     }
     
-    getGraphic(): Graphic {
+    getPath(): Path {
 	throw Error("not implemented")
     }
 
-    updateGraphic(): void {
+    updatePath(): void {
         throw Error("not implemented")
     }
 

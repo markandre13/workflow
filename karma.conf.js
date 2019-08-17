@@ -21,6 +21,12 @@ module.exports = (config) => {
     browsers: ['ChromeHeadless'],
     autoWatch: false,
     singleRun: true
+
+    // browsers: ['Headless'],
+    // autoWatch: true,
+    // singleRun: false
+
+
     // browserNoActivityTimeout: 0
   })
 }

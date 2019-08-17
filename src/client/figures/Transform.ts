@@ -34,8 +34,8 @@ export class Transform extends Group implements valuetype.figure.Transform {
     add(figure: Figure) {
         this.children.push(figure)
         if (this.group !== undefined) {
-            let graphic = figure.getGraphic() as AbstractPath
-            this.group.add(graphic)
+            let path = figure.getPath() as AbstractPath
+            this.group.add(path)
         }
     }
     transform(matrix: Matrix): boolean {
@@ -63,16 +63,16 @@ export class Transform extends Group implements valuetype.figure.Transform {
     }
     setHandlePosition(handle: number, pt: Point): void {
     }
-    getGraphic(): AbstractPath {
+    getPath(): AbstractPath {
         if (this.group === undefined) {
             this.group = new PathGroup()
             for (let child of this.children) {
-                this.group.add(child.getGraphic() as AbstractPath)
+                this.group.add(child.getPath() as AbstractPath)
             }
             this.group.transform(this.matrix)
         }
         return this.group
     }
-    updateGraphic(): void {
+    updatePath(): void {
     }
 }

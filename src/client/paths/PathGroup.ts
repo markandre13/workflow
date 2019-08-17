@@ -27,8 +27,8 @@ export class PathGroup extends AbstractPath {
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.data = new Array<AbstractPath>()
         if (group !== undefined) {
-            for (let graphic of group.data) {
-                this.add(graphic.clone())
+            for (let path of group.data) {
+                this.add(path.clone())
             }
             if (group.matrix) {
                 this.matrix = new Matrix(group.matrix)
@@ -38,24 +38,24 @@ export class PathGroup extends AbstractPath {
     clone(): AbstractPath {
         return new PathGroup(this)
     }
-    add(graphic: AbstractPath): AbstractPath {
+    add(path: AbstractPath): AbstractPath {
         if (this.matrix) {
-            graphic.transform(this.matrix) // FIXME: should not modify argument?
+            path.transform(this.matrix) // FIXME: should not modify argument?
         }
-        this.data.push(graphic)
-        graphic.updateSVG()
-        this.svg.appendChild(graphic.svg)
+        this.data.push(path)
+        path.updateSVG()
+        this.svg.appendChild(path.svg)
         return this
     }
     setAttributes(attributes: any): AbstractPath {
-        for (let graphic of this.data) {
-            graphic.setAttributes(attributes)
+        for (let path of this.data) {
+            path.setAttributes(attributes)
         }
         return this
     }
     public updateSVG(): void {
-        for (let graphic of this.data) {
-            graphic.updateSVG()
+        for (let path of this.data) {
+            path.updateSVG()
         }
     }
     public transform(matrix: Matrix): AbstractPath {
@@ -63,8 +63,8 @@ export class PathGroup extends AbstractPath {
             this.matrix = new Matrix(matrix)
         else
             this.matrix.append(matrix)
-        for (let graphic of this.data) {
-            graphic.transform(matrix)
+        for (let path of this.data) {
+            path.transform(matrix)
         }
         return this
     }

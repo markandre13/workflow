@@ -18,9 +18,7 @@
 
 import * as value from "../../shared/workflow_value"
 import {
-    Point, Size, Rectangle, Matrix,
-    pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
-    pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine
+    Point, Size, Rectangle
 } from "../../shared/geometry"
 import { Path } from "../paths/Path"
 

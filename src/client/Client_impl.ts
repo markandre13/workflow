@@ -28,12 +28,11 @@ import { ORB } from "corba.js"
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
 
-import * as figure from "./figures/Figure"
-import * as Rectangle from "./figures/Rectangle";
-import * as Circle from "./figures/Circle";
+import * as Rectangle from "./figures/Rectangle"
+import * as Circle from "./figures/Circle"
 
 import { SelectTool, ShapeTool } from "./figuretools"
-import { ToolModel } from "./figuretools/ToolModel";
+import { ToolModel } from "./figuretools/ToolModel"
 import { StrokeAndFillModel } from "./widgets/strokeandfill"
 
 import { BoardModel } from "./BoardModel"

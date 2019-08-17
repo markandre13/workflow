@@ -30,9 +30,9 @@ import { Tool } from "./Tool"
 
 enum State {
     NONE,
-    DRAG_MARQUEE,
-    MOVE_HANDLE,
-    MOVE_SELECTION
+    DRAG_MARQUEE,       // select figures using a marquee rectangle
+    MOVE_HANDLE,        // move a handle to resize and rotate
+    MOVE_SELECTION      // move selected
 }
 
 export class SelectTool extends Tool {
@@ -83,7 +83,7 @@ export class SelectTool extends Tool {
                     if (figure instanceof AttributedFigure) {
                         figure.stroke = event.editor.strokeAndFillModel!.stroke
                         figure.fill = event.editor.strokeAndFillModel!.fill
-                        figure.updateGraphic()
+                        figure.updatePath()
                     }
                 }
             }, this)
@@ -524,7 +524,7 @@ console.log("mouse up selection")
             if (!this.marqueeRectangle!.containsRectangle(figure.bounds()))
                 continue
 
-            let outline = Tool.createOutlineCopy(figure.getGraphic() as AbstractPath)
+            let outline = Tool.createOutlineCopy(figure.getPath() as AbstractPath)
             editor.decorationOverlay.appendChild(outline.svg)
             this.marqueeOutlines.set(figure, outline)
         }

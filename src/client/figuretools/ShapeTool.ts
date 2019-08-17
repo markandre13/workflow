@@ -46,15 +46,15 @@ export class ShapeTool extends Tool {
             this.shape.fill = event.editor.strokeAndFillModel.fill
         }
         
-        let path = this.shape.getGraphic() as AbstractPath
+        let path = this.shape.getPath() as AbstractPath
         Tool.setOutlineColors(path)
         event.editor.decorationOverlay.appendChild(path.svg)
     }
 
     mousemove(event: EditorEvent) {
         this.shape!.setHandlePosition(2, event)
-        this.shape!.updateGraphic()
-        Tool.setOutlineColors(this.shape!.getGraphic() as AbstractPath)
+        this.shape!.updatePath()
+        Tool.setOutlineColors(this.shape!.getPath() as AbstractPath)
     }
 
     mouseup(event: EditorEvent) {
@@ -71,7 +71,7 @@ export class ShapeTool extends Tool {
             shape.size.height = -shape.size.height
         }
 
-        let path = shape.getGraphic() as AbstractPath
+        let path = shape.getPath() as AbstractPath
         event.editor.decorationOverlay.removeChild(path.svg)
 
         event.editor.addFigure(shape)
