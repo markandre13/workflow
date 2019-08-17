@@ -16,16 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-import { ORB } from "corba.js"
-import { Point, Size, Rectangle, Matrix } from "shared/geometry"
-
-before(function() {
-    ORB.registerValueType("Point", Point)
-    ORB.registerValueType("Size", Size)
-    ORB.registerValueType("Rectangle", Rectangle)
-    ORB.registerValueType("Matrix", Matrix)
-})
-
-after(function() {
-})
+export * from "./paths/AbstractPath"
+export * from "./paths/Path"
+export * from "./paths/AttributedPath"
+export * from "./paths/PathGroup"

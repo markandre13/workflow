@@ -16,11 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 import { expect } from "chai"
 
-import { ORB } from "corba.js"
 
-import { Point, Size, Rectangle, Matrix } from "../../src/shared/geometry"
+import { Matrix } from "../../src/shared/geometry"
 
 import * as path from "../../src/client/paths"
 import * as figure from "../../src/client/figures"
@@ -259,3 +259,4 @@ describe("figureeditor", function() {
         })
     })
 })
+

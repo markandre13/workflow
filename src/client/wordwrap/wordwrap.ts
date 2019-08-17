@@ -22,8 +22,8 @@ import {
     pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine,
     intersectsRectLine, lineCrossesRect2
 } from "../../shared/geometry"
-import { Path } from "../paths/Path"
-import { OrderedArray } from "../orderedarray"
+import { Path } from "../paths"
+import { OrderedArray } from "../OrderedArray"
 
 // description of an intersection between path segments
 export class IntersectionPoint {

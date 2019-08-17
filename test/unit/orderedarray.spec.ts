@@ -17,7 +17,7 @@
  */
 
 import { expect } from "chai"
-import { OrderedArray } from "../../src/client/orderedarray"
+import { OrderedArray } from "../../src/client/OrderedArray"
 
 function less(a:number, b: number): boolean {
     if (a === undefined || b === undefined) {
@@ -26,7 +26,7 @@ function less(a:number, b: number): boolean {
     return a < b
 }
 
-describe("orderedarray", function() {
+describe("OrderedArray", function() {
     it("twoElementsInOrder", function() {
         let array = new OrderedArray<number>( (a:number, b: number) => { return less(a, b) } )
         array.insert(1)
@@ -83,3 +83,4 @@ describe("orderedarray", function() {
         expect(array.at(2)).to.equal(3)
     })
 })
+

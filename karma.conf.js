@@ -1,3 +1,5 @@
+process.env.CHROME_BIN = require('puppeteer').executablePath()
+
 module.exports = (config) => {
   config.set({
     basePath: '.',
@@ -18,14 +20,15 @@ module.exports = (config) => {
     },
     port: 9876,
     colors: true,
-    browsers: ['ChromeHeadless'],
+    browsers: ['Chrome_without_security'],
+    customLaunchers: {
+      Chrome_without_security: {
+        base: 'ChromeHeadless',
+        flags: ['--disable-web-security', '--disable-site-isolation-trials']
+      }
+    },
     autoWatch: false,
     singleRun: true
-
-    // browsers: ['Headless'],
-    // autoWatch: true,
-    // singleRun: false
-
 
     // browserNoActivityTimeout: 0
   })

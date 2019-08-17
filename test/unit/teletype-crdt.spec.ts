@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ /*
+
 import { expect } from "chai"
 
 const crdt = require("@atom/teletype-crdt")
@@ -62,14 +64,14 @@ class Teletype {
     }
     
     integrateOperations(operations: any) {
-/*
-        const {textUpdates, markerUpdates} = this.document.integrateOperations(operations)
-        if (this.delegate) this.delegate.updateText(textUpdates)
-        // this.emitter.emit('did-update-markers', markerUpdates)
-        if (textUpdates.length > 0) {
-            this.emitter.emit('did-update-text', {remote: true})
-        }
-*/
+
+        // const {textUpdates, markerUpdates} = this.document.integrateOperations(operations)
+        // if (this.delegate) this.delegate.updateText(textUpdates)
+        // // this.emitter.emit('did-update-markers', markerUpdates)
+        // if (textUpdates.length > 0) {
+        //     this.emitter.emit('did-update-text', {remote: true})
+        // }
+
     }
 }
 
@@ -94,7 +96,7 @@ console.log(ops1)
 //            replica1.testLocalDocument = new crdt.LocalDocument(replica1.getText())
             
 //            const replica2 = replica1.replicate(2)
-//            replica2.testLocalDocument = new LocalDocument(/*replica2.getText()*/)
+//            replica2.testLocalDocument = new LocalDocument(/*replica2.getText()* /)
             
 //            replica1.setTextInRange({row: 0, column: 2}, crdt.ZERO_POINT, '+++')
             
@@ -103,3 +105,4 @@ console.log(ops1)
         })
     })
 })
+*/
