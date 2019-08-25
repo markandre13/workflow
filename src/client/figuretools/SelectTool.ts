@@ -105,6 +105,7 @@ export class SelectTool extends Tool {
 
         if (this.downHandle(event)) {
             this.state = State.MOVE_HANDLE
+            console.log(`DOWN: START TO MOVE HANDLE ${this.selectedHandle}`)
             return
         }
 
@@ -153,11 +154,11 @@ export class SelectTool extends Tool {
                 this.stopMarquee(event)
                 break
             case State.MOVE_HANDLE:
+                console.log("UP: HANDLE")
                 this.moveHandle(event)
                 this.stopHandle(event)
                 break
             case State.MOVE_SELECTION:
-console.log("mouse up selection")
                 this.moveSelection(event)
                 this.stopMove(event)
                 break

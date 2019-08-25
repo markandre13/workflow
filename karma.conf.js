@@ -20,13 +20,7 @@ module.exports = (config) => {
     },
     port: 9876,
     colors: true,
-    browsers: ['Chrome_without_security'],
-    customLaunchers: {
-      Chrome_without_security: {
-        base: 'ChromeHeadless',
-        flags: ['--disable-web-security', '--disable-site-isolation-trials']
-      }
-    },
+    browsers: ['ChromeHeadless'],
     autoWatch: false,
     singleRun: true
 

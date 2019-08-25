@@ -22,8 +22,8 @@ import { FigureEditor } from "./FigureEditor"
 export class EditorEvent extends Point {
     editor: FigureEditor
     shiftKey: boolean
-    constructor(editor: FigureEditor, opt: any) {
-        super()
+    constructor(editor: FigureEditor, point: Point, opt: any = undefined) {
+        super(point)
         this.editor = editor
         this.shiftKey = (opt || opt.shiftKey) ? true : false
     }

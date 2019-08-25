@@ -20,7 +20,7 @@
 import { expect } from "chai"
 import { Signal } from "toad.js"
 
-import { Matrix } from "../../src/shared/geometry"
+import { Matrix, pointPlusSize, pointMinusPoint, Point, pointPlusPoint, sizeMultiplyNumber } from "../../src/shared/geometry"
 
 import * as path from "../../src/client/paths"
 import * as figure from "../../src/client/figures"
@@ -263,53 +263,209 @@ describe.only("figureeditor", function() {
 
     describe("SelectTool", ()=> {
 
-        class MyLayerModel implements LayerModel {
-            modified: Signal
-            layers: Array<Layer>
-            
-            constructor() {
-                this.modified = new Signal()
-                this.layers = new Array<Layer>()
-            }
-            transform(layerID: number, indices: Array<number>, matrix: Matrix): void {
-                // this.board!.transform(layerID, indices, matrix)
-            }
-            add(layerID: number, figure: figure.Figure) {
-                // this.board!.add(layerID, figure)
+        let figureeditor: FigureEditor
+
+        this.beforeAll(()=>{
+            // console.log("before all select tool tests")
+        })
+
+        // MyLayer & MyLayerModel are copied from server.ts
+
+        class MyLayer extends Layer {
+            highestFigureId?: number
+
+            createFigureId(): number {
+                if (this.highestFigureId === undefined) {
+                    this.highestFigureId = 0
+                    for(let figure of this.data) {
+                        if (figure.id > this.highestFigureId) { // FIXME: recursive
+                            this.highestFigureId = figure.id
+                        }
+                    }
+                }
+                return ++this.highestFigureId
             }
         }
 
-        it("select figure", ()=> {
-            // GIVEN
+        class MyLayerModel implements LayerModel {
+            modified: Signal
+            layers: Array<MyLayer>
+            
+            constructor() {
+                this.modified = new Signal()
+                this.layers = new Array<MyLayer>()
+            }
+
+            layerById(layerID: number) {
+                for (let layer of this.layers) {
+                    if (layer.id === layerID)
+                        return layer
+                }
+                throw Error("BoardListener_impl.layerById(): unknown layer id " + layerID)
+            }
+
+            add(layerId: number, figure: figure.Figure) {
+                console.log(`MyLayerModel.add(${layerId})`)
+                let layer = this.layerById(layerId)
+                layer.data.push(figure)
+            }
+
+            transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
+                console.log(`MyLayerModel.transform(${layerID}, ${figureIdArray}, ${JSON.stringify(matrix)})`)
+                let figureIdSet = new Set<number>()
+                for(let id of figureIdArray)
+                    figureIdSet.add(id)
+                let newIdArray = new Array<number>()
+                
+                let layer = this.layerById(layerID)
+                for (let index in layer.data) {
+                    let fig = layer.data[index]
+                    if (!figureIdSet.has(fig.id))
+                        continue
+                        
+                    if (fig.transform(matrix)) {
+                        console.log("  figure transformed itself")
+                        // console.log("transformed "+JSON.stringify(fig))
+                        continue
+                    }
+
+                    console.log("figure encapsuled with a transform object")
+                    let transform = new figure.Transform()
+                    transform.id = layer.createFigureId()
+                    newIdArray.push(transform.id)
+                    transform.matrix = new Matrix(matrix)
+                    transform.children.push(fig)
+                    layer.data[index] = transform
+
+                    // FIXME: how to update the selection?
+                }
+            }
+        }
+
+        it("move figure", ()=> {
+             // GIVEN
             let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
+            document.body.appendChild(figureeditor)
 
             let selectTool = new SelectTool()
             figureeditor.setTool(selectTool)
 
             let model = new MyLayerModel()
-            let layer = new Layer()
+            let layer = new MyLayer()
             let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-            fig.stroke = "#00"
+            fig.stroke = "#000"
+            fig.fill = "#f00"
+            model.layers.push(layer)
+            figureeditor.setModel(model)
+
+            layer.data.push(fig)
+
+            expect(Tool.selection.has(fig)).to.be.false
+
+            // WHEN: CLICK INSIDE FIGURE
+            let mouseDownToMoveAt = {x: 60, y: 60}
+            selectTool.mousedown(new EditorEvent(figureeditor, mouseDownToMoveAt, false))
+            selectTool.mouseup(new EditorEvent(figureeditor, mouseDownToMoveAt, false))
+
+            // THEN: EXPECT FIGURE TO BE SELECTED
+            expect(Tool.selection.has(fig)).to.be.true
+
+            // WHEN: MOUSE DOWN AT 60, 60, MOUSE MOVE BY 17, -29 AND MOUSE UP
+            let translation = {x: 17, y: -29}
+            let mouseUpToMoveAt = pointPlusPoint(mouseDownToMoveAt, translation)
+            let newOrigin = pointPlusPoint(fig.origin, translation)
+
+            selectTool.mousedown(new EditorEvent(figureeditor, mouseDownToMoveAt, false))
+            selectTool.mousemove(new EditorEvent(figureeditor, mouseUpToMoveAt, false))
+            selectTool.mouseup(new EditorEvent(figureeditor, mouseUpToMoveAt, false))
+
+            // THEN: FIGURE ORIGIN HAS MOVED BY 18, -29
+            expect(fig.origin).to.eql(newOrigin)
+        })
+       
+        it("scale figure using nw handle", ()=> {
+            // GIVEN
+            let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
+            document.body.appendChild(figureeditor)
+
+            let selectTool = new SelectTool()
+            figureeditor.setTool(selectTool)
+
+            let model = new MyLayerModel()
+            let layer = new MyLayer()
+            let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+            fig.stroke = "#000"
             fig.fill = "#f00"
             layer.data.push(fig)
             model.layers.push(layer)
             figureeditor.setModel(model)
 
-            let event = new EditorEvent(figureeditor, false)
-            event.x = 50
-            event.y = 50
-
             expect(Tool.selection.has(fig)).to.be.false
 
+            let oldSECorner = pointPlusSize(fig.origin, fig.size)
+
             // WHEN
-            selectTool.mousedown(event)
+            selectTool.mousedown(new EditorEvent(figureeditor, fig.origin, false))
+            selectTool.mouseup(new EditorEvent(figureeditor, fig.origin, false))
 
             // THEN
             expect(Tool.selection.has(fig)).to.be.true
 
-            // let figureeditor = new FigureEditor()
-        })
-        
+            selectTool.mousedown(new EditorEvent(figureeditor, fig.origin, false))
+
+            let newNECorner = new Point(40, 65)
+            selectTool.mousemove(new EditorEvent(figureeditor, newNECorner, false))
+            selectTool.mouseup(new EditorEvent(figureeditor, newNECorner, false))
+
+            // THEN
+            expect(fig.origin).to.eql(newNECorner)
+            let newSECorner = pointPlusSize(fig.origin, fig.size)
+            expect(oldSECorner).to.eql(newSECorner)
+       })
+
+       it.only("rotate figure using nw handle", ()=> {
+            // GIVEN
+            let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
+            document.body.appendChild(figureeditor)
+
+            let selectTool = new SelectTool()
+            figureeditor.setTool(selectTool)
+
+            let model = new MyLayerModel()
+            let layer = new MyLayer()
+            let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+            fig.stroke = "#000"
+            fig.fill = "#f00"
+            layer.data.push(fig)
+            model.layers.push(layer)
+            figureeditor.setModel(model)
+
+            
+            let handleRange = figure.Figure.HANDLE_RANGE
+            let oldMouseRotate = pointMinusPoint(fig.origin, {x: handleRange, y: handleRange})
+            let center = pointPlusSize(fig.origin, sizeMultiplyNumber(fig.size, 0.5))
+            
+            let vector = pointMinusPoint(oldMouseRotate, center)
+
+            let radiant = Math.atan2(vector.y, vector.x) + Math.PI / 2.0
+            let diameter = Math.sqrt(vector.x*vector.x + vector.y*vector.y)
+
+            let newMouseRotate = new Point(center.x + Math.sin(radiant) * diameter, center.y + Math.sin(radiant) * diameter)
+            
+            expect(Tool.selection.has(fig)).to.be.false
+            selectTool.mousedown(new EditorEvent(figureeditor, center, false))
+            selectTool.mouseup(new EditorEvent(figureeditor, center, false))
+            expect(Tool.selection.has(fig)).to.be.true
+
+            console.log("START ROTATE")
+            selectTool.mousedown(new EditorEvent(figureeditor, oldMouseRotate, false))
+            selectTool.mousemove(new EditorEvent(figureeditor, newMouseRotate, false))
+            selectTool.mouseup(new EditorEvent(figureeditor, newMouseRotate, false))
+
+            let newFig = Tool.selection.selection.values().next().value
+
+            console.log(`newFig: ${JSON.stringify(newFig)}`)
+       })
     })
 })
 

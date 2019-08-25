@@ -79,6 +79,13 @@ export function pointMultiplyNumber(a: Point, b: number): Point {
     })
 }
 
+export function sizeMultiplyNumber(a: Size, b: number): Size {
+    return new Size({
+        width: a.width * b,
+        height: a.height * b
+    })
+}
+
 export function pointMinus(a: Point) {
     return new Point({
         x: -a.x,
