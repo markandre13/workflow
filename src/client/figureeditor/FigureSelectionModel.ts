@@ -16,34 +16,43 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Signal } from "toad.js";
-import { Figure } from "../../shared/workflow_valuetype";
+import { Signal } from "toad.js"
+import { Figure } from "../../shared/workflow_valuetype"
 
 export class FigureSelectionModel {
-    modified: Signal;
-    selection: Set<Figure>;
+    modified: Signal
+    selection: Set<Figure>
     constructor() {
-        this.modified = new Signal();
-        this.selection = new Set<Figure>();
+        this.modified = new Signal()
+        this.selection = new Set<Figure>()
     }
     add(figure: Figure): void {
-        this.selection.add(figure);
-        this.modified.trigger();
+        this.selection.add(figure)
+        this.modified.trigger()
+    }
+    remove(figure: Figure): void {
+        this.selection.delete(figure)
+        this.modified.trigger()
+    }
+    replace(oldFigure: Figure, newFigure: Figure) {
+        this.selection.delete(oldFigure)
+        this.selection.add(newFigure)
+        this.modified.trigger()
     }
     has(figure: Figure): boolean {
-        return this.selection.has(figure);
+        return this.selection.has(figure)
     }
     empty(): boolean {
-        return this.selection.size === 0;
+        return this.selection.size === 0
     }
     clear(): void {
-        this.selection.clear();
-        this.modified.trigger();
+        this.selection.clear()
+        this.modified.trigger()
     }
     figureIds(): Array<number> {
-        let result = new Array<number>();
+        let result = new Array<number>()
         for (let figure of this.selection)
-            result.push(figure.id);
-        return result;
+            result.push(figure.id)
+        return result
     }
 }

@@ -17,7 +17,10 @@
  */
 
 
-import { expect } from "chai"
+import { expect, use } from "chai"
+import chaiAlmost = require('chai-almost')
+use(chaiAlmost())
+
 import { Signal } from "toad.js"
 
 import { Matrix, pointPlusSize, pointMinusPoint, Point, pointPlusPoint, sizeMultiplyNumber } from "../../src/shared/geometry"
@@ -337,7 +340,7 @@ describe.only("figureeditor", function() {
                     transform.children.push(fig)
                     layer.data[index] = transform
 
-                    // FIXME: how to update the selection?
+                    Tool.selection.replace(fig, transform)
                 }
             }
         }
@@ -450,8 +453,8 @@ describe.only("figureeditor", function() {
             let radiant = Math.atan2(vector.y, vector.x) + Math.PI / 2.0
             let diameter = Math.sqrt(vector.x*vector.x + vector.y*vector.y)
 
-            let newMouseRotate = new Point(center.x + Math.sin(radiant) * diameter, center.y + Math.sin(radiant) * diameter)
-            
+            let newMouseRotate = new Point(center.x + Math.cos(radiant) * diameter, center.y + Math.sin(radiant) * diameter)
+
             expect(Tool.selection.has(fig)).to.be.false
             selectTool.mousedown(new EditorEvent(figureeditor, center, false))
             selectTool.mouseup(new EditorEvent(figureeditor, center, false))
@@ -464,7 +467,15 @@ describe.only("figureeditor", function() {
 
             let newFig = Tool.selection.selection.values().next().value
 
-            console.log(`newFig: ${JSON.stringify(newFig)}`)
+
+            let p = newFig.getPath() as path.PathGroup
+            p.updateSVG()
+            let p1 = p.data[0] as path.Path
+            console.log(JSON.stringify(p1.path))
+            expect(p1.path[0].values).to.almost.eql([75, 55])
+            expect(p1.path[1].values).to.almost.eql([75, 75])
+            expect(p1.path[2].values).to.almost.eql([45, 75])
+            expect(p1.path[3].values).to.almost.eql([45, 55])
        })
     })
 })

@@ -19,9 +19,15 @@
 import { Matrix } from "../../shared/geometry"
 import { AbstractPath } from "./AbstractPath"
 
+// PathGroup represents a group of paths
+// there are two modi this can work
+// * transformation of the SVG group containing the children
+//   this should also scale line width, patterns, etc.
+// * transformation of the paths within the SVG group
+//   this should scale the children, but retain line width, patterns, etc.
 export class PathGroup extends AbstractPath {
-    private data: Array<AbstractPath>
-    private matrix?: Matrix
+    data: Array<AbstractPath>
+    matrix?: Matrix
     constructor(group?: PathGroup) {
         super()
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
