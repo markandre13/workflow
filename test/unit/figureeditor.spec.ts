@@ -30,6 +30,7 @@ import * as figure from "../../src/client/figures"
 import * as tool from "../../src/client/figuretools"
 import { EditorEvent, FigureEditor, Layer, LayerModel } from "../../src/client/figureeditor"
 import { Tool, SelectTool } from "../../src/client/figuretools";
+import { Figure } from "../../src/shared/workflow_valueimpl";
 
 declare global {
     interface SVGPathElement {
@@ -266,8 +267,6 @@ describe.only("figureeditor", function() {
 
     describe("SelectTool", ()=> {
 
-        let figureeditor: FigureEditor
-
         this.beforeAll(()=>{
             // console.log("before all select tool tests")
         })
@@ -345,84 +344,117 @@ describe.only("figureeditor", function() {
             }
         }
 
+        it("select figure")
+        it("select rotated figure")
+        it("select two figures with different rotations")
+        it("select two figures with similar rotations")
+
+        class Test {
+            figureeditor: FigureEditor
+            selectTool: SelectTool
+            figure: figure.Rectangle
+            mousePosition: Point
+            constructor() {
+                let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
+                document.body.innerHTML = ""
+                document.body.appendChild(figureeditor)
+
+                let selectTool = new SelectTool()
+                figureeditor.setTool(selectTool)
+
+                let model = new MyLayerModel()
+                let layer = new MyLayer()
+                let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+                fig.stroke = "#000"
+                fig.fill = "#f00"
+                model.layers.push(layer)
+                figureeditor.setModel(model)
+
+                layer.data.push(fig)
+
+                expect(Tool.selection.has(fig)).to.be.false
+
+                this.figureeditor = figureeditor
+                this.selectTool = selectTool
+                this.figure = fig
+                this.mousePosition = new Point()
+            }
+
+            // semantic operations
+
+            selectFigure() {
+                this.clickInsideFigure()
+                expect(Tool.selection.has(this.figure)).to.be.true
+            }
+
+            mouseDownAt(position: Point) {
+                this.mousePosition = new Point(position)
+                this.selectTool.mousedown(new EditorEvent(this.figureeditor, position, false))
+            }
+
+            moveMouseTo(point: Point) {
+                this.mousePosition = new Point(point)
+                this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, false))
+            }
+
+            moveMouseBy(translation: Point) {
+                this.mousePosition = pointPlusPoint(this.mousePosition, translation)
+                this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, false))
+            }
+
+            mouseUp() {
+                this.selectTool.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, false))
+            }
+
+            clickInsideFigure() {
+                let mouseDownToMoveAt = this.centerOfFigure()
+                this.selectTool.mousedown(new EditorEvent(this.figureeditor, mouseDownToMoveAt, false))
+                this.selectTool.mouseup(new EditorEvent(this.figureeditor, mouseDownToMoveAt, false))
+            }
+
+            centerOfFigure(): Point {
+                return this.figure.bounds().center()
+            }
+
+            centerOfNWHandle(): Point {
+                // let range = figure.Figure.HANDLE_RANGE/2
+                return this.figure.origin // pointMinusPoint(this.figure.bounds().origin, new Point({x: range, y: range}))
+            }
+        }
+
         it("move figure", ()=> {
-             // GIVEN
-            let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
-            document.body.appendChild(figureeditor)
+            // GIVEN
+            let test = new Test()
+            test.selectFigure()
+            
+            // WHEN
+            let oldCenter = test.centerOfFigure()
+            test.mouseDownAt(oldCenter)
+            let translation = new Point(17, -29)
+            test.moveMouseBy(translation)
+            test.mouseUp()
 
-            let selectTool = new SelectTool()
-            figureeditor.setTool(selectTool)
-
-            let model = new MyLayerModel()
-            let layer = new MyLayer()
-            let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-            fig.stroke = "#000"
-            fig.fill = "#f00"
-            model.layers.push(layer)
-            figureeditor.setModel(model)
-
-            layer.data.push(fig)
-
-            expect(Tool.selection.has(fig)).to.be.false
-
-            // WHEN: CLICK INSIDE FIGURE
-            let mouseDownToMoveAt = {x: 60, y: 60}
-            selectTool.mousedown(new EditorEvent(figureeditor, mouseDownToMoveAt, false))
-            selectTool.mouseup(new EditorEvent(figureeditor, mouseDownToMoveAt, false))
-
-            // THEN: EXPECT FIGURE TO BE SELECTED
-            expect(Tool.selection.has(fig)).to.be.true
-
-            // WHEN: MOUSE DOWN AT 60, 60, MOUSE MOVE BY 17, -29 AND MOUSE UP
-            let translation = {x: 17, y: -29}
-            let mouseUpToMoveAt = pointPlusPoint(mouseDownToMoveAt, translation)
-            let newOrigin = pointPlusPoint(fig.origin, translation)
-
-            selectTool.mousedown(new EditorEvent(figureeditor, mouseDownToMoveAt, false))
-            selectTool.mousemove(new EditorEvent(figureeditor, mouseUpToMoveAt, false))
-            selectTool.mouseup(new EditorEvent(figureeditor, mouseUpToMoveAt, false))
-
-            // THEN: FIGURE ORIGIN HAS MOVED BY 18, -29
-            expect(fig.origin).to.eql(newOrigin)
+            // THEN
+            let newCenter = pointPlusPoint(oldCenter, translation)
+            expect(test.centerOfFigure()).to.eql(newCenter)
         })
        
         it("scale figure using nw handle", ()=> {
             // GIVEN
-            let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
-            document.body.appendChild(figureeditor)
-
-            let selectTool = new SelectTool()
-            figureeditor.setTool(selectTool)
-
-            let model = new MyLayerModel()
-            let layer = new MyLayer()
-            let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-            fig.stroke = "#000"
-            fig.fill = "#f00"
-            layer.data.push(fig)
-            model.layers.push(layer)
-            figureeditor.setModel(model)
-
-            expect(Tool.selection.has(fig)).to.be.false
-
-            let oldSECorner = pointPlusSize(fig.origin, fig.size)
+            let test = new Test()
+            test.selectFigure()
+            let oldNWCorner = new Point(test.figure.origin)
+            let oldSECorner = pointPlusSize(test.figure.origin, test.figure.size)
 
             // WHEN
-            selectTool.mousedown(new EditorEvent(figureeditor, fig.origin, false))
-            selectTool.mouseup(new EditorEvent(figureeditor, fig.origin, false))
+            test.mouseDownAt(oldNWCorner)
+            let newNWCorner = new Point(40, 65)
+            test.moveMouseTo(newNWCorner)
+            test.mouseUp()
 
             // THEN
-            expect(Tool.selection.has(fig)).to.be.true
-
-            selectTool.mousedown(new EditorEvent(figureeditor, fig.origin, false))
-
-            let newNECorner = new Point(40, 65)
-            selectTool.mousemove(new EditorEvent(figureeditor, newNECorner, false))
-            selectTool.mouseup(new EditorEvent(figureeditor, newNECorner, false))
-
-            // THEN
-            expect(fig.origin).to.eql(newNECorner)
-            let newSECorner = pointPlusSize(fig.origin, fig.size)
+            expect(test.figure.origin).to.eql(newNWCorner)
+            let newSECorner = pointPlusSize(test.figure.origin, test.figure.size)
             expect(oldSECorner).to.eql(newSECorner)
        })
 
@@ -466,7 +498,6 @@ describe.only("figureeditor", function() {
             selectTool.mouseup(new EditorEvent(figureeditor, newMouseRotate, false))
 
             let newFig = Tool.selection.selection.values().next().value
-
 
             let p = newFig.getPath() as path.PathGroup
             p.updateSVG()
