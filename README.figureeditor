@@ -1,0 +1,36 @@
+
+                         FigureEditor Archtitecture
+
+ The figure editor attempts to provide the framework for full featured 2d
+vector graphic applications like Inkscape, CorelDraw or Adobe Illustrator.
+
+ Center is the FigureEditor class which can be extended by a number of tools:
+
+ ShapeTool:  A shape is a figure providing only a limited set of operations,
+             like translation, rotation. Examples are Rectangle, Circles,
+             Images.
+             Each instance of the shape tool takes a shape in it's
+             constructor which it can duplicate and add to the figure editor.
+Select Tool: Provides basic operations on figures:
+             o select/deselect figures
+             o move
+             o rotate
+             o scale
+             If a figure does not provide these operations on it's own, it
+             will be wrapped into a Transform figure.
+Direct Manipulation:
+             Provides basic operations on a figure's handles, ie. to move
+             single points in a bezier curve.
+
+  To support algorithms like fill, boolean operations, arrows which end at
+the outline of a figure, deformation of images, figures do not directly
+draw themselves.
+  Figures export a path (lines & curves), which can then be
+ o used or
+ o manipulated by
+algorithms.
+  To provide a means for image manipulation, the manipulated paths then
+also need to be made available to the figures again. Ie. a image will
+export it's path, it get's deformed, the image figure then uses the path
+to render the image within the deformed path.
+(At least, that's the plan.)
