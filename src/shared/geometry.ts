@@ -93,6 +93,13 @@ export function pointMinus(a: Point) {
     })
 }
 
+export function rotatePointAroundPointBy(point: Point, center: Point, byRadiant: number): Point {
+    let vector = pointMinusPoint(point, center)
+    let radiant = Math.atan2(vector.y, vector.x) + byRadiant
+    let diameter = Math.sqrt(vector.x*vector.x + vector.y*vector.y)
+    return new Point(center.x + Math.cos(radiant) * diameter, center.y + Math.sin(radiant) * diameter)
+}
+
 export function isZero(a: number): boolean {
     return Math.abs(a) <= Number.EPSILON * 2.0
 }

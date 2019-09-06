@@ -23,7 +23,7 @@ use(chaiAlmost())
 
 import { Signal } from "toad.js"
 
-import { Matrix, pointPlusSize, pointMinusPoint, Point, pointPlusPoint, sizeMultiplyNumber } from "../../src/shared/geometry"
+import { Matrix, pointPlusSize, pointMinusPoint, Point, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "../../src/shared/geometry"
 
 import * as path from "../../src/client/paths"
 import * as figure from "../../src/client/figures"
@@ -406,19 +406,27 @@ describe.only("figureeditor", function() {
                 this.selectTool.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, false))
             }
 
+            mouseClickAt(point: Point) {
+                this.selectTool.mousedown(new EditorEvent(this.figureeditor, point, false))
+                this.selectTool.mouseup(new EditorEvent(this.figureeditor, point, false))
+            }
+
             clickInsideFigure() {
-                let mouseDownToMoveAt = this.centerOfFigure()
-                this.selectTool.mousedown(new EditorEvent(this.figureeditor, mouseDownToMoveAt, false))
-                this.selectTool.mouseup(new EditorEvent(this.figureeditor, mouseDownToMoveAt, false))
+                this.mouseClickAt(this.centerOfFigure())
             }
 
             centerOfFigure(): Point {
                 return this.figure.bounds().center()
             }
 
-            centerOfNWHandle(): Point {
+            centerOfNWScaleHandle(): Point {
                 // let range = figure.Figure.HANDLE_RANGE/2
                 return this.figure.origin // pointMinusPoint(this.figure.bounds().origin, new Point({x: range, y: range}))
+            }
+
+            centerOfNWRotateHandle(): Point {
+                let handleRange = figure.Figure.HANDLE_RANGE
+                return pointMinusPoint(this.figure.origin, {x: handleRange, y: handleRange})
             }
         }
 
@@ -458,51 +466,25 @@ describe.only("figureeditor", function() {
             expect(oldSECorner).to.eql(newSECorner)
        })
 
-       it.only("rotate figure using nw handle", ()=> {
+       it("rotate figure using nw handle", ()=> {
             // GIVEN
-            let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
-            document.body.appendChild(figureeditor)
+            let test = new Test()
+            test.selectFigure()
 
-            let selectTool = new SelectTool()
-            figureeditor.setTool(selectTool)
+            // WHEN
+            let oldMouseRotate = test.centerOfNWRotateHandle()
+            let center = test.centerOfFigure()
+            let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/2)
 
-            let model = new MyLayerModel()
-            let layer = new MyLayer()
-            let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-            fig.stroke = "#000"
-            fig.fill = "#f00"
-            layer.data.push(fig)
-            model.layers.push(layer)
-            figureeditor.setModel(model)
+            test.mouseDownAt(oldMouseRotate)
+            test.moveMouseTo(newMouseRotate)
+            test.mouseUp()
 
-            
-            let handleRange = figure.Figure.HANDLE_RANGE
-            let oldMouseRotate = pointMinusPoint(fig.origin, {x: handleRange, y: handleRange})
-            let center = pointPlusSize(fig.origin, sizeMultiplyNumber(fig.size, 0.5))
-            
-            let vector = pointMinusPoint(oldMouseRotate, center)
-
-            let radiant = Math.atan2(vector.y, vector.x) + Math.PI / 2.0
-            let diameter = Math.sqrt(vector.x*vector.x + vector.y*vector.y)
-
-            let newMouseRotate = new Point(center.x + Math.cos(radiant) * diameter, center.y + Math.sin(radiant) * diameter)
-
-            expect(Tool.selection.has(fig)).to.be.false
-            selectTool.mousedown(new EditorEvent(figureeditor, center, false))
-            selectTool.mouseup(new EditorEvent(figureeditor, center, false))
-            expect(Tool.selection.has(fig)).to.be.true
-
-            console.log("START ROTATE")
-            selectTool.mousedown(new EditorEvent(figureeditor, oldMouseRotate, false))
-            selectTool.mousemove(new EditorEvent(figureeditor, newMouseRotate, false))
-            selectTool.mouseup(new EditorEvent(figureeditor, newMouseRotate, false))
-
+            // THEN
             let newFig = Tool.selection.selection.values().next().value
-
             let p = newFig.getPath() as path.PathGroup
             p.updateSVG()
             let p1 = p.data[0] as path.Path
-            console.log(JSON.stringify(p1.path))
             expect(p1.path[0].values).to.almost.eql([75, 55])
             expect(p1.path[1].values).to.almost.eql([75, 75])
             expect(p1.path[2].values).to.almost.eql([45, 75])
