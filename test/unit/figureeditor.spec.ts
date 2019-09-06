@@ -344,15 +344,11 @@ describe.only("figureeditor", function() {
             }
         }
 
-        it("select figure")
-        it("select rotated figure")
-        it("select two figures with different rotations")
-        it("select two figures with similar rotations")
-
         class Test {
             figureeditor: FigureEditor
             selectTool: SelectTool
-            figure: figure.Rectangle
+            model: MyLayerModel
+            figures: Array<Figure>
             mousePosition: Point
             constructor() {
                 let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
@@ -364,27 +360,35 @@ describe.only("figureeditor", function() {
 
                 let model = new MyLayerModel()
                 let layer = new MyLayer()
-                let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-                fig.stroke = "#000"
-                fig.fill = "#f00"
+                
                 model.layers.push(layer)
                 figureeditor.setModel(model)
 
-                layer.data.push(fig)
-
-                expect(Tool.selection.has(fig)).to.be.false
-
                 this.figureeditor = figureeditor
                 this.selectTool = selectTool
-                this.figure = fig
+                this.model = model
                 this.mousePosition = new Point()
+                this.figures = []
             }
 
             // semantic operations
 
-            selectFigure() {
+            addFigure(figure: Figure) {
+                this.model.layers[0].data.push(figure)
+                // this.model.modified.trigger()
+                this.figures.push(figure)
+            }
+
+            addRectangle() {
+                let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+                fig.stroke = "#000"
+                fig.fill = "#f00"
+                this.addFigure(fig)
+            }
+
+            selectFigure(index = 0) {
                 this.clickInsideFigure()
-                expect(Tool.selection.has(this.figure)).to.be.true
+                expect(Tool.selection.has(this.figures[index])).to.be.true
             }
 
             mouseDownAt(position: Point) {
@@ -411,28 +415,32 @@ describe.only("figureeditor", function() {
                 this.selectTool.mouseup(new EditorEvent(this.figureeditor, point, false))
             }
 
-            clickInsideFigure() {
-                this.mouseClickAt(this.centerOfFigure())
+            clickInsideFigure(index = 0) {
+                this.mouseClickAt(this.centerOfFigure(index))
             }
 
-            centerOfFigure(): Point {
-                return this.figure.bounds().center()
+            centerOfFigure(index = 0): Point {
+                return this.figures[index].bounds().center()
             }
 
-            centerOfNWScaleHandle(): Point {
+            centerOfNWScaleHandle(index = 0): Point {
                 // let range = figure.Figure.HANDLE_RANGE/2
-                return this.figure.origin // pointMinusPoint(this.figure.bounds().origin, new Point({x: range, y: range}))
+                // return this.figures[index].origin // pointMinusPoint(this.figure.bounds().origin, new Point({x: range, y: range}))
+                // return this.figures[index].getHandlePosition(0)
+                return this.figures[index].bounds().origin
             }
 
-            centerOfNWRotateHandle(): Point {
+            centerOfNWRotateHandle(index = 0): Point {
+                // return this.figures[index].getHandlePosition(0)
                 let handleRange = figure.Figure.HANDLE_RANGE
-                return pointMinusPoint(this.figure.origin, {x: handleRange, y: handleRange})
+                return pointMinusPoint(this.figures[index].bounds().origin, {x: handleRange, y: handleRange})
             }
         }
 
         it("move figure", ()=> {
             // GIVEN
             let test = new Test()
+            test.addRectangle()
             test.selectFigure()
             
             // WHEN
@@ -450,9 +458,13 @@ describe.only("figureeditor", function() {
         it("scale figure using nw handle", ()=> {
             // GIVEN
             let test = new Test()
+            let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+            rectangle.stroke = "#000"
+            rectangle.fill = "#f00"
+            test.addFigure(rectangle)
             test.selectFigure()
-            let oldNWCorner = new Point(test.figure.origin)
-            let oldSECorner = pointPlusSize(test.figure.origin, test.figure.size)
+            let oldNWCorner = new Point(rectangle.origin)
+            let oldSECorner = pointPlusSize(rectangle.origin, rectangle.size)
 
             // WHEN
             test.mouseDownAt(oldNWCorner)
@@ -461,14 +473,15 @@ describe.only("figureeditor", function() {
             test.mouseUp()
 
             // THEN
-            expect(test.figure.origin).to.eql(newNWCorner)
-            let newSECorner = pointPlusSize(test.figure.origin, test.figure.size)
+            expect(rectangle.origin).to.eql(newNWCorner)
+            let newSECorner = pointPlusSize(rectangle.origin, rectangle.size)
             expect(oldSECorner).to.eql(newSECorner)
        })
 
        it("rotate figure using nw handle", ()=> {
             // GIVEN
             let test = new Test()
+            test.addRectangle()
             test.selectFigure()
 
             // WHEN
@@ -490,6 +503,12 @@ describe.only("figureeditor", function() {
             expect(p1.path[2].values).to.almost.eql([45, 75])
             expect(p1.path[3].values).to.almost.eql([45, 55])
        })
+
+       it("rotate two figures using nw handle", () => {})
+       it("rotate two figures using nw handle two times", () => {})
+       it("rotate two figures using nw handle two times with deselect, select in between", () => {})
+       it("select two figures with aligned 90 degree rotation will result in a rotated selection", () => {})
+       it("select two figures with non-aligned rotation will result in a selection aligned to the screen", () => {})
     })
 })
 
