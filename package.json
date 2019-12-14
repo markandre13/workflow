@@ -14,7 +14,7 @@
     "test-unit": "npm run compile-idl && karma start"
   },
   "dependencies": {
-    "knex": "^0.16.5",
+    "knex": "^0.20.4",
     "scrypt": "^6.0.3",
     "sqlite3": "^4.1.1",
     "tslint": "^5.20.1",
