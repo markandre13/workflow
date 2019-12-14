@@ -108,6 +108,16 @@ export function isOne(a: number): boolean {
     return (1.0 - Math.abs(a)) <= Number.EPSILON * 2.0
 }
 
+export function isEqual(a: number, b: number) {
+    return isZero(a-b)
+}
+
+export function isLessEqual(a: number, b: number): boolean {
+    if (a < b)
+        return true
+    return Math.abs(a - b) < 0.000000001
+}
+
 export function pointEqualsPoint(a: Point, b: Point): boolean {
     return isZero(a.x-b.x) && isZero(a.y-b.y)
 }

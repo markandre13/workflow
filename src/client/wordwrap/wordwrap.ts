@@ -19,7 +19,7 @@
 import {
     Point, Size, Rectangle, Matrix,
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
-    pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine,
+    pointMinus, pointEqualsPoint, signedArea, isZero, isLessEqual, distancePointToLine,
     intersectsRectLine, lineCrossesRect2
 } from "../../shared/geometry"
 import { Path } from "../paths"
@@ -143,6 +143,7 @@ export class Slice {
 
 // FIXME: make Array<Slice> a class with print function
 export function printSlices(slices: Array<Slice>, asScript = false) {
+    return
     if (!asScript) {
         for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
             let slice = slices[sliceIndex]
@@ -216,7 +217,7 @@ export function validateSlices(slices: Array<Slice>) {
         }
         if (leftIndex < slice.left.length && rightIndex < slice.right.length) {
             okay = false
-            console.log(`!!!!! slice ${sliceIndex}, left ${leftIndex}, right ${rightIndex}: heights do not fit`)
+            // console.log(`!!!!! slice ${sliceIndex}, left ${leftIndex}, right ${rightIndex}: heights do not fit`)
         }
 
 
@@ -237,7 +238,7 @@ export function validateSlices(slices: Array<Slice>) {
         // }
     }
     if (!okay) {
-        console.log('!!!!! ************ POSSIBLE ERROR *******************')
+        // console.log('!!!!! ************ POSSIBLE ERROR *******************')
         // throw Error("validateSlices failed")
     }
 }
@@ -335,16 +336,18 @@ export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: 
             // console.log("at least one endpoint within rectangle?")
             if (rectangle.contains(slice.left[j].p[0]) || rectangle.contains(slice.left[j].p[1])) {
                 // console.log("yes")
-                console.log("WITHINSLICES => FALSE (5)")
+                if (trace)
+                    console.log("WITHINSLICES => FALSE (5)")
                 return false
             }
             // console.log("no")
             // console.log("event crosses rectangle?")
             if (lineCrossesRect2(slice.left[j].p, rectangle)) {
-                if (trace)
+                if (trace) {
                     console.log("WITHINSLICES: LEFT CROSSES RECT")
-                console.log(rectangle)
-                console.log(slice.left[j].p)
+                    console.log(rectangle)
+                    console.log(slice.left[j].p)
+                }
                 leftOfBoxIsInside = false
                 break
             } 
@@ -367,7 +370,8 @@ export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: 
             if (rectRight <= slice.right[j].p[0].x && rectRight <= slice.right[j].p[1].x)
                 continue
             if (rectangle.contains(slice.right[j].p[0]) || rectangle.contains(slice.right[j].p[1])) {
-                console.log("WITHINSLICES => FALSE (6)")
+                if (trace)
+                    console.log("WITHINSLICES => FALSE (6)")
                 return false
             }
             if (lineCrossesRect2(slice.right[j].p, rectangle)) {
@@ -393,7 +397,7 @@ export function withinSlices(rectangle: Rectangle, slices: Array<Slice>, trace: 
 }
 
 export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent, sweepBuffer: OrderedArray<SweepEvent>, bounds: Rectangle, trace = false) {
-    console.log(">>>>>>>>>>")
+    // console.log(">>>>>>>>>>")
     let top = segment.p[0].y,
         line = [ new Point(bounds.origin.x-10, top),
                  new Point(bounds.origin.x + bounds.size.width+10, top) ],
@@ -454,9 +458,9 @@ export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent,
                 newSlice.right.push(new SweepEvent(slices[sliceIndex].right[i]))
             }
             newSlice.right[slices[sliceIndex].right.length-1].p[1] = intersectionsRight[0].seg0.pt
-            console.log('copied old slices right to new slices right and tweaked last point to intersection')
+            // console.log('copied old slices right to new slices right and tweaked last point to intersection')
             let s = newSlice.right[slices[sliceIndex].right.length-1]
-            console.log(`${s.p[0].x}, ${s.p[0].y} -> ${s.p[1].x}, ${s.p[1].y}`)
+            // console.log(`${s.p[0].x}, ${s.p[0].y} -> ${s.p[1].x}, ${s.p[1].y}`)
 
             if (pointEqualsPoint(newSlice.right[slices[sliceIndex].right.length-1].p[0],
                                  newSlice.right[slices[sliceIndex].right.length-1].p[1]))
@@ -474,9 +478,9 @@ export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent,
                 slices[sliceIndex].left.push(new SweepEvent(newSlice.left[i]))
             }
             slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1] = intersectionsLeft[0].seg0.pt
-            console.log('copied new slices left to old slices left and tweaked last point to intersection')
+            // console.log('copied new slices left to old slices left and tweaked last point to intersection')
             s = slices[sliceIndex].left[slices[sliceIndex].left.length-1]
-            console.log(`${s.p[0].x}, ${s.p[0].y} -> ${s.p[1].x}, ${s.p[1].y}`)
+            // console.log(`${s.p[0].x}, ${s.p[0].y} -> ${s.p[1].x}, ${s.p[1].y}`)
 
             if (pointEqualsPoint(slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[0],
                                  slices[sliceIndex].left[slices[sliceIndex].left.length-1].p[1]) )
@@ -491,7 +495,7 @@ export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent,
             appendNewSliceAtRight = false
             break
         }
-        console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+        // console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
     }
     if (appendNewSliceAtRight) {
         // if (this.trace)
@@ -564,6 +568,8 @@ export class WordWrap {
     }
 
     placeWordBoxes(wordsource: WordSource) {
+        if (this.trace)
+            console.log("WordWrap.placeWordBoxes(): ENTER")
         let slices = new Array<Slice>()
 
         let horizontalSpace = 0
@@ -576,6 +582,8 @@ export class WordWrap {
 
         let [sliceIndex, cursor] = this.pointForBoxInSlices(box, slices)
         if (sliceIndex === -1) {
+            if (this.trace)
+                console.log("WordWrap.placeWordBoxes(): NOT EVEN A FIRST SLICE")
             return
         }
 
@@ -583,25 +591,34 @@ export class WordWrap {
         let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
         horizontalSpace = right - left
 
+        if (this.trace)
+            console.log(`WordWrap.placeWordBoxes(): ENTER LOOP, HORIZONTAL SPACE IS ${horizontalSpace}`)
         while (box) {
             // place in horizontal space
-            if (horizontalSpace >= box.width) {
+            if (isLessEqual(box.width, horizontalSpace)) {
                 wordsource.placeBox(cursor)
                 cursor.x += box.width
                 horizontalSpace -= box.width
+                if (this.trace)
+                    console.log(`WordWrap.placeWordBoxes(): PLACED BOX, REDUCED HORIZONTAL SPACE TO ${horizontalSpace}`)
                 box = wordsource.pullBox()
                 continue
             }
 
             // move to next slice
+            
             ++sliceIndex
             if (sliceIndex < slices.length) {
+                if (this.trace)
+                    console.log(`WordWrap.placeWordBoxes(): NOT ENOUGH HORIZONTAL SPACE FOR ${box.width}, MOVE TO SLICE ${sliceIndex}`)
                 let cornerEvents = this.findCornersAtCursorForBoxAtSlice(cursor, box, slices[sliceIndex])
                 let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
                 horizontalSpace = right - left
                 cursor.x = left
                 continue
             }
+            if (this.trace)
+                console.log(`WordWrap.placeWordBoxes(): NOT ENOUGH HORIZONTAL SPACE FOR ${box.width}, LAST SLICE, NEW ROW`)
 
             // move to new row
             sliceIndex = -1
@@ -613,6 +630,8 @@ export class WordWrap {
             if (cursor.y > this.bounds.origin.y + this.bounds.size.height)
                 break
         }
+        if (this.trace)
+            console.log("WordWrap.placeWordBoxes(): LEAVE")
     }
 
     printSlices(slices: Array<Slice>) {
@@ -748,7 +767,8 @@ export class WordWrap {
             throw Error("fuck")
         leftPoint2.y = leftEvent.p[0].y
         if (leftPoint2.x + box.width > rightPoint.x) {
-            console.log("NOPE")
+            if (this.trace)
+                console.log("NOPE")
             return undefined
         }
 
@@ -879,13 +899,13 @@ export class WordWrap {
         while( !this.sweepBuffer.empty() &&
                 this.sweepBuffer.at(0).p[0].y <= bottom )
         {
-            console.log("####### LOOP: BEFORE LEVEL HORIZONTALLY")
-            this.printSlices(slices)
+            // console.log("####### LOOP: BEFORE LEVEL HORIZONTALLY")
+            // this.printSlices(slices)
             this.validateSlices(slices)
             this.levelSlicesHorizontally(slices)
 
-            console.log("####### LOOP: BEFORE MERGE AND DROP SLICES")
-            this.printSlices(slices)
+            // console.log("####### LOOP: BEFORE MERGE AND DROP SLICES")
+            // this.printSlices(slices)
             this.validateSlices(slices)
             this.mergeAndDropSlices(cursor, box, slices)
 
@@ -893,38 +913,38 @@ export class WordWrap {
             let segment: SweepEvent | undefined = this.sweepBuffer.shift()
 
             // try to use sweep event as continuation of a existing slice
-            console.log("####### LOOP: BEFORE APPEND EVENT TO SLICES")
-            this.printSlices(slices)
+            // console.log("####### LOOP: BEFORE APPEND EVENT TO SLICES")
+            // this.printSlices(slices)
             this.validateSlices(slices)
     
             if (this.appendEventToSlices(slices, segment)) {
-                console.log("####### LOOP: ADDED EVENT TO SLICE")
-                this.printSlices(slices)
+                // console.log("####### LOOP: ADDED EVENT TO SLICE")
+                // this.printSlices(slices)
                 this.validateSlices(slices)
                 continue
             }
-            console.log("####### LOOP: ADDED NEW SLICE")
+            // console.log("####### LOOP: ADDED NEW SLICE")
             this.appendEventAsNewSlice(slices, segment, this.trace)
-            this.printSlices(slices)
+            // this.printSlices(slices)
             this.validateSlices(slices)
         }
-        console.log("####### FINISH: BEFORE LEVEL HORIZONTALLY")
-        this.printSlices(slices)
+        // console.log("####### FINISH: BEFORE LEVEL HORIZONTALLY")
+        // this.printSlices(slices)
         this.validateSlices(slices)
         this.levelSlicesHorizontally(slices)
 
-        console.log("####### FINISH: BEFORE MERGE AND DROP SLICES")
-        this.printSlices(slices)
+        // console.log("####### FINISH: BEFORE MERGE AND DROP SLICES")
+        // this.printSlices(slices)
         this.validateSlices(slices)
         this.mergeAndDropSlices(cursor, box, slices)
 
-        console.log("####### FINISH: BEFORE DROP EVENTS")
-        this.printSlices(slices)
+        // console.log("####### FINISH: BEFORE DROP EVENTS")
+        // this.printSlices(slices)
         this.validateSlices(slices)
         this.dropEventsInSlices(cursor, box, slices)
 
-        console.log("####### FINISH: DONE EXTENDING")
-        this.printSlices(slices)
+        // console.log("####### FINISH: DONE EXTENDING")
+        // this.printSlices(slices)
         this.validateSlices(slices)
     }
 

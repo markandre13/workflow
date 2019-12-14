@@ -28,7 +28,7 @@ import { FigureEditor } from "./figureeditor/FigureEditor";
 import { StrokeAndFill } from "./widgets/strokeandfill"
 import { ColorSwatch } from "./widgets/colorswatch"
 
-// import { testWrap } from "./wordwrap/test"
+import { testWrap } from "./wordwrap/test"
 
 import { Client_impl } from "./Client_impl"
 import { BoardModel } from "./BoardModel"
@@ -52,11 +52,11 @@ export async function main(url: string) {
     initializeORB(orb)
 
     // FIXME: this test should be able to run as a unit test but also create visual output
-    // if (true) {
-    //     document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
-    //     testWrap()
-    //     return
-    // }
+    if (true) {
+        document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
+        testWrap()
+        return
+    }
 
     try {
         await orb.connect(url)

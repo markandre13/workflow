@@ -25,7 +25,7 @@ import {
 import { Path } from "../paths/Path"
 import { WordWrap, Slice } from "./wordwrap"
 
-export type Placer = (wordwrap: WordWrap, box: Size, svg: SVGElement) => Point|undefined
+export type Placer = (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement) => Point|undefined
 
 /**
  * Execute a single wordwrap test along with appending a visual
@@ -39,7 +39,7 @@ export class WordWrapTestRunner {
 
     placer: Placer
 
-    constructor(title: string, path: Path, box: value.Rectangle, trace: boolean, placer: Placer) {
+    constructor(title: string, path: Path, boxes: Array<Size>|undefined, box: value.Rectangle, trace: boolean, placer: Placer) {
         this.placer = placer
     
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
@@ -70,25 +70,33 @@ export class WordWrapTestRunner {
         svg.onmousemove = (event: MouseEvent) => { this.mouseMove(event, svg, path) }
         svg.onmouseup   = (event: MouseEvent) => { this.mouseUp(event, svg, path) }
     
-        this.doWrap(svg, path, box, trace)
+        this.doWrap(svg, path, boxes, box, trace)
     }
 
-    doWrap(svg: SVGElement, path: Path, theBox?: value.Rectangle, trace?: boolean) {
+    doWrap(svg: SVGElement, path: Path, boxes?:Array<Size>, expectedLastBox?: value.Rectangle, trace?: boolean) {
         for(let deco of this.decoration) {
             svg.removeChild(deco)
         }
         this.decoration.length = 0
         
         let wordwrap = new WordWrap(path, undefined, trace == true)
-        let box = theBox ? theBox.size : new Size(80, 40)
+        let box = expectedLastBox ? expectedLastBox.size : new Size(80, 40)
         
         let pt
         try {
-            pt = this.placer(wordwrap, box, svg)
-            console.log("PLACER RETURNED POINT", pt)
+            pt = this.placer(wordwrap, boxes, box, svg)
+            // console.log("PLACER RETURNED POINT", pt)
         }
         catch(e) {
-            console.log(e)
+            let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
+            text.setAttributeNS("", "fill", "#f00")
+            text.setAttributeNS("", "x", "5")        
+            text.setAttributeNS("", "y", "16")
+            text.textContent = "EXCEPTION"
+            svg.appendChild(text)
+            console.log(e)          
+            pt = undefined
+            expectedLastBox = new Rectangle(0,0,320,200)
         }
 
         this.point = pt
@@ -103,11 +111,11 @@ export class WordWrapTestRunner {
             rect.setAttributeNS("", "height", String(box.height))
             svg.appendChild(rect)
             this.decoration.push(rect)
-            if (theBox && !pointEqualsPoint(pt, theBox.origin)) {
+            if (expectedLastBox && !pointEqualsPoint(pt, expectedLastBox.origin)) {
                 svg.style.background="#f88"
             }
         } else {
-            if (theBox && theBox.origin.x != -1) {
+            if (expectedLastBox && expectedLastBox.origin.x != -1) {
                 svg.style.background="#f88"
             }
         }

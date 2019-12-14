@@ -26,6 +26,30 @@ import { WordWrapTestRunner, Placer } from "./testrunner"
 import { WordWrap, Slice, WordSource } from "./wordwrap"
 
 class BoxSource implements WordSource {
+    current: number
+    boxes: Array<Size>
+    rectangles: Array<Rectangle>
+    
+    constructor(boxes: Array<Size>) {
+        this.boxes = boxes
+        this.current = 0
+        this.rectangles = new Array<Rectangle>()
+    }
+
+    pullBox(): Size|undefined {
+        if (this.current >= this.boxes.length)
+            return undefined
+        return this.boxes[this.current]
+    }
+
+    placeBox(origin: Point): void {
+        let rectangle = new Rectangle(origin, this.boxes[this.current])
+        this.rectangles.push(rectangle)
+        this.current++
+    }
+}
+
+class IteratingBoxSource implements WordSource {
     remaining: number
     style: boolean
     box?: Size
@@ -52,6 +76,74 @@ class BoxSource implements WordSource {
     }
 }
 
+class Word extends Rectangle {
+    word: string
+    svg: SVGTextElement|undefined
+    constructor(w: number, h: number, word: string) {
+        super(0,0,w,h)
+        this.word = word
+    }
+}
+
+class TextSource implements WordSource {
+    
+    rectangles: Array<Word>
+    current: number
+
+    constructor(text: string|undefined = undefined) {
+        this.rectangles = new Array<Word>()
+        this.current = 0
+
+        if (text == undefined)
+            text = "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        let word = ''
+        for (let char of text) {
+            switch(char) {
+                case ' ':
+                case '\t':
+                case '\r':
+                case '\n':
+                case '\v':
+                    // console.log(word)
+                    let rectangle = new Word(word.length*8,16, word)
+                    this.rectangles.push(rectangle)
+                    word = ""
+                    break
+                default:
+                    word += char
+            }
+        }
+        if (word.length>0) {
+            let rectangle = new Word(word.length*8,16, word)
+            this.rectangles.push(rectangle) 
+        }
+        // this.remaining = remaining
+        // this.style = true
+        // this.rectangles = new Array<Rectangle>()
+    }
+
+    pullBox(): Size|undefined {
+        if (this.current >= this.rectangles.length)
+            return undefined
+        return this.rectangles[this.current].size
+        // if (this.remaining === 0)
+        //     return undefined
+        // --this.remaining
+        // this.box = new Size(this.style ? 40 : 20, 20)
+        // this.style = !this.style
+        // return this.box
+        return undefined
+    }
+
+    placeBox(origin: Point): void {
+        this.rectangles[this.current].origin.x = origin.x
+        this.rectangles[this.current].origin.y = origin.y
+        ++this.current
+        // let rectangle = new Rectangle(origin, this.box!)
+        // this.rectangles.push(rectangle)
+    }
+}
+
 // FIXME: document attributes
 interface WordWrapTest {
     //! if true, execute only this test
@@ -62,8 +154,11 @@ interface WordWrapTest {
     title: string
     //! the polygon into which the box is to be placed
     polygon?: Array<Point>
+
+    boxes?: Array<Size>
+
     //! the box to be placed
-    box?: value.Rectangle
+    result?: value.Rectangle
     
     strategy?: Placer
 }
@@ -199,7 +294,7 @@ const wordWrapTest: WordWrapTest[] = [
     box: { origin: { x: 182.89999999999998, y: 34.39999999999999 }, size: { width: 80, height: 40 } }
 },*/ { 
     title: "pointForBoxInSlices: place 1st box in two stripes",
-    strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
+    strategy: (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size): Point|undefined => {
         let [slice, point] = wordwrap.pointForBoxInSlices(box, new Array<Slice>())
         return slice === -1 ? undefined : point
     }
@@ -214,7 +309,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  10, y: 170},
         {x: 120, y:  80},
     ],
-    box: { origin: { x: 120, y: 57.89473684210527 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 120, y: 57.89473684210527 }, size: { width: 80, height: 40 } }
 }, {
     title: "bottom is below slice with intersection",
     polygon: [
@@ -225,7 +320,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  10, y: 170},
         {x: 120, y:  80},
     ],
-    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "evaluate multiple slices to place box",
     polygon: [
@@ -237,7 +332,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 210, y: 190},
         {x:  10, y: 190},
     ],
-    box: { origin: { x: 70, y: 48 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 70, y: 48 }, size: { width: 80, height: 40 } }
 } , {
     title: "need move down to place box",
     polygon: [
@@ -247,7 +342,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  20, y: 180},
         {x: 110, y: 100},
     ],
-    box: { origin: { x: 120, y: 84 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 120, y: 84 }, size: { width: 80, height: 40 } }
 }, {
     title: "box outside corner left",
     polygon: [
@@ -257,7 +352,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  80, y: 180},
         {x: 280, y: 180},
     ],
-    box: { origin: { x: 100, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 100, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
 }, {
     title: "box outside corner right",
     polygon: [
@@ -267,7 +362,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 120, y: 180},
         {x: 280, y: 180},
     ],
-    box: { origin: { x: 108.75, y: 95 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 108.75, y: 95 }, size: { width: 80, height: 40 } }
 }, {
     title: "left dent",
     polygon: [
@@ -277,7 +372,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 160, y: 180},
         {x: 140, y: 180},
     ],
-    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "connected",
     polygon: [
@@ -286,7 +381,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 205, y: 100},
         {x: 160, y: 180},
     ],
-    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "narrow/open/left&right/inside",
     polygon: [
@@ -294,7 +389,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 160, y:  20},
         {x: 210, y: 180},
     ],
-    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "narrow/open/right",
     polygon: [
@@ -302,7 +397,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 310, y: 180},
         {x: 170, y: 180},
     ],
-    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "narrow/open/left",
     polygon: [
@@ -310,7 +405,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 150, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "edge/open/left&right/inside",
     polygon: [
@@ -318,7 +413,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 160, y:  20},
         {x: 250, y: 180},
     ],
-    box: { origin: { x: 120, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 120, y: 91.11111111111111 }, size: { width: 80, height: 40 } }
 }, {
     title: "median/open/right",
     polygon: [
@@ -327,7 +422,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 310, y: 180},
         {x: 100, y: 180},
     ],
-    box: { origin: { x: 71.57894736842104, y: 89.47368421052632 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 71.57894736842104, y: 89.47368421052632 }, size: { width: 80, height: 40 } }
 }, {
     title: "median/open/left",
     polygon: [
@@ -336,7 +431,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 220, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: 168.42105263157896, y: 89.4736842105263 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 168.42105263157896, y: 89.4736842105263 }, size: { width: 80, height: 40 } }
 }, {
     title: "wide/open/left&right/wide",
     polygon: [
@@ -345,7 +440,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 210, y:  20},
         {x: 250, y: 180},
     ],
-    box: { origin: { x: 110, y: 20 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 110, y: 20 }, size: { width: 80, height: 40 } }
 }, {
     title: "wide/open/right",
     polygon: [
@@ -354,7 +449,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 310, y: 180},
         {x: 100, y: 180},
     ],
-    box: { origin: { x: 32.5, y: 20 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 32.5, y: 20 }, size: { width: 80, height: 40 } }
 }, {
     title: "wide/open/left",
     polygon: [
@@ -363,7 +458,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 220, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: 200, y: 20 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 200, y: 20 }, size: { width: 80, height: 40 } }
 }, {
     title: "2nd slice",
     only: false,
@@ -377,7 +472,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  90, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: -1, y: -1 }, size: { width: 80, height: 40 } }
 }, {
     title: "2nd slice",
     polygon: [
@@ -389,7 +484,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  90, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: 165.08771929824562, y: 76.14035087719299 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 165.08771929824562, y: 76.14035087719299 }, size: { width: 80, height: 40 } }
 }, {
     title: "2nd slice with down spike",
     // only: true,
@@ -405,7 +500,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x:  90, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: 166.15384615384616, y: 90 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 166.15384615384616, y: 90 }, size: { width: 80, height: 40 } }
 }, {
     title: "1st slice",
     polygon: [
@@ -417,7 +512,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 150, y: 180},
         {x:  10, y: 180},
     ],
-    box: { origin: { x: 74.91228070175438, y: 76.14035087719299 }, size: { width: 80, height: 40 } }
+    result: { origin: { x: 74.91228070175438, y: 76.14035087719299 }, size: { width: 80, height: 40 } }
 } /*, { 
     title: "pointForBoxInSlices: place 1st box in two stripes",
     strategy: (wordwrap: WordWrap, box: Size): Point|undefined => {
@@ -439,12 +534,12 @@ const wordWrapTest: WordWrapTest[] = [
 }*/
 , { 
     title: "placeWordBoxes()",
-    strategy: (wordwrap: WordWrap, box: Size, svg: SVGElement): Point|undefined => {
+    strategy: (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement): Point|undefined => {
         wordwrap.trace = false
-        let boxes = new BoxSource()
-        wordwrap.placeWordBoxes(boxes)
+        let boxSource = new IteratingBoxSource()
+        wordwrap.placeWordBoxes(boxSource)
 
-        for(let r of boxes.rectangles) {
+        for(let r of boxSource.rectangles) {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
             rect.setAttributeNS("", "stroke", "#aaa")
             rect.setAttributeNS("", "fill", "none")
@@ -455,9 +550,9 @@ const wordWrapTest: WordWrapTest[] = [
             svg.appendChild(rect)
         }
 
-        if (boxes.rectangles.length === 0)
+        if (boxSource.rectangles.length === 0)
             return undefined
-        return boxes.rectangles[boxes.rectangles.length-1].origin
+        return boxSource.rectangles[boxSource.rectangles.length-1].origin
     }
 }, {
     title: "wordwrap 001",
@@ -469,7 +564,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 40, y:190},
         {x: 10, y: 80},
     ],
-    box: { origin: { x: 239.2, y: 149.6 }, size: { width: 40, height: 20 } }
+    result: { origin: { x: 239.2, y: 149.6 }, size: { width: 40, height: 20 } }
 }, {
     title: "wordwrap 002",
     polygon: [
@@ -481,9 +576,137 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 40, y:190},
         {x: 10, y: 80},
     ],
-    box: { origin: { x: 258.2113821138212, y: 139.1056910569106  }, size: { width: 20, height: 20 } }
+    result: { origin: { x: 258.2113821138212, y: 139.1056910569106  }, size: { width: 20, height: 20 } }
+}, {
+        title: "Regression Tests",
+        strategy: (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement): Point|undefined => {
+            // wordwrap.trace = false
+            let boxSource = new BoxSource(boxes!)
+            wordwrap.placeWordBoxes(boxSource)
+    
+            for(let r of boxSource.rectangles) {
+                console.log(r)
+                let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+                rect.setAttributeNS("", "stroke", "#aaa")
+                rect.setAttributeNS("", "fill", "none")
+                rect.setAttributeNS("", "x", String(r.origin.x))
+                rect.setAttributeNS("", "width", String(r.size.width))
+                rect.setAttributeNS("", "y", String(r.origin.y))
+                rect.setAttributeNS("", "height", String(r.size.height))
+                svg.appendChild(rect)
+            }
+    
+            if (boxSource.rectangles.length === 0)
+                return undefined
+            return boxSource.rectangles[boxSource.rectangles.length-1].origin
+        }
+
+    }, {
+        title: "placeWordBoxes() rounding error box.width & horizontal width",
+        polygon: [
+            {x: 20, y: 10},
+            {x:190, y: 50},
+            {x:310, y: 10},
+            {x:280, y:190},
+            {x:100, y:100},
+            {x: 40, y:190},
+            {x: 10, y: 80},
+        ],
+        boxes: [{width: 33.685546875, height: 13.953125}],
+        result: { origin: { x: 18.90453506097561, y: 17.66825457317073  }, size: { width: 33.685546875, height: 13.953125 } }
+    
+
+}, { 
+    title: "render real text",
+    strategy: (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement): Point|undefined => {
+        wordwrap.trace = false
+        let boxSource = new TextSource()
+
+        // no whitespace handling yet, hence we just fake it by adding a space to
+        // every words box and then center the text in the middle
+        let spacer = document.createElementNS("http://www.w3.org/2000/svg", "text")
+        spacer.innerHTML = "&nbsp;"
+        svg.appendChild(spacer)
+        let space = spacer.getComputedTextLength()
+        svg.removeChild(spacer)
+
+        // TODO: may want to move this into TextSource
+        for(let r of boxSource.rectangles) {
+            let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
+            text.setAttributeNS("", "stroke", "none")
+            text.setAttributeNS("", "fill", "none")
+            text.setAttributeNS("", "x", "0")
+            //text.setAttributeNS("", "width", String(r.size.width))
+            text.setAttributeNS("", "y", "0")
+            //text.setAttributeNS("", "height", String(r.size.height))
+            text.textContent = r.word
+            svg.appendChild(text)
+            r.size.width = text.getComputedTextLength()+space // do it later so all children can be added to the dom at once?
+            let bbox = text.getBBox()
+            r.size.height = bbox.height
+            //console.log(r.size)
+            r.svg = text
+        }
+
+        wordwrap.placeWordBoxes(boxSource)
+
+        for(let r of boxSource.rectangles) {
+            if (r.origin.y == 0) // these have not been placed
+                break
+
+            let text = r.svg!
+            r.origin.x += space/2
+            r.size.width -= space
+            text.setAttributeNS("", "x", String(r.origin.x))
+            
+            let bbox = text.getBBox()
+
+            // text was placed at (0, 0), hence bbox.y is the negative ascent
+            text.setAttributeNS("", "y", String(r.origin.y-bbox.y))
+            text.setAttributeNS("", "fill", "#000")
+            
+            // let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            // rect.setAttributeNS("", "stroke", "#aaa")
+            // rect.setAttributeNS("", "fill", "none")
+            // rect.setAttributeNS("", "x", String(r.origin.x))
+            // rect.setAttributeNS("", "width", String(r.size.width))
+            // rect.setAttributeNS("", "y", String(r.origin.y))
+            // rect.setAttributeNS("", "height", String(r.size.height))
+            // svg.appendChild(rect)
+        }
+
+        let r = boxSource.rectangles[0]
+        let cursor = document.createElementNS("http://www.w3.org/2000/svg", "line")
+        cursor.setAttributeNS("", "stroke", "#000")
+        cursor.setAttributeNS("", "x1", String(r.origin.x))
+        cursor.setAttributeNS("", "y1", String(r.origin.y))
+        cursor.setAttributeNS("", "x2", String(r.origin.x))
+        cursor.setAttributeNS("", "y2", String(r.origin.y+r.size.height))
+        cursor.classList.add("cursor-blink")
+        svg.appendChild(cursor)
+
+        return new Point(0,0)
+        // if (boxes.rectangles.length === 0)
+        //     return undefined
+        // return boxes.rectangles[boxes.rectangles.length-1].origin
+    }
+}, {
+    // only: true,
+    title: "real text",
+    polygon: [
+        {x: 20, y: 10},
+        {x:190, y: 50},
+        {x:310, y: 10},
+        {x:280, y:190},
+        {x:100, y:100},
+        {x: 40, y:190},
+        {x: 10, y: 80},
+    ],
+    result: { origin: { x: 0, y: 0 }, size: { width: 20, height: 20 } }
 }]
 
+// run the unit tests which also create visual output
+// all those tests are defined in list array wordWrapTest
 export function testWrap() {
     document.body.innerHTML=""
 
@@ -505,7 +728,7 @@ export function testWrap() {
                     path.line(point)
             }
             path.close()
-            new WordWrapTestRunner(test.title, path, test.box!, test.trace == true, strategy!)
+            new WordWrapTestRunner(test.title, path, test.boxes, test.result!, test.trace == true, strategy!)
         } else {
             if (test.title !== "") {
                 let heading = document.createElement("h1")

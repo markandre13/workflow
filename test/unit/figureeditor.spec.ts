@@ -386,37 +386,37 @@ describe.only("figureeditor", function() {
                 this.addFigure(fig)
             }
 
-            selectFigure(index = 0) {
-                this.clickInsideFigure()
+            selectFigure(index = 0, shift = true) {
+                this.clickInsideFigure(index, shift)
                 expect(Tool.selection.has(this.figures[index])).to.be.true
             }
 
-            mouseDownAt(position: Point) {
+            mouseDownAt(position: Point, shift = true) {
                 this.mousePosition = new Point(position)
-                this.selectTool.mousedown(new EditorEvent(this.figureeditor, position, false))
+                this.selectTool.mousedown(new EditorEvent(this.figureeditor, position, {shiftKey: shift}))
             }
 
-            moveMouseTo(point: Point) {
+            moveMouseTo(point: Point, shift = true) {
                 this.mousePosition = new Point(point)
-                this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, false))
+                this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
             }
 
-            moveMouseBy(translation: Point) {
+            moveMouseBy(translation: Point, shift = true) {
                 this.mousePosition = pointPlusPoint(this.mousePosition, translation)
-                this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, false))
+                this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
             }
 
-            mouseUp() {
-                this.selectTool.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, false))
+            mouseUp(shift = true) {
+                this.selectTool.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
             }
 
-            mouseClickAt(point: Point) {
-                this.selectTool.mousedown(new EditorEvent(this.figureeditor, point, false))
-                this.selectTool.mouseup(new EditorEvent(this.figureeditor, point, false))
+            mouseClickAt(point: Point, shift=false) {
+                this.mouseDownAt(point, shift)
+                this.mouseUp(shift)
             }
 
-            clickInsideFigure(index = 0) {
-                this.mouseClickAt(this.centerOfFigure(index))
+            clickInsideFigure(index = 0, shift = false) {
+                this.mouseClickAt(this.centerOfFigure(index), shift)
             }
 
             centerOfFigure(index = 0): Point {
@@ -504,7 +504,41 @@ describe.only("figureeditor", function() {
             expect(p1.path[3].values).to.almost.eql([45, 55])
        })
 
-       it("rotate two figures using nw handle", () => {})
+       it.only("rotate two figures using nw handle", () => {
+            let test = new Test()
+            let rectangle0 = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+            rectangle0.stroke = "#000"
+            rectangle0.fill = "#f00"
+            test.addFigure(rectangle0)
+            
+            let rectangle1 = new figure.Rectangle({ origin: {x:100, y: 100}, size: {width: 20, height: 30}})
+            rectangle1.stroke = "#000"
+            rectangle1.fill = "#f00"
+            test.addFigure(rectangle1)
+
+            test.selectFigure(0)
+            test.selectFigure(1)
+
+            expect(Tool.selection.selection.size).to.equal(2)
+            expect(test.selectTool.boundary).to.almost.eql({origin: {x: 50, y: 50}, size: {width: 70, height: 80}})
+            expect(test.selectTool.transformation.isIdentity()).to.be.true
+
+            let oldMouseRotate = test.centerOfNWRotateHandle()
+            let center = test.selectTool.boundary.center()
+            let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/4)
+
+            test.mouseDownAt(oldMouseRotate)
+            test.moveMouseTo(newMouseRotate)
+            test.mouseUp()
+
+            let boundary = test.selectTool.boundary
+            let transformation = test.selectTool.transformation
+
+            console.log(boundary)
+            console.log(transformation)
+
+            // let oldMouseRotate = test.centerOfNWRotateHandle()
+       })
        it("rotate two figures using nw handle two times", () => {})
        it("rotate two figures using nw handle two times with deselect, select in between", () => {})
        it("select two figures with aligned 90 degree rotation will result in a rotated selection", () => {})
