@@ -24,6 +24,8 @@ import { Path } from "../paths/Path"
 
 import { WordWrapTestRunner, Placer } from "./testrunner"
 import { WordWrap, Slice, WordSource } from "./wordwrap"
+import { TextSource } from "./TextSource"
+import { Cursor } from "./Cursor"
 
 class BoxSource implements WordSource {
     current: number
@@ -73,74 +75,6 @@ class IteratingBoxSource implements WordSource {
     placeBox(origin: Point): void {
         let rectangle = new Rectangle(origin, this.box!)
         this.rectangles.push(rectangle)
-    }
-}
-
-class Word extends Rectangle {
-    word: string
-    svg: SVGTextElement|undefined
-    constructor(w: number, h: number, word: string) {
-        super(0,0,w,h)
-        this.word = word
-    }
-}
-
-class TextSource implements WordSource {
-    
-    rectangles: Array<Word>
-    current: number
-
-    constructor(text: string|undefined = undefined) {
-        this.rectangles = new Array<Word>()
-        this.current = 0
-
-        if (text == undefined)
-            text = "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        let word = ''
-        for (let char of text) {
-            switch(char) {
-                case ' ':
-                case '\t':
-                case '\r':
-                case '\n':
-                case '\v':
-                    // console.log(word)
-                    let rectangle = new Word(word.length*8,16, word)
-                    this.rectangles.push(rectangle)
-                    word = ""
-                    break
-                default:
-                    word += char
-            }
-        }
-        if (word.length>0) {
-            let rectangle = new Word(word.length*8,16, word)
-            this.rectangles.push(rectangle) 
-        }
-        // this.remaining = remaining
-        // this.style = true
-        // this.rectangles = new Array<Rectangle>()
-    }
-
-    pullBox(): Size|undefined {
-        if (this.current >= this.rectangles.length)
-            return undefined
-        return this.rectangles[this.current].size
-        // if (this.remaining === 0)
-        //     return undefined
-        // --this.remaining
-        // this.box = new Size(this.style ? 40 : 20, 20)
-        // this.style = !this.style
-        // return this.box
-        return undefined
-    }
-
-    placeBox(origin: Point): void {
-        this.rectangles[this.current].origin.x = origin.x
-        this.rectangles[this.current].origin.y = origin.y
-        ++this.current
-        // let rectangle = new Rectangle(origin, this.box!)
-        // this.rectangles.push(rectangle)
     }
 }
 
@@ -675,23 +609,15 @@ const wordWrapTest: WordWrapTest[] = [
             // svg.appendChild(rect)
         }
 
-        let r = boxSource.rectangles[0]
-        let cursor = document.createElementNS("http://www.w3.org/2000/svg", "line")
-        cursor.setAttributeNS("", "stroke", "#000")
-        cursor.setAttributeNS("", "x1", String(r.origin.x))
-        cursor.setAttributeNS("", "y1", String(r.origin.y))
-        cursor.setAttributeNS("", "x2", String(r.origin.x))
-        cursor.setAttributeNS("", "y2", String(r.origin.y+r.size.height))
-        cursor.classList.add("cursor-blink")
-        svg.appendChild(cursor)
-
+        new Cursor(svg, boxSource.rectangles)
+    
         return new Point(0,0)
         // if (boxes.rectangles.length === 0)
         //     return undefined
         // return boxes.rectangles[boxes.rectangles.length-1].origin
     }
 }, {
-    // only: true,
+    only: true,
     title: "real text",
     polygon: [
         {x: 20, y: 10},
