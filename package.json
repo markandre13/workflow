@@ -5,6 +5,10 @@
   "author": "Mark-André Hopf <mhopf@mark13.org>",
   "license": "GPL-3.0",
   "main": "index.html",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markandre13/workflow.git"
+  },
   "scripts": {
     "build": "npm run compile-idl && npm run compile-server && npm run compile-client",
     "compile-idl": "corba-idl -d --ts-all src/shared/workflow.idl",
@@ -14,11 +18,11 @@
     "test-unit": "npm run compile-idl && karma start"
   },
   "dependencies": {
-    "knex": "^0.16.5",
+    "knex": "^0.20.4",
     "scrypt": "^6.0.3",
     "sqlite3": "^4.1.1",
     "tslint": "^5.20.1",
-    "ws": "^6.2.1"
+    "ws": "^7.2.1"
   },
   "devDependencies": {
     "@atom/teletype-crdt": "^0.9.0",
