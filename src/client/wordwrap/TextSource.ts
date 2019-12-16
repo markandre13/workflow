@@ -23,6 +23,7 @@ import { Word } from "./Word"
 export class TextSource implements WordSource {
     rectangles: Array<Word>
     current: number
+    
     constructor(text: string | undefined = undefined) {
         this.rectangles = new Array<Word>()
         this.current = 0
@@ -53,6 +54,7 @@ export class TextSource implements WordSource {
         // this.style = true
         // this.rectangles = new Array<Rectangle>()
     }
+
     pullBox(): Size | undefined {
         if (this.current >= this.rectangles.length)
             return undefined
@@ -65,11 +67,20 @@ export class TextSource implements WordSource {
         // return this.box
         return undefined;
     }
+
     placeBox(origin: Point): void {
         this.rectangles[this.current].origin.x = origin.x
         this.rectangles[this.current].origin.y = origin.y
         ++this.current
         // let rectangle = new Rectangle(origin, this.box!)
         // this.rectangles.push(rectangle)
+    }
+
+    endOfSlice(): void {
+        this.rectangles[this.current-1].endOfSlice = true
+    }
+
+    endOfLine(): void {
+        this.rectangles[this.current-1].endOfLine = true
     }
 }

@@ -507,9 +507,13 @@ export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent,
     }
 }
 
+// FIXME: find another name for WordSource as it gather to many wordwrap result related functionality
 export interface WordSource {
+    rectangles: Array<Rectangle>
     pullBox(): Size|undefined
     placeBox(origin: Point): void
+    endOfSlice(): void
+    endOfLine(): void
 }
 
 export class WordWrap {
@@ -604,6 +608,7 @@ export class WordWrap {
                 box = wordsource.pullBox()
                 continue
             }
+            wordsource.endOfSlice()
 
             // move to next slice
             
@@ -618,7 +623,8 @@ export class WordWrap {
                 continue
             }
             if (this.trace)
-                console.log(`WordWrap.placeWordBoxes(): NOT ENOUGH HORIZONTAL SPACE FOR ${box.width}, LAST SLICE, NEW ROW`)
+                console.log(`WordWrap.placeWordBoxes(): NOT ENOUGH HORIZONTAL SPACE FOR ${box.width}, LAST SLICE, NEW LINE`)
+            wordsource.endOfLine()
 
             // move to new row
             sliceIndex = -1

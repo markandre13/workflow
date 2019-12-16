@@ -26,16 +26,17 @@ import { WordWrapTestRunner, Placer } from "./testrunner"
 import { WordWrap, Slice, WordSource } from "./wordwrap"
 import { TextSource } from "./TextSource"
 import { Cursor } from "./Cursor"
+import { Word } from "./Word"
 
 class BoxSource implements WordSource {
     current: number
     boxes: Array<Size>
-    rectangles: Array<Rectangle>
+    rectangles: Array<Word>
     
     constructor(boxes: Array<Size>) {
         this.boxes = boxes
         this.current = 0
-        this.rectangles = new Array<Rectangle>()
+        this.rectangles = new Array<Word>()
     }
 
     pullBox(): Size|undefined {
@@ -45,10 +46,15 @@ class BoxSource implements WordSource {
     }
 
     placeBox(origin: Point): void {
-        let rectangle = new Rectangle(origin, this.boxes[this.current])
+        let rectangle = new Word(this.boxes[this.current].width, this.boxes[this.current].height, "")
+        rectangle.origin.x = origin.x
+        rectangle.origin.y = origin.y
         this.rectangles.push(rectangle)
         this.current++
     }
+
+    endOfSlice(): void {}
+    endOfLine(): void {}
 }
 
 class IteratingBoxSource implements WordSource {
@@ -76,6 +82,9 @@ class IteratingBoxSource implements WordSource {
         let rectangle = new Rectangle(origin, this.box!)
         this.rectangles.push(rectangle)
     }
+
+    endOfSlice(): void {}
+    endOfLine(): void {}
 }
 
 // FIXME: document attributes
