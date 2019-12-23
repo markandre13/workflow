@@ -156,11 +156,6 @@ export class Cursor {
         while(true) {
             let r = this.boxes[offsetWord]
      
-            // current position is left of r => stop
-            if (x < r.origin.x) {
-                console.log("gotoCursorHorizontally: current position is left of r => stop")
-                break
-            }
             // current position is right of r => next word
             if (x > r.origin.x + r.size.width) {
                 if (r.endOfLine) {
@@ -173,14 +168,29 @@ export class Cursor {
                     continue
                 }
             }
-            console.log("gotoCursorHorizontally: search within word")
+
+            if (offsetWord != this.offsetWord && x<r.origin.x) {
+                let r0 = this.boxes[offsetWord - 1]
+                let x0 = r0.origin.x + r0.size.width
+                let x1 = r.origin.x
+                console.log(`found character before word for x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
+                if (x1-x >= x-x0) {
+                    offsetWord = offsetWord - 1
+                    offsetChar = r0.word.length
+                } else {
+                    offsetChar = 0
+                }
+                break
+            }
+
+            console.log(`gotoCursorHorizontally: search within word ${offsetWord}`)
             offsetChar = -1
             let x0=r.origin.x
             for(let i=1; i<=r.word.length; ++i) {
                 let x1 = r.origin.x + r.svg!.getSubStringLength(0, i)
-                console.log(`i=${i}, x=${x1}`)
+                console.log(`  i=${i}, x0=${x0}, x1=${x1}`)
                 if (x < x1) {
-                    console.log(`found character after x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
+                    console.log(`found character after word for x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
                     if (x1-x >= x-x0) {
                         offsetChar = i-1
                     } else {
@@ -192,7 +202,8 @@ export class Cursor {
                 x0 = x1
             }
             if (offsetChar == -1) {
-                throw Error("failed to place cursor")
+                // throw Error("failed to place cursor")
+                offsetChar = r.word.length
             }
             break
         } //  while(!this.boxes[offsetWord].endOfLine)
