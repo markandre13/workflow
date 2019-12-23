@@ -83,4 +83,8 @@ export class TextSource implements WordSource {
     endOfLine(): void {
         this.rectangles[this.current-1].endOfLine = true
     }
+
+    endOfWrap(): void {
+        this.rectangles[this.current-1].endOfWrap = true
+    }
 }

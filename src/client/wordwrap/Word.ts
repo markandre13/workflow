@@ -20,13 +20,15 @@ import { Rectangle } from "../../shared/geometry"
 
  export class Word extends Rectangle {
     word: string
-    endOfLine: boolean // to discover line breaks
+    endOfLine: boolean  // to discover line breaks
     endOfSlice: boolean // to discover when to stop drawing selection
+    endOfWrap: boolean  // to discover end of visible words
     svg: SVGTextElement | undefined
     constructor(w: number, h: number, word: string) {
         super(0, 0, w, h)
         this.word = word
         this.endOfLine = false
         this.endOfSlice = false
+        this.endOfWrap = false
     }
 }

@@ -55,6 +55,7 @@ class BoxSource implements WordSource {
 
     endOfSlice(): void {}
     endOfLine(): void {}
+    endOfWrap(): void {}
 }
 
 class IteratingBoxSource implements WordSource {
@@ -85,6 +86,7 @@ class IteratingBoxSource implements WordSource {
 
     endOfSlice(): void {}
     endOfLine(): void {}
+    endOfWrap(): void {}
 }
 
 // FIXME: document attributes

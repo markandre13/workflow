@@ -60,7 +60,7 @@ export class Cursor {
                 case KEY_RIGHT:
                     ++this.offsetChar
                     if (this.offsetChar > r.word.length) {
-                        if (this.offsetWord >= this.boxes.length) {
+                        if (this.offsetWord >= this.boxes.length || this.boxes[this.offsetWord].endOfWrap) {
                             --this.offsetChar
                             break
                         }
@@ -131,7 +131,7 @@ export class Cursor {
     gotoNextRow(): boolean {
         let offsetWord = this.offsetWord
         while(offsetWord < this.boxes.length && !this.boxes[offsetWord++].endOfLine) {}
-        if (offsetWord >= this.boxes.length)
+        if (offsetWord >= this.boxes.length || this.boxes[offsetWord-1].endOfWrap)
             return false
         this.offsetWord = offsetWord
         this.offsetChar = 0
@@ -176,7 +176,7 @@ export class Cursor {
                     return true
                 }
                 maxY = Number.MIN_VALUE
-                if ( i+1 >= this.boxes.length )
+                if ( i+1 >= this.boxes.length || r.endOfWrap)
                     break
                 rowWord = i + 1
             }

@@ -514,6 +514,7 @@ export interface WordSource {
     placeBox(origin: Point): void
     endOfSlice(): void
     endOfLine(): void
+    endOfWrap(): void
 }
 
 export class WordWrap {
@@ -636,6 +637,7 @@ export class WordWrap {
             if (cursor.y > this.bounds.origin.y + this.bounds.size.height)
                 break
         }
+        wordsource.endOfWrap()
         if (this.trace)
             console.log("WordWrap.placeWordBoxes(): LEAVE")
     }
