@@ -123,28 +123,28 @@ export class Cursor {
     }
 
     gotoPreviousRow(): boolean {
-        // console.log(`gotoPreviousRow: enter`)
+        console.log(`gotoPreviousRow: enter`)
         let offsetWord = this.offsetWord
 
-        // console.log(`gotoPreviousRow: goto bol in current line`)
+        console.log(`gotoPreviousRow: goto bol in current line`)
         while(offsetWord > 0 && !this.boxes[offsetWord-1].endOfLine) {
             --offsetWord
         }
-        // console.log(`gotoPreviousRow: bol offsetWord=${offsetWord}`)
+        console.log(`gotoPreviousRow: bol offsetWord=${offsetWord}`)
 
         if (offsetWord == 0)
             return false
 
         --offsetWord
 
-        // console.log(`gotoPreviousRow: goto bol in previous line`)
+        console.log(`gotoPreviousRow: goto bol in previous line`)
         while(offsetWord > 0 && !this.boxes[offsetWord-1].endOfLine) {
             --offsetWord
         }
-        // console.log(`gotoPreviousRow: offsetWord=${offsetWord}`)
+        console.log(`gotoPreviousRow: offsetWord=${offsetWord}`)
         this.offsetWord = offsetWord
         this.offsetChar = 0
-        // console.log(`gotoPreviousRow: leave`)
+        console.log(`gotoPreviousRow: leave`)
         return true
     }
 
@@ -152,35 +152,41 @@ export class Cursor {
     gotoCursorHorizontally(x: number) {
         let offsetWord = this.offsetWord
         let offsetChar = this.offsetChar
-        // console.log(`gotoCursorHorizontally(): enter with x=${x}, offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
-        do {
+        console.log(`gotoCursorHorizontally(): enter with x=${x}, offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
+        while(true) {
             let r = this.boxes[offsetWord]
      
             // current position is left of r => stop
             if (x < r.origin.x) {
-                // console.log("keyDown: current position is left of r => stop")
+                console.log("gotoCursorHorizontally: current position is left of r => stop")
                 break
             }
             // current position is right of r => next word
             if (x > r.origin.x + r.size.width) {
-                // console.log("keyDown: current position is right of r => next word")
-                ++offsetWord
-                continue
+                if (r.endOfLine) {
+                    console.log(`gotoCursorHorizontally: current position ${x} is right of ${r.origin.x + r.size.width} and we are end of line => stop`)
+                    offsetChar = r.word.length
+                    break
+                } else {
+                    ++offsetWord
+                    console.log(`gotoCursorHorizontally: current position ${x} is right of ${r.origin.x + r.size.width} => next word ${offsetWord}`)
+                    continue
+                }
             }
-            // console.log("keyDown: search within word")
+            console.log("gotoCursorHorizontally: search within word")
             offsetChar = -1
             let x0=r.origin.x
             for(let i=1; i<=r.word.length; ++i) {
                 let x1 = r.origin.x + r.svg!.getSubStringLength(0, i)
-                // console.log(`i=${i}, x=${x1}`)
+                console.log(`i=${i}, x=${x1}`)
                 if (x < x1) {
-                    // console.log(`found character after x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
+                    console.log(`found character after x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
                     if (x1-x >= x-x0) {
                         offsetChar = i-1
                     } else {
                         offsetChar = i
                     }
-                    // console.log(`offsetChar=${offsetChar}`)
+                    console.log(`offsetChar=${offsetChar}`)
                     break
                 }
                 x0 = x1
@@ -189,10 +195,10 @@ export class Cursor {
                 throw Error("failed to place cursor")
             }
             break
-        } while(!this.boxes[offsetWord].endOfLine)
+        } //  while(!this.boxes[offsetWord].endOfLine)
         this.offsetWord = offsetWord
         this.offsetChar = offsetChar
-        // console.log(`keyDown: offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
+        console.log(`gotoCursorHorizontally: offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
     }
     
     updateCursor() {
