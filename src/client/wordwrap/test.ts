@@ -566,62 +566,12 @@ const wordWrapTest: WordWrapTest[] = [
     only: true,
     strategy: (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement): Point|undefined => {
         wordwrap.trace = false
-        let boxSource = new TextSource()
+        let textSource = new TextSource()
 
-        // no whitespace handling yet, hence we just fake it by adding a space to
-        // every words box and then center the text in the middle
-        let spacer = document.createElementNS("http://www.w3.org/2000/svg", "text")
-        spacer.innerHTML = "&nbsp;"
-        svg.appendChild(spacer)
-        let space = spacer.getComputedTextLength()
-        svg.removeChild(spacer)
-
-        // TODO: may want to move this into TextSource
-        for(let r of boxSource.rectangles) {
-            let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
-            text.setAttributeNS("", "stroke", "none")
-            text.setAttributeNS("", "fill", "none")
-            text.setAttributeNS("", "x", "0")
-            //text.setAttributeNS("", "width", String(r.size.width))
-            text.setAttributeNS("", "y", "0")
-            //text.setAttributeNS("", "height", String(r.size.height))
-            text.textContent = r.word
-            svg.appendChild(text)
-            r.size.width = text.getComputedTextLength()+space // do it later so all children can be added to the dom at once?
-            let bbox = text.getBBox()
-            r.size.height = bbox.height
-            //console.log(r.size)
-            r.svg = text
-        }
-
-        wordwrap.placeWordBoxes(boxSource)
-
-        for(let r of boxSource.rectangles) {
-            if (r.origin.y == 0) // these have not been placed
-                break
-
-            let text = r.svg!
-            r.origin.x += space/2
-            r.size.width -= space
-            text.setAttributeNS("", "x", String(r.origin.x))
-            
-            let bbox = text.getBBox()
-
-            // text was placed at (0, 0), hence bbox.y is the negative ascent
-            text.setAttributeNS("", "y", String(r.origin.y-bbox.y))
-            text.setAttributeNS("", "fill", "#000")
-            
-            // let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-            // rect.setAttributeNS("", "stroke", "#aaa")
-            // rect.setAttributeNS("", "fill", "none")
-            // rect.setAttributeNS("", "x", String(r.origin.x))
-            // rect.setAttributeNS("", "width", String(r.size.width))
-            // rect.setAttributeNS("", "y", String(r.origin.y))
-            // rect.setAttributeNS("", "height", String(r.size.height))
-            // svg.appendChild(rect)
-        }
-
-        new Cursor(svg, boxSource.rectangles)
+        textSource.initializeWordBoxes(svg)
+        wordwrap.placeWordBoxes(textSource)
+        textSource.displayWordBoxes()
+        new Cursor(svg, textSource.rectangles)
     
         return new Point(0,0)
         // if (boxes.rectangles.length === 0)

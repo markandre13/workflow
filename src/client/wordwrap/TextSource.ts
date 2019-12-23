@@ -23,10 +23,13 @@ import { Word } from "./Word"
 export class TextSource implements WordSource {
     rectangles: Array<Word>
     current: number
+
+    space: number // hack
     
     constructor(text: string | undefined = undefined) {
         this.rectangles = new Array<Word>()
         this.current = 0
+        this.space = 0
         if (text == undefined)
             text = "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
         let word = ''
@@ -37,7 +40,6 @@ export class TextSource implements WordSource {
                 case '\r':
                 case '\n':
                 case '\v':
-                    // console.log(word)
                     let rectangle = new Word(word.length * 8, 16, word)
                     this.rectangles.push(rectangle)
                     word = ""
@@ -50,30 +52,63 @@ export class TextSource implements WordSource {
             let rectangle = new Word(word.length * 8, 16, word)
             this.rectangles.push(rectangle)
         }
-        // this.remaining = remaining
-        // this.style = true
-        // this.rectangles = new Array<Rectangle>()
+    }
+
+    initializeWordBoxes(svg: SVGElement) {
+        // no whitespace handling yet, hence we just fake it by adding a space to
+        // every words box and then center the text in the middle
+        let spacer = document.createElementNS("http://www.w3.org/2000/svg", "text")
+        spacer.innerHTML = "&nbsp;"
+        svg.appendChild(spacer)
+        this.space = spacer.getComputedTextLength()
+        svg.removeChild(spacer)
+
+        for(let r of this.rectangles) {
+            let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
+            text.setAttributeNS("", "stroke", "none")
+            text.setAttributeNS("", "fill", "none")
+            text.setAttributeNS("", "x", "0")
+            //text.setAttributeNS("", "width", String(r.size.width))
+            text.setAttributeNS("", "y", "0")
+            //text.setAttributeNS("", "height", String(r.size.height))
+            text.textContent = r.word
+            svg.appendChild(text)
+            r.size.width = text.getComputedTextLength()+this.space // do it later so all children can be added to the dom at once?
+            let bbox = text.getBBox()
+            r.size.height = bbox.height
+            //console.log(r.size)
+            r.svg = text
+        }
+    }
+
+    displayWordBoxes() {
+        for(let r of this.rectangles) {
+            if (r.origin.y == 0) // these have not been placed
+                break
+
+            let text = r.svg!
+            r.origin.x += this.space/2
+            r.size.width -= this.space
+            text.setAttributeNS("", "x", String(r.origin.x))
+            
+            let bbox = text.getBBox()
+
+            // text was placed at (0, 0), hence bbox.y is the negative ascent
+            text.setAttributeNS("", "y", String(r.origin.y-bbox.y))
+            text.setAttributeNS("", "fill", "#000")
+        }
     }
 
     pullBox(): Size | undefined {
         if (this.current >= this.rectangles.length)
             return undefined
         return this.rectangles[this.current].size
-        // if (this.remaining === 0)
-        //     return undefined
-        // --this.remaining
-        // this.box = new Size(this.style ? 40 : 20, 20)
-        // this.style = !this.style
-        // return this.box
-        return undefined;
     }
 
     placeBox(origin: Point): void {
         this.rectangles[this.current].origin.x = origin.x
         this.rectangles[this.current].origin.y = origin.y
         ++this.current
-        // let rectangle = new Rectangle(origin, this.box!)
-        // this.rectangles.push(rectangle)
     }
 
     endOfSlice(): void {

@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2019 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,31 +80,38 @@ export class Cursor {
                     }
                     this.updateCursor()
                     break
+                default:
+                    if (e.key.length == 1) {
+                        r.word = r.word.slice(0, this.offsetChar) + e.key + r.word.slice(this.offsetChar)
+                        r.svg!.textContent = r.word
+                        this.offsetChar++
+                        this.updateCursor()
+                    }
             }
 
             switch (e.keyCode) { // FIXME: keyCode is marked as deprecated in TypeScript definition
                 case KEY_DOWN:
-                    console.log("keyDown: start")
+                    // console.log("keyDown: start")
                     if (this.xDuringVerticalMovement === undefined)
                         this.xDuringVerticalMovement = this.position.x
 
                     if (this.gotoNextRow()) {
-                        console.log("keyDown: found next line")
+                        // console.log("keyDown: found next line")
                         this.goNearX(this.xDuringVerticalMovement)
                         this.updateCursor()
                     }
-                    console.log("keyDown: done")
+                    // console.log("keyDown: done")
                     break
                 case KEY_UP:
-                    console.log("keyDown: start")
+                    // console.log("keyDown: start")
                     if (this.xDuringVerticalMovement === undefined)
                         this.xDuringVerticalMovement = this.position.x
                     if (this.gotoPreviousRow()) {
-                        console.log("keyDown: found previous line")
+                        // console.log("keyDown: found previous line")
                         this.goNearX(this.xDuringVerticalMovement)
                         this.updateCursor()
                     }
-                    console.log("keyDown: done")
+                    // console.log("keyDown: done")
                     break
                 default:
                     this.xDuringVerticalMovement = undefined    
@@ -116,7 +123,7 @@ export class Cursor {
         this.svg.onmousedown = (e: MouseEvent) => { 
             let b = this.svg.getBoundingClientRect()
             let p = new Point({x: e.clientX - b.left, y: e.clientY - b.top})
-            console.log(`mouse down at client ${p.x}, ${p.y}`)
+            // console.log(`mouse down at client ${p.x}, ${p.y}`)
 
             this.offsetWord = 0
             this.offsetChar = 0
@@ -139,28 +146,28 @@ export class Cursor {
     }
 
     gotoPreviousRow(): boolean {
-        console.log(`gotoPreviousRow: enter`)
+        // console.log(`gotoPreviousRow: enter`)
         let offsetWord = this.offsetWord
 
-        console.log(`gotoPreviousRow: goto bol in current line`)
+        // console.log(`gotoPreviousRow: goto bol in current line`)
         while(offsetWord > 0 && !this.boxes[offsetWord-1].endOfLine) {
             --offsetWord
         }
-        console.log(`gotoPreviousRow: bol offsetWord=${offsetWord}`)
+        // console.log(`gotoPreviousRow: bol offsetWord=${offsetWord}`)
 
         if (offsetWord == 0)
             return false
 
         --offsetWord
 
-        console.log(`gotoPreviousRow: goto bol in previous line`)
+        // console.log(`gotoPreviousRow: goto bol in previous line`)
         while(offsetWord > 0 && !this.boxes[offsetWord-1].endOfLine) {
             --offsetWord
         }
-        console.log(`gotoPreviousRow: offsetWord=${offsetWord}`)
+        // console.log(`gotoPreviousRow: offsetWord=${offsetWord}`)
         this.offsetWord = offsetWord
         this.offsetChar = 0
-        console.log(`gotoPreviousRow: leave`)
+        // console.log(`gotoPreviousRow: leave`)
         return true
     }
 
@@ -189,19 +196,19 @@ export class Cursor {
     goNearX(x: number) {
         let offsetWord = this.offsetWord
         let offsetChar = this.offsetChar
-        console.log(`gotoCursorHorizontally(): enter with x=${x}, offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
+        // console.log(`gotoCursorHorizontally(): enter with x=${x}, offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
         while(true) {
             let r = this.boxes[offsetWord]
      
             // current position is right of r => next word
             if (x > r.origin.x + r.size.width) {
                 if (r.endOfLine) {
-                    console.log(`gotoCursorHorizontally: current position ${x} is right of ${r.origin.x + r.size.width} and we are end of line => stop`)
+                    // console.log(`gotoCursorHorizontally: current position ${x} is right of ${r.origin.x + r.size.width} and we are end of line => stop`)
                     offsetChar = r.word.length
                     break
                 } else {
                     ++offsetWord
-                    console.log(`gotoCursorHorizontally: current position ${x} is right of ${r.origin.x + r.size.width} => next word ${offsetWord}`)
+                    // console.log(`gotoCursorHorizontally: current position ${x} is right of ${r.origin.x + r.size.width} => next word ${offsetWord}`)
                     continue
                 }
             }
@@ -210,7 +217,7 @@ export class Cursor {
                 let r0 = this.boxes[offsetWord - 1]
                 let x0 = r0.origin.x + r0.size.width
                 let x1 = r.origin.x
-                console.log(`found character before word for x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
+                // console.log(`found character before word for x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
                 if (x1-x >= x-x0) {
                     offsetWord = offsetWord - 1
                     offsetChar = r0.word.length
@@ -220,20 +227,20 @@ export class Cursor {
                 break
             }
 
-            console.log(`gotoCursorHorizontally: search within word ${offsetWord}`)
+            // console.log(`gotoCursorHorizontally: search within word ${offsetWord}`)
             offsetChar = -1
             let x0=r.origin.x
             for(let i=1; i<=r.word.length; ++i) {
                 let x1 = r.origin.x + r.svg!.getSubStringLength(0, i)
-                console.log(`  i=${i}, x0=${x0}, x1=${x1}`)
+                // console.log(`  i=${i}, x0=${x0}, x1=${x1}`)
                 if (x < x1) {
-                    console.log(`found character after word for x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
+                    // console.log(`found character after word for x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
                     if (x1-x >= x-x0) {
                         offsetChar = i-1
                     } else {
                         offsetChar = i
                     }
-                    console.log(`offsetChar=${offsetChar}`)
+                    // console.log(`offsetChar=${offsetChar}`)
                     break
                 }
                 x0 = x1
@@ -246,7 +253,7 @@ export class Cursor {
         } //  while(!this.boxes[offsetWord].endOfLine)
         this.offsetWord = offsetWord
         this.offsetChar = offsetChar
-        console.log(`gotoCursorHorizontally: offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
+        // console.log(`gotoCursorHorizontally: offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
     }
     
     updateCursor() {
@@ -256,7 +263,7 @@ export class Cursor {
         this.position.x = r.origin.x + x
         this.position.y = r.origin.y
 
-        console.log(`updateCursor(): offsetWord=${this.offsetWord}, offsetChar=${this.offsetChar}, x=${this.position.x}`)
+        // console.log(`updateCursor(): offsetWord=${this.offsetWord}, offsetChar=${this.offsetChar}, x=${this.position.x}`)
 
         this.cursor.setAttributeNS("", "x1", String(r.origin.x + x))
         this.cursor.setAttributeNS("", "y1", String(r.origin.y))
