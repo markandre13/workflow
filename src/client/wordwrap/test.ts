@@ -561,6 +561,7 @@ const wordWrapTest: WordWrapTest[] = [
 
 }, { 
     title: "render real text",
+    only: true,
     strategy: (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement): Point|undefined => {
         wordwrap.trace = false
         let boxSource = new TextSource()

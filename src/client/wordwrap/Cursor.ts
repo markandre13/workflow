@@ -38,6 +38,7 @@ export class Cursor {
         this.offsetChar = 0
         this.cursor = this.createCursor()
         this.catchKeyboard()
+        this.catchMouse()
     }
 
     createCursor(): SVGLineElement {
@@ -89,7 +90,7 @@ export class Cursor {
 
                     if (this.gotoNextRow()) {
                         console.log("keyDown: found next line")
-                        this.gotoCursorHorizontally(this.xDuringVerticalMovement)
+                        this.goNearX(this.xDuringVerticalMovement)
                         this.updateCursor()
                     }
                     console.log("keyDown: done")
@@ -100,13 +101,28 @@ export class Cursor {
                         this.xDuringVerticalMovement = this.position.x
                     if (this.gotoPreviousRow()) {
                         console.log("keyDown: found previous line")
-                        this.gotoCursorHorizontally(this.xDuringVerticalMovement)
+                        this.goNearX(this.xDuringVerticalMovement)
                         this.updateCursor()
                     }
                     console.log("keyDown: done")
                     break
                 default:
                     this.xDuringVerticalMovement = undefined    
+            }
+        }
+    }
+
+    catchMouse() {
+        this.svg.onmousedown = (e: MouseEvent) => { 
+            let b = this.svg.getBoundingClientRect()
+            let p = new Point({x: e.clientX - b.left, y: e.clientY - b.top})
+            console.log(`mouse down at client ${p.x}, ${p.y}`)
+
+            this.offsetWord = 0
+            this.offsetChar = 0
+            if (this.goNearY(p.y)) {
+                this.goNearX(p.x)
+                this.updateCursor()
             }
         }
     }
@@ -148,8 +164,29 @@ export class Cursor {
         return true
     }
 
+    goNearY(y: number): boolean {
+        let rowWord = 0
+        let maxY = Number.MIN_VALUE
+        for(let i=0; i<this.boxes.length; ++i) {
+            let r = this.boxes[i]
+            maxY = Math.max(maxY, r.origin.y + r.size.height)
+            if (r.endOfLine) {
+                if (y <= maxY) {
+                    this.offsetWord = rowWord
+                    return true
+                }
+                maxY = Number.MIN_VALUE
+                if ( i+1 >= this.boxes.length )
+                    break
+                rowWord = i + 1
+            }
+        }
+        this.offsetWord = rowWord
+        return true
+    }
+
     // FIXME: name does not indicate going from offset(Char|Word) to position.x
-    gotoCursorHorizontally(x: number) {
+    goNearX(x: number) {
         let offsetWord = this.offsetWord
         let offsetChar = this.offsetChar
         console.log(`gotoCursorHorizontally(): enter with x=${x}, offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
