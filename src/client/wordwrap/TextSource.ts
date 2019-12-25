@@ -112,15 +112,20 @@ export class TextSource implements WordSource {
     }
 
     placeWordBoxes() {
+        let visible = true
         for(let r of this.rectangles) {
-            if (r.endOfWrap) // these have not been placed
-                break
-
+            if (r.endOfWrap)
+                visible = false
             let text = r.svg!
-            r.origin.x += this.space/2
-            r.size.width -= this.space
-            text.setAttributeNS("", "x", String(r.origin.x))
-            text.setAttributeNS("", "y", String(r.origin.y+r.ascent))
+            if (visible) {
+                r.origin.x += this.space/2
+                r.size.width -= this.space
+                text.setAttributeNS("", "x", String(r.origin.x))
+                text.setAttributeNS("", "y", String(r.origin.y+r.ascent))
+                text.setAttributeNS("", "fill", "#000")
+            } else {
+                text.setAttributeNS("", "fill", "none")
+            }
         }
     }
 
