@@ -530,7 +530,7 @@ const wordWrapTest: WordWrapTest[] = [
             wordwrap.placeWordBoxes(boxSource)
     
             for(let r of boxSource.rectangles) {
-                console.log(r)
+                // console.log(r)
                 let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
                 rect.setAttributeNS("", "stroke", "#aaa")
                 rect.setAttributeNS("", "fill", "none")
@@ -543,6 +543,7 @@ const wordWrapTest: WordWrapTest[] = [
     
             if (boxSource.rectangles.length === 0)
                 return undefined
+            console.log(boxSource.rectangles[boxSource.rectangles.length-1])
             return boxSource.rectangles[boxSource.rectangles.length-1].origin
         }
 
@@ -560,9 +561,9 @@ const wordWrapTest: WordWrapTest[] = [
     boxes: [{width: 33.685546875, height: 13.953125}],
     result: { origin: { x: 18.90453506097561, y: 17.66825457317073  }, size: { width: 33.685546875, height: 13.953125 } }
 }, {
-    title: "placeWordBoxes() throws error",
+    title: "placeWordBoxes() used slice data as cursor and modified it",
     // only: true,
-    trace: true,
+    // trace: true,
     polygon: [
         {x: 20, y: 10},
         {x:190, y: 50},
@@ -573,7 +574,7 @@ const wordWrapTest: WordWrapTest[] = [
         {x: 10, y: 80},
     ],
     boxes: [ {width: 110.44158363342285, height: 16.171875}, {width: 40.69293403625488, height: 16.171875}, {width: 36.3858699798584, height: 16.171875}, {width: 19.307065963745117, height: 16.171875}, {width: 41.26358985900879, height: 16.171875}, {width: 77.88723182678223, height: 16.171875}],
-    result: { origin: { x: 18.90453506097561, y: 17.66825457317073  }, size: { width: 33.685546875, height: 13.953125 } }
+    result: { origin: { x: 11.975446428571429, y: 66.171875  }, size: { height: 16.171875, width: 77.88723182678223 } }
 }, { 
     title: "render real text",
     // only: true,

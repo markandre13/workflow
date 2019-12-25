@@ -142,8 +142,8 @@ export class Slice {
 }
 
 // FIXME: make Array<Slice> a class with print function
-export function printSlices(slices: Array<Slice>, asScript = false) {
-    return
+export function printSlices(slices: Array<Slice>, asScript = true) {
+    // return
     if (!asScript) {
         for (let sliceIndex = 0; sliceIndex < slices.length; ++sliceIndex) {
             let slice = slices[sliceIndex]
@@ -188,7 +188,8 @@ export function validateSlices(slices: Array<Slice>) {
         for (let i = 0; i < slice.left.length; ++i) {
             if (slice.left[i].p[0].y > slice.left[i].p[1].y) {
                 okay = false
-                console.log(`!!!!! slice ${sliceIndex}, left ${i}: edge doesn't point down`)
+                console.log(`!!!!! slice ${sliceIndex}, left ${i}: edge doesn't point downX`)
+                printSlices(slices, true)
                 throw Error()
             }
         }
@@ -581,7 +582,6 @@ export class WordWrap {
         let slices = new Array<Slice>()
 
         let horizontalSpace = 0
-        let lineHeight = 20 // FIXME: shouldn't be fixed
         
         let box = wordsource.pullBox()
         if (box === undefined) {
@@ -590,6 +590,7 @@ export class WordWrap {
         }
 
         let [sliceIndex, cursor] = this.pointForBoxInSlices(box, slices)
+        cursor = new Point(cursor)
         if (sliceIndex === -1) {
             if (this.trace)
                 console.log("WordWrap.placeWordBoxes(): NOT EVEN A FIRST SLICE")
@@ -600,17 +601,21 @@ export class WordWrap {
         let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
         horizontalSpace = right - left
 
-        if (this.trace)
+        if (this.trace) {
             console.log(`WordWrap.placeWordBoxes(): ENTER LOOP, HORIZONTAL SPACE IS ${horizontalSpace}`)
+            this.printSlices(slices)
+        }
         while (box) {
             // place in horizontal space
             if (isLessEqual(box.width, horizontalSpace)) {
                 wordsource.placeBox(cursor)
                 cursor.x += box.width
                 horizontalSpace -= box.width
-                if (this.trace)
-                    console.log(`WordWrap.placeWordBoxes(): PLACED BOX, REDUCED HORIZONTAL SPACE TO ${horizontalSpace}`)
                 box = wordsource.pullBox()
+                if (this.trace) {
+                    console.log(`WordWrap.placeWordBoxes(): PLACED BOX, REDUCED HORIZONTAL SPACE TO ${horizontalSpace}`)
+                    this.printSlices(slices)
+                }
                 continue
             }
             wordsource.endOfSlice()
@@ -627,15 +632,22 @@ export class WordWrap {
                 cursor.x = left
                 continue
             }
-            if (this.trace)
+            if (this.trace) {
                 console.log(`WordWrap.placeWordBoxes(): NOT ENOUGH HORIZONTAL SPACE FOR ${box.width}, LAST SLICE, NEW LINE`)
+                this.printSlices(slices)
+            }
             wordsource.endOfLine()
 
             // move to new row
             sliceIndex = -1
             horizontalSpace = 0
-            cursor.y += box.height
+            cursor.y += box.height // FIXME: boxes may have different heights and ascents
+            // console.log("WordWrap.placeWordBoxes(): before extendSlices()")
+            // this.printSlices(slices)
             this.extendSlices(cursor, box, slices)
+            // console.log("WordWrap.placeWordBoxes(): after extendSlices()")
+            // this.printSlices(slices)
+            // this.validateSlices(slices)
 
             // abort when below bounding box
             if (cursor.y > this.bounds.origin.y + this.bounds.size.height)
