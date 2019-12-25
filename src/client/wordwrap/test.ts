@@ -546,29 +546,46 @@ const wordWrapTest: WordWrapTest[] = [
             return boxSource.rectangles[boxSource.rectangles.length-1].origin
         }
 
-    }, {
-        title: "placeWordBoxes() rounding error box.width & horizontal width",
-        polygon: [
-            {x: 20, y: 10},
-            {x:190, y: 50},
-            {x:310, y: 10},
-            {x:280, y:190},
-            {x:100, y:100},
-            {x: 40, y:190},
-            {x: 10, y: 80},
-        ],
-        boxes: [{width: 33.685546875, height: 13.953125}],
-        result: { origin: { x: 18.90453506097561, y: 17.66825457317073  }, size: { width: 33.685546875, height: 13.953125 } }
-    
-
+}, {
+    title: "placeWordBoxes() rounding error box.width & horizontal width",
+    polygon: [
+        {x: 20, y: 10},
+        {x:190, y: 50},
+        {x:310, y: 10},
+        {x:280, y:190},
+        {x:100, y:100},
+        {x: 40, y:190},
+        {x: 10, y: 80},
+    ],
+    boxes: [{width: 33.685546875, height: 13.953125}],
+    result: { origin: { x: 18.90453506097561, y: 17.66825457317073  }, size: { width: 33.685546875, height: 13.953125 } }
+}, {
+    title: "placeWordBoxes() throws error",
+    // only: true,
+    trace: true,
+    polygon: [
+        {x: 20, y: 10},
+        {x:190, y: 50},
+        {x:310, y: 10},
+        {x:280, y:190},
+        {x:100, y:100},
+        {x: 40, y:190},
+        {x: 10, y: 80},
+    ],
+    boxes: [ {width: 110.44158363342285, height: 16.171875}, {width: 40.69293403625488, height: 16.171875}, {width: 36.3858699798584, height: 16.171875}, {width: 19.307065963745117, height: 16.171875}, {width: 41.26358985900879, height: 16.171875}, {width: 77.88723182678223, height: 16.171875}],
+    result: { origin: { x: 18.90453506097561, y: 17.66825457317073  }, size: { width: 33.685546875, height: 13.953125 } }
 }, { 
     title: "render real text",
-    only: true,
+    // only: true,
     strategy: (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement): Point|undefined => {
-        wordwrap.trace = false
+        // wordwrap.trace = false
         let textSource = new TextSource()
 
         textSource.initializeWordBoxes(svg)
+        // let s = ""
+        // for (let x of textSource.rectangles)
+        // s=`${s}, {width: ${x.size.width}, height: ${x.size.height}}`
+        // console.log(s)
         wordwrap.placeWordBoxes(textSource)
         textSource.displayWordBoxes()
         new Cursor(svg, wordwrap, textSource)
@@ -579,7 +596,8 @@ const wordWrapTest: WordWrapTest[] = [
         // return boxes.rectangles[boxes.rectangles.length-1].origin
     }
 }, {
-    only: true,
+    // only: true,
+    trace: false,
     title: "real text",
     polygon: [
         {x: 20, y: 10},
