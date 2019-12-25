@@ -519,25 +519,28 @@ export interface WordSource {
 
 export class WordWrap {
     trace: boolean
+    path: Path
     bounds: Rectangle
     sweepBuffer: OrderedArray<SweepEvent>
-
+    
     /**
      * WordWrap algorithm will place all words provided by wordsource inside path
      */
     constructor(path: Path, wordsource?: WordSource, trace?: boolean) {
         this.trace = trace == true
+        this.path = path
         this.bounds = path.bounds()
 
         this.sweepBuffer = new OrderedArray<SweepEvent>( (a, b) => { return SweepEvent.less(a, b) } )
         this.initializeSweepBufferFrom(path)
-
+    
         if (wordsource === undefined)
             return
         this.placeWordBoxes(wordsource)
     }
     
-    private initializeSweepBufferFrom(path: Path) {
+    initializeSweepBufferFrom(path: Path) {
+        this.sweepBuffer.length = 0
         let first: Point|undefined, previous: Point|undefined, current: Point|undefined
         for(let segment of path.path) {
             switch(segment.type) {
@@ -582,6 +585,7 @@ export class WordWrap {
         
         let box = wordsource.pullBox()
         if (box === undefined) {
+            console.log("WordWrap.placeWordBoxes(): NO BOXES")
             return
         }
 

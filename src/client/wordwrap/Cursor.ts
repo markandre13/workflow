@@ -18,9 +18,13 @@
 
 import { Word } from "./Word"
 import { Point } from "../../shared/workflow_valueimpl"
+import { WordWrap } from "./wordwrap"
+import { TextSource } from "./TextSource"
 
 export class Cursor {
     svg: SVGElement
+    wordwrap: WordWrap
+    textSource: TextSource
     timer: undefined | number
     position: Point
     xDuringVerticalMovement: undefined | number
@@ -29,9 +33,11 @@ export class Cursor {
     offsetWord: number
     offsetChar: number
 
-    constructor(svg: SVGElement, boxes: Array<Word>) {
+    constructor(svg: SVGElement, wordwrap: WordWrap, textSource: TextSource) {
         this.svg = svg
-        this.boxes = boxes
+        this.wordwrap = wordwrap
+        this.textSource = textSource
+        this.boxes = textSource.rectangles
         this.position = new Point()
         this.xDuringVerticalMovement = undefined
         this.offsetWord = 0
@@ -85,6 +91,17 @@ export class Cursor {
                         r.word = r.word.slice(0, this.offsetChar) + e.key + r.word.slice(this.offsetChar)
                         r.svg!.textContent = r.word
                         this.offsetChar++
+                        // this.updateCursor()
+                        
+                        console.log(`update wrap: old box width = ${r.size.width}`)
+                        r.size.width = r.svg!.getComputedTextLength() // FIXME: move into TextSource
+                        console.log(`update wrap: new box width = ${r.size.width}`)
+
+                        this.textSource.reset()
+                        // this.wordwrap.trace = true
+                        this.wordwrap.initializeSweepBufferFrom(this.wordwrap.path)
+                        this.wordwrap.placeWordBoxes(this.textSource)
+                        this.textSource.placeWordBoxes()
                         this.updateCursor()
                     }
             }

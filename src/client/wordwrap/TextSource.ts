@@ -54,6 +54,14 @@ export class TextSource implements WordSource {
         }
     }
 
+    reset() {
+        this.current = 0
+        for (let w of this.rectangles) {
+            w.reset()
+            w.size.width += this.space
+        }
+    }
+
     initializeWordBoxes(svg: SVGElement) {
         // no whitespace handling yet, hence we just fake it by adding a space to
         // every words box and then center the text in the middle
@@ -83,7 +91,7 @@ export class TextSource implements WordSource {
 
     displayWordBoxes() {
         for(let r of this.rectangles) {
-            if (r.origin.y == 0) // these have not been placed
+            if (r.endOfWrap) // these have not been placed
                 break
 
             let text = r.svg!
@@ -91,11 +99,28 @@ export class TextSource implements WordSource {
             r.size.width -= this.space
             text.setAttributeNS("", "x", String(r.origin.x))
             
-            let bbox = text.getBBox()
-
             // text was placed at (0, 0), hence bbox.y is the negative ascent
-            text.setAttributeNS("", "y", String(r.origin.y-bbox.y))
+            let bbox = text.getBBox()
+            r.ascent = -bbox.y
+
+            text.setAttributeNS("", "y", String(r.origin.y+r.ascent))
+
+            // console.log(`display word '${r.word}' at ${r.origin.x},${r.origin.y+r.ascent}`)
+
             text.setAttributeNS("", "fill", "#000")
+        }
+    }
+
+    placeWordBoxes() {
+        for(let r of this.rectangles) {
+            if (r.endOfWrap) // these have not been placed
+                break
+
+            let text = r.svg!
+            r.origin.x += this.space/2
+            r.size.width -= this.space
+            text.setAttributeNS("", "x", String(r.origin.x))
+            text.setAttributeNS("", "y", String(r.origin.y+r.ascent))
         }
     }
 

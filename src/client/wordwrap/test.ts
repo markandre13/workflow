@@ -571,7 +571,7 @@ const wordWrapTest: WordWrapTest[] = [
         textSource.initializeWordBoxes(svg)
         wordwrap.placeWordBoxes(textSource)
         textSource.displayWordBoxes()
-        new Cursor(svg, textSource.rectangles)
+        new Cursor(svg, wordwrap, textSource)
     
         return new Point(0,0)
         // if (boxes.rectangles.length === 0)
