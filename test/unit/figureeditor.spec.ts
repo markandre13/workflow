@@ -359,6 +359,7 @@ describe.only("figureeditor", function() {
 
                 let selectTool = new SelectTool()
                 figureeditor.setTool(selectTool)
+                Tool.selection.clear()
 
                 let model = new MyLayerModel()
                 let layer = new MyLayer()
@@ -457,7 +458,7 @@ describe.only("figureeditor", function() {
             expect(test.centerOfFigure()).to.eql(newCenter)
         })
        
-        it.only("scale single figure using nw handle", ()=> {
+        it("scale single figure using nw handle", ()=> {
             // GIVEN
             let test = new Test()
             let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
