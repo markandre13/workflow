@@ -19,7 +19,7 @@
 import { ORB } from "corba.js"
 import * as stub from "../shared/workflow_stub"
 import {
-    Point, Size, Rectangle, Matrix,
+    Point, Size, Rectangle, Matrix, pointMinus,
 } from "../shared/geometry"
 
 import * as figure from "./figures"
@@ -55,6 +55,12 @@ export async function main(url: string) {
     if (false) {
         document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
         testWrap()
+        return
+    }
+
+    if (true) {
+        document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
+        testMath()
         return
     }
 
@@ -103,3 +109,51 @@ function registerCustomElements() {
     window.customElements.define("toad-colorswatch", ColorSwatch)
 }
 
+function testMath() {
+    let svg = document.getElementById("svg")!
+
+    let r = new Rectangle({origin:{x: 30.5, y:90.5}, size: {width: 80, height: 40}})
+    let rectangle0 = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+    rectangle0.setAttributeNS("", "stroke", "#000")
+    rectangle0.setAttributeNS("", "fill", "#d88")
+    rectangle0.setAttributeNS("", "x", String(r.origin.x))
+    rectangle0.setAttributeNS("", "width", String(r.size.width))
+    rectangle0.setAttributeNS("", "y", String(r.origin.y))
+    rectangle0.setAttributeNS("", "height", String(r.size.height))
+    svg.appendChild(rectangle0)
+
+    // let m = new DOMMatrix()
+    let c = r.center()
+
+    // the order of operations here is reversed
+    // m.translateSelf(c.x, c.y, 0)
+    // m.rotateSelf(0.0, 0.0, 5)
+    // m.translateSelf(-c.x, -c.y, 0)
+
+    // if we pre-multiply, the order of operations follows the logical order
+    // let t0 = new DOMMatrix().translateSelf(-c.x, -c.y, 0)
+    // let r0 = new DOMMatrix().rotateSelf(0.0, 0.0, 5)
+    // let t1 = new DOMMatrix().translateSelf(c.x, c.y, 0)
+    // m.preMultiplySelf(t0)
+    // m.preMultiplySelf(r0)
+    // m.preMultiplySelf(t1)
+
+    let m = new Matrix()
+    m.translate(pointMinus(c))
+    m.rotate(0.1)
+    m.translate(c)
+
+    console.log(`matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`)
+
+    let group = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    group.setAttributeNS("", "transform", `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`)
+    let rectangle1 = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+    rectangle1.setAttributeNS("", "stroke", "#000")
+    rectangle1.setAttributeNS("", "fill", "#88d")
+    rectangle1.setAttributeNS("", "x", String(r.origin.x))
+    rectangle1.setAttributeNS("", "width", String(r.size.width))
+    rectangle1.setAttributeNS("", "y", String(r.origin.y))
+    rectangle1.setAttributeNS("", "height", String(r.size.height))
+    group.appendChild(rectangle1)
+    svg.appendChild(group)
+}

@@ -18,6 +18,7 @@
 
 import * as valueimpl from "./workflow_valueimpl"
 import * as valuetype from "./workflow_valuetype"
+import { runInThisContext } from "vm"
 
 export class Point extends valueimpl.Point {
     constructor()
@@ -472,129 +473,109 @@ export class Matrix extends valueimpl.Matrix {
     constructor(matrix?: Partial<Matrix>) {
         super(matrix)
         if (matrix === undefined) {
-            this.m11 = 1.0
-            this.m22 = 1.0
+            this.a = 1.0
+            this.d = 1.0
         }
     }
     
     isIdentity(): boolean {
-        return this.m11 === 1.0 && this.m12 === 0.0 &&
-               this.m21 === 0.0 && this.m22 === 1.0 &&
-               this.tX  === 0.0 && this.tY  === 0.0
+        return this.a === 1.0 && this.b === 0.0 &&
+               this.c === 0.0 && this.d === 1.0 &&
+               this.e === 0.0 && this.f === 0.0
     }
 
     isOnlyTranslate(): boolean {
-        return this.m11 === 1.0 && this.m12 === 0.0 &&
-               this.m21 === 0.0 && this.m22 === 1.0
+        return this.a === 1.0 && this.b === 0.0 &&
+               this.c === 0.0 && this.d === 1.0
     }
 
     isOnlyTranslateAndScale(): boolean {
-        return this.m12 === 0.0 && this.m21 === 0.0
+        return this.b === 0.0 && this.c === 0.0
     }
     
     identity() {
-        this.m11 = 1.0
-        this.m12 = 0.0
-        this.m21 = 0.0
-        this.m22 = 1.0
-        this.tX  = 0.0
-        this.tY  = 0.0
+        [ this.a, this.b, this.c, this.d, this.e, this.f ] = [ 1, 0, 0, 1, 0, 0]
     }
     
     append(matrix: Matrix) {
-        let n11 = this.m11 * matrix.m11 + this.m12 * matrix.m21
-        let n12 = this.m11 * matrix.m12 + this.m12 * matrix.m22
-        let n21 = this.m21 * matrix.m11 + this.m22 * matrix.m21
-        let n22 = this.m21 * matrix.m12 + this.m22 * matrix.m22
-        let nX  = this.tX  * matrix.m11 + this.tY  * matrix.m21 + matrix.tX
-        let nY  = this.tX  * matrix.m12 + this.tY  * matrix.m22 + matrix.tY
-        
-        this.m11 = n11
-        this.m12 = n12
-        this.m21 = n21
-        this.m22 = n22
-        this.tX  = nX
-        this.tY  = nY
+        [ this.a, this.b, this.c, this.d, this.e, this.f ] =
+        [ this.a * matrix.a + this.c * matrix.b,
+          this.b * matrix.a + this.d * matrix.b,
+          this.a * matrix.c + this.c * matrix.d,
+          this.b * matrix.c + this.d * matrix.d,
+          this.a * matrix.e + this.c * matrix.f + this.e,
+          this.b * matrix.e + this.d * matrix.f + this.f ]
     }
 
     prepend(matrix: Matrix) {
-        let n11 = matrix.m11 * this.m11 + matrix.m12 * this.m21
-        let n12 = matrix.m11 * this.m12 + matrix.m12 * this.m22
-        let n21 = matrix.m21 * this.m11 + matrix.m22 * this.m21
-        let n22 = matrix.m21 * this.m12 + matrix.m22 * this.m22
-        let nX  = matrix.tX  * this.m11 + matrix.tY  * this.m21 + this.tX
-        let nY  = matrix.tX  * this.m12 + matrix.tY  * this.m22 + this.tY
-        
-        this.m11 = n11
-        this.m12 = n12
-        this.m21 = n21
-        this.m22 = n22
-        this.tX  = nX
-        this.tY  = nY
+        [ this.a, this.b, this.c, this.d, this.e, this.f ] =
+        [ matrix.a * this.a + matrix.c * this.b,
+          matrix.b * this.a + matrix.d * this.b,
+          matrix.a * this.c + matrix.c * this.d,
+          matrix.b * this.c + matrix.d * this.d,
+          matrix.a * this.e + matrix.c * this.f + matrix.e,
+          matrix.b * this.e + matrix.d * this.f + matrix.f ]
     }
-    
+ 
     invert() {
-        let d = 1.0 / (this.m11 * this.m22 - this.m21 * this.m12)
-        let n11 = d *  this.m22
-        let n12 = d * -this.m12
-        let n21 = d * -this.m21
-        let n22 = d *  this.m11
-        let nX  = d * (this.m21 * this.tY - this.m22 * this.tX)
-        let nY  = d * (this.m12 * this.tX - this.m11 * this.tY)
+        let d = 1.0 / (this.a * this.d - this.c * this.b)
+        let n11 = d *  this.d
+        let n12 = d * -this.b
+        let n21 = d * -this.c
+        let n22 = d *  this.a
+        let nX  = d * (this.c * this.f - this.d * this.e)
+        let nY  = d * (this.b * this.e - this.a * this.f)
 
-        this.m11 = n11
-        this.m12 = n12
-        this.m21 = n21
-        this.m22 = n22
-        this.tX  = nX
-        this.tY  = nY
+        this.a = n11
+        this.b = n12
+        this.c = n21
+        this.d = n22
+        this.e  = nX
+        this.f  = nY
     }
     
     translate(point: Point) {
         let m = new Matrix({
-            m11: 1.0, m12: 0.0,
-            m21: 0.0, m22: 1.0,
-            tX: point.x, tY: point.y
+            a: 1.0, c: 0.0, e: point.x,
+            b: 0.0, d: 1.0, f: point.y
         })
-        this.append(m)
+        this.prepend(m)
     }
 
     rotate(radiant: number) {
         let m = new Matrix({
-            m11:  Math.cos(radiant), m12: Math.sin(radiant),
-            m21: -Math.sin(radiant), m22: Math.cos(radiant),
-            tX: 0, tY: 0
+            a:  Math.cos(radiant), c: -Math.sin(radiant), e: 0,
+            b:  Math.sin(radiant), d:  Math.cos(radiant), f: 0
         })
-        this.append(m)
+        this.prepend(m)
     }
     
     scale(x: number, y:number) {
         let m = new Matrix({
-            m11:  x, m12: 0,
-            m21:  0, m22: y,
-            tX: 0, tY: 0
+            a: x, c: 0, e: 0,
+            b: 0, d: y, f: 0
         })
-        this.append(m)
+        this.prepend(m)
     }
     
     transformPoint(point: Point): Point {
         return new Point({
-            x: point.x * this.m11 + point.y * this.m21 + this.tX,
-            y: point.x * this.m12 + point.y * this.m22 + this.tY
+            x: point.x * this.a + point.y * this.c + this.e,
+            y: point.x * this.b + point.y * this.d + this.f
         })
     }
 
     transformArrayPoint(point: [number, number]): [number, number] {
         return [
-            point[0] * this.m11 + point[1] * this.m21 + this.tX,
-            point[0] * this.m12 + point[1] * this.m22 + this.tY
+            point[0] * this.a + point[1] * this.c + this.e,
+            point[0] * this.b + point[1] * this.d + this.f
         ]
     }
     
     transformSize(size: Size): Size {
         return new Size({
-            width: size.width * this.m11 + size.height * this.m21,
-            height: size.width * this.m12 + size.height * this.m22
+            width: size.width * this.a + size.height * this.c,
+            height: size.width * this.b + size.height * this.d
         })
     }
 }

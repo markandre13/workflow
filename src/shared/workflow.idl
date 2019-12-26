@@ -29,8 +29,12 @@ valuetype Size {
     public double width, height;
 };
 
+// This class is equivalent to the SVGMatrix/DOMMatrix
+// ⎡a c e⎤   ⎡x⎤   ⎡x'⎤
+// ⎢b d f⎥ ∙ ⎢y⎥ = ⎢y'⎥
+// ⎣0 0 1⎦   ⎣1⎦   ⎣1 ⎦
 valuetype Matrix {
-    public double m11, m12, m21, m22, tX, tY;
+    public double a, b, c, d, e, f;
 /*
     // FIXME: declaring operations will make the resulting class 'abstract',
     // previnting us to use it as an attribute because it can not be

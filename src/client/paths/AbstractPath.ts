@@ -29,15 +29,15 @@ export abstract class AbstractPath {
     translate(pointOrX: Point | number, Y?: number): AbstractPath {
         if (typeof pointOrX === "object")
             this.transform(new Matrix({
-                m11: 1.0, m12: 0.0,
-                m21: 0.0, m22: 1.0,
-                tX: pointOrX.x, tY: pointOrX.y
+                a: 1.0, b: 0.0,
+                c: 0.0, d: 1.0,
+                e: pointOrX.x, f: pointOrX.y
             }))
         else
             this.transform(new Matrix({
-                m11: 1.0, m12: 0.0,
-                m21: 0.0, m22: 1.0,
-                tX: pointOrX, tY: Y
+                a: 1.0, b: 0.0,
+                c: 0.0, d: 1.0,
+                e: pointOrX, f: Y
             }));
         return this
     }

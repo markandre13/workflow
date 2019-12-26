@@ -39,7 +39,7 @@ export class Transform extends Group implements valuetype.figure.Transform {
         }
     }
     transform(matrix: Matrix): boolean {
-        this.matrix.append(matrix)
+        this.matrix.prepend(matrix)
         if (this.group !== undefined) {
             this.group.transform(matrix)
             this.group.updateSVG()

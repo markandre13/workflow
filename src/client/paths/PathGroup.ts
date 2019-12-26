@@ -68,7 +68,7 @@ export class PathGroup extends AbstractPath {
         if (!this.matrix)
             this.matrix = new Matrix(matrix)
         else
-            this.matrix.append(matrix)
+            this.matrix.prepend(matrix)
         for (let path of this.data) {
             path.transform(matrix)
         }
