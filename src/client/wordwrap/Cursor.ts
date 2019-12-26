@@ -93,9 +93,9 @@ export class Cursor {
                         this.offsetChar++
                         // this.updateCursor()
                         
-                        console.log(`update wrap: old box width = ${r.size.width}`)
+                        // console.log(`update wrap: old box width = ${r.size.width}`)
                         r.size.width = r.svg!.getComputedTextLength() // FIXME: move into TextSource
-                        console.log(`update wrap: new box width = ${r.size.width}`)
+                        // console.log(`update wrap: new box width = ${r.size.width}`)
 
                         this.textSource.reset()
                         // this.wordwrap.trace = true

@@ -80,6 +80,10 @@ class BoxSource implements WordSource {
         document.getElementById("svg")!.appendChild(path.svg)
         this.style = !this.style
     }
+
+    endOfLine() {}
+    endOfSlice() {}
+    endOfWrap() {}
 }
 
 describe("wordwrap", function() {

@@ -17,9 +17,8 @@
  */
 
 import { Rectangle } from "../../shared/geometry"
-import { threadId } from "worker_threads"
 
- export class Word extends Rectangle {
+export class Word extends Rectangle {
     word: string
     ascent: number
     endOfLine: boolean  // to discover line breaks
