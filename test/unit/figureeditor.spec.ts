@@ -355,6 +355,8 @@ describe.only("figureeditor", function() {
                 document.body.innerHTML = ""
                 document.body.appendChild(figureeditor)
 
+                Tool.cursorPath = "base/img/cursor/"
+
                 let selectTool = new SelectTool()
                 figureeditor.setTool(selectTool)
 
@@ -437,7 +439,7 @@ describe.only("figureeditor", function() {
             }
         }
 
-        it("move figure", ()=> {
+        it("move single figure", ()=> {
             // GIVEN
             let test = new Test()
             test.addRectangle()
@@ -455,7 +457,7 @@ describe.only("figureeditor", function() {
             expect(test.centerOfFigure()).to.eql(newCenter)
         })
        
-        it("scale figure using nw handle", ()=> {
+        it.only("scale single figure using nw handle", ()=> {
             // GIVEN
             let test = new Test()
             let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
@@ -478,7 +480,7 @@ describe.only("figureeditor", function() {
             expect(oldSECorner).to.eql(newSECorner)
        })
 
-       it("rotate figure using nw handle", ()=> {
+       it("rotate single figure using nw handle", ()=> {
             // GIVEN
             let test = new Test()
             test.addRectangle()
@@ -504,7 +506,7 @@ describe.only("figureeditor", function() {
             expect(p1.path[3].values).to.almost.eql([45, 55])
        })
 
-       it.only("rotate two figures using nw handle", () => {
+       it("rotate two figures using nw handle", () => {
             let test = new Test()
             let rectangle0 = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
             rectangle0.stroke = "#000"

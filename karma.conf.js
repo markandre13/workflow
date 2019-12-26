@@ -2,13 +2,15 @@ process.env.CHROME_BIN = require('puppeteer').executablePath()
 
 module.exports = (config) => {
   config.set({
-    basePath: '.',
+    basePath: '',
+    baseURL: '/base/',
     frameworks: ["mocha", "chai", "karma-typescript", "source-map-support"],
     files: [ 
       "polyfill/path-data-polyfill.js",
       { pattern: "test/unit/**/*.spec.ts" },
       { pattern: "src/shared/**/*.ts" },
-      { pattern: "src/client/**/*.ts" }
+      { pattern: "src/client/**/*.ts" },
+      { pattern: "img/**/*.svg", watched: false, included: false, served: true }
     ],
     preprocessors: { 
       "**/*.ts": ["karma-typescript"],

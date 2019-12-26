@@ -25,6 +25,7 @@ import { FigureEditor } from "../figureeditor/FigureEditor"
 
 export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()
+    static cursorPath = "img/cursor/"
 
     handles: Map<Figure, Array<AbstractPath>>
     outlines: Map<Figure, AbstractPath>
