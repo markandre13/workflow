@@ -1,7 +1,2 @@
-In case karma doesn't print enough errors:
+In case karma doesn't print enough errors, apply karma.diff
 
-const reportError = (error) => {
-      process.emit('infrastructure_error', error)
-      disconnectBrowsers(1)
-      this.log.error(error);  // Add this line in lib/server.js
-    }
