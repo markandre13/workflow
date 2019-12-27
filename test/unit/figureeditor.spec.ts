@@ -21,8 +21,6 @@ import { expect, use } from "chai"
 import chaiAlmost = require('chai-almost')
 use(chaiAlmost())
 
-import { Signal } from "toad.js"
-
 import { Matrix, pointPlusSize, pointMinusPoint, Point, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "../../src/shared/geometry"
 
 import * as path from "../../src/client/paths"
@@ -31,6 +29,9 @@ import * as tool from "../../src/client/figuretools"
 import { EditorEvent, FigureEditor, Layer, LayerModel } from "../../src/client/figureeditor"
 import { Tool, SelectTool } from "../../src/client/figuretools";
 import { Figure } from "../../src/shared/workflow_valueimpl";
+import { LocalLayerModel } from "../../src/client/figureeditor/LocalLayerModel"
+import { LocalLayer } from "../../src/client/figureeditor/LocalLayer"
+import { FigureEditorPageObject } from "../../src/client/figureeditor/FigureEditorPageObject"
 
 declare global {
     interface SVGPathElement {
@@ -271,178 +272,9 @@ describe.only("figureeditor", function() {
             // console.log("before all select tool tests")
         })
 
-        // MyLayer & MyLayerModel are copied from server.ts
-
-        class MyLayer extends Layer {
-            highestFigureId?: number
-
-            createFigureId(): number {
-                if (this.highestFigureId === undefined) {
-                    this.highestFigureId = 0
-                    for(let figure of this.data) {
-                        if (figure.id > this.highestFigureId) { // FIXME: recursive
-                            this.highestFigureId = figure.id
-                        }
-                    }
-                }
-                return ++this.highestFigureId
-            }
-        }
-
-        class MyLayerModel implements LayerModel {
-            modified: Signal
-            layers: Array<MyLayer>
-            
-            constructor() {
-                this.modified = new Signal()
-                this.layers = new Array<MyLayer>()
-            }
-
-            layerById(layerID: number) {
-                for (let layer of this.layers) {
-                    if (layer.id === layerID)
-                        return layer
-                }
-                throw Error("BoardListener_impl.layerById(): unknown layer id " + layerID)
-            }
-
-            add(layerId: number, figure: figure.Figure) {
-                console.log(`MyLayerModel.add(${layerId})`)
-                let layer = this.layerById(layerId)
-                layer.data.push(figure)
-            }
-
-            transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
-                console.log(`MyLayerModel.transform(${layerID}, ${figureIdArray}, ${JSON.stringify(matrix)})`)
-                let figureIdSet = new Set<number>()
-                for(let id of figureIdArray)
-                    figureIdSet.add(id)
-                let newIdArray = new Array<number>()
-                
-                let layer = this.layerById(layerID)
-                for (let index in layer.data) {
-                    let fig = layer.data[index]
-                    if (!figureIdSet.has(fig.id))
-                        continue
-                        
-                    if (fig.transform(matrix)) {
-                        console.log("  figure transformed itself")
-                        // console.log("transformed "+JSON.stringify(fig))
-                        continue
-                    }
-
-                    console.log("figure encapsuled with a transform object")
-                    let transform = new figure.Transform()
-                    transform.id = layer.createFigureId()
-                    newIdArray.push(transform.id)
-                    transform.matrix = new Matrix(matrix)
-                    transform.children.push(fig)
-                    layer.data[index] = transform
-
-                    Tool.selection.replace(fig, transform)
-                }
-            }
-        }
-
-        class Test {
-            figureeditor: FigureEditor
-            selectTool: SelectTool
-            model: MyLayerModel
-            figures: Array<Figure>
-            mousePosition: Point
-            constructor() {
-                let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
-                document.body.innerHTML = ""
-                document.body.appendChild(figureeditor)
-
-                Tool.cursorPath = "base/img/cursor/"
-
-                let selectTool = new SelectTool()
-                figureeditor.setTool(selectTool)
-                Tool.selection.clear()
-
-                let model = new MyLayerModel()
-                let layer = new MyLayer()
-                
-                model.layers.push(layer)
-                figureeditor.setModel(model)
-
-                this.figureeditor = figureeditor
-                this.selectTool = selectTool
-                this.model = model
-                this.mousePosition = new Point()
-                this.figures = []
-            }
-
-            // semantic operations
-
-            addFigure(figure: Figure) {
-                this.model.layers[0].data.push(figure)
-                // this.model.modified.trigger()
-                this.figures.push(figure)
-            }
-
-            addRectangle() {
-                let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-                fig.stroke = "#000"
-                fig.fill = "#f00"
-                this.addFigure(fig)
-            }
-
-            selectFigure(index = 0, shift = true) {
-                this.clickInsideFigure(index, shift)
-                expect(Tool.selection.has(this.figures[index])).to.be.true
-            }
-
-            mouseDownAt(position: Point, shift = true) {
-                this.mousePosition = new Point(position)
-                this.selectTool.mousedown(new EditorEvent(this.figureeditor, position, {shiftKey: shift}))
-            }
-
-            moveMouseTo(point: Point, shift = true) {
-                this.mousePosition = new Point(point)
-                this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
-            }
-
-            moveMouseBy(translation: Point, shift = true) {
-                this.mousePosition = pointPlusPoint(this.mousePosition, translation)
-                this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
-            }
-
-            mouseUp(shift = true) {
-                this.selectTool.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
-            }
-
-            mouseClickAt(point: Point, shift=false) {
-                this.mouseDownAt(point, shift)
-                this.mouseUp(shift)
-            }
-
-            clickInsideFigure(index = 0, shift = false) {
-                this.mouseClickAt(this.centerOfFigure(index), shift)
-            }
-
-            centerOfFigure(index = 0): Point {
-                return this.figures[index].bounds().center()
-            }
-
-            centerOfNWScaleHandle(index = 0): Point {
-                // let range = figure.Figure.HANDLE_RANGE/2
-                // return this.figures[index].origin // pointMinusPoint(this.figure.bounds().origin, new Point({x: range, y: range}))
-                // return this.figures[index].getHandlePosition(0)
-                return this.figures[index].bounds().origin
-            }
-
-            centerOfNWRotateHandle(index = 0): Point {
-                // return this.figures[index].getHandlePosition(0)
-                let handleRange = figure.Figure.HANDLE_RANGE
-                return pointMinusPoint(this.figures[index].bounds().origin, {x: handleRange, y: handleRange})
-            }
-        }
-
         it("move single figure", ()=> {
             // GIVEN
-            let test = new Test()
+            let test = new FigureEditorPageObject()
             test.addRectangle()
             test.selectFigure()
             
@@ -460,7 +292,7 @@ describe.only("figureeditor", function() {
        
         it("scale single figure using nw handle", ()=> {
             // GIVEN
-            let test = new Test()
+            let test = new FigureEditorPageObject()
             let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
             rectangle.stroke = "#000"
             rectangle.fill = "#f00"
@@ -479,11 +311,11 @@ describe.only("figureeditor", function() {
             expect(rectangle.origin).to.eql(newNWCorner)
             let newSECorner = pointPlusSize(rectangle.origin, rectangle.size)
             expect(oldSECorner).to.eql(newSECorner)
-       })
+        })
 
-       it("rotate single figure using nw handle", ()=> {
+        it("rotate single figure using nw handle", ()=> {
             // GIVEN
-            let test = new Test()
+            let test = new FigureEditorPageObject()
             test.addRectangle()
             test.selectFigure()
 
@@ -505,10 +337,11 @@ describe.only("figureeditor", function() {
             expect(p1.path[1].values).to.almost.eql([75, 75])
             expect(p1.path[2].values).to.almost.eql([45, 75])
             expect(p1.path[3].values).to.almost.eql([45, 55])
-       })
+        })
 
-       it("rotate two figures using nw handle", () => {
-            let test = new Test()
+        it("rotate two figures using nw handle", () => {
+            // GIVEN
+            let test = new FigureEditorPageObject()
             let rectangle0 = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
             rectangle0.stroke = "#000"
             rectangle0.fill = "#f00"
@@ -526,6 +359,7 @@ describe.only("figureeditor", function() {
             expect(test.selectTool.boundary).to.almost.eql({origin: {x: 50, y: 50}, size: {width: 70, height: 80}})
             expect(test.selectTool.transformation.isIdentity()).to.be.true
 
+            // WHEN
             let oldMouseRotate = test.centerOfNWRotateHandle()
             let center = test.selectTool.boundary.center()
             let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/4)
@@ -534,14 +368,22 @@ describe.only("figureeditor", function() {
             test.moveMouseTo(newMouseRotate)
             test.mouseUp()
 
+            // THEN
             let boundary = test.selectTool.boundary
             let transformation = test.selectTool.transformation
 
             console.log(boundary)
             console.log(transformation)
+            // TODO: write test
 
             // let oldMouseRotate = test.centerOfNWRotateHandle()
        })
+       it("rotate single figure using nw handle two times", () => {
+           // TODO: this is where it becomes interesting...
+           // STEPS:
+           // o rotate, release
+       })
+
        it("rotate two figures using nw handle two times", () => {})
        it("rotate two figures using nw handle two times with deselect, select in between", () => {})
        it("select two figures with aligned 90 degree rotation will result in a rotated selection", () => {})

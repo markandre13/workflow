@@ -110,6 +110,10 @@ function registerCustomElements() {
 }
 
 function testMath() {
+    
+}
+
+function testMath2() {
     let svg = document.getElementById("svg")!
 
     let r = new Rectangle({origin:{x: 30.5, y:90.5}, size: {width: 80, height: 40}})
@@ -125,22 +129,9 @@ function testMath() {
     // let m = new DOMMatrix()
     let c = r.center()
 
-    // the order of operations here is reversed
-    // m.translateSelf(c.x, c.y, 0)
-    // m.rotateSelf(0.0, 0.0, 5)
-    // m.translateSelf(-c.x, -c.y, 0)
-
-    // if we pre-multiply, the order of operations follows the logical order
-    // let t0 = new DOMMatrix().translateSelf(-c.x, -c.y, 0)
-    // let r0 = new DOMMatrix().rotateSelf(0.0, 0.0, 5)
-    // let t1 = new DOMMatrix().translateSelf(c.x, c.y, 0)
-    // m.preMultiplySelf(t0)
-    // m.preMultiplySelf(r0)
-    // m.preMultiplySelf(t1)
-
     let m = new Matrix()
     m.translate(pointMinus(c))
-    m.rotate(0.1)
+    m.rotate(0.2)
     m.translate(c)
 
     console.log(`matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`)
