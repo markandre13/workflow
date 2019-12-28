@@ -49,6 +49,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
         this.path.clear()
         this.path.appendRect(this)
         this.path.updateSVG()
+        console.log(`Rectangle.updatePath(): stroke=${this.stroke}, fill=${this.fill}`)
         this.path.svg.setAttributeNS("", "stroke", this.stroke)
         this.path.svg.setAttributeNS("", "fill", this.fill)
     }

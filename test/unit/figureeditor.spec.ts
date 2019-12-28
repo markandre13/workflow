@@ -16,7 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 import { expect, use } from "chai"
 import chaiAlmost = require('chai-almost')
 use(chaiAlmost())
@@ -26,11 +25,7 @@ import { Matrix, pointPlusSize, pointMinusPoint, Point, pointPlusPoint, sizeMult
 import * as path from "../../src/client/paths"
 import * as figure from "../../src/client/figures"
 import * as tool from "../../src/client/figuretools"
-import { EditorEvent, FigureEditor, Layer, LayerModel } from "../../src/client/figureeditor"
 import { Tool, SelectTool } from "../../src/client/figuretools";
-import { Figure } from "../../src/shared/workflow_valueimpl";
-import { LocalLayerModel } from "../../src/client/figureeditor/LocalLayerModel"
-import { LocalLayer } from "../../src/client/figureeditor/LocalLayer"
 import { FigureEditorPageObject } from "../../src/client/figureeditor/FigureEditorPageObject"
 
 declare global {
@@ -388,6 +383,22 @@ describe.only("figureeditor", function() {
        it("rotate two figures using nw handle two times with deselect, select in between", () => {})
        it("select two figures with aligned 90 degree rotation will result in a rotated selection", () => {})
        it("select two figures with non-aligned rotation will result in a selection aligned to the screen", () => {})
+
+       it("normal selection decoration", ()=> {
+            // GIVEN
+            let test = new FigureEditorPageObject()
+            test.addRectangle()
+
+            // WHEN
+            test.selectFigure()
+
+            // THEN
+            // { origin: {x:50, y: 50}, size: {width: 20, height: 30}}
+            test.selectionHasCorner(50.5, 50.5)
+            test.selectionHasCorner(70.5, 50.5)
+            test.selectionHasCorner(70.5, 80.5)
+            test.selectionHasCorner(50.5, 80.5)
+       })
     })
 })
 

@@ -44,6 +44,7 @@ export class LocalLayerModel implements LayerModel {
         console.log(`MyLayerModel.add(${layerId})`)
         let layer = this.layerById(layerId)
         layer.data.push(figure)
+        this.modified.trigger()
     }
 
     transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
@@ -74,6 +75,7 @@ export class LocalLayerModel implements LayerModel {
             layer.data[index] = transform
 
             Tool.selection.replace(fig, transform)
+            this.modified.trigger()
         }
     }
 }

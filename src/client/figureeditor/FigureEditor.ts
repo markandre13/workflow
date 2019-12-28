@@ -44,7 +44,7 @@ export class FigureEditor extends GenericView<LayerModel> {
         this.mouseButtonIsDown = false;
         this.scrollView = document.createElement("div");
         this.scrollView.style.overflow = "scroll";
-        this.scrollView.style.background = "#fd8";
+        this.scrollView.style.background = "#fff";
         this.scrollView.style.width = "100%";
         this.scrollView.style.height = "100%";
         this.scrollView.onmousedown = (mouseEvent: MouseEvent) => {
@@ -70,7 +70,7 @@ export class FigureEditor extends GenericView<LayerModel> {
         this.zoom = 1.0;
         this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         this.svgView.style.position = "relative";
-        this.svgView.style.backgroundColor = "rgb(255,128,0)";
+        this.svgView.style.backgroundColor = "rgb(255,255,255)";
         this.scrollView.appendChild(this.svgView);
         this.decorationOverlay = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.svgView.appendChild(this.decorationOverlay);

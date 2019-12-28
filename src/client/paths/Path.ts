@@ -26,19 +26,22 @@ declare global {
     }
 }
 
+// class PathSegment {
+//     type: string
+//     values: Array<number> = []
+// }
+
 export class Path extends AbstractPath {
-    path: any
+    
+    path: Array<any>
     constructor();
     constructor(path: Path)
     constructor(path: Array<Point>)
     constructor(path?: Path | Array<Point>) {
         super()
+        this.path = []
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement
-        if (path === undefined) {
-            this.path = []
-        }
-        else if (path instanceof Array) {
-            this.path = []
+        if (path instanceof Array) {
             this.path.push({ type: 'M', values: [path[0].x, path[0].y] })
             for (let i = 1; i < path.length; ++i) {
                 this.path.push({ type: 'L', values: [path[i].x, path[i].y] })
@@ -46,7 +49,6 @@ export class Path extends AbstractPath {
             this.path.push({ type: 'Z' })
         }
         else if (path instanceof Path) {
-            this.path = [] // FIXME: improve
             for (let entry of path.path) {
                 switch (entry.type) {
                     case "M":
@@ -93,7 +95,7 @@ export class Path extends AbstractPath {
             switch (segment.type) {
                 case 'M':
                 case 'L':
-                    segment.values = matrix.transformArrayPoint(segment.values)
+                    segment.values = matrix.transformArrayPoint(segment.values as [number, number])
                     break
                 case 'C':
                     {
@@ -146,8 +148,14 @@ export class Path extends AbstractPath {
                 p2OrX1.x, p2OrX1.y]
             })
         }
-        else {
+        else if (
+            typeof p0OrX0 === "number" &&
+            typeof p1OrY0 === "number" &&
+            typeof p2OrX1 === "number")
+        {
             this.path.push({ type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1, X2, Y2] })
+        } else {
+            throw Error("fuck")
         }
         return this
     }

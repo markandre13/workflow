@@ -21,6 +21,7 @@ import { LocalLayerModel } from "./LocalLayerModel"
 import { Figure } from "../figures"
 import * as figure from "../figures"
 import { FigureEditor } from "./FigureEditor"
+import { Path } from "../paths"
 
 import { Point, pointPlusPoint, pointMinusPoint } from "../../shared/geometry"
 import { LocalLayer } from "./LocalLayer"
@@ -61,8 +62,9 @@ export class FigureEditorPageObject {
     // semantic operations
 
     addFigure(figure: Figure) {
-        this.model.layers[0].data.push(figure)
+        // this.model.layers[0].data.push(figure)
         // this.model.modified.trigger()
+        this.model.add(0, figure)
         this.figures.push(figure)
     }
 
@@ -78,6 +80,17 @@ export class FigureEditorPageObject {
         if (!Tool.selection.has(this.figures[index]))
             throw Error("fuck")
         // expect(Tool.selection.has(this.figures[index])).to.be.true
+    }
+
+    selectionHasCorner(x: number, y: number): boolean {
+        let path = this.selectTool.decoration[0] as Path
+        let msg = `Selection decoration has no edge (${x}, ${y}). We have `
+        for(let i=0; i<4; ++i) {
+            if (path.path[i].values[0]===x && path.path[i].values[1]===y)
+                return true
+            msg = `${msg} (${path.path[i].values[0]}, ${path.path[i].values[1]})`
+        }
+        throw Error(msg)
     }
 
     mouseDownAt(position: Point, shift = true) {

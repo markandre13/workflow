@@ -16,6 +16,22 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/******************************************************************
+ * TERMS
+ * o decoration: a rectangular frame with the handles
+ * o outline   : an outline of the selected figures
+ *               transformations will only be applied to the outline
+ *               until the mouse is released, upon which the transformation
+ *               is applied to the model/send to the server
+ *               sure? what about a sequence of transformations? undo & transform again?
+ * 
+ * UPCOMING IMPLEMENTATION FOR ROTATION
+ * o when figures are selected, we calculate the decoration and it's
+ *   transformation (currently transformation is set to identity regularly)
+ * o when figures do not have a similar transformation, identity will
+ *   be used
+ ******************************************************************/
+
 import {
     Point, Rectangle, Matrix,
     pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
@@ -27,6 +43,7 @@ import { AttributedFigure } from "../figures/AttributedFigure"
 import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
+import { Transform } from "../figures/Transform"
 
 enum State {
     NONE,
@@ -39,6 +56,7 @@ export class SelectTool extends Tool {
     state: State
 
     boundary: Rectangle
+    boundaryTransformation: Matrix
     decoration: Array<AbstractPath>
     mouseDownAt?: Point
 
@@ -58,6 +76,7 @@ export class SelectTool extends Tool {
         super()
         this.state = State.NONE
         this.boundary = new Rectangle()
+        this.boundaryTransformation = new Matrix()
         this.decoration = new Array<AbstractPath>()
         this.marqueeOutlines = new Map<Figure, AbstractPath>()
         
@@ -71,14 +90,16 @@ export class SelectTool extends Tool {
     
     activate(event: EditorEvent) {
         Tool.selection.modified.add( () => {
+            console.log("SelectTool.selection.modified -> update outline and decoration")
             this.removeOutlines(event.editor)
             this.removeDecoration(event.editor)
             this.createOutlines(event.editor)
             this.createDecoration(event.editor)
         }, this)
+
         if (event.editor.strokeAndFillModel) {
             event.editor.strokeAndFillModel.modified.add( () => {
-                console.log("SelectTool.strokeAndFillModel modified")
+                console.log("SelectTool.strokeAndFillModel.modified -> update selected figures")
                 for(let figure of Tool.selection.selection) {
                     if (figure instanceof AttributedFigure) {
                         figure.stroke = event.editor.strokeAndFillModel!.stroke
@@ -184,7 +205,7 @@ export class SelectTool extends Tool {
         if (Tool.selection.empty())
             return
     
-        this.updateBoundary()
+        this.updateBoundary() // FIXME: side effect
         this.createDecorationRectangle(editor)
         this.createDecorationHandles(editor)
     }
@@ -197,9 +218,34 @@ export class SelectTool extends Tool {
     }
 
     private updateBoundary() {
+        console.log("SelectTool.updateBoundary()")
         this.boundary = new Rectangle()
-        for(let figure of Tool.selection.selection) {
-            this.boundary.expandByRectangle(figure.bounds())
+
+        if (Tool.selection.empty()) {
+            this.boundaryTransformation.identity()
+            return
+        }
+
+        if (Tool.selection.selection.size > 1)
+            throw Error("can't handle more than one figure yet")
+
+        let figure
+        for(let f of Tool.selection.selection) {
+            figure = f
+            break
+        }
+
+        if (figure instanceof Transform) {
+            console.log("it's a transform")
+            this.boundaryTransformation = new Matrix(figure.matrix)
+            for(let f of figure.children) {
+                this.boundary.expandByRectangle(f.bounds())
+            }
+        } else {
+            this.boundaryTransformation.identity()
+            for(let figure of Tool.selection.selection) {
+                this.boundary.expandByRectangle(figure.bounds())
+            }
         }
     }
     
@@ -211,7 +257,11 @@ export class SelectTool extends Tool {
         rectangle.size.width  = Math.round(rectangle.size.width)
         rectangle.size.height = Math.round(rectangle.size.height)
         path.appendRect(rectangle)
-        path.transform(this.transformation)
+
+        let m = new Matrix(this.boundaryTransformation)
+        m.prepend(this.transformation)
+        path.transform(m)
+    
         path.updateSVG()
         path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
         path.svg.setAttributeNS("", "fill", "none")
@@ -287,7 +337,11 @@ export class SelectTool extends Tool {
         }
         let r = new Rectangle()
         r.set(x, y, Figure.HANDLE_RANGE, Figure.HANDLE_RANGE)
-        r.origin = this.transformation.transformPoint(r.origin)
+
+        let m = new Matrix(this.boundaryTransformation)
+        m.prepend(this.transformation)
+
+        r.origin = m.transformPoint(r.origin)
         r.origin.x -= Figure.HANDLE_RANGE / 2.0
         r.origin.y -= Figure.HANDLE_RANGE / 2.0
 
@@ -426,6 +480,7 @@ export class SelectTool extends Tool {
     }
     
     private moveHandle2Rotate(event: EditorEvent) {
+        console.log(`moveHandle2Rotate`)
         let rotd = Math.atan2(event.y - this.rotationCenter.y, event.x - this.rotationCenter.x)
         rotd -= this.rotationStartDirection
         let center = this.rotationCenter
@@ -442,13 +497,18 @@ export class SelectTool extends Tool {
     }
     
     private stopHandle(event: EditorEvent) {
+        console.log(`stopHandle`)
         this.state = State.NONE
-        event.editor.transformSelection(this.transformation)
+        console.log("SelectTool.stopHandle() -> editor.transformSelection()")
+
+        let transformation = this.transformation
+        this.transformation = new Matrix()
+        event.editor.transformSelection(transformation)
 
 //        this.updateBoundaryFromSelection() // because the figure is updated async, or just continue with the current selection?
 
-        this.updateOutlines(event.editor)
-        this.updateDecoration(event.editor)
+        // this.updateOutlines(event.editor)
+        // this.updateDecoration(event.editor)
 
     }
 

@@ -19,12 +19,12 @@
 import { ORB } from "corba.js"
 import * as stub from "../shared/workflow_stub"
 import {
-    Point, Size, Rectangle, Matrix, pointMinus,
+    Point, Size, Rectangle, Matrix, pointMinus, rotatePointAroundPointBy,
 } from "../shared/geometry"
 
 import * as figure from "./figures"
-import { Layer } from "./figureeditor/Layer";
-import { FigureEditor } from "./figureeditor/FigureEditor";
+import { Layer } from "./figureeditor/Layer"
+import { FigureEditor } from "./figureeditor/FigureEditor"
 import { StrokeAndFill } from "./widgets/strokeandfill"
 import { ColorSwatch } from "./widgets/colorswatch"
 
@@ -32,6 +32,8 @@ import { testWrap } from "./wordwrap/test"
 
 import { Client_impl } from "./Client_impl"
 import { BoardModel } from "./BoardModel"
+import { FigureEditorPageObject } from "./figureeditor/FigureEditorPageObject"
+import { Tool } from "./figuretools/Tool"
 
 export async function runtest(test: Function) {
     window.customElements.define("toad-figureeditor", FigureEditor)
@@ -59,7 +61,8 @@ export async function main(url: string) {
     }
 
     if (true) {
-        document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
+        // document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
+        document.body.innerHTML=""
         testMath()
         return
     }
@@ -110,7 +113,39 @@ function registerCustomElements() {
 }
 
 function testMath() {
-    
+    // GIVEN
+    let test = new FigureEditorPageObject()
+    test.addRectangle()
+
+    // WHEN
+    test.selectFigure()
+    let oldMouseRotate = test.centerOfNWRotateHandle()
+    let center = test.centerOfFigure()
+    let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/8)
+
+    test.mouseDownAt(oldMouseRotate)
+    test.moveMouseTo(newMouseRotate)
+    test.mouseUp()
+
+    // THEN
+    // { origin: {x:50, y: 50}, size: {width: 20, height: 30}}
+    test.selectionHasCorner(56.77205421043658, 47.96825417111798)
+    test.selectionHasCorner(75.24964486066233, 55.621922818419776)
+    test.selectionHasCorner(63.76914188970962, 83.33830879375839)
+    test.selectionHasCorner(45.29155123948388, 75.68464014645659)
+
+    Tool.selection.clear()
+    try {
+        test.selectFigure()
+    }
+    catch(error) {
+        console.log("caught error")
+    }
+
+    test.selectionHasCorner(56.77205421043658, 47.96825417111798)
+    test.selectionHasCorner(75.24964486066233, 55.621922818419776)
+    test.selectionHasCorner(63.76914188970962, 83.33830879375839)
+    test.selectionHasCorner(45.29155123948388, 75.68464014645659)
 }
 
 function testMath2() {
