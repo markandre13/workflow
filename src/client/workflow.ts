@@ -61,7 +61,6 @@ export async function main(url: string) {
     }
 
     if (true) {
-        // document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`
         document.body.innerHTML=""
         testMath()
         return
@@ -113,11 +112,11 @@ function registerCustomElements() {
 }
 
 function testMath() {
-    // GIVEN
+    // GIVEN RECTANGLE { origin: {x:50, y: 50}, size: {width: 20, height: 30}}
     let test = new FigureEditorPageObject()
     test.addRectangle()
 
-    // WHEN
+    // WHEN ROTATED
     test.selectFigure()
     let oldMouseRotate = test.centerOfNWRotateHandle()
     let center = test.centerOfFigure()
@@ -127,31 +126,61 @@ function testMath() {
     test.moveMouseTo(newMouseRotate)
     test.mouseUp()
 
-    // THEN
-    // { origin: {x:50, y: 50}, size: {width: 20, height: 30}}
+    // THEN SELECT TOOL DECORATION IS ROTATED
     test.selectionHasCorner(56.77205421043658, 47.96825417111798)
     test.selectionHasCorner(75.24964486066233, 55.621922818419776)
     test.selectionHasCorner(63.76914188970962, 83.33830879375839)
     test.selectionHasCorner(45.29155123948388, 75.68464014645659)
 
+    // WHEN DESELECTED & RESELECTED
     Tool.selection.clear()
     try {
         test.selectFigure()
     }
     catch(error) {
         console.log("caught error")
+        console.log(error)
     }
 
+    // THEN SELECT TOOL DECORATION IS STILL ROTATED
     test.selectionHasCorner(56.77205421043658, 47.96825417111798)
     test.selectionHasCorner(75.24964486066233, 55.621922818419776)
     test.selectionHasCorner(63.76914188970962, 83.33830879375839)
     test.selectionHasCorner(45.29155123948388, 75.68464014645659)
+
+    // WHEN SCALED
+    console.log(`================= scale =====================`)
+    let r = new Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
+    let c = r.center()
+    let m = new Matrix()
+    m.translate(pointMinus(c))
+    m.rotate(Math.PI/8)
+    m.translate(c)
+    let scaleDown = m.transformPoint({x: 50, y: 50})
+    let scaleUp = m.transformPoint({x: 60, y: 30})
+
+    console.log(`scaleDown: ${scaleDown.x}, ${scaleDown.y}`)
+    console.log(`scaleUp: ${scaleUp.x}, ${scaleUp.y}`)
+    
+    test.mouseDownAt(scaleDown)
+    test.moveMouseTo(scaleUp)
+
+    // decoration is correct, outline not
+
+    // check that the decoration is correct before figure is transformed
+    // test.mouseUp()
+    // check that the decoration is correct after figure was transformed
+
+    test.selectionHasCorner(56.77205421043658, 27.96825417111798)
+    test.selectionHasCorner(63.76914188970962, 83.33830879375839)
 }
 
 function testMath2() {
+    document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`    
     let svg = document.getElementById("svg")!
 
-    let r = new Rectangle({origin:{x: 30.5, y:90.5}, size: {width: 80, height: 40}})
+    // original rectangle
+    let r = new Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
     let rectangle0 = document.createElementNS("http://www.w3.org/2000/svg", "rect")
     rectangle0.setAttributeNS("", "stroke", "#000")
     rectangle0.setAttributeNS("", "fill", "#d88")
@@ -161,25 +190,82 @@ function testMath2() {
     rectangle0.setAttributeNS("", "height", String(r.size.height))
     svg.appendChild(rectangle0)
 
-    // let m = new DOMMatrix()
     let c = r.center()
-
     let m = new Matrix()
     m.translate(pointMinus(c))
-    m.rotate(0.2)
+    m.rotate(Math.PI/8)
     m.translate(c)
 
-    console.log(`matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`)
+    let rotatedRectangle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+    rotatedRectangle.setAttributeNS("", "stroke", "#000")
+    rotatedRectangle.setAttributeNS("", "fill", "#88d")
+    rotatedRectangle.setAttributeNS("", "x", String(r.origin.x))
+    rotatedRectangle.setAttributeNS("", "width", String(r.size.width))
+    rotatedRectangle.setAttributeNS("", "y", String(r.origin.y))
+    rotatedRectangle.setAttributeNS("", "height", String(r.size.height))
+    rotatedRectangle.setAttributeNS("", "transform", `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`)
+    svg.appendChild(rotatedRectangle)
 
-    let group = document.createElementNS("http://www.w3.org/2000/svg", "g")
-    group.setAttributeNS("", "transform", `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`)
-    let rectangle1 = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-    rectangle1.setAttributeNS("", "stroke", "#000")
-    rectangle1.setAttributeNS("", "fill", "#88d")
-    rectangle1.setAttributeNS("", "x", String(r.origin.x))
-    rectangle1.setAttributeNS("", "width", String(r.size.width))
-    rectangle1.setAttributeNS("", "y", String(r.origin.y))
-    rectangle1.setAttributeNS("", "height", String(r.size.height))
-    group.appendChild(rectangle1)
-    svg.appendChild(group)
+    // INPUT: start and end point of scale
+    let [x0, y0] = m.transformArrayPoint([50, 50])
+    console.log(`  start scale on screen = (${x0}, ${y0})`)
+
+    let [x1, y1] = m.transformArrayPoint([60, 30])
+    console.log(`  end scale on screen = (${x1}, ${y1})`)
+
+    // GOAL
+    let w = new Rectangle({origin:{x: 60, y:30}, size: {width: 10, height: 50}})
+    let wantRectangle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+    wantRectangle.setAttributeNS("", "stroke", "#000")
+    wantRectangle.setAttributeNS("", "fill", "#080")
+    wantRectangle.setAttributeNS("", "x", String(w.origin.x))
+    wantRectangle.setAttributeNS("", "width", String(w.size.width))
+    wantRectangle.setAttributeNS("", "y", String(w.origin.y))
+    wantRectangle.setAttributeNS("", "height", String(w.size.height))
+    wantRectangle.setAttributeNS("", "transform", `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`)
+    svg.appendChild(wantRectangle)
+
+    // CALCULATION
+    let im = new Matrix(m)
+    im.invert()
+
+    // let [x2, y2] = im.transformArrayPoint([x0, y0])
+    // console.log(`  start scale = (${x2}, ${y2})`)
+
+    // from screen to boundary coordinates
+    let [x3, y3] = im.transformArrayPoint([x1, y1])
+    console.log(`  end scale = (${x3}, ${y3})`)
+
+    // old boundary
+    let [ox0, oy0] = [r.origin.x, r.origin.y]
+    let [ox1, oy1] = [r.origin.x+r.size.width, r.origin.y+r.size.height]
+
+    // new boundary
+    let [nx0, ny0] = [x3, y3] // x3, y3
+    let [nx1, ny1] = [r.origin.x+r.size.width, r.origin.y+r.size.height]
+
+    // scale from old to new boundary
+    let [sx, sy] = [(nx1-nx0)/(ox1-ox0), (ny1-ny0)/(oy1-oy0)]
+    console.log(`  translate(${-ox0}, ${-oy0})`)
+    console.log(`  scale(${sx}, ${sy})`)
+    console.log(`  translate(${nx0}, ${ny0})`)
+
+    let m2 = new Matrix()
+    m2.translate({x: -ox0, y: -oy0})
+    m2.scale(sx, sy)
+    m2.translate({x: nx0, y: ny0})
+
+    // combine scale with previous rotation
+    m2.prepend(m)
+    
+    // render the shit
+    let gotRectangle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+    gotRectangle.setAttributeNS("", "stroke", "#000")
+    gotRectangle.setAttributeNS("", "fill", "#0f0")
+    gotRectangle.setAttributeNS("", "x", String(r.origin.x))
+    gotRectangle.setAttributeNS("", "width", String(r.size.width))
+    gotRectangle.setAttributeNS("", "y", String(r.origin.y))
+    gotRectangle.setAttributeNS("", "height", String(r.size.height))
+    gotRectangle.setAttributeNS("", "transform", `matrix(${m2.a} ${m2.b} ${m2.c} ${m2.d} ${m2.e} ${m2.f})`)
+    svg.appendChild(gotRectangle)
 }

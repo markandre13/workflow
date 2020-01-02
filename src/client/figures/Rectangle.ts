@@ -37,6 +37,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
         return Number.MAX_VALUE
     }
     getPath(): Path {
+        console.log(`Rectangle.getPath()`)
         if (this.path === undefined) {
             this.path = new Path()
             this.updatePath()

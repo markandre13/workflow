@@ -188,9 +188,15 @@ export class SelectTool extends Tool {
     }
     
     updateOutlines(editor: FigureEditor) {
+        console.log(`========== SelectTool.updateOutlines()`)
+
+        console.log(`===> removeOutlines()`)
         this.removeOutlines(editor)
+        console.log(`===> createOutlines()`)
         this.createOutlines(editor)
+       
         for(let [figure, path] of this.outlines) {
+            console.log(`===> outline.transform()`)
             path.transform(this.transformation)
             path.updateSVG()
         }
@@ -250,18 +256,23 @@ export class SelectTool extends Tool {
     }
     
     private createDecorationRectangle(editor: FigureEditor) {
-        let path = new Path()
+        // adjust boundary to nice looking screen coordinates
         let rectangle = new Rectangle(this.boundary)
         rectangle.origin.x    = Math.round(rectangle.origin.x-0.5)+0.5
         rectangle.origin.y    = Math.round(rectangle.origin.y-0.5)+0.5
         rectangle.size.width  = Math.round(rectangle.size.width)
         rectangle.size.height = Math.round(rectangle.size.height)
+
+        // convert to path
+        let path = new Path()
         path.appendRect(rectangle)
 
-        let m = new Matrix(this.boundaryTransformation)
-        m.prepend(this.transformation)
+        // transform path to screen
+        let m = new Matrix(this.transformation)
+        m.prepend(this.boundaryTransformation)
         path.transform(m)
     
+        // display path
         path.updateSVG()
         path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
         path.svg.setAttributeNS("", "fill", "none")
@@ -338,8 +349,8 @@ export class SelectTool extends Tool {
         let r = new Rectangle()
         r.set(x, y, Figure.HANDLE_RANGE, Figure.HANDLE_RANGE)
 
-        let m = new Matrix(this.boundaryTransformation)
-        m.prepend(this.transformation)
+        let m = new Matrix(this.transformation)
+        m.prepend(this.boundaryTransformation)
 
         r.origin = m.transformPoint(r.origin)
         r.origin.x -= Figure.HANDLE_RANGE / 2.0
@@ -360,6 +371,7 @@ export class SelectTool extends Tool {
     }
     
     private setCursorForHandle(handle: number, svg: SVGElement) {
+        return
         switch(handle) {
             case 0:
                 svg.setAttributeNS("", "style", `cursor: url(${Tool.cursorPath}select-resize-nw.svg) 6 6, move`)
@@ -441,6 +453,9 @@ export class SelectTool extends Tool {
     }
     
     private moveHandle2Scale(event: EditorEvent) {
+        console.log(`SelectTool.moveHandle2Scale()`)
+
+        // new boundary = (x0,y0)-(x1,y1), old boundary = (ox0,oy0)-(ox1,oy1)
         let x0 = this.boundary.origin.x,
             y0 = this.boundary.origin.y,
             x1 = x0 + this.boundary.size.width,
@@ -450,30 +465,56 @@ export class SelectTool extends Tool {
             ox1 = ox0 + this.oldBoundary.size.width,
             oy1 = oy0 + this.oldBoundary.size.height
 
+        let m = new Matrix(this.boundaryTransformation)
+        m.invert()
+        let p = m.transformPoint(event)
+        console.log(`mouse up at screen ${event.x}, ${event.y}`)
+        console.log(`mouse up at boundary ${p.x}, ${p.y}`)
+
         switch(this.selectedHandle) {
-            case 0: [x0, y0] = [event.x, event.y]; break
-            case 1: y0 = event.y; break
-            case 2: [x1, y0] = [event.x, event.y]; break
-            case 3: x1 = event.x; break
-            case 4: [x1, y1] = [event.x, event.y]; break
-            case 5: y1 = event.y; break
-            case 6: [x0, y1] = [event.x, event.y]; break
-            case 7: x0 = event.x; break
+            case 0: [x0, y0] = [p.x, p.y]; break
+            case 1: y0 = p.y; break
+            case 2: [x1, y0] = [p.x, p.y]; break
+            case 3: x1 = p.x; break
+            case 4: [x1, y1] = [p.x, p.y]; break
+            case 5: y1 = p.y; break
+            case 6: [x0, y1] = [p.x, p.y]; break
+            case 7: x0 = p.x; break
         }
-            
+
         let sx = (x1-x0) / (ox1 - ox0),
             sy = (y1-y0) / (oy1 - oy0)
-        let X0, OX0, Y0, OY0
+
+        console.log(`  handle ${this.selectedHandle}`)
+        console.log(`  ox0=${ox0}, oy0=${oy0}, ox1=${ox1}, oy1=${oy1}`)
+        console.log(`  x0=${x0}, y0=${y0}, x1=${x1}, y1=${y1}`)
+        console.log(`  sx=${sx}, sy=${sy}`)
+
+        // let X0, OX0, Y0, OY0
         // if (event.editor.getMatrix()) {
+            let [X0, Y0] = m.transformArrayPoint([x0, y0])
+            let [OX0, OY0] = m.transformArrayPoint([ox0, oy0])
         //   ...
         // } else {
             X0 = x0; Y0 = y0
             OX0 = ox0; OY0 = oy0
         // }
-        this.transformation.identity()
-        this.transformation.translate({x: -OX0, y: -OY0})
-        this.transformation.scale(sx, sy)
-        this.transformation.translate({x: X0, y: Y0})
+        let m2 = new Matrix()
+        console.log(`  translate(${-OX0}, ${-OY0})`)
+        console.log(`  scale(${sx}, ${sy})`)
+        console.log(`  translate(${X0}, ${Y0})`)
+        m2.translate({x: -OX0, y: -OY0})
+        m2.scale(sx, sy)
+        m2.translate({x: X0, y: Y0})
+        // this.transformation.prepend(m2)
+
+        // up to here the math for m2 is correct
+
+        //m2.prepend(this.boundaryTransformation)
+        
+        // this.boundaryTransformation = m2
+        //this.boundaryTransformation.identity()
+        this.transformation = m2
         
         this.updateOutlines(event.editor)
         this.updateDecoration(event.editor)

@@ -39,6 +39,7 @@ export class Transform extends Group implements valuetype.figure.Transform {
         }
     }
     transform(matrix: Matrix): boolean {
+        console.log(`Transform.transform()`)
         this.matrix.prepend(matrix)
         if (this.group !== undefined) {
             this.group.transform(matrix)
@@ -64,6 +65,7 @@ export class Transform extends Group implements valuetype.figure.Transform {
     setHandlePosition(handle: number, pt: Point): void {
     }
     getPath(): AbstractPath {
+        console.log(`Transform.getPath()`)
         if (this.group === undefined) {
             this.group = new PathGroup()
             for (let child of this.children) {

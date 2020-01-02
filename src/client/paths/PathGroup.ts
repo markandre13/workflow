@@ -65,6 +65,7 @@ export class PathGroup extends AbstractPath {
         }
     }
     public transform(matrix: Matrix): AbstractPath {
+        console.log(`PathGroup.transform()`)
         if (!this.matrix)
             this.matrix = new Matrix(matrix)
         else
