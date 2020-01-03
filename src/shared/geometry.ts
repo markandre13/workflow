@@ -557,6 +557,30 @@ export class Matrix extends valueimpl.Matrix {
         })
         this.prepend(m)
     }
+
+    postTranslate(point: Point) {
+        let m = new Matrix({
+            a: 1.0, c: 0.0, e: point.x,
+            b: 0.0, d: 1.0, f: point.y
+        })
+        this.append(m)
+    }
+
+    postRotate(radiant: number) {
+        let m = new Matrix({
+            a:  Math.cos(radiant), c: -Math.sin(radiant), e: 0,
+            b:  Math.sin(radiant), d:  Math.cos(radiant), f: 0
+        })
+        this.append(m)
+    }
+    
+    postScale(x: number, y:number) {
+        let m = new Matrix({
+            a: x, c: 0, e: 0,
+            b: 0, d: y, f: 0
+        })
+        this.append(m)
+    }
     
     transformPoint(point: Point): Point {
         return new Point({

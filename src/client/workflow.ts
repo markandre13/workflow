@@ -62,7 +62,7 @@ export async function main(url: string) {
 
     if (true) {
         document.body.innerHTML=""
-        testMath()
+        testMath3()
         return
     }
 
@@ -191,10 +191,10 @@ function testMath2() {
     svg.appendChild(rectangle0)
 
     let c = r.center()
-    let m = new Matrix()
-    m.translate(pointMinus(c))
-    m.rotate(Math.PI/8)
-    m.translate(c)
+    let rotateMatrix = new Matrix()
+    rotateMatrix.translate(pointMinus(c))
+    rotateMatrix.rotate(Math.PI/8)
+    rotateMatrix.translate(c)
 
     let rotatedRectangle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
     rotatedRectangle.setAttributeNS("", "stroke", "#000")
@@ -203,14 +203,14 @@ function testMath2() {
     rotatedRectangle.setAttributeNS("", "width", String(r.size.width))
     rotatedRectangle.setAttributeNS("", "y", String(r.origin.y))
     rotatedRectangle.setAttributeNS("", "height", String(r.size.height))
-    rotatedRectangle.setAttributeNS("", "transform", `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`)
+    rotatedRectangle.setAttributeNS("", "transform", `matrix(${rotateMatrix.a} ${rotateMatrix.b} ${rotateMatrix.c} ${rotateMatrix.d} ${rotateMatrix.e} ${rotateMatrix.f})`)
     svg.appendChild(rotatedRectangle)
 
     // INPUT: start and end point of scale
-    let [x0, y0] = m.transformArrayPoint([50, 50])
+    let [x0, y0] = rotateMatrix.transformArrayPoint([50, 50])
     console.log(`  start scale on screen = (${x0}, ${y0})`)
 
-    let [x1, y1] = m.transformArrayPoint([60, 30])
+    let [x1, y1] = rotateMatrix.transformArrayPoint([60, 30])
     console.log(`  end scale on screen = (${x1}, ${y1})`)
 
     // GOAL
@@ -222,11 +222,11 @@ function testMath2() {
     wantRectangle.setAttributeNS("", "width", String(w.size.width))
     wantRectangle.setAttributeNS("", "y", String(w.origin.y))
     wantRectangle.setAttributeNS("", "height", String(w.size.height))
-    wantRectangle.setAttributeNS("", "transform", `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`)
+    wantRectangle.setAttributeNS("", "transform", `matrix(${rotateMatrix.a} ${rotateMatrix.b} ${rotateMatrix.c} ${rotateMatrix.d} ${rotateMatrix.e} ${rotateMatrix.f})`)
     svg.appendChild(wantRectangle)
 
     // CALCULATION
-    let im = new Matrix(m)
+    let im = new Matrix(rotateMatrix)
     im.invert()
 
     // let [x2, y2] = im.transformArrayPoint([x0, y0])
@@ -250,13 +250,19 @@ function testMath2() {
     console.log(`  scale(${sx}, ${sy})`)
     console.log(`  translate(${nx0}, ${ny0})`)
 
-    let m2 = new Matrix()
-    m2.translate({x: -ox0, y: -oy0})
-    m2.scale(sx, sy)
-    m2.translate({x: nx0, y: ny0})
+    // 4 multiplications
+    // let m2 = new Matrix()
+    // m2.translate({x: -ox0, y: -oy0})
+    // m2.scale(sx, sy)
+    // m2.translate({x: nx0, y: ny0})
+    // // combine scale with previous rotation
+    // m2.prepend(m)
 
-    // combine scale with previous rotation
-    m2.prepend(m)
+    // 3 multiplications
+    let scaleMatrix = new Matrix(rotateMatrix)
+    scaleMatrix.postTranslate({x: nx0, y: ny0})
+    scaleMatrix.postScale(sx, sy)
+    scaleMatrix.postTranslate({x: -ox0, y: -oy0})
     
     // render the shit
     let gotRectangle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
@@ -266,6 +272,65 @@ function testMath2() {
     gotRectangle.setAttributeNS("", "width", String(r.size.width))
     gotRectangle.setAttributeNS("", "y", String(r.origin.y))
     gotRectangle.setAttributeNS("", "height", String(r.size.height))
-    gotRectangle.setAttributeNS("", "transform", `matrix(${m2.a} ${m2.b} ${m2.c} ${m2.d} ${m2.e} ${m2.f})`)
+    gotRectangle.setAttributeNS("", "transform", `matrix(${scaleMatrix.a} ${scaleMatrix.b} ${scaleMatrix.c} ${scaleMatrix.d} ${scaleMatrix.e} ${scaleMatrix.f})`)
     svg.appendChild(gotRectangle)
+}
+
+// try to tweak the 'render pipeline' of SelectTool, Transform, PathGroup, Path, Rectangle to create a correct outline
+function testMath3() {
+    document.body.innerHTML=`<svg id="svg" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd" width="640" height="480" viewBox="0 0 640 480"></svg>`    
+    let svg = document.getElementById("svg")!
+
+    // red: original rectangle
+    let rect0 = new figure.Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
+    rect0.stroke = "#800"
+    let path0 = rect0.getPath()
+    svg.appendChild(path0.svg)
+   
+    // green: rotated rectangle
+    let r = new Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
+    let rect1 = new figure.Rectangle(r)
+    rect1.stroke = "#080"
+    let trans1 = new figure.Transform()
+    let c = r.center()
+    let m1 = new Matrix()
+    m1.translate(pointMinus(c))
+    m1.rotate(Math.PI/8)
+    m1.translate(c)
+    trans1.transform(m1)
+    trans1.add(rect1)
+    let path1 = trans1.getPath()
+    path1.updateSVG()
+    svg.appendChild(path1.svg)
+
+    // blue: rotated rectangle with scaleMatrix
+    let rect2 = new figure.Rectangle(r)
+    rect1.stroke = "#008"
+    let trans2 = new figure.Transform()
+    let m2 = new Matrix()
+    m2.translate(pointMinus(c))
+    m2.rotate(Math.PI/8)
+    m2.translate(c)
+    trans2.transform(m2)
+    trans2.add(rect2)
+    let path2 = trans2.getPath()
+    path2.updateSVG()
+    svg.appendChild(path2.svg)
+
+    // the trouble here: path2 is already rotated
+
+    let m = new Matrix()
+    // m.translate({x: -50, y:-50})
+    // m.scale(0.5, 1.6666666666666667)
+    // m.translate({x: 60, y: 30.000000000000004})
+
+    // it seems, that translate, rotate, scale and shear have to be applied in a certain order
+    // => find out the rules behind this suitable for the UI (also: how is Adobe Illustrator doing it?)
+    // => avoid calling transform multiple times; built the matrix then call it once
+    // => store translate, rotate, scale and shear parameters in Transform instead of a Matrix?
+    //    this would allow for greater precission in successive operations, and ease implementing
+    //    the correct order of matrix operations
+    
+    path2.transform(m)
+    path2.updateSVG()
 }
