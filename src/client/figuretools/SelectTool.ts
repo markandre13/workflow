@@ -244,7 +244,7 @@ export class SelectTool extends Tool {
         if (figure instanceof Transform) {
             console.log("it's a transform")
             this.boundaryTransformation = new Matrix(figure.matrix)
-            for(let f of figure.children) {
+            for(let f of figure.childFigures) {
                 this.boundary.expandByRectangle(f.bounds())
             }
         } else {

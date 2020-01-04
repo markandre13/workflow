@@ -308,9 +308,15 @@ function testMath3() {
     rect1.stroke = "#008"
     let trans2 = new figure.Transform()
     let m2 = new Matrix()
-    m2.translate(pointMinus(c))
+
+    m2.translate({x: -50, y:-50})
+    m2.scale(0.5, 1.6666666666666667)
+    m2.translate({x: 60, y: 30.000000000000004})
+
+    m2.translate(pointMinus(c))   
     m2.rotate(Math.PI/8)
     m2.translate(c)
+    
     trans2.transform(m2)
     trans2.add(rect2)
     let path2 = trans2.getPath()

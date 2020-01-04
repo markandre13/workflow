@@ -32,18 +32,18 @@ export class Transform extends Group implements valuetype.figure.Transform {
         value.figure.initTransform(this, init)
     }
     add(figure: Figure) {
-        this.children.push(figure)
-        if (this.group !== undefined) {
+        this.childFigures.push(figure)
+        if (this.pathGroup !== undefined) {
             let path = figure.getPath() as AbstractPath
-            this.group.add(path)
+            this.pathGroup.add(path)
         }
     }
     transform(matrix: Matrix): boolean {
         console.log(`Transform.transform()`)
         this.matrix.prepend(matrix)
-        if (this.group !== undefined) {
-            this.group.transform(matrix)
-            this.group.updateSVG()
+        if (this.pathGroup !== undefined) {
+            this.pathGroup.transform(matrix)
+            this.pathGroup.updateSVG()
         }
         return true
     }
@@ -51,11 +51,11 @@ export class Transform extends Group implements valuetype.figure.Transform {
         let m = new Matrix(this.matrix)
         m.invert()
         pt = m.transformPoint(pt)
-        return this.children[0].distance(pt)
+        return this.childFigures[0].distance(pt)
     }
     bounds(): Rectangle {
         let path = new Path()
-        path.appendRect(this.children[0].bounds())
+        path.appendRect(this.childFigures[0].bounds())
         path.transform(this.matrix)
         return path.bounds()
     }
@@ -66,14 +66,14 @@ export class Transform extends Group implements valuetype.figure.Transform {
     }
     getPath(): AbstractPath {
         console.log(`Transform.getPath()`)
-        if (this.group === undefined) {
-            this.group = new PathGroup()
-            for (let child of this.children) {
-                this.group.add(child.getPath() as AbstractPath)
+        if (this.pathGroup === undefined) {
+            this.pathGroup = new PathGroup()
+            for (let child of this.childFigures) {
+                this.pathGroup.add(child.getPath() as AbstractPath)
             }
-            this.group.transform(this.matrix)
+            this.pathGroup.transform(this.matrix)
         }
-        return this.group
+        return this.pathGroup
     }
     updatePath(): void {
     }

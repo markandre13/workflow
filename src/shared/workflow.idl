@@ -110,11 +110,11 @@ module figure {
     };
 
     valuetype Group: Figure {
-	public sequence<Figure> children;
+	    public sequence<Figure> children;
     };
 
     valuetype Transform: Group {
-	public Matrix matrix;
+	    public Matrix matrix;
     };
 
     valuetype Text: Figure {

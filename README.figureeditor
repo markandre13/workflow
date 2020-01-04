@@ -34,3 +34,75 @@ also need to be made available to the figures again. Ie. a image will
 export it's path, it get's deformed, the image figure then uses the path
 to render the image within the deformed path.
 (At least, that's the plan.)
+
+class Figure {
+  long id
+  getPath(): Path
+  updatePath()
+
+  transform(Matrix)
+  setHandlePosition(id, Point)
+}
+
+class AttributedFigure: Figure {
+  stroke, strokeWidth, fill
+}
+
+class Shape: AttributedFigure {
+  transform(Matrix): boolean
+    changes origin & point, no shear, no rotate
+    calls updatePath in subclass (don't?)
+}
+
+class Rectangle: Shape {
+  getPath():
+    creates the path if it does not exist
+  updatePath():
+    if it has a path, rebuilds it, calls Path.updateSVG()
+}
+
+class Group: Figure {
+  pathGroup
+  childFigures
+}
+
+class Transform: Group {
+  transform():
+    prepend Matrix
+    call pathGroup transform & updateSVG: don't!
+}
+
+// for Path & PathGroup to have a common type
+class AbstractPath {
+}
+
+// the path to do calculations with
+class Path: AbstractPath {
+  updateSVG()
+    copies the path data to the SVG element
+}
+
+// the path to be rendered, and grouped into PathGroup to hold complete images
+class AttributedPath: Path {
+  stroke, strokeWidth, fill
+}
+
+class PathGroup: AbstractPath {
+  data: Array<AbstractPath>
+  matrix?: matrix // sure?
+}
+
+IDEA:
+o to simplify the implementation of figures, they should only hold
+  the data needed to describe them.
+o hence Figure.getPath() will always create a new path
+o the figure editor is responsible to cache these paths
+o Transform.getPath() will apply it's matrix to the path
+  this way we can append rotate and preprend scale to the transform
+  matrix
+o this means changing a figure will not update the SVG because it does
+  not know about it. that's the figure editor's job too.
+
+IMPLEMENTATION STRATEGY:
+o spike this idea in a little test
+o add caching later (if we need it at all)

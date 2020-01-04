@@ -71,7 +71,7 @@ export class LocalLayerModel implements LayerModel {
             transform.id = layer.createFigureId()
             newIdArray.push(transform.id)
             transform.matrix = new Matrix(matrix)
-            transform.children.push(fig)
+            transform.childFigures.push(fig)
             layer.data[index] = transform
 
             Tool.selection.replace(fig, transform)
