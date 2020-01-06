@@ -34,7 +34,6 @@ export abstract class Shape extends AttributedFigure implements valuetype.figure
             return false
         this.origin = transform.transformPoint(this.origin)
         this.size = transform.transformSize(this.size)
-        // this.updatePath()
         return true
     }
     bounds(): Rectangle {

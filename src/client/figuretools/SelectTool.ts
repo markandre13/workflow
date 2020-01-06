@@ -104,7 +104,6 @@ export class SelectTool extends Tool {
                     if (figure instanceof AttributedFigure) {
                         figure.stroke = event.editor.strokeAndFillModel!.stroke
                         figure.fill = event.editor.strokeAndFillModel!.fill
-                        // figure.updatePath()
                     }
                 }
             }, this)

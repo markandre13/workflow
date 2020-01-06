@@ -28,6 +28,5 @@ export abstract class AttributedFigure extends Figure implements valuetype.figur
         this.stroke = "#000"
         this.strokeWidth = 1.0
         this.fill = "#fff"
-        //        console.log("workflow.AttributedFigure.constructor()")
     }
 }

@@ -23,7 +23,6 @@ import * as valuetype from "../../shared/workflow_valuetype"
 import * as value     from "../../shared/workflow_value"
 
 export class Rectangle extends Shape implements valuetype.figure.Rectangle {
-    // path?: Path
     constructor(init?: Partial<Rectangle>) {
         super(init)
         value.figure.initRectangle(this, init)
@@ -37,28 +36,11 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
         return Number.MAX_VALUE
     }
     getPath(): Path {
-        console.log(`Rectangle.getPath()`)
-        // if (this.path === undefined) {
-        //     this.path = new Path()
-        //     this.updatePath()
-        // }
-        // return this.path
         let path = new AttributedPath()
         path.appendRect(this)
         path.stroke = this.stroke
         path.strokeWidth = this.strokeWidth
         path.fill = this.fill
         return path
-    }
-    updatePath(): void {
-        console.log("idl::Figure.updatePath() has to go!")
-        // if (!this.path)
-        //     return
-        // this.path.clear()
-        // this.path.appendRect(this)
-        // this.path.updateSVG()
-        // console.log(`Rectangle.updatePath(): stroke=${this.stroke}, fill=${this.fill}`)
-        // this.path.svg.setAttributeNS("", "stroke", this.stroke)
-        // this.path.svg.setAttributeNS("", "fill", this.fill)
     }
 }

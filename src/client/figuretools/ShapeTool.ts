@@ -53,8 +53,6 @@ export class ShapeTool extends Tool {
 
     mousemove(event: EditorEvent) {
         this.shape!.setHandlePosition(2, event)
-        // this.shape!.updatePath()
-        // Tool.setOutlineColors(this.shape!.getPath() as AbstractPath)
     }
 
     mouseup(event: EditorEvent) {

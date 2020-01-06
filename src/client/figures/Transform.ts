@@ -33,22 +33,12 @@ export class Transform extends Group implements valuetype.figure.Transform {
     }
     add(figure: Figure) {
         this.childFigures.push(figure)
-        // if (this.pathGroup !== undefined) {
-        //     let path = figure.getPath() as AbstractPath
-        //     this.pathGroup.add(path)
-        // }
     }
     transform(matrix: Matrix): boolean {
-        console.log(`Transform.transform()`)
         this.matrix.prepend(matrix)
-        // if (this.pathGroup !== undefined) {
-        //     this.pathGroup.transform(matrix)
-        //     this.pathGroup.updateSVG()
-        // }
         return true
     }
     appendMatrix(matrix: Matrix): boolean {
-        console.log(`Transform.transform()`)
         this.matrix.append(matrix)
         return true
     }
@@ -74,15 +64,6 @@ export class Transform extends Group implements valuetype.figure.Transform {
     setHandlePosition(handle: number, pt: Point): void {
     }
     getPath(): AbstractPath {
-        console.log(`Transform.getPath()`)
-        // if (this.pathGroup === undefined) {
-        //     this.pathGroup = new PathGroup()
-        //     for (let child of this.childFigures) {
-        //         this.pathGroup.add(child.getPath() as AbstractPath)
-        //     }
-        //     this.pathGroup.transform(this.matrix)
-        // }
-        // return this.pathGroup
         let path = super.getPath()
         path.transform(this.matrix)
         return path

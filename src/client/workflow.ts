@@ -62,7 +62,7 @@ export async function main(url: string) {
 
     if (true) {
         document.body.innerHTML=""
-        testMath3()
+        testMath()
         return
     }
 

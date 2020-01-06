@@ -17,14 +17,13 @@
  */
 
  import { Point } from "../../shared/geometry"
-import { Path } from "../paths/Path"
+import { Path, AttributedPath } from "../paths"
 import { Shape } from "./Shape"
 
 import * as valuetype from "../../shared/workflow_valuetype"
 import * as value     from "../../shared/workflow_value"
 
 export class Circle extends Shape implements valuetype.figure.Circle {
-    path?: Path
     constructor(init?: Partial<Circle>) {
         super(init)
         value.figure.initCircle(this, init)
@@ -45,19 +44,11 @@ export class Circle extends Shape implements valuetype.figure.Circle {
         return Math.sqrt(dx * dx + dy * dy)
     }
     getPath(): Path {
-        if (this.path === undefined) {
-            this.path = new Path()
-            this.updatePath()
-        }
-        return this.path
-    }
-    updatePath(): void {
-        if (!this.path)
-            return
-        this.path.clear()
-        this.path.appendCircle(this)
-        this.path.updateSVG()
-        this.path.svg.setAttributeNS("", "stroke", this.stroke)
-        this.path.svg.setAttributeNS("", "fill", this.fill)
+        let path = new AttributedPath()
+        path.appendCircle(this)
+        path.stroke = this.stroke
+        path.strokeWidth = this.strokeWidth
+        path.fill = this.fill
+        return path
     }
 }

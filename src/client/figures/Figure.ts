@@ -25,6 +25,5 @@ export abstract class Figure extends valueimpl.Figure
     
     constructor(init?: Partial<Figure>) {
         super(init)
-//        console.log("workflow.Figure.constructor()")
     }
 }
