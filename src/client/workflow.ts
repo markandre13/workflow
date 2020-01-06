@@ -285,6 +285,7 @@ function testMath3() {
     let rect0 = new figure.Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
     rect0.stroke = "#800"
     let path0 = rect0.getPath()
+    path0.updateSVG()
     svg.appendChild(path0.svg)
    
     // green: rotated rectangle
@@ -307,36 +308,27 @@ function testMath3() {
     let rect2 = new figure.Rectangle(r)
     rect1.stroke = "#008"
     let trans2 = new figure.Transform()
-    let m2 = new Matrix()
-
-    m2.translate({x: -50, y:-50})
-    m2.scale(0.5, 1.6666666666666667)
-    m2.translate({x: 60, y: 30.000000000000004})
-
-    m2.translate(pointMinus(c))   
-    m2.rotate(Math.PI/8)
-    m2.translate(c)
-    
-    trans2.transform(m2)
     trans2.add(rect2)
+
+    let scaleMatrix = new Matrix()
+    scaleMatrix.translate({x: -50, y:-50})
+    scaleMatrix.scale(0.5, 1.6666666666666667)
+    scaleMatrix.translate({x: 60, y: 30.000000000000004})
+
+    let rotateMatrix = new Matrix()
+    rotateMatrix.translate(pointMinus(c))   
+    rotateMatrix.rotate(Math.PI/8)
+    rotateMatrix.translate(c)
+
+    // rotation is to be prepended
+    trans2.prependMatrix(rotateMatrix)
+
+    // scape is to be appended
+    trans2.appendMatrix(scaleMatrix)
+
+    trans2.prependMatrix(rotateMatrix)
+    
     let path2 = trans2.getPath()
     path2.updateSVG()
     svg.appendChild(path2.svg)
-
-    // the trouble here: path2 is already rotated
-
-    let m = new Matrix()
-    // m.translate({x: -50, y:-50})
-    // m.scale(0.5, 1.6666666666666667)
-    // m.translate({x: 60, y: 30.000000000000004})
-
-    // it seems, that translate, rotate, scale and shear have to be applied in a certain order
-    // => find out the rules behind this suitable for the UI (also: how is Adobe Illustrator doing it?)
-    // => avoid calling transform multiple times; built the matrix then call it once
-    // => store translate, rotate, scale and shear parameters in Transform instead of a Matrix?
-    //    this would allow for greater precission in successive operations, and ease implementing
-    //    the correct order of matrix operations
-    
-    path2.transform(m)
-    path2.updateSVG()
 }

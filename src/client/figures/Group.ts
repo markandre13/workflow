@@ -24,7 +24,7 @@ import { AbstractPath } from "../paths/AbstractPath"
 import { PathGroup } from "../paths/PathGroup"
 
 export class Group extends Figure implements valuetype.figure.Group {
-    pathGroup?: PathGroup // FIXME: private?
+    // pathGroup?: PathGroup // FIXME: private?
     childFigures!: Array<Figure> // FIXME: private
     constructor(init?: Partial<Group>) {
         super(init)
@@ -32,8 +32,8 @@ export class Group extends Figure implements valuetype.figure.Group {
     }
     add(figure: Figure) {
         this.childFigures.push(figure)
-        if (this.pathGroup)
-            this.pathGroup.add(figure.getPath() as AbstractPath)
+        // if (this.pathGroup)
+        //     this.pathGroup.add(figure.getPath() as AbstractPath)
     }
     transform(transform: Matrix): boolean {
         return false
@@ -50,14 +50,19 @@ export class Group extends Figure implements valuetype.figure.Group {
     setHandlePosition(handle: number, pt: Point): void {
     }
     getPath(): AbstractPath {
-        if (this.pathGroup === undefined) {
-            this.pathGroup = new PathGroup()
-            for (let child of this.childFigures) {
-                let path = child.getPath() as AbstractPath
-                this.pathGroup.add(path)
-            }
+        // if (this.pathGroup === undefined) {
+        //     this.pathGroup = new PathGroup()
+        //     for (let child of this.childFigures) {
+        //         let path = child.getPath() as AbstractPath
+        //         this.pathGroup.add(path)
+        //     }
+        // }
+        // return this.pathGroup
+        let path = new PathGroup()
+        for (let child of this.childFigures) {
+            path.add(child.getPath() as AbstractPath)
         }
-        return this.pathGroup
+        return path
     }
     updatePath(): void {
     }
