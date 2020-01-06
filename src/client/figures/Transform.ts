@@ -87,6 +87,4 @@ export class Transform extends Group implements valuetype.figure.Transform {
         path.transform(this.matrix)
         return path
     }
-    updatePath(): void {
-    }
 }

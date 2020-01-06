@@ -82,8 +82,7 @@ valuetype Figure {
     public unsigned long id;
 
     Path getPath();
-    void updatePath();
-
+    
     boolean transform(in Matrix matrix);
     Rectangle bounds();
     double distance(in Point point);
@@ -110,7 +109,7 @@ module figure {
     };
 
     valuetype Group: Figure {
-	    public sequence<Figure> children;
+	    public sequence<Figure> childFigures;
     };
 
     valuetype Transform: Group {
