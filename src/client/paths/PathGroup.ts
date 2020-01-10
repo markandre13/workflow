@@ -44,6 +44,10 @@ export class PathGroup extends AbstractPath {
     clone(): AbstractPath {
         return new PathGroup(this)
     }
+    clear(): void {
+        // REMOVE FROM SVG
+        this.data.length = 0
+    }
     add(path: AbstractPath): AbstractPath {
         if (this.matrix) {
             path.transform(this.matrix) // FIXME: should not modify argument?
@@ -60,8 +64,14 @@ export class PathGroup extends AbstractPath {
         return this
     }
     public updateSVG(): void {
+        //for(let x of this.svg.childNodes) {
+        // for(let i=0; i<this.svg.children.length; ++i) {
+        while(this.svg.children.length>0) {
+            this.svg.removeChild(this.svg.children[0])
+        }
         for (let path of this.data) {
             path.updateSVG()
+            this.svg.appendChild(path.svg)
         }
     }
     public transform(matrix: Matrix): AbstractPath {

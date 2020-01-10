@@ -118,14 +118,18 @@ function testMath() {
 
     // WHEN ROTATED
     test.selectFigure()
+
     let oldMouseRotate = test.centerOfNWRotateHandle()
     let center = test.centerOfFigure()
     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/8)
 
+    console.log("=============================================== mouseDown")
     test.mouseDownAt(oldMouseRotate)
+    console.log("=============================================== mouseMove")
     test.moveMouseTo(newMouseRotate)
+    console.log("=============================================== mouseUp")
     test.mouseUp()
-
+return
     // THEN SELECT TOOL DECORATION IS ROTATED
     test.selectionHasCorner(56.77205421043658, 47.96825417111798)
     test.selectionHasCorner(75.24964486066233, 55.621922818419776)
@@ -323,7 +327,7 @@ function testMath3() {
     // rotation is to be prepended
     trans2.prependMatrix(rotateMatrix)
 
-    // scape is to be appended
+    // scale is to be appended
     trans2.appendMatrix(scaleMatrix)
 
     trans2.prependMatrix(rotateMatrix)

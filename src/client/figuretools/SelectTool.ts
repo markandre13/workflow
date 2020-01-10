@@ -192,13 +192,30 @@ export class SelectTool extends Tool {
         console.log(`===> removeOutlines()`)
         this.removeOutlines(editor)
         console.log(`===> createOutlines()`)
-        this.createOutlines(editor)
-       
-        for(let [figure, path] of this.outlines) {
-            console.log(`===> outline.transform()`)
-            path.transform(this.transformation)
-            path.updateSVG()
+        
+        // this.createOutlines(editor)
+        this.createOutline(editor)
+
+        // console.log(`SelectionTool.createDecorationRectangle: state=${this.state}, selectedHandle=${this.selectedHandle}`)
+        let m = new Matrix(this.transformation)
+        if (this.state == State.MOVE_HANDLE && this.selectedHandle < 8) {
+            console.log("SCALE")
+            m.prepend(this.boundaryTransformation)
+            this.outline.transform(m)
+        } else {
+            console.log("NOT SCALE")
+            m.append(this.boundaryTransformation)
+            this.outline.transform(m)
         }
+
+        this.outline.updateSVG()
+        editor.decorationOverlay.appendChild(this.outline.svg)
+
+        // for(let [figure, path] of this.outlines) {
+        //     console.log(`===> outline.transform()`)
+        //     path.transform(this.transformation)
+        //     path.updateSVG()
+        // }
     }
     
     updateDecoration(editor: FigureEditor) {

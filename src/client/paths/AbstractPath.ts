@@ -22,8 +22,8 @@ export abstract class AbstractPath {
     svg!: SVGElement
     abstract updateSVG(): void
     abstract transform(matrix: Matrix): AbstractPath
-    abstract setAttributes(attibutes: any): AbstractPath
     abstract clone(): AbstractPath
+    setAttributes(attibutes: any): AbstractPath { return this }
     translate(point: Point): AbstractPath
     translate(x: number, y: number): AbstractPath
     translate(pointOrX: Point | number, Y?: number): AbstractPath {

@@ -71,7 +71,7 @@ export class FigureEditorPageObject {
     addRectangle() {
         let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
         fig.stroke = "#000"
-        fig.fill = "#f00"
+        fig.fill = "rgba(255,0,0,0.2)"
         this.addFigure(fig)
     }
 

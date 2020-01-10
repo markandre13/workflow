@@ -77,15 +77,6 @@ export class Path extends AbstractPath {
     empty(): boolean {
         return this.path.length == 0
     }
-    setAttributes(attributes: any): Path {
-        if (attributes.stroke !== undefined)
-            this.svg.setAttributeNS("", "stroke", attributes.stroke)
-        if (attributes.strokeWidth !== undefined)
-            this.svg.setAttributeNS("", "stroke-width", String(attributes.strokeWidth))
-        if (attributes.fill !== undefined)
-            this.svg.setAttributeNS("", "fill", attributes.fill)
-        return this
-    }
     // relativeMove
     // relativeLine
     // relativeCurve

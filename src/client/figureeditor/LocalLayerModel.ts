@@ -29,6 +29,9 @@ export class LocalLayerModel implements LayerModel {
     
     constructor() {
         this.modified = new Signal()
+        this.modified.add(()=>{
+            console.log("LocalLayerModel.modified()")
+        })
         this.layers = new Array<LocalLayer>()
     }
 

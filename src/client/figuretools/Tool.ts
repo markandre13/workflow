@@ -22,6 +22,9 @@ import { Figure } from "../figures/Figure"
 import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureSelectionModel } from "../figureeditor/FigureSelectionModel"
 import { FigureEditor } from "../figureeditor/FigureEditor"
+import { PathGroup } from "../paths/PathGroup"
+import { figure } from "../../shared/workflow_value"
+import { Group } from "../figures/Group"
 
 export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()
@@ -29,6 +32,7 @@ export class Tool {
 
     handles: Map<Figure, Array<AbstractPath>>
     outlines: Map<Figure, AbstractPath>
+    outline: PathGroup
 
     activate(e: EditorEvent) {}
     deactivate(e: EditorEvent) {}
@@ -40,6 +44,7 @@ export class Tool {
         if (Tool.selection === undefined) Tool.selection = new FigureSelectionModel() // FIXME: initialization via static doesn't work
         this.handles = new Map<Figure, Array<Path>>()
         this.outlines = new Map<Figure, Path>()
+        this.outline = new PathGroup()
     }
 
     static createOutlineCopy(path: AbstractPath): AbstractPath {
@@ -60,13 +65,25 @@ export class Tool {
     }
     
     createOutlines(editor: FigureEditor): void { // FIXME: rename into createOutlinesForSelection()
+        // for(let figure of Tool.selection.selection) {
+        //     if (this.outlines.has(figure))
+        //         continue
+        //     let outline = Tool.createOutlineCopy(figure.getPath() as AbstractPath)
+        //     editor.decorationOverlay.appendChild(outline.svg)
+        //     this.outlines.set(figure, outline)
+        // }
+    }
+
+    createOutline(editor: FigureEditor): void { // FIXME: rename into createOutlinesForSelection()
+        console.log(">>> createOutline")
+        this.outline.clear()
         for(let figure of Tool.selection.selection) {
-            if (this.outlines.has(figure))
-                continue
-            let outline = Tool.createOutlineCopy(figure.getPath() as AbstractPath)
-            editor.decorationOverlay.appendChild(outline.svg)
-            this.outlines.set(figure, outline)
+            let path = figure.getPath() as AbstractPath
+            Tool.setOutlineColors(path)
+            console.log(path)
+            this.outline.add(path)
         }
+        console.log("<<< createOutline")
     }
     
     removeOutlines(editor: FigureEditor): void {
@@ -74,5 +91,13 @@ export class Tool {
             editor.decorationOverlay.removeChild(pair[1].svg)
         }
         this.outlines.clear()
+
+        if (this.outline.svg != undefined) {
+            try {
+                editor.decorationOverlay.removeChild(this.outline.svg)
+            }
+            catch(error) {
+            }
+        }
     }
 }

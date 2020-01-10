@@ -122,6 +122,7 @@ export class FigureEditor extends GenericView<LayerModel> {
     updateModel() {
     }
     updateView() {
+        console.log("FigureEditor.updateView()")
         if (this.model === undefined) {
             return;
         }
@@ -201,6 +202,7 @@ export class FigureEditor extends GenericView<LayerModel> {
         return { editor: this, x: x, y: y, shiftKey: mouseEvent.shiftKey };
     }
     transformSelection(matrix: Matrix): void {
+        console.log("FigureEditor.transformSelection()")
         this.model!.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix);
     }
     addFigure(figure: Figure): void {

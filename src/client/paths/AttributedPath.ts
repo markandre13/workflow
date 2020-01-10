@@ -30,6 +30,19 @@ export class AttributedPath extends Path {
         this.svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
         this.svg.setAttributeNS("", "fill", this.fill)
     }
+    setAttributes(attributes: any): AttributedPath {
+        if (attributes.stroke !== undefined)
+            this.stroke = attributes.stroke
+        if (attributes.strokeWidth !== undefined)
+            this.strokeWidth =attributes.strokeWidth
+        if (attributes.fill !== undefined)
+            this.fill = attributes.fill
+        this.svg.setAttributeNS("", "stroke", this.stroke)
+        this.svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
+        this.svg.setAttributeNS("", "fill", this.fill)    
+        return this
+    }
+
     updateSVG() {
         super.updateSVG()
         this.svg.setAttributeNS("", "stroke", this.stroke)
