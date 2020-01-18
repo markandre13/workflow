@@ -18,7 +18,7 @@
     "test-unit": "npm run compile-idl && karma start"
   },
   "dependencies": {
-    "knex": "^0.20.4",
+    "knex": "^0.20.8",
     "scrypt": "^6.0.3",
     "sqlite3": "^4.1.1",
     "tslint": "^5.20.1",
@@ -30,9 +30,9 @@
     "@types/chai-almost": "^1.0.1",
     "@types/http-server": "^0.10.0",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.17",
+    "@types/node": "^12.12.25",
     "@types/puppeteer": "^1.20.3",
-    "@types/sqlite3": "^3.1.5",
+    "@types/sqlite3": "^3.1.6",
     "@types/ws": "^6.0.4",
     "chai": "^4.2.0",
     "chai-almost": "^1.0.1",
@@ -52,9 +52,9 @@
     "toad.js": "latest",
     "ts-loader": "^5.4.5",
     "ts-mocha": "^6.0.0",
-    "ts-node": "^8.5.4",
-    "typescript": "^3.7.3",
-    "webpack": "^4.41.2",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5",
+    "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
   }
 }
