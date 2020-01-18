@@ -133,7 +133,7 @@ export class WordWrapTestRunner {
     }
 
     createHandles(svg: SVGElement, path: Path) {
-        for(let entry of path.path) {
+        for(let entry of path.data) {
             if (entry.type === "Z")
                 continue
             let handle = this.createHandle(entry.values[0], entry.values[1])
@@ -144,7 +144,7 @@ export class WordWrapTestRunner {
 
     selectHandle(path: Path, mouseLocation: Point) {
         this.handleIndex = 0
-        for(let entry of path.path) {
+        for(let entry of path.data) {
             if (entry.type !== "Z") {
                 let handleBoundary = new Rectangle(entry.values[0]-2.5, entry.values[1]-2.5, 5, 5)
                 if (handleBoundary.contains(mouseLocation)) {
@@ -158,14 +158,14 @@ export class WordWrapTestRunner {
 
     removeHandle(path: Path, mouseLocation: Point): boolean {
         let index = 0
-        for(let entry of path.path) {
+        for(let entry of path.data) {
             if (entry.type !== "Z") {
                 let handleBoundary = new Rectangle(entry.values[0]-2.5, entry.values[1]-2.5, 5, 5)
                 if (handleBoundary.contains(mouseLocation)) {
-                    if (path.path.length <= 4)
+                    if (path.data.length <= 4)
                         return true
-                    path.path.splice(index, 1)
-                    path.path[0].type = "M"
+                    path.data.splice(index, 1)
+                    path.data[0].type = "M"
                     path.updateSVG()
                     this.handles[index].parentNode!.removeChild(this.handles[index]!)
                     this.handles.splice(index, 1)
@@ -179,7 +179,7 @@ export class WordWrapTestRunner {
 
     insertHandle(path: Path, mouseLocation: Point) {
         let index = 0, p0, p1, pm
-        for(let entry of path.path) {
+        for(let entry of path.data) {
             if (entry.type !== "Z") {
                 p0 = p1
                 p1 = new Point(entry.values[0], entry.values[1])
@@ -193,12 +193,12 @@ export class WordWrapTestRunner {
             if (p0 !== undefined) {
                 if (distancePointToLine(mouseLocation, p0, p1!) < 2.5) {
                     console.log("insert point")
-                    path.path.splice(index, 0, {
+                    path.data.splice(index, 0, {
                         type: "L",
                         values: [mouseLocation.x, mouseLocation.y]
                     })
-                    path.path[0].type = "M"
-                    path.path[1].type = "L"
+                    path.data[0].type = "M"
+                    path.data[1].type = "L"
                     path.updateSVG()
                     
                     let handle = this.createHandle(mouseLocation.x, mouseLocation.y)
@@ -226,7 +226,7 @@ export class WordWrapTestRunner {
                 let text = `{
     title: "?",
     polygon: [\n`
-    for(let entry of path.path) {
+    for(let entry of path.data) {
         if (entry.type === "M" || entry.type === "L") {
             text += `        {x: ${entry.values[0]}, y: ${entry.values[1]}},\n`
         }
@@ -260,7 +260,7 @@ export class WordWrapTestRunner {
        if (this.handleIndex !== -1) {
             this.handles[this.handleIndex].setAttributeNS("", "x", String(Math.round(mouseLocation.x)-2.5))
             this.handles[this.handleIndex].setAttributeNS("", "y", String(Math.round(mouseLocation.y)-2.5))
-            path.path[this.handleIndex].values = [mouseLocation.x, mouseLocation.y]
+            path.data[this.handleIndex].values = [mouseLocation.x, mouseLocation.y]
             path.updateSVG()
             this.doWrap(svg, path)
         }

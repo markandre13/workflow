@@ -19,8 +19,11 @@
 import { Point, Matrix } from "../../shared/geometry"
 
 export abstract class AbstractPath {
+
+    // TODO: svg and updateSVG are obsolete
     svg!: SVGElement
     abstract updateSVG(): void
+
     abstract transform(matrix: Matrix): AbstractPath
     abstract clone(): AbstractPath
     setAttributes(attibutes: any): AbstractPath { return this }

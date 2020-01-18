@@ -17,6 +17,8 @@
  */
 
 import { Path } from "./Path"
+
+// TODO: this class is obsolete
 export class AttributedPath extends Path {
     stroke: string
     strokeWidth: number

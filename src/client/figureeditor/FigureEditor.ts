@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,31 @@ import { ToolModel } from "../figuretools/ToolModel"
 import { Layer } from "./Layer"
 import { LayerModel } from "./LayerModel"
 import { EditorEvent } from "./EditorEvent"
+import { Group } from "../figures/Group"
+
+import * as figure from "../figures"
+
+enum Operation {
+    ADD_LAYERS,
+    REMOVE_LAYERS,
+    ADD_FIGURES,
+    REMOVE_FIGURES,
+    TRANSFORM_FIGURES,
+    MOVE_HANDLE
+}
+
+class CacheEntry {
+    figure: figure.Figure
+    parent?: CacheEntry
+    path?: AbstractPath
+    svg?: SVGElement
+    constructor(figure: figure.Figure, parent: CacheEntry|undefined = undefined) {
+        this.figure = figure
+        this.parent = parent
+        this.path = undefined
+        this.svg = undefined
+    }
+}
 
 export class FigureEditor extends GenericView<LayerModel> {
     scrollView: HTMLDivElement
@@ -39,8 +64,13 @@ export class FigureEditor extends GenericView<LayerModel> {
     selectedLayer?: Layer
     decorationOverlay: SVGElement
     layer?: SVGElement
+
+    // cache used by updateView()
+    cache: Map<number, CacheEntry>
+
     constructor() {
         super()
+        this.cache = new Map<number, CacheEntry>()
         this.mouseButtonIsDown = false
         this.scrollView = document.createElement("div")
         this.scrollView.style.overflow = "scroll"
@@ -122,23 +152,53 @@ export class FigureEditor extends GenericView<LayerModel> {
     updateModel() {
     }
     updateView() {
+        // called whenever the model is modified
         console.log("FigureEditor.updateView()")
-        if (this.model === undefined) {
+        if (this.model === undefined || this.model.layers.length === 0) {
             return
         }
-        if (this.model.layers.length === 0) {
-            return
-        }
+
         this.selectedLayer = this.model.layers[0] as Layer
-        let layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
-        this.layer = layer
-        for (let figure of this.model!.layers[0].data) {
-            let path = figure.getPath() as AbstractPath
-            path.updateSVG()
-            layer.appendChild(path.svg)
-            this.bounds.expandByRectangle(figure.bounds())
+        if (!this.layer) { // FIXME: this is a kludge to handle one layer, but we want to handle adding/removing multiple layers
+            this.layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
+            this.svgView.insertBefore(this.layer, this.decorationOverlay)
         }
-        this.svgView.insertBefore(layer, this.decorationOverlay)
+        let layer = this.layer
+
+        // fake adding figures
+        let operation = Operation.ADD_FIGURES
+        let figures = this.model.layers[0].data
+            .filter((figure)=>{ 
+                let notInCache = this.cache.has(figure.id)
+                if (notInCache) {
+                    this.cache.set(figure.id, new CacheEntry(figure as figure.Figure))
+                }
+                return notInCache
+            })
+            .map((figure)=>{ return figure.id })
+
+        switch(operation) {
+            case Operation.ADD_FIGURES:
+                for(let id of figures) {
+                    let cached = this.cache.get(id)
+                    if (!cached)
+                        throw Error(`FigureEditor error: cache lacks id $id`)
+                    if (cached.figure instanceof Group) {
+                        throw Error("FigureEditor.updateView(): groups are not handled yet")
+                    } else {
+                        if (!cached.path)
+                            cached.path = cached.figure.getPath() as AbstractPath
+                        let svg = cached.figure.updateSVG(cached.path, cached.svg)
+                        if (!cached.svg) {
+                            layer.appendChild(svg) // FIXME: need to do positional insert 
+                            cached.svg = svg
+                        }
+                    }
+                }
+        }
+        
+        // update scrollbars
+        // FIXME: replace setTimeout(..., 0) with something like, afterRendering(...)
         setTimeout(() => {
             this.bounds.expandByPoint({ x: this.scrollView.offsetWidth, y: this.scrollView.offsetHeight })
             this.svgView.style.width = this.bounds.size.width + "px"

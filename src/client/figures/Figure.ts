@@ -17,6 +17,7 @@
  */
 
 import * as valueimpl from "../../shared/workflow_valueimpl"
+import { AbstractPath } from "../paths/AbstractPath"
 
 export abstract class Figure extends valueimpl.Figure
 {
@@ -25,5 +26,9 @@ export abstract class Figure extends valueimpl.Figure
     
     constructor(init?: Partial<Figure>) {
         super(init)
+    }
+
+    updateSVG(path: AbstractPath, svg?: SVGElement): SVGElement {
+        throw Error("This figure does not implement updateSVG()")
     }
 }

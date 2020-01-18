@@ -33,35 +33,35 @@ declare global {
 
 export class Path extends AbstractPath {
     
-    path: Array<any>
+    data: Array<any>
     constructor();
     constructor(path: Path)
     constructor(path: Array<Point>)
     constructor(path?: Path | Array<Point>) {
         super()
-        this.path = []
+        this.data = []
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement
         if (path instanceof Array) {
-            this.path.push({ type: 'M', values: [path[0].x, path[0].y] })
+            this.data.push({ type: 'M', values: [path[0].x, path[0].y] })
             for (let i = 1; i < path.length; ++i) {
-                this.path.push({ type: 'L', values: [path[i].x, path[i].y] })
+                this.data.push({ type: 'L', values: [path[i].x, path[i].y] })
             }
-            this.path.push({ type: 'Z' })
+            this.data.push({ type: 'Z' })
         }
         else if (path instanceof Path) {
-            for (let entry of path.path) {
+            for (let entry of path.data) {
                 switch (entry.type) {
                     case "M":
-                        this.path.push({ type: 'M', values: [entry.values[0], entry.values[1]] })
+                        this.data.push({ type: 'M', values: [entry.values[0], entry.values[1]] })
                         break
                     case "L":
-                        this.path.push({ type: 'L', values: [entry.values[0], entry.values[1]] })
+                        this.data.push({ type: 'L', values: [entry.values[0], entry.values[1]] })
                         break
                     case "C":
-                        this.path.push({ type: 'C', values: [entry.values[0], entry.values[1], entry.values[2], entry.values[3], entry.values[4], entry.values[5]] })
+                        this.data.push({ type: 'C', values: [entry.values[0], entry.values[1], entry.values[2], entry.values[3], entry.values[4], entry.values[5]] })
                         break
                     case "Z":
-                        this.path.push({ type: 'Z' })
+                        this.data.push({ type: 'Z' })
                         break
                 }
             }
@@ -71,11 +71,11 @@ export class Path extends AbstractPath {
         return new Path(this)
     }
     clear(): Path {
-        this.path = []
+        this.data = []
         return this
     }
     empty(): boolean {
-        return this.path.length == 0
+        return this.data.length == 0
     }
     // relativeMove
     // relativeLine
@@ -83,7 +83,7 @@ export class Path extends AbstractPath {
     // append(path)
     transform(matrix: Matrix): Path {
         console.log(`Path.transform()`)
-        for (let segment of this.path) {
+        for (let segment of this.data) {
             switch (segment.type) {
                 case 'M':
                 case 'L':
@@ -108,24 +108,24 @@ export class Path extends AbstractPath {
     }
     updateSVG(): void {
         let path = this.svg as SVGPathElement
-        path.setPathData(this.path)
+        path.setPathData(this.data)
     }
     move(point: Point): Path
     move(x: number, y: number): Path
     move(pointOrX: Point | number, Y?: number): Path {
         if (typeof pointOrX === "object")
-            this.path.push({ type: 'M', values: [pointOrX.x, pointOrX.y] })
+            this.data.push({ type: 'M', values: [pointOrX.x, pointOrX.y] })
         else
-            this.path.push({ type: 'M', values: [pointOrX, Y] })
+            this.data.push({ type: 'M', values: [pointOrX, Y] })
         return this
     }
     line(point: Point): Path
     line(x: number, y: number): Path
     line(pointOrX: Point | number, Y?: number): Path {
         if (typeof pointOrX === "object")
-            this.path.push({ type: 'L', values: [pointOrX.x, pointOrX.y] })
+            this.data.push({ type: 'L', values: [pointOrX.x, pointOrX.y] })
         else
-            this.path.push({ type: 'L', values: [pointOrX, Y] })
+            this.data.push({ type: 'L', values: [pointOrX, Y] })
         return this
     }
     curve(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number): Path
@@ -134,7 +134,7 @@ export class Path extends AbstractPath {
         if (typeof p0OrX0 === "object" &&
             typeof p1OrY0 === "object" &&
             typeof p2OrX1 === "object") {
-            this.path.push({
+            this.data.push({
                 type: 'C', values: [p0OrX0.x, p0OrX0.y,
                 p1OrY0.x, p1OrY0.y,
                 p2OrX1.x, p2OrX1.y]
@@ -145,14 +145,14 @@ export class Path extends AbstractPath {
             typeof p1OrY0 === "number" &&
             typeof p2OrX1 === "number")
         {
-            this.path.push({ type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1, X2, Y2] })
+            this.data.push({ type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1, X2, Y2] })
         } else {
             throw Error("fuck")
         }
         return this
     }
     close(): Path {
-        this.path.push({ type: 'Z' })
+        this.data.push({ type: 'Z' })
         return this
     }
     appendRect(rectangle: any): Path {
@@ -183,7 +183,7 @@ export class Path extends AbstractPath {
     bounds(): Rectangle {
         let isFirstPoint = true
         let rectangle = new Rectangle()
-        for (let segment of this.path) {
+        for (let segment of this.data) {
             switch (segment.type) {
                 case 'M':
                 case 'L':

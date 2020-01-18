@@ -27,6 +27,10 @@ import * as figure from "../../src/client/figures"
 import * as tool from "../../src/client/figuretools"
 import { Tool, SelectTool } from "../../src/client/figuretools";
 import { FigureEditorPageObject } from "../../src/client/figureeditor/FigureEditorPageObject"
+import { LocalLayerModel } from "../../src/client/figureeditor/LocalLayerModel"
+import { LocalLayer } from "../../src/client/figureeditor/LocalLayer"
+
+import { AbstractPath } from "../../src/client/paths"
 
 declare global {
     interface SVGPathElement {
@@ -81,7 +85,7 @@ describe.only("figureeditor", function() {
                 let matrix = new Matrix()
                 matrix.scale(2, 2)
                 fig001.matrix = matrix
-                fig001.children.push(fig000)
+                fig001.childFigures.push(fig000)
 
                 let grp001 = fig001.getPath() as path.Path
                 grp001.updateSVG()
@@ -246,7 +250,7 @@ describe.only("figureeditor", function() {
                 let matrix = new Matrix()
                 matrix.scale(2, 2)
                 fig001.matrix = matrix
-                fig001.children.push(fig000)
+                fig001.childFigures.push(fig000)
 
                 let path = fig001.getPath() as path.Path
                 path.updateSVG()
@@ -328,10 +332,10 @@ describe.only("figureeditor", function() {
             let p = newFig.getPath() as path.PathGroup
             p.updateSVG()
             let p1 = p.data[0] as path.Path
-            expect(p1.path[0].values).to.almost.eql([75, 55])
-            expect(p1.path[1].values).to.almost.eql([75, 75])
-            expect(p1.path[2].values).to.almost.eql([45, 75])
-            expect(p1.path[3].values).to.almost.eql([45, 55])
+            expect(p1.data[0].values).to.almost.eql([75, 55])
+            expect(p1.data[1].values).to.almost.eql([75, 75])
+            expect(p1.data[2].values).to.almost.eql([45, 75])
+            expect(p1.data[3].values).to.almost.eql([45, 55])
         })
 
         it("rotate two figures using nw handle", () => {
@@ -400,5 +404,12 @@ describe.only("figureeditor", function() {
             test.selectionHasCorner(50.5, 80.5)
        })
     })
-})
 
+
+    describe.only("figureeditor's path and svg cache", ()=> {
+        it("adding one figure creates one path and one svg", ()=> {
+            let test = new FigureEditorPageObject(true)
+            test.addRectangle()
+        })
+    })
+})

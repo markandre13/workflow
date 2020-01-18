@@ -35,7 +35,9 @@ export class FigureEditorPageObject {
     model: LocalLayerModel
     figures: Array<Figure>
     mousePosition: Point
-    constructor() {
+    verbose: boolean
+    constructor(verbose=false) {
+        this.verbose = verbose
         let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
         document.body.innerHTML = ""
         document.body.appendChild(figureeditor)
@@ -62,20 +64,25 @@ export class FigureEditorPageObject {
     // semantic operations
 
     addFigure(figure: Figure) {
-        // this.model.layers[0].data.push(figure)
-        // this.model.modified.trigger()
+        if (this.verbose)
+            console.log("### ADD FIGURE")
         this.model.add(0, figure)
         this.figures.push(figure)
     }
 
     addRectangle() {
+        if (this.verbose)
+            console.log("### ADD RECTANGLE")
         let fig = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
         fig.stroke = "#000"
         fig.fill = "rgba(255,0,0,0.2)"
-        this.addFigure(fig)
+        this.model.add(0, fig)
+        this.figures.push(fig)
     }
 
     selectFigure(index = 0, shift = true) {
+        if (this.verbose)
+            console.log("### SELECT FIGURE")
         this.clickInsideFigure(index, shift)
         if (!Tool.selection.has(this.figures[index]))
             throw Error("fuck")
@@ -86,16 +93,18 @@ export class FigureEditorPageObject {
         let path = this.selectTool.decoration[0] as Path
         let msg = `Selection decoration has no edge (${x}, ${y}). We have `
         for(let i=0; i<4; ++i) {
-            if (path.path[i].values[0]===x && path.path[i].values[1]===y)
+            if (path.data[i].values[0]===x && path.data[i].values[1]===y)
                 return true
-            msg = `${msg} (${path.path[i].values[0]}, ${path.path[i].values[1]})`
+            msg = `${msg} (${path.data[i].values[0]}, ${path.data[i].values[1]})`
         }
         throw Error(msg)
     }
 
-    mouseDownAt(position: Point, shift = true) {
-        this.mousePosition = new Point(position)
-        this.selectTool.mousedown(new EditorEvent(this.figureeditor, position, {shiftKey: shift}))
+    mouseDownAt(point: Point, shift = true) {
+        if (this.verbose)
+            console.log(`### MOUSE DOWN AT ${point}`)
+        this.mousePosition = new Point(point)
+        this.selectTool.mousedown(new EditorEvent(this.figureeditor, point, {shiftKey: shift}))
     }
 
     moveMouseTo(point: Point, shift = true) {
@@ -104,21 +113,30 @@ export class FigureEditorPageObject {
     }
 
     moveMouseBy(translation: Point, shift = true) {
+        if (this.verbose)
+            console.log(`### MMOVE MOUSE BY ${translation}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
         this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
     mouseUp(shift = true) {
+        if (this.verbose)
+            console.log(`### MOUSE UP`)
         this.selectTool.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
     mouseClickAt(point: Point, shift=false) {
+        if (this.verbose)
+            console.log(`### MOUSE CLICK AT ${point}`)
         this.mouseDownAt(point, shift)
         this.mouseUp(shift)
     }
 
     clickInsideFigure(index = 0, shift = false) {
-        this.mouseClickAt(this.centerOfFigure(index), shift)
+        if (this.verbose)
+            console.log(`### CLICK INSIDE FIGURE ${index}`)
+        this.mouseDownAt(this.centerOfFigure(index), shift)
+        this.mouseUp(shift)
     }
 
     centerOfFigure(index = 0): Point {

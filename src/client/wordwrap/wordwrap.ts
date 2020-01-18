@@ -543,7 +543,7 @@ export class WordWrap {
     initializeSweepBufferFrom(path: Path) {
         this.sweepBuffer.length = 0
         let first: Point|undefined, previous: Point|undefined, current: Point|undefined
-        for(let segment of path.path) {
+        for(let segment of path.data) {
             switch(segment.type) {
                 case 'M':
                     first = previous = new Point(segment.values[0], segment.values[1])

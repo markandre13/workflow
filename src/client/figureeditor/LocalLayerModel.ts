@@ -40,27 +40,29 @@ export class LocalLayerModel implements LayerModel {
             if (layer.id === layerID)
                 return layer
         }
-        throw Error("BoardListener_impl.layerById(): unknown layer id " + layerID)
+        throw Error("LocalLayerModel.layerById(): unknown layer id " + layerID)
     }
 
     add(layerId: number, figure: figure.Figure) {
-        console.log(`MyLayerModel.add(${layerId})`)
+        console.log(`LocalLayerModel.add(${layerId})`)
         let layer = this.layerById(layerId)
         layer.data.push(figure)
         this.modified.trigger()
     }
 
-    transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
-        console.log(`MyLayerModel.transform(${layerID}, ${figureIdArray}, ${JSON.stringify(matrix)})`)
-        let figureIdSet = new Set<number>()
-        for(let id of figureIdArray)
-            figureIdSet.add(id)
-        let newIdArray = new Array<number>()
+    // layerId: layer containing figures to be transformed
+    // figureIds: figures to be transformed
+
+    transform(layerID: number, figureIds: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
+        console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${JSON.stringify(matrix)})`)
+
+        let fastFigureIds = this.figureIdsAsSet(figureIds) 
         
+        let newIdArray = new Array<number>()
         let layer = this.layerById(layerID)
         for (let index in layer.data) {
             let fig = layer.data[index]
-            if (!figureIdSet.has(fig.id))
+            if (!fastFigureIds.has(fig.id))
                 continue
                 
             if (fig.transform(matrix)) {
@@ -80,5 +82,12 @@ export class LocalLayerModel implements LayerModel {
             Tool.selection.replace(fig, transform)
             this.modified.trigger()
         }
+    }
+
+    figureIdsAsSet(figureIds: Array<number>): Set<number> {
+        let figureIdSet = new Set<number>()
+        for(let id of figureIds)
+            figureIdSet.add(id)
+        return figureIdSet
     }
 }

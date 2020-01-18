@@ -342,7 +342,7 @@ class Board_impl extends skel.Board {
             transform.id = (layer as Layer).createFigureId()
             newIdArray.push(transform.id)
             transform.matrix = new Matrix(matrix)
-            transform.children.push(fig)
+            transform.childFigures.push(fig)
             layer.data[index] = transform
         }
 
@@ -393,10 +393,10 @@ export abstract class Figure extends valueimpl.Figure
     }
     
     getPath(): Path {
-	throw Error("not implemented")
+	    throw Error("not implemented")
     }
 
-    updatePath(): void {
+    updateSVG(path: AbstractPath, svg?: SVGElement): SVGElement {
         throw Error("not implemented")
     }
 
@@ -500,7 +500,7 @@ export class Circle extends Shape implements valuetype.figure.Circle
 
 export class Group extends Figure implements valuetype.figure.Group
 {
-    children!: Array<Figure>
+    childFigures!: Array<Figure>
 
     constructor(init?: Partial<Group>) {
         super(init)

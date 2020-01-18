@@ -17,7 +17,8 @@
  */
 
 import { Point } from "../../shared/geometry"
-import { Path, AttributedPath } from "../paths"
+import { AbstractPath, Path, AttributedPath } from "../paths"
+import { Figure } from "../figures"
 import { Shape } from "./Shape"
 import * as valuetype from "../../shared/workflow_valuetype"
 import * as value     from "../../shared/workflow_value"
@@ -35,6 +36,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
         }
         return Number.MAX_VALUE
     }
+
     getPath(): Path {
         let path = new AttributedPath()
         path.appendRect(this)
@@ -42,5 +44,14 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
         path.strokeWidth = this.strokeWidth
         path.fill = this.fill
         return path
+    }
+
+    updateSVG(path: AbstractPath, svg?: SVGElement): SVGElement {
+        if (!svg)
+            svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
+        let svgPath = svg as SVGPathElement
+        let p = path as Path
+        svgPath.setPathData(p.data)
+        return svg
     }
 }

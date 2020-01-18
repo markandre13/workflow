@@ -106,3 +106,16 @@ o this means changing a figure will not update the SVG because it does
 IMPLEMENTATION STRATEGY:
 o spike this idea in a little test
 o add caching later (if we need it at all)
+
+What happens at mouseUp at the end of rotating a figure:
+SelectionTool.stopHandle()
+FigureEditor.transformSelection()
+MyLayerModel.transform()
+
+  figure.transform()
+
+  or
+
+  insert Transform
+  call this.modified()
+
