@@ -166,16 +166,22 @@ export class FigureEditor extends GenericView<LayerModel> {
         let layer = this.layer
 
         // fake adding figures
+        console.log(`### FAKE ADDING FIGURES`)
         let operation = Operation.ADD_FIGURES
         let figures = this.model.layers[0].data
             .filter((figure)=>{ 
-                let notInCache = this.cache.has(figure.id)
+                console.log(`o check figure ${figure.id}`)
+                let notInCache = !this.cache.has(figure.id)
+                console.log(`  notInCache=${notInCache}`)
                 if (notInCache) {
+                    console.log(`  add figure to cache`)
                     this.cache.set(figure.id, new CacheEntry(figure as figure.Figure))
                 }
                 return notInCache
             })
             .map((figure)=>{ return figure.id })
+
+        console.log(figures)
 
         switch(operation) {
             case Operation.ADD_FIGURES:
