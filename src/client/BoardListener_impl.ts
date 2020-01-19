@@ -18,12 +18,13 @@
 
 import { ORB } from "corba.js"
 import { Matrix } from "../shared/geometry"
-import { Figure, Transform } from "./figures"
-import { AbstractPath } from "./paths"
+import { Figure } from "./figures"
 import { BoardModel } from "./BoardModel"
+import { Operation } from "./figureeditor/FigureEditor"
 
 import * as skel from "../shared/workflow_skel"
 
+// FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
 export class BoardListener_impl extends skel.BoardListener {
     boardmodel: BoardModel
     constructor(orb: ORB, boardmodel: BoardModel) {
@@ -40,34 +41,45 @@ export class BoardListener_impl extends skel.BoardListener {
     async add(layerId: number, figure: Figure) {
         let layer = this.layerById(layerId)
         layer.data.push(figure)
-        this.boardmodel.modified.trigger()
+
+        this.boardmodel.modified.trigger({
+            operation: Operation.ADD_FIGURES,
+            figures: [figure.id]
+        })
     }
-    async transform(layerId: number, figureIdArray: Array<number>, matrix: Matrix, newIds: Array<number>) {
-        throw Error("not implemented yet")
+    async transform(layerId: number, figureIdArray: Array<number>, matrix: Matrix, newIds: Array<number>) {    
         // console.log("BoardListener_impl.transform(", figureIdArray, ", ", matrix, ", ", newIds, ")")
-        // // FIXME: too many casts
-        // let layer = this.layerById(layerId)
-        // let figureIdSet = new Set<number>()
-        // for (let id of figureIdArray)
-        //     figureIdSet.add(id)
-        // for (let index in layer.data) {
-        //     let fig = layer.data[index]
-        //     if (!figureIdSet.has(fig.id))
-        //         continue;
-        //     if (fig.transform(matrix))
-        //         continue;
-        //     let transform = new Transform()
-        //     transform.id = newIds.shift()!
-        //     transform.transform(matrix)
-        //     let oldPath = fig.getPath() as AbstractPath
-        //     let oldParentNode = oldPath.svg.parentNode!
-        //     let oldNextSibling = oldPath.svg.nextSibling
-        //     oldParentNode.removeChild(oldPath.svg)
-        //     transform.add(fig)
-        //     let newPath = transform.getPath() as AbstractPath
-        //     newPath.updateSVG();
-        //     oldParentNode.insertBefore(newPath.svg, oldNextSibling)
-        //     layer.data[index] = transform
-        // }
+        // FIXME: too many casts
+        let layer = this.layerById(layerId)
+        let figureIdSet = new Set<number>()
+        for (let id of figureIdArray)
+            figureIdSet.add(id)
+        for (let index in layer.data) {
+            let fig = layer.data[index]
+            if (!figureIdSet.has(fig.id))
+                continue
+            if (fig.transform(matrix)) // TODO: it doesn't work like this anymore, need to go thru FigureEditor?
+                continue
+            
+            throw Error("BoardListener_impl.transform(): inserting a Transform() figure is not implemented... and should also be deprecated.")
+            // let transform = new Transform()
+            // transform.id = newIds.shift()!
+            // transform.transform(matrix)
+            // let oldPath = fig.getPath() as AbstractPath
+            // let oldParentNode = oldPath.svg.parentNode!
+            // let oldNextSibling = oldPath.svg.nextSibling
+            // oldParentNode.removeChild(oldPath.svg)
+            // transform.add(fig)
+            // let newPath = transform.getPath() as AbstractPath
+            // newPath.updateSVG();
+            // oldParentNode.insertBefore(newPath.svg, oldNextSibling)
+            // layer.data[index] = transform
+        }
+
+        this.boardmodel.modified.trigger({
+            operation: Operation.TRANSFORM_FIGURES,
+            figures: figureIdArray
+        })
+
     }
 }

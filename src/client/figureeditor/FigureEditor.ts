@@ -30,7 +30,7 @@ import { Group } from "../figures/Group"
 
 import * as figure from "../figures"
 
-enum Operation {
+export enum Operation {
     ADD_LAYERS,
     REMOVE_LAYERS,
     ADD_FIGURES,
@@ -151,9 +151,9 @@ export class FigureEditor extends GenericView<LayerModel> {
     }
     updateModel() {
     }
-    updateView() {
+    updateView(data? :any) {
         // called whenever the model is modified
-        console.log("FigureEditor.updateView()")
+        console.log(`FigureEditor.updateView(${JSON.stringify(data)})`)
         if (this.model === undefined || this.model.layers.length === 0) {
             return
         }
@@ -165,32 +165,34 @@ export class FigureEditor extends GenericView<LayerModel> {
         }
         let layer = this.layer
 
-        // fake adding figures
-        console.log(`### FAKE ADDING FIGURES`)
-        let operation = Operation.ADD_FIGURES
-        let figures = this.model.layers[0].data
-            .filter((figure)=>{ 
-                console.log(`o check figure ${figure.id}`)
-                let notInCache = !this.cache.has(figure.id)
-                console.log(`  notInCache=${notInCache}`)
-                if (notInCache) {
-                    console.log(`  add figure to cache`)
-                    this.cache.set(figure.id, new CacheEntry(figure as figure.Figure))
-                }
-                return notInCache
-            })
-            .map((figure)=>{ return figure.id })
+        if (data === undefined) {
+            // FIXME: notInCache should be always true
+            // FIXME: a new model would mean to clear the cache... how 
+            console.log(`### NEW MODEL, FAKE ADD_FIGURES MESSAGE`)
+            let operation = Operation.ADD_FIGURES
+            let figures = this.model.layers[0].data
+                .filter((figure)=>{ 
+                    let notInCache = !this.cache.has(figure.id)
+                    if (notInCache) {
+                        this.cache.set(figure.id, new CacheEntry(figure as figure.Figure))
+                    }
+                    return notInCache
+                })
+                .map((figure)=>{ return figure.id })
+            data = {
+                operation: Operation.ADD_FIGURES,
+                figures: figures
+            }
+        }
 
-        console.log(figures)
-
-        switch(operation) {
+        switch(data.operation) {
             case Operation.ADD_FIGURES:
-                for(let id of figures) {
+                for(let id of data.figures) {
                     let cached = this.cache.get(id)
                     if (!cached)
                         throw Error(`FigureEditor error: cache lacks id $id`)
                     if (cached.figure instanceof Group) {
-                        throw Error("FigureEditor.updateView(): groups are not handled yet")
+                        throw Error("FigureEditor.updateView(): ADD_FIGURES for groups not implemented yet")
                     } else {
                         if (!cached.path)
                             cached.path = cached.figure.getPath() as AbstractPath
@@ -201,6 +203,10 @@ export class FigureEditor extends GenericView<LayerModel> {
                         }
                     }
                 }
+                break
+            case Operation.TRANSFORM_FIGURES:
+                console.log("FigureEditor.updateView(): TRANSFORM_FIGURE not implemented yet")
+                break
         }
         
         // update scrollbars

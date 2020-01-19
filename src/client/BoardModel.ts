@@ -24,6 +24,7 @@ import { LayerModel } from "./figureeditor/LayerModel"
 import * as stub from "../shared/workflow_stub"
 import * as valueimpl from "../shared/workflow_valueimpl"
 
+// FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
 export class BoardModel extends valueimpl.BoardModel implements LayerModel {
     modified: Signal
     board?: stub.Board
