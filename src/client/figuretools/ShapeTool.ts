@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,17 +38,17 @@ export class ShapeTool extends Tool {
     }
 
     mousedown(event: EditorEvent) {
-        this.shape = this.creator() as Shape
-        this.shape.setHandlePosition(0, event)
-        this.shape.setHandlePosition(2, event)
-        if (event.editor.strokeAndFillModel) {
-            this.shape.stroke = event.editor.strokeAndFillModel.stroke
-            this.shape.fill = event.editor.strokeAndFillModel.fill
-        }
+        // this.shape = this.creator() as Shape
+        // this.shape.setHandlePosition(0, event)
+        // this.shape.setHandlePosition(2, event)
+        // if (event.editor.strokeAndFillModel) {
+        //     this.shape.stroke = event.editor.strokeAndFillModel.stroke
+        //     this.shape.fill = event.editor.strokeAndFillModel.fill
+        // }
         
-        let path = this.shape.getPath() as AbstractPath
-        Tool.setOutlineColors(path)
-        event.editor.decorationOverlay.appendChild(path.svg)
+        // let path = this.shape.getPath() as AbstractPath
+        // Tool.setOutlineColors(path)
+        // event.editor.decorationOverlay.appendChild(path.svg)
     }
 
     mousemove(event: EditorEvent) {
@@ -56,23 +56,23 @@ export class ShapeTool extends Tool {
     }
 
     mouseup(event: EditorEvent) {
-        let shape = this.shape!
+        // let shape = this.shape!
     
-        shape.setHandlePosition(2, event)
+        // shape.setHandlePosition(2, event)
         
-        if (shape.size.width<0) {
-            shape.origin.x += shape.size.width
-            shape.size.width = -shape.size.width
-        }
-        if (shape.size.height<0) {
-            shape.origin.y += shape.size.height
-            shape.size.height = -shape.size.height
-        }
+        // if (shape.size.width<0) {
+        //     shape.origin.x += shape.size.width
+        //     shape.size.width = -shape.size.width
+        // }
+        // if (shape.size.height<0) {
+        //     shape.origin.y += shape.size.height
+        //     shape.size.height = -shape.size.height
+        // }
 
-        let path = shape.getPath() as AbstractPath
-        event.editor.decorationOverlay.removeChild(path.svg)
+        // let path = shape.getPath() as AbstractPath
+        // event.editor.decorationOverlay.removeChild(path.svg)
 
-        event.editor.addFigure(shape)
-        this.shape = undefined
+        // event.editor.addFigure(shape)
+        // this.shape = undefined
     }
 }

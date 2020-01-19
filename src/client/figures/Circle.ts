@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  */
 
  import { Point } from "../../shared/geometry"
-import { Path, AttributedPath } from "../paths"
+import { Path } from "../paths"
 import { Shape } from "./Shape"
 
 import * as valuetype from "../../shared/workflow_valuetype"
@@ -44,11 +44,19 @@ export class Circle extends Shape implements valuetype.figure.Circle {
         return Math.sqrt(dx * dx + dy * dy)
     }
     getPath(): Path {
-        let path = new AttributedPath()
+        let path = new Path()
         path.appendCircle(this)
-        path.stroke = this.stroke
-        path.strokeWidth = this.strokeWidth
-        path.fill = this.fill
         return path
+    }
+    updateSVG(path: AbstractPath, svg?: SVGElement): SVGElement {
+        if (!svg)
+            svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
+        let svgPath = svg as SVGPathElement
+        let p = path as Path
+        svgPath.setPathData(p.data)
+        svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
+        svg.setAttributeNS("", "stroke", this.stroke)
+        svg.setAttributeNS("", "fill", this.fill)
+        return svg
     }
 }

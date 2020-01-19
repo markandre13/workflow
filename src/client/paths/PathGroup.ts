@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ export class PathGroup extends AbstractPath {
     matrix?: Matrix
     constructor(group?: PathGroup) {
         super()
-        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.data = new Array<AbstractPath>()
         if (group !== undefined) {
             for (let path of group.data) {
@@ -45,34 +44,11 @@ export class PathGroup extends AbstractPath {
         return new PathGroup(this)
     }
     clear(): void {
-        // REMOVE FROM SVG
         this.data.length = 0
     }
     add(path: AbstractPath): AbstractPath {
-        if (this.matrix) {
-            path.transform(this.matrix) // FIXME: should not modify argument?
-        }
         this.data.push(path)
-        path.updateSVG()
-        this.svg.appendChild(path.svg)
         return this
-    }
-    setAttributes(attributes: any): AbstractPath {
-        for (let path of this.data) {
-            path.setAttributes(attributes)
-        }
-        return this
-    }
-    public updateSVG(): void {
-        //for(let x of this.svg.childNodes) {
-        // for(let i=0; i<this.svg.children.length; ++i) {
-        while(this.svg.children.length>0) {
-            this.svg.removeChild(this.svg.children[0])
-        }
-        for (let path of this.data) {
-            path.updateSVG()
-            this.svg.appendChild(path.svg)
-        }
     }
     public transform(matrix: Matrix): AbstractPath {
         console.log(`PathGroup.transform()`)
@@ -80,9 +56,6 @@ export class PathGroup extends AbstractPath {
             this.matrix = new Matrix(matrix)
         else
             this.matrix.prepend(matrix)
-        for (let path of this.data) {
-            path.transform(matrix)
-        }
         return this
     }
 }

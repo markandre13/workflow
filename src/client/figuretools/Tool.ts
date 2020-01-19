@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,20 +48,21 @@ export class Tool {
     }
 
     static createOutlineCopy(path: AbstractPath): AbstractPath {
-        let outlinePath = path.clone()
-        // FIXME: translate outline by (-1, +1)
-        Tool.setOutlineColors(outlinePath)
-        outlinePath.updateSVG()
-        return outlinePath
+        throw Error()
+        // let outlinePath = path.clone()
+        // // FIXME: translate outline by (-1, +1)
+        // Tool.setOutlineColors(outlinePath)
+        // outlinePath.updateSVG()
+        // return outlinePath
     }
     
     static setOutlineColors(path: AbstractPath): void {
-        let attributes = {
-            stroke: "rgb(79,128,255)",
-            strokeWidth: 1,
-            fill: "none"
-        }
-        path.setAttributes(attributes)
+        // let attributes = {
+        //     stroke: "rgb(79,128,255)",
+        //     strokeWidth: 1,
+        //     fill: "none"
+        // }
+        // path.setAttributes(attributes)
     }
     
     createOutlines(editor: FigureEditor): void { // FIXME: rename into createOutlinesForSelection()
@@ -87,17 +88,17 @@ export class Tool {
     }
     
     removeOutlines(editor: FigureEditor): void {
-        for(let pair of this.outlines) {
-            editor.decorationOverlay.removeChild(pair[1].svg)
-        }
-        this.outlines.clear()
+        // for(let pair of this.outlines) {
+        //     editor.decorationOverlay.removeChild(pair[1].svg)
+        // }
+        // this.outlines.clear()
 
-        if (this.outline.svg != undefined) {
-            try {
-                editor.decorationOverlay.removeChild(this.outline.svg)
-            }
-            catch(error) {
-            }
-        }
+        // if (this.outline.svg != undefined) {
+        //     try {
+        //         editor.decorationOverlay.removeChild(this.outline.svg)
+        //     }
+        //     catch(error) {
+        //     }
+        // }
     }
 }

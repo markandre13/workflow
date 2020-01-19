@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,5 +18,4 @@
 
 export * from "./paths/AbstractPath"
 export * from "./paths/Path"
-export * from "./paths/AttributedPath"
 export * from "./paths/PathGroup"

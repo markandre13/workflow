@@ -61,9 +61,9 @@ export class WordWrapTestRunner {
         }
         document.body.appendChild(svg)
         
-        path.setAttributes({stroke: "#000", fill: "none"})
-        path.updateSVG()
-        svg.appendChild(path.svg)
+        // path.setAttributes({stroke: "#000", fill: "none"})
+        // path.updateSVG()
+        svg.appendChild(path.createSVG())
     
         this.createHandles(svg, path)
         svg.onmousedown = (event: MouseEvent) => { this.mouseDown(event, svg, path) }
@@ -157,60 +157,60 @@ export class WordWrapTestRunner {
     }
 
     removeHandle(path: Path, mouseLocation: Point): boolean {
-        let index = 0
-        for(let entry of path.data) {
-            if (entry.type !== "Z") {
-                let handleBoundary = new Rectangle(entry.values[0]-2.5, entry.values[1]-2.5, 5, 5)
-                if (handleBoundary.contains(mouseLocation)) {
-                    if (path.data.length <= 4)
-                        return true
-                    path.data.splice(index, 1)
-                    path.data[0].type = "M"
-                    path.updateSVG()
-                    this.handles[index].parentNode!.removeChild(this.handles[index]!)
-                    this.handles.splice(index, 1)
-                    return true
-                }
-            }
-            ++index
-        }
+        // let index = 0
+        // for(let entry of path.data) {
+        //     if (entry.type !== "Z") {
+        //         let handleBoundary = new Rectangle(entry.values[0]-2.5, entry.values[1]-2.5, 5, 5)
+        //         if (handleBoundary.contains(mouseLocation)) {
+        //             if (path.data.length <= 4)
+        //                 return true
+        //             path.data.splice(index, 1)
+        //             path.data[0].type = "M"
+        //             path.updateSVG()
+        //             this.handles[index].parentNode!.removeChild(this.handles[index]!)
+        //             this.handles.splice(index, 1)
+        //             return true
+        //         }
+        //     }
+        //     ++index
+        // }
         return false
     }
 
     insertHandle(path: Path, mouseLocation: Point) {
-        let index = 0, p0, p1, pm
-        for(let entry of path.data) {
-            if (entry.type !== "Z") {
-                p0 = p1
-                p1 = new Point(entry.values[0], entry.values[1])
-                if (entry.type === "M") {
-                    pm = p1
-                }
-            } else {
-                p0 = p1
-                p1 = pm
-            }
-            if (p0 !== undefined) {
-                if (distancePointToLine(mouseLocation, p0, p1!) < 2.5) {
-                    console.log("insert point")
-                    path.data.splice(index, 0, {
-                        type: "L",
-                        values: [mouseLocation.x, mouseLocation.y]
-                    })
-                    path.data[0].type = "M"
-                    path.data[1].type = "L"
-                    path.updateSVG()
+        // let index = 0, p0, p1, pm
+        // for(let entry of path.data) {
+        //     if (entry.type !== "Z") {
+        //         p0 = p1
+        //         p1 = new Point(entry.values[0], entry.values[1])
+        //         if (entry.type === "M") {
+        //             pm = p1
+        //         }
+        //     } else {
+        //         p0 = p1
+        //         p1 = pm
+        //     }
+        //     if (p0 !== undefined) {
+        //         if (distancePointToLine(mouseLocation, p0, p1!) < 2.5) {
+        //             console.log("insert point")
+        //             path.data.splice(index, 0, {
+        //                 type: "L",
+        //                 values: [mouseLocation.x, mouseLocation.y]
+        //             })
+        //             path.data[0].type = "M"
+        //             path.data[1].type = "L"
+        //             path.updateSVG()
                     
-                    let handle = this.createHandle(mouseLocation.x, mouseLocation.y)
-                    this.handles[0].parentNode!.appendChild(handle)
-                    this.handles.splice(index, 0, handle)
+        //             let handle = this.createHandle(mouseLocation.x, mouseLocation.y)
+        //             this.handles[0].parentNode!.appendChild(handle)
+        //             this.handles.splice(index, 0, handle)
                     
-                    return true
-                }
-            }
-            ++index
-        }
-        return false
+        //             return true
+        //         }
+        //     }
+        //     ++index
+        // }
+        // return false
     }
 
     mouseDown(event: MouseEvent, svg: SVGElement, path: Path) {
@@ -241,14 +241,14 @@ export class WordWrapTestRunner {
                 debug.innerText = text
                 } break
             case 2:
-                if (this.removeHandle(path, mouseLocation)) {
-                    this.doWrap(svg, path)
-                    return
-                }
-                if (this.insertHandle(path, mouseLocation)) {
-                    this.doWrap(svg, path)
-                    return
-                }
+                // if (this.removeHandle(path, mouseLocation)) {
+                //     this.doWrap(svg, path)
+                //     return
+                // }
+                // if (this.insertHandle(path, mouseLocation)) {
+                //     this.doWrap(svg, path)
+                //     return
+                // }
                 break
         }
     }
@@ -257,13 +257,13 @@ export class WordWrapTestRunner {
        event.preventDefault()
        let boundary = svg.getBoundingClientRect()
        let mouseLocation = new Point(event.x - boundary.left, event.y - boundary.top)
-       if (this.handleIndex !== -1) {
-            this.handles[this.handleIndex].setAttributeNS("", "x", String(Math.round(mouseLocation.x)-2.5))
-            this.handles[this.handleIndex].setAttributeNS("", "y", String(Math.round(mouseLocation.y)-2.5))
-            path.data[this.handleIndex].values = [mouseLocation.x, mouseLocation.y]
-            path.updateSVG()
-            this.doWrap(svg, path)
-        }
+    //    if (this.handleIndex !== -1) {
+    //         this.handles[this.handleIndex].setAttributeNS("", "x", String(Math.round(mouseLocation.x)-2.5))
+    //         this.handles[this.handleIndex].setAttributeNS("", "y", String(Math.round(mouseLocation.y)-2.5))
+    //         path.data[this.handleIndex].values = [mouseLocation.x, mouseLocation.y]
+    //         path.updateSVG()
+    //         this.doWrap(svg, path)
+    //     }
     }
             
     mouseUp(event: MouseEvent, svg: SVGElement, path: Path) {

@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -187,29 +187,29 @@ export class SelectTool extends Tool {
     }
     
     updateOutlines(editor: FigureEditor) {
-        console.log(`========== SelectTool.updateOutlines()`)
+        // console.log(`========== SelectTool.updateOutlines()`)
 
-        console.log(`===> removeOutlines()`)
-        this.removeOutlines(editor)
-        console.log(`===> createOutlines()`)
+        // console.log(`===> removeOutlines()`)
+        // this.removeOutlines(editor)
+        // console.log(`===> createOutlines()`)
         
-        // this.createOutlines(editor)
-        this.createOutline(editor)
+        // // this.createOutlines(editor)
+        // this.createOutline(editor)
 
-        // console.log(`SelectionTool.createDecorationRectangle: state=${this.state}, selectedHandle=${this.selectedHandle}`)
-        let m = new Matrix(this.transformation)
-        if (this.state == State.MOVE_HANDLE && this.selectedHandle < 8) {
-            console.log("SCALE")
-            m.prepend(this.boundaryTransformation)
-            this.outline.transform(m)
-        } else {
-            console.log("NOT SCALE")
-            m.append(this.boundaryTransformation)
-            this.outline.transform(m)
-        }
+        // // console.log(`SelectionTool.createDecorationRectangle: state=${this.state}, selectedHandle=${this.selectedHandle}`)
+        // let m = new Matrix(this.transformation)
+        // if (this.state == State.MOVE_HANDLE && this.selectedHandle < 8) {
+        //     console.log("SCALE")
+        //     m.prepend(this.boundaryTransformation)
+        //     this.outline.transform(m)
+        // } else {
+        //     console.log("NOT SCALE")
+        //     m.append(this.boundaryTransformation)
+        //     this.outline.transform(m)
+        // }
 
-        this.outline.updateSVG()
-        editor.decorationOverlay.appendChild(this.outline.svg)
+        // this.outline.updateSVG()
+        // editor.decorationOverlay.appendChild(this.outline.svg)
 
         // for(let [figure, path] of this.outlines) {
         //     console.log(`===> outline.transform()`)
@@ -233,10 +233,10 @@ export class SelectTool extends Tool {
     }
 
     removeDecoration(editor: FigureEditor) {
-        for(let decorator of this.decoration) {
-            editor.decorationOverlay.removeChild(decorator.svg)
-        }
-        this.decoration.length = 0
+        // for(let decorator of this.decoration) {
+        //     editor.decorationOverlay.removeChild(decorator.svg)
+        // }
+        // this.decoration.length = 0
     }
 
     private updateBoundary() {
@@ -272,46 +272,46 @@ export class SelectTool extends Tool {
     }
     
     private createDecorationRectangle(editor: FigureEditor) {
-        // adjust boundary to nice looking screen coordinates
-        let rectangle = new Rectangle(this.boundary)
-        rectangle.origin.x    = Math.round(rectangle.origin.x-0.5)+0.5
-        rectangle.origin.y    = Math.round(rectangle.origin.y-0.5)+0.5
-        rectangle.size.width  = Math.round(rectangle.size.width)
-        rectangle.size.height = Math.round(rectangle.size.height)
+        // // adjust boundary to nice looking screen coordinates
+        // let rectangle = new Rectangle(this.boundary)
+        // rectangle.origin.x    = Math.round(rectangle.origin.x-0.5)+0.5
+        // rectangle.origin.y    = Math.round(rectangle.origin.y-0.5)+0.5
+        // rectangle.size.width  = Math.round(rectangle.size.width)
+        // rectangle.size.height = Math.round(rectangle.size.height)
 
-        // convert to path
-        let path = new Path()
-        path.appendRect(rectangle)
+        // // convert to path
+        // let path = new Path()
+        // path.appendRect(rectangle)
 
-        // transform path to screen
-        let m = new Matrix(this.transformation)
-        m.prepend(this.boundaryTransformation)
-        path.transform(m)
+        // // transform path to screen
+        // let m = new Matrix(this.transformation)
+        // m.prepend(this.boundaryTransformation)
+        // path.transform(m)
     
-        // display path
-        path.updateSVG()
-        path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
-        path.svg.setAttributeNS("", "fill", "none")
-        editor.decorationOverlay.appendChild(path.svg)
-        this.decoration.push(path)
+        // // display path
+        // path.updateSVG()
+        // path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
+        // path.svg.setAttributeNS("", "fill", "none")
+        // editor.decorationOverlay.appendChild(path.svg)
+        // this.decoration.push(path)
     }
     
     private createDecorationHandles(editor: FigureEditor) {
-        for(let handle=0; handle<16; ++handle) {
-            let path = new Path()
-            path.appendRect(this.getBoundaryHandle(handle))
-            path.updateSVG()
-            if (handle<8) {
-                path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
-                path.svg.setAttributeNS("", "fill", "#fff")
-            } else {
-                path.svg.setAttributeNS("", "stroke", "rgba(0,0,0,0)")
-                path.svg.setAttributeNS("", "fill", "rgba(0,0,0,0)")
-            }
-            this.setCursorForHandle(handle, path.svg)
-            editor.decorationOverlay.appendChild(path.svg)
-            this.decoration.push(path)
-        }
+        // for(let handle=0; handle<16; ++handle) {
+        //     let path = new Path()
+        //     path.appendRect(this.getBoundaryHandle(handle))
+        //     path.updateSVG()
+        //     if (handle<8) {
+        //         path.svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
+        //         path.svg.setAttributeNS("", "fill", "#fff")
+        //     } else {
+        //         path.svg.setAttributeNS("", "stroke", "rgba(0,0,0,0)")
+        //         path.svg.setAttributeNS("", "fill", "rgba(0,0,0,0)")
+        //     }
+        //     this.setCursorForHandle(handle, path.svg)
+        //     editor.decorationOverlay.appendChild(path.svg)
+        //     this.decoration.push(path)
+        // }
     }
 
      
@@ -628,24 +628,24 @@ export class SelectTool extends Tool {
     }
 
     private removeMarqueeOutlines(editor: FigureEditor) {
-        for(let pair of this.marqueeOutlines) {
-            editor.decorationOverlay.removeChild(pair[1].svg)
-        }
-        this.marqueeOutlines.clear()
+        // for(let pair of this.marqueeOutlines) {
+        //     editor.decorationOverlay.removeChild(pair[1].svg)
+        // }
+        // this.marqueeOutlines.clear()
     }
 
     private createMarqueeOutlines(editor: FigureEditor) {
-        for(let figure of editor.selectedLayer!.data) {
-            if (Tool.selection.has(figure))
-                continue
+        // for(let figure of editor.selectedLayer!.data) {
+        //     if (Tool.selection.has(figure))
+        //         continue
 
-            if (!this.marqueeRectangle!.containsRectangle(figure.bounds()))
-                continue
+        //     if (!this.marqueeRectangle!.containsRectangle(figure.bounds()))
+        //         continue
 
-            let outline = Tool.createOutlineCopy(figure.getPath() as AbstractPath)
-            editor.decorationOverlay.appendChild(outline.svg)
-            this.marqueeOutlines.set(figure, outline)
-        }
+        //     let outline = Tool.createOutlineCopy(figure.getPath() as AbstractPath)
+        //     editor.decorationOverlay.appendChild(outline.svg)
+        //     this.marqueeOutlines.set(figure, outline)
+        // }
     }
 
     /*******************************************************************
@@ -655,20 +655,20 @@ export class SelectTool extends Tool {
      *******************************************************************/
     
     private moveSelection(event: EditorEvent) {
-        let delta = pointMinusPoint(event, this.mouseDownAt!)
-        for(let decorator of this.decoration) {
-            decorator.translate(delta)
-            decorator.updateSVG()
-        }
+        // let delta = pointMinusPoint(event, this.mouseDownAt!)
+        // for(let decorator of this.decoration) {
+        //     decorator.translate(delta)
+        //     decorator.updateSVG()
+        // }
 
-        this.transformation.identity()
-        this.transformation.translate(delta)
+        // this.transformation.identity()
+        // this.transformation.translate(delta)
 
-        this.updateOutlines(event.editor)
-        this.updateDecoration(event.editor)
+        // this.updateOutlines(event.editor)
+        // this.updateDecoration(event.editor)
 
-        event.editor.transformSelection(this.transformation)
-        this.mouseDownAt = event
+        // event.editor.transformSelection(this.transformation)
+        // this.mouseDownAt = event
     }
     
     private stopMove(event: EditorEvent) {

@@ -75,9 +75,7 @@ class BoxSource implements WordSource {
         this.rectangles.push(rectangle)
         let path = new Path()
         path.appendRect(rectangle)
-        path.setAttributes({stroke: this.style ? "#f00" : "#f80", fill: "none"})
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
+        document.getElementById("svg")!.appendChild(path.createSVG(this.style ? "#f00" : "#f80"))
         this.style = !this.style
     }
 
@@ -126,11 +124,8 @@ describe("wordwrap", function() {
 
     it("rectangle", function() {
         let path = new Path()
-        path.setAttributes({stroke: "#000", fill: "none"})
         path.appendRect(new Rectangle(20,20,200,200))
-        path.close()
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
+        document.getElementById("svg")!.appendChild(path.createSVG())
 
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
@@ -156,14 +151,12 @@ describe("wordwrap", function() {
 
     it("rhomb", function() {
         let path = new Path()
-        path.setAttributes({stroke: "#000", fill: "none"})
         path.move(200,  40)
         path.line(400, 180)
         path.line(150, 250)
         path.line( 20, 100)
         path.close()
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
+        document.getElementById("svg")!.appendChild(path.createSVG())
 
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
@@ -190,13 +183,11 @@ describe("wordwrap", function() {
 
     it("cornerOpensLeftAndRight", function() {
         let path = new Path()
-        path.setAttributes({stroke: "#000", fill: "none"})
         path.move(250,  20)
         path.line(400, 240)
         path.line(100, 240)
         path.close()
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
+        document.getElementById("svg")!.appendChild(path.createSVG())
 
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
@@ -210,13 +201,11 @@ describe("wordwrap", function() {
 
     it("cornerOpensToTheRight", function() {
         let path = new Path()
-        path.setAttributes({stroke: "#000", fill: "none"})
         path.move(20,  20)
         path.line(400, 250)
         path.line(100, 250)
         path.close()
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
+        document.getElementById("svg")!.appendChild(path.createSVG())
 
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
@@ -230,13 +219,11 @@ describe("wordwrap", function() {
 
     it("cornerOpensToTheLeft", function() {
         let path = new Path()
-        path.setAttributes({stroke: "#000", fill: "none"})
         path.move(480,  20)
         path.line(400, 250)
         path.line(100, 250)
         path.close()
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
+        document.getElementById("svg")!.appendChild(path.createSVG())
 
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
@@ -250,7 +237,6 @@ describe("wordwrap", function() {
 
     it("splitAndMergeSplicesOnce", function() {
         let path = new Path()
-        path.setAttributes({stroke: "#000", fill: "none"})
         path.move( 20,  40)
         path.line(310,  40)
         path.line(320, 130)
@@ -260,8 +246,7 @@ describe("wordwrap", function() {
         path.line(320, 310)
         path.line(310, 450)
         path.close()
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
+        document.getElementById("svg")!.appendChild(path.createSVG())
 
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
@@ -296,7 +281,6 @@ describe("wordwrap", function() {
 
     it("cornerFitsOnlyAtBottom", function() {
         let path = new Path()
-        path.setAttributes({stroke: "#000", fill: "none"})
         path.move( 20,  40)
         path.line(300,  40)
         path.line(320,  10)
@@ -306,8 +290,7 @@ describe("wordwrap", function() {
         path.line(320, 310)
         path.line(310, 450)
         path.close()
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
+        document.getElementById("svg")!.appendChild(path.createSVG())
 
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
@@ -332,7 +315,6 @@ describe("wordwrap", function() {
 
     it("cornerDoesNotFit", function() {
         let path = new Path()
-        path.setAttributes({stroke: "#000", fill: "none"})
         path.move( 20,  40)
         path.line(310,  40)
         path.line(320,  10)
@@ -342,8 +324,7 @@ describe("wordwrap", function() {
         path.line(320, 310)
         path.line(310, 450)
         path.close()
-        path.updateSVG()
-        document.getElementById("svg")!.appendChild(path.svg)
+        document.getElementById("svg")!.appendChild(path.createSVG())
 
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)

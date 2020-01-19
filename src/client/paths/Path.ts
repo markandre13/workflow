@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@ declare global {
 // }
 
 export class Path extends AbstractPath {
-    
     data: Array<any>
     constructor();
     constructor(path: Path)
@@ -40,7 +39,6 @@ export class Path extends AbstractPath {
     constructor(path?: Path | Array<Point>) {
         super()
         this.data = []
-        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "path") as SVGPathElement
         if (path instanceof Array) {
             this.data.push({ type: 'M', values: [path[0].x, path[0].y] })
             for (let i = 1; i < path.length; ++i) {
@@ -105,10 +103,6 @@ export class Path extends AbstractPath {
             }
         }
         return this
-    }
-    updateSVG(): void {
-        let path = this.svg as SVGPathElement
-        path.setPathData(this.data)
     }
     move(point: Point): Path
     move(x: number, y: number): Path
@@ -202,5 +196,14 @@ export class Path extends AbstractPath {
             }
         }
         return rectangle
+    }
+
+    createSVG(stroke="#000", strokeWidth=1, fill="none"): SVGElement {
+        let svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
+        svg.setPathData(this.data)
+        svg.setAttributeNS("", "stroke-width", String(strokeWidth))
+        svg.setAttributeNS("", "stroke", stroke)
+        svg.setAttributeNS("", "fill", fill)
+        return svg
     }
 }

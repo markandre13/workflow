@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ export async function main(url: string) {
         return
     }
 
-    if (true) {
+    if (false) {
         document.body.innerHTML=""
         testMath()
         return
@@ -289,8 +289,8 @@ function testMath3() {
     let rect0 = new figure.Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
     rect0.stroke = "#800"
     let path0 = rect0.getPath()
-    path0.updateSVG()
-    svg.appendChild(path0.svg)
+    // path0.updateSVG()
+    // svg.appendChild(path0.svg)
    
     // green: rotated rectangle
     let r = new Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
@@ -305,8 +305,8 @@ function testMath3() {
     trans1.transform(m1)
     trans1.add(rect1)
     let path1 = trans1.getPath()
-    path1.updateSVG()
-    svg.appendChild(path1.svg)
+    // path1.updateSVG()
+    // svg.appendChild(path1.svg)
 
     // blue: rotated rectangle with scaleMatrix
     let rect2 = new figure.Rectangle(r)
@@ -333,6 +333,6 @@ function testMath3() {
     trans2.prependMatrix(rotateMatrix)
     
     let path2 = trans2.getPath()
-    path2.updateSVG()
-    svg.appendChild(path2.svg)
+    // path2.updateSVG()
+    // svg.appendChild(path2.svg)
 }

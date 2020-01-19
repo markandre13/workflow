@@ -256,20 +256,14 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         swapFillAndStroke.line(41, 7)
         swapFillAndStroke.close()
         
-        swapFillAndStroke.updateSVG()
-        swapFillAndStroke.svg.setAttributeNS("", "stroke-width", "1")
-        svg.appendChild(swapFillAndStroke.svg)
+        svg.appendChild(swapFillAndStroke.createSVG())
 
         swapFillAndStroke = new Path()
         swapFillAndStroke.move(33.5, 2.5)
         swapFillAndStroke.curve(38.5, 2.5,
                                 38.5, 2.5,
                                 38.5, 7.5)
-        swapFillAndStroke.updateSVG()
-        swapFillAndStroke.svg.setAttributeNS("", "stroke", "#000")
-        swapFillAndStroke.svg.setAttributeNS("", "stroke-width", "1")
-        swapFillAndStroke.svg.setAttributeNS("", "fill", "none")
-        svg.appendChild(swapFillAndStroke.svg)
+        svg.appendChild(swapFillAndStroke.createSVG())
         
         let swapFillAndStrokeHitBox = document.createElementNS("http://www.w3.org/2000/svg", "rect")
         for(let n of [
