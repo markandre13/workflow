@@ -388,7 +388,7 @@ describe.only("figureeditor", function() {
        it("select two figures with aligned 90 degree rotation will result in a rotated selection", () => {})
        it("select two figures with non-aligned rotation will result in a selection aligned to the screen", () => {})
 
-       it("normal selection decoration", ()=> {
+       it.only("normal selection decoration", ()=> {
             // GIVEN
             let test = new FigureEditorPageObject()
             test.addRectangle()
@@ -406,7 +406,7 @@ describe.only("figureeditor", function() {
     })
 
 
-    describe.only("figureeditor's path and svg cache", ()=> {
+    describe("figureeditor's path and svg cache", ()=> {
         it("adding one figure creates one path and one svg", ()=> {
             let test = new FigureEditorPageObject(true)
             let fig1 = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
