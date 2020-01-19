@@ -61,7 +61,7 @@ export class SelectTool extends Tool {
 
     marqueeRectangle?: Rectangle
     svgMarquee?: SVGElement
-    marqueeOutlines: Map<Figure, AbstractPath>
+    marqueeOutlines: Map<Figure, SVGElement>
     
     selectedHandle: number
     handleStart: Point
@@ -76,7 +76,7 @@ export class SelectTool extends Tool {
         this.state = State.NONE
         this.boundary = new Rectangle()
         this.boundaryTransformation = new Matrix()
-        this.marqueeOutlines = new Map<Figure, AbstractPath>()
+        this.marqueeOutlines = new Map<Figure, SVGElement>()
         
         this.selectedHandle = 0
         this.handleStart = new Point()
@@ -520,25 +520,26 @@ export class SelectTool extends Tool {
         this.svgMarquee!.setAttributeNS("", "height", String(Math.round(y1-y0)))
     }
 
-    private removeMarqueeOutlines(editor: FigureEditor) {
-        // for(let pair of this.marqueeOutlines) {
-        //     editor.decorationOverlay.removeChild(pair[1].svg)
-        // }
-        // this.marqueeOutlines.clear()
+    private createMarqueeOutlines(editor: FigureEditor) {
+        for(let figure of editor.selectedLayer!.data) {
+            if (Tool.selection.has(figure))
+                continue
+
+            if (!this.marqueeRectangle!.containsRectangle(figure.bounds()))
+                continue
+
+            let svg = this.createOutline(editor, figure)
+
+            editor.decorationOverlay.appendChild(svg)
+            this.marqueeOutlines.set(figure, svg)
+        }
     }
 
-    private createMarqueeOutlines(editor: FigureEditor) {
-        // for(let figure of editor.selectedLayer!.data) {
-        //     if (Tool.selection.has(figure))
-        //         continue
-
-        //     if (!this.marqueeRectangle!.containsRectangle(figure.bounds()))
-        //         continue
-
-        //     let outline = Tool.createOutlineCopy(figure.getPath() as AbstractPath)
-        //     editor.decorationOverlay.appendChild(outline.svg)
-        //     this.marqueeOutlines.set(figure, outline)
-        // }
+    private removeMarqueeOutlines(editor: FigureEditor) {
+        for(let pair of this.marqueeOutlines) {
+            editor.decorationOverlay.removeChild(pair[1])
+        }
+        this.marqueeOutlines.clear()
     }
 
     /*******************************************************************
@@ -591,20 +592,23 @@ export class SelectTool extends Tool {
         this.outline.setAttributeNS("", "transform", "translate(-1, 1)")
 
         for(let figure of Tool.selection.selection) {
-            let cached = editor.cache.get(figure.id)
-            if (cached === undefined)
-                throw Error(`expected figure ${figure.id} to be cached`)
-            let svg = cached.svg
-            if (svg === undefined)
-                throw Error(`expected figure ${figure.id} to have an SVGElement yet`)
-            if (cached.parent)
-                throw Error("nested figures not implemented yet")
-
-            svg = this.createOutlineCopy(svg)
-            this.outline.appendChild(svg)
+            this.outline.appendChild(this.createOutline(editor, figure))
         }
 
         editor.decorationOverlay.appendChild(this.outline)
+    }
+
+    createOutline(editor: FigureEditor, figure: Figure) {
+        let cached = editor.cache.get(figure.id)
+        if (cached === undefined)
+            throw Error(`expected figure ${figure.id} to be cached`)
+        let svg = cached.svg
+        if (svg === undefined)
+            throw Error(`expected figure ${figure.id} to have an SVGElement yet`)
+        if (cached.parent)
+            throw Error("nested figures not implemented yet")
+
+        return this.createOutlineCopy(svg)
     }
     
     removeOutlines(editor: FigureEditor): void {
