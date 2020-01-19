@@ -193,19 +193,40 @@ export class FigureEditor extends GenericView<LayerModel> {
                         throw Error(`FigureEditor error: cache lacks id $id`)
                     if (cached.figure instanceof Group) {
                         throw Error("FigureEditor.updateView(): ADD_FIGURES for groups not implemented yet")
-                    } else {
-                        if (!cached.path)
-                            cached.path = cached.figure.getPath() as AbstractPath
-                        let svg = cached.figure.updateSVG(cached.path, cached.svg)
-                        if (!cached.svg) {
-                            layer.appendChild(svg) // FIXME: need to do positional insert 
-                            cached.svg = svg
-                        }
+                    }
+                    if (!cached.path)
+                        cached.path = cached.figure.getPath() as AbstractPath
+                    let svg = cached.figure.updateSVG(cached.path, cached.svg)
+                    if (!cached.svg) {
+                        layer.appendChild(svg) // FIXME: need to do positional insert 
+                        cached.svg = svg
                     }
                 }
                 break
             case Operation.TRANSFORM_FIGURES:
                 console.log("FigureEditor.updateView(): TRANSFORM_FIGURE not implemented yet")
+                for(let id of data.figures) {
+                    let cached = this.cache.get(id)
+                    if (!cached)
+                        throw Error(`FigureEditor error: cache lacks id $id`)
+                    if (cached.figure instanceof Group) {
+                        throw Error("FigureEditor.updateView(): ADD_FIGURES for groups not implemented yet")
+                    }
+                    if (!cached.path)
+                        throw Error("FigureEditor.updateView(): expected path in cache")
+                    if (!cached.svg)
+                        throw Error("FigureEditor.updateView(): expected svg in cache")
+
+                    // variant i: get a new path
+                    // cached.path = cached.figure.getPath() as AbstractPath
+                    // cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
+
+                    // variant ii: update the existing path
+                    cached.path.transform(data.matrix)
+                    cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
+
+                    // variant iii: add transform to SVGElement
+                }
                 break
         }
         

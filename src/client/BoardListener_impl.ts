@@ -78,7 +78,8 @@ export class BoardListener_impl extends skel.BoardListener {
 
         this.boardmodel.modified.trigger({
             operation: Operation.TRANSFORM_FIGURES,
-            figures: figureIdArray
+            figures: figureIdArray,
+            matrix: matrix
         })
 
     }
