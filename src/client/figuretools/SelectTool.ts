@@ -36,7 +36,6 @@ import {
     Point, Rectangle, Matrix,
     pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
 } from "../../shared/geometry"
-import { AbstractPath } from "../paths/AbstractPath"
 import { Path } from "../paths/Path"
 import { Figure } from "../figures/Figure"
 import { AttributedFigure } from "../figures/AttributedFigure"
@@ -58,6 +57,7 @@ export class SelectTool extends Tool {
     boundary: Rectangle
     boundaryTransformation: Matrix
     mouseDownAt?: Point
+    mouseLastAt?: Point
 
     marqueeRectangle?: Rectangle
     svgMarquee?: SVGElement
@@ -116,6 +116,7 @@ export class SelectTool extends Tool {
 
     mousedown(event: EditorEvent) {
         this.mouseDownAt = event
+        this.mouseLastAt = event
 
         if (this.downHandle(event)) {
             this.state = State.MOVE_HANDLE
@@ -178,6 +179,33 @@ export class SelectTool extends Tool {
                 break
         }
         this.state = State.NONE
+    }
+
+    /*******************************************************************
+     *                                                                 *
+     *                   M O V E   S E L E C T I O N                   *
+     *                                                                 *
+     *******************************************************************/
+    
+    private moveSelection(event: EditorEvent) {
+
+        // move decoration & outline
+        let moveAbsolute = pointMinusPoint(event, this.mouseDownAt!)
+        let translate = `translate(${moveAbsolute.x}, ${moveAbsolute.y})`
+        this.decoration!.setAttributeNS("", "transform", translate)
+        this.outline!.setAttributeNS("", "transform", translate)
+
+        // change model
+        let moveRelative = pointMinusPoint(event, this.mouseLastAt!)
+        this.transformation.identity()
+        this.transformation.translate(moveRelative)
+        event.editor.transformSelection(this.transformation)
+
+        this.mouseLastAt = event
+    }
+    
+    private stopMove(event: EditorEvent) {
+        this.mouseDownAt = undefined
     }
          
     /*******************************************************************
@@ -457,7 +485,7 @@ export class SelectTool extends Tool {
         this.transformation = new Matrix()
         event.editor.transformSelection(transformation)
 
-    //    this.updateBoundaryFromSelection() // because the figure is updated async, or just continue with the current selection?
+        // this.updateBoundaryFromSelection() // because the figure is updated async, or just continue with the current selection?
 
         this.updateOutlineAndDecorationOfSelection(event.editor)
     }
@@ -540,33 +568,6 @@ export class SelectTool extends Tool {
             editor.decorationOverlay.removeChild(pair[1])
         }
         this.marqueeOutlines.clear()
-    }
-
-    /*******************************************************************
-     *                                                                 *
-     *                   M O V E   S E L E C T I O N                   *
-     *                                                                 *
-     *******************************************************************/
-    
-    private moveSelection(event: EditorEvent) {
-        // let delta = pointMinusPoint(event, this.mouseDownAt!)
-        // for(let decorator of this.decoration) {
-        //     decorator.translate(delta)
-        //     decorator.updateSVG()
-        // }
-
-        // this.transformation.identity()
-        // this.transformation.translate(delta)
-
-        // this.updateOutlines(event.editor)
-        // this.updateDecoration(event.editor)
-
-        // event.editor.transformSelection(this.transformation)
-        // this.mouseDownAt = event
-    }
-    
-    private stopMove(event: EditorEvent) {
-        this.mouseDownAt = undefined
     }
 
     /*******************************************************************
