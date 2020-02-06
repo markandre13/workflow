@@ -25,8 +25,8 @@ import {
 import { AccountPreferences } from "./AccountPreferences"
 
 import { ORB } from "corba.js"
+import * as inf from "../shared/workflow"
 import * as skel from "../shared/workflow_skel"
-import * as stub from "../shared/workflow_stub"
 
 import * as Rectangle from "./figures/Rectangle"
 import * as Circle from "./figures/Circle"
@@ -41,9 +41,9 @@ import { BoardListener_impl } from "./BoardListener_impl"
 // import { testWrap } from "./wordwrap/test"
 
 export class Client_impl extends skel.Client {
-    server: stub.Server
+    server: inf.Server
 
-    constructor(orb: ORB, server: stub.Server) {
+    constructor(orb: ORB, server: inf.Server) {
         super(orb)
         console.log("Client_impl.constructor()")
         this.server = server

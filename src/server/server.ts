@@ -241,17 +241,17 @@ class Project_impl extends skel.Project {
     constructor(orb: ORB, data: ProjectData) {
         super(orb)
         this.data = data
-	this.boards = new Map<number, Board_impl>()
+    	this.boards = new Map<number, Board_impl>()
         console.log("Project_impl.constructor()")
     }
 
     async getBoard(boardID: number) {
         console.log("Project_impl.getBoard("+boardID+")")
         
-	let board = this.boards.get(boardID)
-	if (board) {
-	    console.log("return active board "+boardID)
-	    return board
+        let board = this.boards.get(boardID)
+        if (board) {
+            console.log("return active board "+boardID)
+            return board
         }
         let result = await db.select("bid", "name", "description", "layers").from("boards").where({pid: this.data.pid, bid: boardID})
         if (result.length !== 1) {

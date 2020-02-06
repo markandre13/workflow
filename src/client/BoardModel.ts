@@ -21,13 +21,14 @@ import { Matrix } from "../shared/geometry"
 import { Figure } from "./figures/Figure"
 import { LayerModel } from "./figureeditor/LayerModel"
 
+import * as inf from "../shared/workflow"
 import * as stub from "../shared/workflow_stub"
 import * as valueimpl from "../shared/workflow_valueimpl"
 
 // FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
 export class BoardModel extends valueimpl.BoardModel implements LayerModel {
     modified: Signal
-    board?: stub.Board
+    board?: inf.Board
     constructor() {
         super();
         this.modified = new Signal()

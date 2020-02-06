@@ -16,10 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TypeScript note: native types suffixed with _ptr can be 'undefined'
+// corba.js IDL hack: native types suffixed with _ptr can be 'undefined'
 native AbstractPath;
 native Path;
 native Point_ptr;
+native Matrix_ptr;
 native Figure_ptr;
 native FigureEditor;
 native SVGElement;
@@ -84,6 +85,7 @@ valuetype Rectangle {
 
 valuetype Figure {
     public unsigned long id;
+    public Matrix_ptr matrix;
 
     Path getPath();
     SVGElement updateSVG(in AbstractPath path, in SVGElement_ptr svg); 
