@@ -18,13 +18,13 @@
 
 console.log('booting workflow server v0.1')
 
-import * as knex from "knex"
+import * as knex from 'knex'
 import * as crypto from "crypto"
 //import * as scrypt from "scrypt"
 var scrypt = require("scrypt")
 var scryptParameters = scrypt.paramsSync(0.1)
 
-import { ORB } from "corba.js/lib/orb/orb-nodejs" // FIXME corba.js/nodejs corba.js/browser ?
+import { ORB } from 'corba.js/lib/orb/orb-nodejs' // FIXME corba.js/nodejs corba.js/browser ?
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
 import { Figure, FigureModel, BoardModel } from "../shared/workflow_valueimpl"

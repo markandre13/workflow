@@ -89,18 +89,18 @@ export class FigureEditorPageObject {
         // expect(Tool.selection.has(this.figures[index])).to.be.true
     }
 
-    selectionHasCorner(x: number, y: number): boolean {
-        throw Error("not implemented yet")
-        // if (this.selectTool.decoration.length === 0)
-        //     throw Error("Error: selection decoration is empty")
-        // let path = this.selectTool.decoration[0] as Path
-        // let msg = `Selection decoration has no edge (${x}, ${y}). We have `
-        // for(let i=0; i<4; ++i) {
-        //     if (path.data[i].values[0]===x && path.data[i].values[1]===y)
-        //         return true
-        //     msg = `${msg} (${path.data[i].values[0]}, ${path.data[i].values[1]})`
-        // }
-        // throw Error(msg)
+    selectionHasCorner(x: number, y: number) {
+        if (Tool.selection.empty())
+            throw Error("Error: selection decoration is empty")
+        let msg = ""
+        let p = new Point(x, y)
+        for (let i of [0, 2, 4, 6]) {
+            let r = this.selectTool.getBoundaryHandle(i)
+            if (r.inside(p))
+                return
+            msg = `${msg} (${r.origin.x}, ${r.origin.y})`
+        }
+        throw Error(`Selection decoration has no edge (${x}, ${y}). We have ${msg}`)
     }
 
     mouseDownAt(point: Point, shift = true) {

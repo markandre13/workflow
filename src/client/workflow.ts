@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ORB } from "corba.js"
+import { ORB } from 'corba.js'
 import * as stub from "../shared/workflow_stub"
 import {
     Point, Size, Rectangle, Matrix, pointMinus, rotatePointAroundPointBy,

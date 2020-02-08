@@ -246,7 +246,7 @@ export class SelectTool extends Tool {
         }
     }
 
-    private getBoundaryHandle(handle: number): Rectangle {
+    getBoundaryHandle(handle: number): Rectangle {
         let   x = this.boundary.origin.x,
               y = this.boundary.origin.y,
               w = this.boundary.size.width,
