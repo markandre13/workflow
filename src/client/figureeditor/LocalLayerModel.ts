@@ -16,11 +16,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Signal } from 'toad.js'
+
 import { LayerModel } from "./LayerModel"
-import { Signal } from "toad.js"
 import { LocalLayer } from "./LocalLayer"
 import * as figure from "../figures"
 import { Matrix } from "../../shared/geometry"
+import { Operation } from "./FigureEditor"
+// import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "../../shared/geometry"
+
 import { Tool } from "../figuretools"
 
 export class LocalLayerModel implements LayerModel {
@@ -71,16 +75,26 @@ export class LocalLayerModel implements LayerModel {
                 continue
             }
 
-            console.log("figure encapsuled with a transform object")
-            let transform = new figure.Transform()
-            transform.id = layer.createFigureId()
-            newIdArray.push(transform.id)
-            transform.matrix = new Matrix(matrix)
-            transform.childFigures.push(fig)
-            layer.data[index] = transform
+            if (fig.matrix === undefined) {
+                console.log(`=== ADD MATRIX TO FIGURE ${fig.id}`)
+                fig.matrix = new Matrix()
+            }
+            let m = fig.matrix as Matrix
+            m.prepend(matrix)
+            
 
-            Tool.selection.replace(fig, transform)
-            this.modified.trigger()
+            // console.log("figure encapsuled with a transform object")
+            // let transform = new figure.Transform()
+            // transform.id = layer.createFigureId()
+            // newIdArray.push(transform.id)
+            // transform.matrix = new Matrix(matrix)
+            // transform.childFigures.push(fig)
+            // layer.data[index] = transform
+
+            // Tool.selection.replace(fig, transform)
+            console.log("MODEL WILL CALL MODIFIED TRIGGER")
+            this.modified.trigger({operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: figureIds})
+            console.log("MODEL HAS CALLED MODIFIED TRIGGER")
         }
     }
 

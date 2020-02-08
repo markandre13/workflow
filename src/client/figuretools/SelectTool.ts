@@ -239,7 +239,10 @@ export class SelectTool extends Tool {
                 this.boundary.expandByRectangle(f.bounds())
             }
         } else {
-            this.boundaryTransformation.identity()
+            if (figure && figure.matrix)
+                this.boundaryTransformation = new Matrix(figure.matrix)
+            else
+                this.boundaryTransformation.identity()
             for(let figure of Tool.selection.selection) {
                 this.boundary.expandByRectangle(figure.bounds())
             }
@@ -601,8 +604,11 @@ export class SelectTool extends Tool {
 
     createOutline(editor: FigureEditor, figure: Figure) {
         let cached = editor.cache.get(figure.id)
-        if (cached === undefined)
+        if (cached === undefined) {
+            for(let x of editor.cache)
+                console.log(x[1])
             throw Error(`expected figure ${figure.id} to be cached`)
+        }
         let svg = cached.svg
         if (svg === undefined)
             throw Error(`expected figure ${figure.id} to have an SVGElement yet`)

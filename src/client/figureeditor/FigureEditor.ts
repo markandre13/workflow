@@ -168,12 +168,13 @@ export class FigureEditor extends GenericView<LayerModel> {
         if (data === undefined) {
             // FIXME: notInCache should be always true
             // FIXME: a new model would mean to clear the cache... how 
-            console.log(`### NEW MODEL, FAKE ADD_FIGURES MESSAGE`)
+            console.log(`### FigureEditor.updateView(): NEW MODEL, FAKE ADD_FIGURES MESSAGE`)
             let operation = Operation.ADD_FIGURES
             let figures = this.model.layers[0].data
                 .filter((figure)=>{ 
                     let notInCache = !this.cache.has(figure.id)
                     if (notInCache) {
+                        console.log(`### FigureEditor.updateView(): ADD FIGURE WITH ID ${figure.id} TO THE CACHE`)
                         this.cache.set(figure.id, new CacheEntry(figure as figure.Figure))
                     }
                     return notInCache
@@ -194,8 +195,11 @@ export class FigureEditor extends GenericView<LayerModel> {
                     if (cached.figure instanceof Group) {
                         throw Error("FigureEditor.updateView(): ADD_FIGURES for groups not implemented yet")
                     }
-                    if (!cached.path)
+                    if (!cached.path) {
                         cached.path = cached.figure.getPath() as AbstractPath
+                        if (cached.figure.matrix)
+                            cached.path.transform(cached.figure.matrix as Matrix)
+                    }
                     let svg = cached.figure.updateSVG(cached.path, cached.svg)
                     if (!cached.svg) {
                         layer.appendChild(svg) // FIXME: need to do positional insert 
