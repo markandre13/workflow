@@ -131,10 +131,10 @@ function testMath() {
     test.mouseUp()
 return
     // THEN SELECT TOOL DECORATION IS ROTATED
-    test.selectionHasCorner(56.77205421043658, 47.96825417111798)
-    test.selectionHasCorner(75.24964486066233, 55.621922818419776)
-    test.selectionHasCorner(63.76914188970962, 83.33830879375839)
-    test.selectionHasCorner(45.29155123948388, 75.68464014645659)
+    test.selectionHasCorner({x: 56.77205421043658, y: 47.96825417111798})
+    test.selectionHasCorner({x: 75.24964486066233, y: 55.621922818419776})
+    test.selectionHasCorner({x: 63.76914188970962, y: 83.33830879375839})
+    test.selectionHasCorner({x: 45.29155123948388, y: 75.68464014645659})
 
     // WHEN DESELECTED & RESELECTED
     Tool.selection.clear()
@@ -147,10 +147,10 @@ return
     }
 
     // THEN SELECT TOOL DECORATION IS STILL ROTATED
-    test.selectionHasCorner(56.77205421043658, 47.96825417111798)
-    test.selectionHasCorner(75.24964486066233, 55.621922818419776)
-    test.selectionHasCorner(63.76914188970962, 83.33830879375839)
-    test.selectionHasCorner(45.29155123948388, 75.68464014645659)
+    test.selectionHasCorner({x: 56.77205421043658, y: 47.96825417111798})
+    test.selectionHasCorner({x: 75.24964486066233, y: 55.621922818419776})
+    test.selectionHasCorner({x: 63.76914188970962, y: 83.33830879375839})
+    test.selectionHasCorner({x: 45.29155123948388, y: 75.68464014645659})
 
     // WHEN SCALED
     console.log(`================= scale =====================`)
@@ -175,8 +175,8 @@ return
     // test.mouseUp()
     // check that the decoration is correct after figure was transformed
 
-    test.selectionHasCorner(56.77205421043658, 27.96825417111798)
-    test.selectionHasCorner(63.76914188970962, 83.33830879375839)
+    test.selectionHasCorner({x: 56.77205421043658, y: 27.96825417111798})
+    test.selectionHasCorner({x: 63.76914188970962, y: 83.33830879375839})
 }
 
 function testMath2() {

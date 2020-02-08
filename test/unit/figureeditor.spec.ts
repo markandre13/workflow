@@ -31,6 +31,7 @@ import { LocalLayerModel } from "../../src/client/figureeditor/LocalLayerModel"
 import { LocalLayer } from "../../src/client/figureeditor/LocalLayer"
 
 import { AbstractPath } from "../../src/client/paths"
+import { Rectangle, pointMinus } from "../../src/shared/geometry"
 
 declare global {
     interface SVGPathElement {
@@ -271,6 +272,22 @@ describe.only("figureeditor", function() {
             // console.log("before all select tool tests")
         })
 
+        it("normal selection decoration", ()=> {
+            // GIVEN
+            let test = new FigureEditorPageObject()
+            test.addRectangle()
+
+            // WHEN
+            test.selectFigure()
+
+            // THEN
+            // { origin: {x:50, y: 50}, size: {width: 20, height: 30}}
+            test.selectionHasCorner({x: 50.5, y: 50.5})
+            test.selectionHasCorner({x: 70.5, y: 50.5})
+            test.selectionHasCorner({x: 70.5, y: 80.5})
+            test.selectionHasCorner({x: 50.5, y: 80.5})
+       })
+
         it("move single figure", ()=> {
             // GIVEN
             let test = new FigureEditorPageObject()
@@ -289,7 +306,7 @@ describe.only("figureeditor", function() {
             expect(test.centerOfFigure()).to.eql(newCenter)
         })
        
-        it("scale single figure using nw handle", ()=> {
+        it("scales figure", ()=> {
             // GIVEN
             let test = new FigureEditorPageObject()
             let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
@@ -312,30 +329,27 @@ describe.only("figureeditor", function() {
             expect(oldSECorner).to.eql(newSECorner)
         })
 
-        it("rotate single figure using nw handle", ()=> {
+        it.only("rotates figure's outline before mouse is released", ()=> {
             // GIVEN
             let test = new FigureEditorPageObject()
-            test.addRectangle()
+            let rectangle = new Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+            let fig = new figure.Rectangle(rectangle)
+            fig.stroke = "#000"
+            fig.fill = "rgba(255,0,0,0.2)"
+
+            test.addFigure(fig)
             test.selectFigure()
 
             // WHEN
             let oldMouseRotate = test.centerOfNWRotateHandle()
             let center = test.centerOfFigure()
-            let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/2)
+            let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/4)
 
             test.mouseDownAt(oldMouseRotate)
             test.moveMouseTo(newMouseRotate)
-            test.mouseUp()
 
             // THEN
-            let newFig = Tool.selection.selection.values().next().value
-            let p = newFig.getPath() as path.PathGroup
-            // p.updateSVG()
-            let p1 = p.data[0] as path.Path
-            expect(p1.data[0].values).to.almost.eql([75, 55])
-            expect(p1.data[1].values).to.almost.eql([75, 75])
-            expect(p1.data[2].values).to.almost.eql([45, 75])
-            expect(p1.data[3].values).to.almost.eql([45, 55])
+            test.selectionIsRectangle(rectangle, rectangle.center(), Math.PI/4)
         })
 
         it("rotate two figures using nw handle", () => {
@@ -377,32 +391,10 @@ describe.only("figureeditor", function() {
 
             // let oldMouseRotate = test.centerOfNWRotateHandle()
        })
-       it("rotate single figure using nw handle two times", () => {
-           // TODO: this is where it becomes interesting...
-           // STEPS:
-           // o rotate, release
-       })
-
        it("rotate two figures using nw handle two times", () => {})
        it("rotate two figures using nw handle two times with deselect, select in between", () => {})
        it("select two figures with aligned 90 degree rotation will result in a rotated selection", () => {})
        it("select two figures with non-aligned rotation will result in a selection aligned to the screen", () => {})
-
-       it.only("normal selection decoration", ()=> {
-            // GIVEN
-            let test = new FigureEditorPageObject()
-            test.addRectangle()
-
-            // WHEN
-            test.selectFigure()
-
-            // THEN
-            // { origin: {x:50, y: 50}, size: {width: 20, height: 30}}
-            test.selectionHasCorner(50.5, 50.5)
-            test.selectionHasCorner(70.5, 50.5)
-            test.selectionHasCorner(70.5, 80.5)
-            test.selectionHasCorner(50.5, 80.5)
-       })
     })
 
 

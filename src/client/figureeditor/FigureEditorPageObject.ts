@@ -23,7 +23,7 @@ import * as figure from "../figures"
 import { FigureEditor } from "./FigureEditor"
 import { Path } from "../paths"
 
-import { Point, pointPlusPoint, pointMinusPoint } from "../../shared/geometry"
+import { Point, Rectangle, Matrix, pointPlusPoint, pointPlusSize, pointMinusPoint, pointMinus } from "../../shared/geometry"
 import { LocalLayer } from "./LocalLayer"
 import { EditorEvent } from "./EditorEvent"
 
@@ -43,6 +43,8 @@ export class FigureEditorPageObject {
         document.body.appendChild(figureeditor)
 
         Tool.cursorPath = "base/img/cursor/"
+        if (Tool.selection)
+            Tool.selection.clear()
 
         let selectTool = new SelectTool()
         figureeditor.setTool(selectTool)
@@ -89,18 +91,31 @@ export class FigureEditorPageObject {
         // expect(Tool.selection.has(this.figures[index])).to.be.true
     }
 
-    selectionHasCorner(x: number, y: number) {
+    selectionHasCorner(point: Point) {
         if (Tool.selection.empty())
             throw Error("Error: selection decoration is empty")
         let msg = ""
-        let p = new Point(x, y)
         for (let i of [0, 2, 4, 6]) {
             let r = this.selectTool.getBoundaryHandle(i)
-            if (r.inside(p))
+            if (r.inside(point))
                 return
             msg = `${msg} (${r.origin.x}, ${r.origin.y})`
         }
-        throw Error(`Selection decoration has no edge (${x}, ${y}). We have ${msg}`)
+        throw Error(`Selection decoration has no edge (${point.x}, ${point.y}). We have ${msg}`)
+    }
+
+    selectionIsRectangle(rectangle: Rectangle, center: Point, radiant: number) {
+        let m = new Matrix()
+        m.translate(pointMinus(rectangle.center()))
+        m.rotate(Math.PI/4)
+        m.translate(rectangle.center())
+
+        let p = m.transformPoint(rectangle.origin)
+        
+        this.selectionHasCorner(m.transformPoint(rectangle.origin))
+        this.selectionHasCorner(m.transformPoint(pointPlusSize(rectangle.origin, {width: rectangle.size.width, height: 0})))
+        this.selectionHasCorner(m.transformPoint(pointPlusSize(rectangle.origin, {width: 0, height: rectangle.size.height})))
+        this.selectionHasCorner(m.transformPoint(pointPlusSize(rectangle.origin, rectangle.size)))
     }
 
     mouseDownAt(point: Point, shift = true) {
