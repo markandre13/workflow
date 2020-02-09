@@ -18,7 +18,6 @@
 
 import * as valueimpl from "./workflow_valueimpl"
 import * as valuetype from "./workflow_valuetype"
-import { runInThisContext } from "vm"
 
 export class Point extends valueimpl.Point {
     constructor()
@@ -98,15 +97,29 @@ export function rotatePointAroundPointBy(point: Point, center: Point, byRadiant:
     let vector = pointMinusPoint(point, center)
     let radiant = Math.atan2(vector.y, vector.x) + byRadiant
     let diameter = Math.sqrt(vector.x*vector.x + vector.y*vector.y)
-    return new Point(center.x + Math.cos(radiant) * diameter, center.y + Math.sin(radiant) * diameter)
+    let p = new Point(center.x + Math.cos(radiant) * diameter, center.y + Math.sin(radiant) * diameter)
+
+    // FIXME: move this sanity check into separate test
+    let m = new Matrix()
+    m.translate(pointMinus(center))
+    m.rotate(byRadiant)
+    m.translate(center)
+    let pp = m.transformPoint(point)
+    if (!pointEqualsPoint(p, pp))
+        throw Error("something's wrong with the matrix")
+
+    return p
 }
 
+// let epsilon = Number.EPSILON * 2.0
+let epsilon = 0.000000001
+
 export function isZero(a: number): boolean {
-    return Math.abs(a) <= Number.EPSILON * 2.0
+    return Math.abs(a) <= epsilon
 }
 
 export function isOne(a: number): boolean {
-    return (1.0 - Math.abs(a)) <= Number.EPSILON * 2.0
+    return (1.0 - Math.abs(a)) <= epsilon
 }
 
 export function isEqual(a: number, b: number) {
@@ -116,7 +129,7 @@ export function isEqual(a: number, b: number) {
 export function isLessEqual(a: number, b: number): boolean {
     if (a < b)
         return true
-    return Math.abs(a - b) < 0.000000001
+    return Math.abs(a - b) < epsilon
 }
 
 export function pointEqualsPoint(a: Point, b: Point): boolean {

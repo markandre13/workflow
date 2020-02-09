@@ -44,7 +44,7 @@ import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
 import { Transform } from "../figures/Transform"
 
-enum State {
+export enum SelectToolState {
     NONE,
     DRAG_MARQUEE,       // select figures using a marquee rectangle
     MOVE_HANDLE,        // move a handle to resize and rotate
@@ -52,7 +52,7 @@ enum State {
 }
 
 export class SelectTool extends Tool {
-    state: State
+    state: SelectToolState
 
     boundary: Rectangle
     boundaryTransformation: Matrix
@@ -73,7 +73,7 @@ export class SelectTool extends Tool {
 
     constructor() {
         super()
-        this.state = State.NONE
+        this.state = SelectToolState.NONE
         this.boundary = new Rectangle()
         this.boundaryTransformation = new Matrix()
         this.marqueeOutlines = new Map<Figure, SVGElement>()
@@ -93,7 +93,7 @@ export class SelectTool extends Tool {
 
         if (event.editor.strokeAndFillModel) {
             event.editor.strokeAndFillModel.modified.add( () => {
-                console.log("SelectTool.strokeAndFillModel.modified -> update selected figures")
+                // console.log("SelectTool.strokeAndFillModel.modified -> update selected figures")
                 for(let figure of Tool.selection.selection) {
                     if (figure instanceof AttributedFigure) {
                         figure.stroke = event.editor.strokeAndFillModel!.stroke
@@ -119,8 +119,8 @@ export class SelectTool extends Tool {
         this.mouseLastAt = event
 
         if (this.downHandle(event)) {
-            this.state = State.MOVE_HANDLE
-            console.log(`DOWN: START TO MOVE HANDLE ${this.selectedHandle}`)
+            this.state = SelectToolState.MOVE_HANDLE
+            // console.log(`DOWN: START TO MOVE HANDLE ${this.selectedHandle}`)
             return
         }
 
@@ -132,11 +132,11 @@ export class SelectTool extends Tool {
             if (!event.shiftKey) {
                 Tool.selection.clear()
             }
-            this.state = State.DRAG_MARQUEE
+            this.state = SelectToolState.DRAG_MARQUEE
             return
         }
         
-        this.state = State.MOVE_SELECTION
+        this.state = SelectToolState.MOVE_SELECTION
 
         if (Tool.selection.has(figure)) {
             return
@@ -151,13 +151,13 @@ export class SelectTool extends Tool {
 
     mousemove(event: EditorEvent) {
         switch(this.state) {
-            case State.MOVE_HANDLE:
+            case SelectToolState.MOVE_HANDLE:
                 this.moveHandle(event)
                 break
-            case State.DRAG_MARQUEE:
+            case SelectToolState.DRAG_MARQUEE:
                 this.dragMarquee(event)
                 break
-            case State.MOVE_SELECTION:
+            case SelectToolState.MOVE_SELECTION:
                 this.moveSelection(event)
                 break
         }
@@ -165,20 +165,20 @@ export class SelectTool extends Tool {
 
     mouseup(event: EditorEvent) {
         switch(this.state) {
-            case State.DRAG_MARQUEE:
+            case SelectToolState.DRAG_MARQUEE:
                 this.stopMarquee(event)
                 break
-            case State.MOVE_HANDLE:
-                console.log("UP: HANDLE")
+            case SelectToolState.MOVE_HANDLE:
+                // console.log("UP: HANDLE")
                 this.moveHandle(event)
                 this.stopHandle(event)
                 break
-            case State.MOVE_SELECTION:
+            case SelectToolState.MOVE_SELECTION:
                 this.moveSelection(event)
                 this.stopMove(event)
                 break
         }
-        this.state = State.NONE
+        this.state = SelectToolState.NONE
     }
 
     /*******************************************************************
@@ -215,7 +215,7 @@ export class SelectTool extends Tool {
      *******************************************************************/
 
     private updateBoundary() {
-        console.log("SelectTool.updateBoundary()")
+        // console.log("SelectTool.updateBoundary()")
         this.boundary = new Rectangle()
 
         if (Tool.selection.empty()) {
@@ -233,7 +233,7 @@ export class SelectTool extends Tool {
         }
 
         if (figure instanceof Transform) {
-            console.log("it's a transform")
+            // console.log("it's a transform")
             this.boundaryTransformation = new Matrix(figure.matrix)
             for(let f of figure.childFigures) {
                 this.boundary.expandByRectangle(f.bounds())
@@ -369,6 +369,7 @@ export class SelectTool extends Tool {
     }
     
     private downHandle(event: EditorEvent): boolean {
+        // console.log(`SelectTool.downHandle(): (${event.x}, ${event.y})`)
         if (Tool.selection.empty())
             return false
         for(let handle = 0; handle<16; ++handle) {
@@ -397,7 +398,7 @@ export class SelectTool extends Tool {
     }
     
     private moveHandle2Scale(event: EditorEvent) {
-        console.log(`SelectTool.moveHandle2Scale()`)
+        // console.log(`SelectTool.moveHandle2Scale()`)
 
         // new boundary = (x0,y0)-(x1,y1), old boundary = (ox0,oy0)-(ox1,oy1)
         let x0 = this.boundary.origin.x,
@@ -412,8 +413,8 @@ export class SelectTool extends Tool {
         let m = new Matrix(this.boundaryTransformation)
         m.invert()
         let p = m.transformPoint(event)
-        console.log(`mouse up at screen ${event.x}, ${event.y}`)
-        console.log(`mouse up at boundary ${p.x}, ${p.y}`)
+        // console.log(`mouse up at screen ${event.x}, ${event.y}`)
+        // console.log(`mouse up at boundary ${p.x}, ${p.y}`)
 
         switch(this.selectedHandle) {
             case 0: [x0, y0] = [p.x, p.y]; break
@@ -429,10 +430,10 @@ export class SelectTool extends Tool {
         let sx = (x1-x0) / (ox1 - ox0),
             sy = (y1-y0) / (oy1 - oy0)
 
-        console.log(`  handle ${this.selectedHandle}`)
-        console.log(`  ox0=${ox0}, oy0=${oy0}, ox1=${ox1}, oy1=${oy1}`)
-        console.log(`  x0=${x0}, y0=${y0}, x1=${x1}, y1=${y1}`)
-        console.log(`  sx=${sx}, sy=${sy}`)
+        // console.log(`  handle ${this.selectedHandle}`)
+        // console.log(`  ox0=${ox0}, oy0=${oy0}, ox1=${ox1}, oy1=${oy1}`)
+        // console.log(`  x0=${x0}, y0=${y0}, x1=${x1}, y1=${y1}`)
+        // console.log(`  sx=${sx}, sy=${sy}`)
 
         // let X0, OX0, Y0, OY0
         // if (event.editor.getMatrix()) {
@@ -444,9 +445,9 @@ export class SelectTool extends Tool {
             OX0 = ox0; OY0 = oy0
         // }
         let m2 = new Matrix()
-        console.log(`  translate(${-OX0}, ${-OY0})`)
-        console.log(`  scale(${sx}, ${sy})`)
-        console.log(`  translate(${X0}, ${Y0})`)
+        // console.log(`  translate(${-OX0}, ${-OY0})`)
+        // console.log(`  scale(${sx}, ${sy})`)
+        // console.log(`  translate(${X0}, ${Y0})`)
         m2.translate({x: -OX0, y: -OY0})
         m2.scale(sx, sy)
         m2.translate({x: X0, y: Y0})
@@ -464,13 +465,16 @@ export class SelectTool extends Tool {
     }
     
     private moveHandle2Rotate(event: EditorEvent) {
-        console.log(`moveHandle2Rotate`)
+        // console.log(`moveHandle2Rotate`)
         let rotd = Math.atan2(event.y - this.rotationCenter.y, event.x - this.rotationCenter.x)
         rotd -= this.rotationStartDirection
         let center = this.rotationCenter
         // if (event.editor.getMatrix()) {
         //   ...
         // }
+
+        // console.log(`SelectTool.moveHandle2Rotate(): center=(${center.x}, ${center.y}), radians=${rotd}`)
+
         this.transformation.identity()
         this.transformation.translate(pointMinus(center))
         this.transformation.rotate(rotd)
@@ -480,9 +484,9 @@ export class SelectTool extends Tool {
     }
     
     private stopHandle(event: EditorEvent) {
-        console.log(`stopHandle`)
-        this.state = State.NONE
-        console.log("SelectTool.stopHandle() -> editor.transformSelection()")
+        // console.log(`stopHandle`)
+        this.state = SelectToolState.NONE
+        // console.log("SelectTool.stopHandle() -> editor.transformSelection()")
 
         let transformation = this.transformation
         this.transformation = new Matrix()
@@ -584,7 +588,7 @@ export class SelectTool extends Tool {
     //       handles could be distinguished into corner, curve, ...
 
     updateOutlineAndDecorationOfSelection(editor: FigureEditor): void {
-        console.log(`Tool.updateOutlineAndDecorationOfSelection() for selection of ${Tool.selection.selection.size} figures`)
+        // console.log(`Tool.updateOutlineAndDecorationOfSelection() for selection of ${Tool.selection.selection.size} figures`)
         this.removeOutlines(editor)
         this.removeDecoration(editor)
         this.createOutlines(editor)
@@ -605,8 +609,8 @@ export class SelectTool extends Tool {
     createOutline(editor: FigureEditor, figure: Figure) {
         let cached = editor.cache.get(figure.id)
         if (cached === undefined) {
-            for(let x of editor.cache)
-                console.log(x[1])
+            // for(let x of editor.cache)
+            //     console.log(x[1])
             throw Error(`expected figure ${figure.id} to be cached`)
         }
         let svg = cached.svg

@@ -18,7 +18,7 @@
 
 import { GenericView, Model } from "toad.js"
 import { Rectangle, Matrix } from "../../shared/geometry"
-import { AbstractPath } from "../paths"
+import { AbstractPath, Path } from "../paths"
 import { Figure } from "../../shared/workflow_valuetype"
 import { Tool } from "../figuretools"
 import { StrokeAndFillModel } from "../widgets/strokeandfill"
@@ -153,7 +153,7 @@ export class FigureEditor extends GenericView<LayerModel> {
     }
     updateView(data? :any) {
         // called whenever the model is modified
-        console.log(`FigureEditor.updateView(${JSON.stringify(data)})`)
+        // console.log(`FigureEditor.updateView(${JSON.stringify(data)})`)
         if (this.model === undefined || this.model.layers.length === 0) {
             return
         }
@@ -168,13 +168,13 @@ export class FigureEditor extends GenericView<LayerModel> {
         if (data === undefined) {
             // FIXME: notInCache should be always true
             // FIXME: a new model would mean to clear the cache... how 
-            console.log(`### FigureEditor.updateView(): NEW MODEL, FAKE ADD_FIGURES MESSAGE`)
+            // console.log(`### FigureEditor.updateView(): NEW MODEL, FAKE ADD_FIGURES MESSAGE`)
             let operation = Operation.ADD_FIGURES
             let figures = this.model.layers[0].data
                 .filter((figure)=>{ 
                     let notInCache = !this.cache.has(figure.id)
                     if (notInCache) {
-                        console.log(`### FigureEditor.updateView(): ADD FIGURE WITH ID ${figure.id} TO THE CACHE`)
+                        // console.log(`### FigureEditor.updateView(): ADD FIGURE WITH ID ${figure.id} TO THE CACHE`)
                         this.cache.set(figure.id, new CacheEntry(figure as figure.Figure))
                     }
                     return notInCache
@@ -208,7 +208,6 @@ export class FigureEditor extends GenericView<LayerModel> {
                 }
                 break
             case Operation.TRANSFORM_FIGURES:
-                console.log("FigureEditor.updateView(): TRANSFORM_FIGURE not implemented yet")
                 for(let id of data.figures) {
                     let cached = this.cache.get(id)
                     if (!cached)
@@ -226,7 +225,11 @@ export class FigureEditor extends GenericView<LayerModel> {
                     // cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
 
                     // variant ii: update the existing path
+                    // console.log(`FigureEditor.updateView(): got transform figures`)
+                    let path = cached.path!! as Path
+                    // console.log(`  before transform ${JSON.stringify(path)}`)
                     cached.path.transform(data.matrix)
+                    // console.log(`  after transform ${JSON.stringify(path)}`)
                     cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
 
                     // variant iii: add transform to SVGElement
@@ -299,7 +302,7 @@ export class FigureEditor extends GenericView<LayerModel> {
         return { editor: this, x: x, y: y, shiftKey: mouseEvent.shiftKey }
     }
     transformSelection(matrix: Matrix): void {
-        console.log("FigureEditor.transformSelection()")
+        // console.log("FigureEditor.transformSelection()")
         this.model!.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
     }
     addFigure(figure: Figure): void {

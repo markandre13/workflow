@@ -23,7 +23,7 @@ import * as figure from "../figures"
 import { FigureEditor } from "./FigureEditor"
 import { Path } from "../paths"
 
-import { Point, Rectangle, Matrix, pointPlusPoint, pointPlusSize, pointMinusPoint, pointMinus } from "../../shared/geometry"
+import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointPlusSize, pointMinusPoint, pointMinus } from "../../shared/geometry"
 import { LocalLayer } from "./LocalLayer"
 import { EditorEvent } from "./EditorEvent"
 
@@ -91,7 +91,7 @@ export class FigureEditorPageObject {
         // expect(Tool.selection.has(this.figures[index])).to.be.true
     }
 
-    selectionHasCorner(point: Point) {
+    selectionHasPoint(point: Point) {
         if (Tool.selection.empty())
             throw Error("Error: selection decoration is empty")
         let msg = ""
@@ -106,17 +106,50 @@ export class FigureEditorPageObject {
 
     selectionIsRectangle(rectangle: Rectangle, center: Point, radiant: number) {
         let m = new Matrix()
-        m.translate(pointMinus(rectangle.center()))
-        m.rotate(Math.PI/4)
-        m.translate(rectangle.center())
+        m.translate(pointMinus(center))
+        m.rotate(radiant)
+        m.translate(center)
 
-        let p = m.transformPoint(rectangle.origin)
-        
-        this.selectionHasCorner(m.transformPoint(rectangle.origin))
-        this.selectionHasCorner(m.transformPoint(pointPlusSize(rectangle.origin, {width: rectangle.size.width, height: 0})))
-        this.selectionHasCorner(m.transformPoint(pointPlusSize(rectangle.origin, {width: 0, height: rectangle.size.height})))
-        this.selectionHasCorner(m.transformPoint(pointPlusSize(rectangle.origin, rectangle.size)))
+        this.selectionHasPoint(m.transformPoint(rectangle.origin))
+        this.selectionHasPoint(m.transformPoint(pointPlusSize(rectangle.origin, {width: rectangle.size.width, height: 0})))
+        this.selectionHasPoint(m.transformPoint(pointPlusSize(rectangle.origin, {width: 0, height: rectangle.size.height})))
+        this.selectionHasPoint(m.transformPoint(pointPlusSize(rectangle.origin, rectangle.size)))
     }
+
+    renderHasPoint(point: Point) {
+        let ce = this.figureeditor.cache.get(0)
+        if (ce === undefined)
+            throw Error("Error: figure not found")
+
+        let msg = ""
+        for (let segment of (ce.path as Path).data) {
+            switch (segment.type) {
+                case 'M':
+                case 'L':
+                    if (pointEqualsPoint(point, {x: segment.values[0], y: segment.values[1]}))
+                        return
+                    msg = `${msg} (${segment.values[0]}, ${segment.values[1]})`
+                    break
+                case 'C':
+                    throw Error("not implemented yet")
+                    break
+            }
+        }
+        throw Error(`Rendered path has no edge (${point.x}, ${point.y}). We have ${msg}`)
+    }
+
+    renderIsRectangle(rectangle: Rectangle, center: Point, radiant: number) {
+        let m = new Matrix()
+        m.translate(pointMinus(center))
+        m.rotate(radiant)
+        m.translate(center)
+
+        this.renderHasPoint(m.transformPoint(rectangle.origin))
+        this.renderHasPoint(m.transformPoint(pointPlusSize(rectangle.origin, {width: rectangle.size.width, height: 0})))
+        this.renderHasPoint(m.transformPoint(pointPlusSize(rectangle.origin, {width: 0, height: rectangle.size.height})))
+        this.renderHasPoint(m.transformPoint(pointPlusSize(rectangle.origin, rectangle.size)))
+    }
+
 
     mouseDownAt(point: Point, shift = true) {
         if (this.verbose)

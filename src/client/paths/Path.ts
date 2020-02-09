@@ -80,7 +80,6 @@ export class Path extends AbstractPath {
     // relativeCurve
     // append(path)
     transform(matrix: Matrix): Path {
-        console.log(`Path.transform()`)
         for (let segment of this.data) {
             switch (segment.type) {
                 case 'M':

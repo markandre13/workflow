@@ -34,7 +34,7 @@ export class LocalLayerModel implements LayerModel {
     constructor() {
         this.modified = new Signal()
         this.modified.add(()=>{
-            console.log("LocalLayerModel.modified()")
+            // console.log("LocalLayerModel.modified()")
         })
         this.layers = new Array<LocalLayer>()
     }
@@ -48,7 +48,7 @@ export class LocalLayerModel implements LayerModel {
     }
 
     add(layerId: number, figure: figure.Figure) {
-        console.log(`LocalLayerModel.add(${layerId})`)
+        // console.log(`LocalLayerModel.add(${layerId})`)
         let layer = this.layerById(layerId)
         layer.data.push(figure)
         this.modified.trigger()
@@ -58,7 +58,7 @@ export class LocalLayerModel implements LayerModel {
     // figureIds: figures to be transformed
 
     transform(layerID: number, figureIds: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
-        console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${JSON.stringify(matrix)})`)
+        // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${JSON.stringify(matrix)})`)
 
         let fastFigureIds = this.figureIdsAsSet(figureIds) 
         
@@ -70,13 +70,13 @@ export class LocalLayerModel implements LayerModel {
                 continue
                 
             if (fig.transform(matrix)) {
-                console.log("  figure transformed itself")
+                // console.log("  figure transformed itself")
                 // console.log("transformed "+JSON.stringify(fig))
                 continue
             }
 
             if (fig.matrix === undefined) {
-                console.log(`=== ADD MATRIX TO FIGURE ${fig.id}`)
+                // console.log(`=== ADD MATRIX TO FIGURE ${fig.id}`)
                 fig.matrix = new Matrix()
             }
             let m = fig.matrix as Matrix
@@ -92,9 +92,9 @@ export class LocalLayerModel implements LayerModel {
             // layer.data[index] = transform
 
             // Tool.selection.replace(fig, transform)
-            console.log("MODEL WILL CALL MODIFIED TRIGGER")
+            // console.log("MODEL WILL CALL MODIFIED TRIGGER")
             this.modified.trigger({operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: figureIds})
-            console.log("MODEL HAS CALLED MODIFIED TRIGGER")
+            // console.log("MODEL HAS CALLED MODIFIED TRIGGER")
         }
     }
 
