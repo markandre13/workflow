@@ -32,7 +32,7 @@ import { testWrap } from "./wordwrap/test"
 
 import { Client_impl } from "./Client_impl"
 import { BoardModel } from "./BoardModel"
-import { FigureEditorPageObject } from "./figureeditor/FigureEditorPageObject"
+import { FigureEditorUser } from "./figureeditor/FigureEditorUser"
 import { Tool } from "./figuretools/Tool"
 
 export async function runtest(test: Function) {
@@ -113,7 +113,7 @@ function registerCustomElements() {
 
 function testMath() {
     // GIVEN RECTANGLE { origin: {x:50, y: 50}, size: {width: 20, height: 30}}
-    let test = new FigureEditorPageObject()
+    let test = new FigureEditorUser()
     test.addRectangle()
 
     // WHEN ROTATED

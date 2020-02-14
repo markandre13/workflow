@@ -598,7 +598,7 @@ export class SelectTool extends Tool {
 
     createOutlines(editor: FigureEditor): void { // FIXME: rename into createOutlinesForSelection()
         this.outline = document.createElementNS("http://www.w3.org/2000/svg", "g")
-        this.outline.setAttributeNS("", "transform", "translate(-1, 1)")
+        // this.outline.setAttributeNS("", "transform", "translate(-1, 1)")
 
         for(let figure of Tool.selection.selection) {
             this.outline.appendChild(this.createOutline(editor, figure))
@@ -609,7 +609,8 @@ export class SelectTool extends Tool {
 
     createOutline(editor: FigureEditor, figure: Figure) {
         let path = figure.getPath() as Path
-        // FIXME: also need to add figure.path
+        if (figure.matrix !== undefined)
+            path.transform(figure.matrix as Matrix)
         path.transform(this.transformation)
         let svg = figure.updateSVG(path, undefined)
         this.setOutlineColors(svg)

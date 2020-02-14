@@ -25,7 +25,7 @@ import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, p
 import { Path } from "../../src/client/paths"
 import * as figure from "../../src/client/figures"
 import { Tool, SelectToolState } from "../../src/client/figuretools"
-import { FigureEditorPageObject } from "../../src/client/figureeditor/FigureEditorPageObject"
+import { FigureEditorUser } from "../../src/client/figureeditor/FigureEditorUser"
 
 declare global {
     interface SVGPathElement {
@@ -268,7 +268,7 @@ describe.only("figureeditor", function() {
 
         it("normal selection decoration", ()=> {
             // GIVEN
-            let test = new FigureEditorPageObject()
+            let test = new FigureEditorUser()
             test.addRectangle()
 
             // WHEN
@@ -284,7 +284,7 @@ describe.only("figureeditor", function() {
 
         it("move single figure", ()=> {
             // GIVEN
-            let test = new FigureEditorPageObject()
+            let test = new FigureEditorUser()
             test.addRectangle()
             test.selectFigure()
             
@@ -302,7 +302,7 @@ describe.only("figureeditor", function() {
        
         it("scales figure", ()=> {
             // GIVEN
-            let test = new FigureEditorPageObject()
+            let test = new FigureEditorUser()
             let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
             rectangle.stroke = "#000"
             rectangle.fill = "#f00"
@@ -323,9 +323,9 @@ describe.only("figureeditor", function() {
             expect(oldSECorner).to.eql(newSECorner)
         })
 
-        it.only("rotates figure's outline before mouse is released", ()=> {
+        it("rotates figure's outline before mouse is released", ()=> {
             // GIVEN
-            let test = new FigureEditorPageObject()
+            let test = new FigureEditorUser()
             let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
             let fig = new figure.Rectangle(rectangle)
             fig.stroke = "#000"
@@ -344,12 +344,12 @@ describe.only("figureeditor", function() {
 
             // THEN
             test.selectionIsRectangle(rectangle, rectangle.center(), Math.PI/8)
-             // FIXME: check outline
+            test.outlineIsRectangle(rectangle, rectangle.center(), Math.PI/8)
         })
 
         it("rotates figure when mouse is released", ()=> {
             // GIVEN
-            let test = new FigureEditorPageObject()
+            let test = new FigureEditorUser()
             let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
             let fig = new figure.Rectangle(rectangle)
             fig.stroke = "#000"
@@ -368,14 +368,14 @@ describe.only("figureeditor", function() {
             test.mouseUp()
 
             // THEN
-            test.selectionIsRectangle(rectangle, center, Math.PI/4)
-            // FIXME: check outline
+            test.selectionIsRectangle(rectangle, center, Math.PI/8)
+            test.outlineIsRectangle(rectangle, center, Math.PI/8)
             test.renderIsRectangle(rectangle, center, Math.PI/8)
         })
 
         it("rotates already rotated figure's outline before mouse is released", ()=> {
             // GIVEN
-            let test = new FigureEditorPageObject()
+            let test = new FigureEditorUser()
             let rectangle = new Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
             let fig = new figure.Rectangle(rectangle)
             fig.stroke = "#000"
@@ -397,19 +397,23 @@ describe.only("figureeditor", function() {
             test.moveMouseTo(position1)
             test.mouseUp()
 
-            test.mouseDownAt({x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0})
+            // 2nd rotation
+            let p1 = {x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0}
+            position2 = rotatePointAroundPointBy(p1, center, Math.PI/8)
+
+            test.mouseDownAt(p1)
             expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
             expect(test.selectTool.selectedHandle).is.equal(8)
             test.moveMouseTo(position2)
 
             // THEN
             test.selectionIsRectangle(rectangle, center, Math.PI/4)
-             // FIXME: check outline
+            test.outlineIsRectangle(rectangle, center, Math.PI/4)
         })
 
         it("rotates already rotated figure when mouse is released", ()=> {
             // GIVEN
-            let test = new FigureEditorPageObject()
+            let test = new FigureEditorUser()
             let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
             let fig = new figure.Rectangle(rectangle)
             fig.stroke = "#000"
@@ -446,7 +450,7 @@ describe.only("figureeditor", function() {
             // THEN            
             test.selectionIsRectangle(rectangle, center, Math.PI/4)
             test.renderIsRectangle(rectangle, center, Math.PI/4)
-             // FIXME: check outline
+            test.outlineIsRectangle(rectangle, center, Math.PI/4)
         })
 
     //     it("rotate two figures using nw handle", () => {
@@ -497,7 +501,7 @@ describe.only("figureeditor", function() {
 
     describe("figureeditor's path and svg cache", ()=> {
         it("adding one figure creates one path and one svg", ()=> {
-            let test = new FigureEditorPageObject()
+            let test = new FigureEditorUser()
             let fig1 = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
             fig1.id = 1
             test.addFigure(fig1)
@@ -515,7 +519,7 @@ describe.only("figureeditor", function() {
         })
 
         it("adding two figures creates two paths and two svgs", ()=> {
-            let test = new FigureEditorPageObject()
+            let test = new FigureEditorUser()
             let fig1 = new figure.Rectangle({ origin: {x:50, y: 10}, size: {width: 20, height: 30}})
             fig1.id = 1
             test.addFigure(fig1)
