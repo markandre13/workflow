@@ -323,7 +323,7 @@ describe.only("figureeditor", function() {
             expect(oldSECorner).to.eql(newSECorner)
         })
 
-        it("rotates figure's outline before mouse is released", ()=> {
+        it.only("rotates figure's outline before mouse is released", ()=> {
             // GIVEN
             let test = new FigureEditorPageObject()
             let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
@@ -407,7 +407,7 @@ describe.only("figureeditor", function() {
              // FIXME: check outline
         })
 
-        it.only("rotates already rotated figure when mouse is released", ()=> {
+        it("rotates already rotated figure when mouse is released", ()=> {
             // GIVEN
             let test = new FigureEditorPageObject()
             let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})

@@ -43,6 +43,7 @@ import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
 import { Transform } from "../figures/Transform"
+import { PathGroup } from "../paths/PathGroup"
 
 export enum SelectToolState {
     NONE,
@@ -607,32 +608,19 @@ export class SelectTool extends Tool {
     }
 
     createOutline(editor: FigureEditor, figure: Figure) {
-        let cached = editor.cache.get(figure.id)
-        if (cached === undefined) {
-            // for(let x of editor.cache)
-            //     console.log(x[1])
-            throw Error(`expected figure ${figure.id} to be cached`)
-        }
-        let svg = cached.svg
-        if (svg === undefined)
-            throw Error(`expected figure ${figure.id} to have an SVGElement yet`)
-        if (cached.parent)
-            throw Error("nested figures not implemented yet")
-
-        return this.createOutlineCopy(svg)
+        let path = figure.getPath() as Path
+        // FIXME: also need to add figure.path
+        path.transform(this.transformation)
+        let svg = figure.updateSVG(path, undefined)
+        this.setOutlineColors(svg)
+        return svg
     }
-    
+
     removeOutlines(editor: FigureEditor): void {
         if (this.outline) {
             editor.decorationOverlay.removeChild(this.outline)
             this.outline = undefined
         }
-    }
-
-    createOutlineCopy(svg: SVGElement): SVGElement {
-        let outline = svg.cloneNode(true) as SVGElement
-        this.setOutlineColors(outline)
-        return outline
     }
     
     setOutlineColors(svg: SVGElement): void {

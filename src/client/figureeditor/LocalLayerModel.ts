@@ -60,41 +60,25 @@ export class LocalLayerModel implements LayerModel {
     transform(layerID: number, figureIds: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
         // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${JSON.stringify(matrix)})`)
 
-        let fastFigureIds = this.figureIdsAsSet(figureIds) 
+        let fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         
         let newIdArray = new Array<number>()
         let layer = this.layerById(layerID)
         for (let index in layer.data) {
-            let fig = layer.data[index]
+            let fig = layer.data[index] // FIXME: the ids are an index into the array...?
             if (!fastFigureIds.has(fig.id))
                 continue
                 
             if (fig.transform(matrix)) {
-                // console.log("  figure transformed itself")
-                // console.log("transformed "+JSON.stringify(fig))
+                // FIXME: trigger this.modified()
                 continue
             }
 
-            if (fig.matrix === undefined) {
-                // console.log(`=== ADD MATRIX TO FIGURE ${fig.id}`)
+            if (fig.matrix === undefined)
                 fig.matrix = new Matrix()
-            }
             let m = fig.matrix as Matrix
             m.prepend(matrix)
-            
-
-            // console.log("figure encapsuled with a transform object")
-            // let transform = new figure.Transform()
-            // transform.id = layer.createFigureId()
-            // newIdArray.push(transform.id)
-            // transform.matrix = new Matrix(matrix)
-            // transform.childFigures.push(fig)
-            // layer.data[index] = transform
-
-            // Tool.selection.replace(fig, transform)
-            // console.log("MODEL WILL CALL MODIFIED TRIGGER")
             this.modified.trigger({operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: figureIds})
-            // console.log("MODEL HAS CALLED MODIFIED TRIGGER")
         }
     }
 
