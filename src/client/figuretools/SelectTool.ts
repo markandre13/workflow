@@ -224,6 +224,12 @@ export class SelectTool extends Tool {
             return
         }
 
+        // for(let figure of Tool.selection.selection) {
+        //     let figureBoundary = figure.bounds()
+        //     this.boundary.expandByRectangle(figureBoundary)
+        // }
+
+
         if (Tool.selection.selection.size > 1)
             throw Error("can't handle more than one figure yet")
 
@@ -561,7 +567,7 @@ export class SelectTool extends Tool {
             if (Tool.selection.has(figure))
                 continue
 
-            if (!this.marqueeRectangle!.containsRectangle(figure.bounds()))
+            if (!this.marqueeRectangle!.containsRectangle(figure.bounds() as Rectangle))
                 continue
 
             let svg = this.createOutline(editor, figure)

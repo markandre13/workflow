@@ -298,16 +298,31 @@ export class Rectangle extends valueimpl.Rectangle {
             y: this.origin.y + this.size.height / 2.0
         })
     }
-  
-    expandByRectangle(r: valuetype.Rectangle): Rectangle {
-        if (this.size.width === 0 && this.size.height === 0) {
-            this.origin.x = r.origin.x
-            this.origin.y = r.origin.y
-            this.size.width = r.size.width
-            this.size.height = r.size.height
+
+    forAllEdges(callback: (edge: Point) => void, transform?: Matrix) {
+        if (transform !== undefined) {
+            callback(transform.transformPoint(this.origin))
+            callback(transform.transformPoint(pointPlusSize(this.origin, {width: this.size.width, height: 0})))
+            callback(transform.transformPoint(pointPlusSize(this.origin, {width: 0, height: this.size.height})))
+            callback(transform.transformPoint(pointPlusSize(this.origin, this.size)))
         } else {
-            this.expandByPoint(r.origin)
-            this.expandByPoint(pointPlusSize(r.origin, r.size))
+            callback(this.origin)
+            callback(pointPlusSize(this.origin, {width: this.size.width, height: 0}))
+            callback(pointPlusSize(this.origin, {width: 0, height: this.size.height}))
+            callback(pointPlusSize(this.origin, this.size))
+        }
+    }
+  
+    expandByRectangle(rectangle: valuetype.Rectangle, transform?: Matrix): Rectangle {
+        if (this.size.width === 0 && this.size.height === 0) {
+            this.origin.x = rectangle.origin.x
+            this.origin.y = rectangle.origin.y
+            this.size.width = rectangle.size.width
+            this.size.height = rectangle.size.height
+        } else {
+            (rectangle as Rectangle).forAllEdges((edge)=> {
+                this.expandByPoint(edge)
+            }, transform )
         }
         return this
     }

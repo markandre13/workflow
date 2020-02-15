@@ -260,7 +260,7 @@ describe.only("figureeditor", function() {
     //     })
     // })
 
-    describe("SelectTool", ()=> {
+    describe("SelectTool", function() {
 
         this.beforeAll(()=>{
             // console.log("before all select tool tests")
@@ -280,7 +280,7 @@ describe.only("figureeditor", function() {
             test.selectionHasPoint({x: 70.5, y: 50.5})
             test.selectionHasPoint({x: 70.5, y: 80.5})
             test.selectionHasPoint({x: 50.5, y: 80.5})
-       })
+        })
 
         it("move single figure", ()=> {
             // GIVEN
@@ -323,179 +323,190 @@ describe.only("figureeditor", function() {
             expect(oldSECorner).to.eql(newSECorner)
         })
 
-        it("rotates figure's outline before mouse is released", ()=> {
-            // GIVEN
-            let test = new FigureEditorUser()
-            let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
-            let fig = new figure.Rectangle(rectangle)
-            fig.stroke = "#000"
-            fig.fill = "rgba(255,0,0,0.2)"
+        describe("rotate", ()=> {
 
-            test.addFigure(fig)
-            test.selectFigure()
+            describe("single figure", ()=> {
 
-            // WHEN
-            let oldMouseRotate = test.centerOfNWRotateHandle()
-            let center = test.centerOfFigure()
-            let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/8)
+                it("rotates figure's outline before mouse is released", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
+                    let fig = new figure.Rectangle(rectangle)
+                    fig.stroke = "#000"
+                    fig.fill = "rgba(255,0,0,0.2)"
 
-            test.mouseDownAt(oldMouseRotate)
-            test.moveMouseTo(newMouseRotate)
+                    test.addFigure(fig)
+                    test.selectFigure()
 
-            // THEN
-            test.selectionIsRectangle(rectangle, rectangle.center(), Math.PI/8)
-            test.outlineIsRectangle(rectangle, rectangle.center(), Math.PI/8)
+                    // WHEN
+                    let oldMouseRotate = test.centerOfNWRotateHandle()
+                    let center = test.centerOfFigure()
+                    let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/8)
+
+                    test.mouseDownAt(oldMouseRotate)
+                    test.moveMouseTo(newMouseRotate)
+
+                    // THEN
+                    test.selectionHasRectangle(rectangle, rectangle.center(), Math.PI/8)
+                    test.outlineHasRectangle(rectangle, rectangle.center(), Math.PI/8)
+                })
+
+                it("rotates figure when mouse is released", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
+                    let fig = new figure.Rectangle(rectangle)
+                    fig.stroke = "#000"
+                    fig.fill = "rgba(255,0,0,0.2)"
+
+                    test.addFigure(fig)
+                    test.selectFigure()
+
+                    // WHEN
+                    let center = test.centerOfFigure()
+                    let position0 = test.centerOfNWRotateHandle()
+                    let position1 = rotatePointAroundPointBy(position0, center, Math.PI/8)
+
+                    test.mouseDownAt(position0)
+                    test.moveMouseTo(position1)
+                    test.mouseUp()
+
+                    // THEN
+                    test.selectionHasRectangle(rectangle, center, Math.PI/8)
+                    test.outlineHasRectangle(rectangle, center, Math.PI/8)
+                    test.renderHasRectangle(rectangle, center, Math.PI/8)
+                })
+
+                it("rotates already rotated figure's outline before mouse is released", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle = new Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+                    let fig = new figure.Rectangle(rectangle)
+                    fig.stroke = "#000"
+                    fig.fill = "rgba(255,0,0,0.2)"
+
+                    test.addFigure(fig)
+                    test.selectFigure()
+
+                    // WHEN
+                    let center = test.centerOfFigure()
+                    // 45, 45
+                    let position0 = test.centerOfNWRotateHandle()
+                    let position1 = rotatePointAroundPointBy(position0, center, Math.PI/8)
+                    let position2 = rotatePointAroundPointBy(position0, center, Math.PI/4)
+
+                    test.mouseDownAt(position0)
+                    expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(test.selectTool.selectedHandle).is.equal(8)
+                    test.moveMouseTo(position1)
+                    test.mouseUp()
+
+                    // 2nd rotation
+                    let p1 = {x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0}
+                    position2 = rotatePointAroundPointBy(p1, center, Math.PI/8)
+
+                    test.mouseDownAt(p1)
+                    expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(test.selectTool.selectedHandle).is.equal(8)
+                    test.moveMouseTo(position2)
+
+                    // THEN
+                    test.selectionHasRectangle(rectangle, center, Math.PI/4)
+                    test.outlineHasRectangle(rectangle, center, Math.PI/4)
+                })
+
+                it("rotates already rotated figure when mouse is released", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
+                    let fig = new figure.Rectangle(rectangle)
+                    fig.stroke = "#000"
+                    fig.fill = "rgba(255,0,0,0.2)"
+
+                    test.addFigure(fig)
+                    test.selectFigure()
+
+                    // WHEN
+                    let center = rectangle.center()
+                    let position0 = test.centerOfNWRotateHandle()
+                    let position1 = rotatePointAroundPointBy(position0, center, Math.PI/8)
+                    let position2 = rotatePointAroundPointBy(position0, center, Math.PI/4)
+
+                    // 1st rotation
+                    test.mouseDownAt(position0)
+                    expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(test.selectTool.selectedHandle).is.equal(8)
+                    test.moveMouseTo(position1)
+                    test.mouseUp()
+                    test.selectionHasRectangle(rectangle, center, Math.PI/8)
+                    test.renderHasRectangle(rectangle, center, Math.PI/8)
+
+                    // 2nd rotation
+                    let p1 = {x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0}
+                    position2 = rotatePointAroundPointBy(p1, center, Math.PI/8)
+
+                    test.mouseDownAt(p1)
+                    expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(test.selectTool.selectedHandle).is.equal(8)
+                    test.moveMouseTo(position2)
+                    test.mouseUp()
+
+                    // THEN            
+                    test.selectionHasRectangle(rectangle, center, Math.PI/4)
+                    test.renderHasRectangle(rectangle, center, Math.PI/4)
+                    test.outlineHasRectangle(rectangle, center, Math.PI/4)
+                })
+
+            })
+
+            describe("group of figures", ()=> {
+                it("rotate two figures using nw handle", () => {
+                    // GIVEN
+                    // let test = new FigureEditorUser()
+
+                    // let r0 = new Rectangle(50, 50, 10, 20)
+                    // test.addRectangle(r0)
+                    
+                    // let r1 = new Rectangle(70, 110, 30, 40)
+                    // test.addRectangle(r1)
+
+                    // test.selectFigure(0)
+                    // test.selectFigure(1)
+
+                    // let r2 = new Rectangle(50,50,50,100)
+                    // test.selectionHasRectangle(r2)
+
+                    // expect(Tool.selection.selection.size).to.equal(2)
+                    // expect(test.selectTool.boundary).to.almost.eql({origin: {x: 50, y: 50}, size: {width: 70, height: 80}})
+                    // expect(test.selectTool.transformation.isIdentity()).to.be.true
+
+                    // // WHEN
+                    // let oldMouseRotate = test.centerOfNWRotateHandle()
+                    // let center = test.selectTool.boundary.center()
+                    // let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/4)
+
+                    // test.mouseDownAt(oldMouseRotate)
+                    // test.moveMouseTo(newMouseRotate)
+                    // test.mouseUp()
+
+                    // // THEN
+                    // let boundary = test.selectTool.boundary
+                    // let transformation = test.selectTool.transformation
+
+                    // console.log(boundary)
+                    // console.log(transformation)
+                    // TODO: write test
+
+                    // let oldMouseRotate = test.centerOfNWRotateHandle()
+                })
+        //         it("rotate two figures using nw handle two times", () => {})
+        //         it("rotate two figures using nw handle two times with deselect, select in between", () => {})
+        //         it("select two figures with aligned 90 degree rotation will result in a rotated selection", () => {})
+        //         it("select two figures with non-aligned rotation will result in a selection aligned to the screen", () => {})
+            })
+
         })
 
-        it("rotates figure when mouse is released", ()=> {
-            // GIVEN
-            let test = new FigureEditorUser()
-            let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
-            let fig = new figure.Rectangle(rectangle)
-            fig.stroke = "#000"
-            fig.fill = "rgba(255,0,0,0.2)"
-
-            test.addFigure(fig)
-            test.selectFigure()
-
-            // WHEN
-            let center = test.centerOfFigure()
-            let position0 = test.centerOfNWRotateHandle()
-            let position1 = rotatePointAroundPointBy(position0, center, Math.PI/8)
-
-            test.mouseDownAt(position0)
-            test.moveMouseTo(position1)
-            test.mouseUp()
-
-            // THEN
-            test.selectionIsRectangle(rectangle, center, Math.PI/8)
-            test.outlineIsRectangle(rectangle, center, Math.PI/8)
-            test.renderIsRectangle(rectangle, center, Math.PI/8)
-        })
-
-        it("rotates already rotated figure's outline before mouse is released", ()=> {
-            // GIVEN
-            let test = new FigureEditorUser()
-            let rectangle = new Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-            let fig = new figure.Rectangle(rectangle)
-            fig.stroke = "#000"
-            fig.fill = "rgba(255,0,0,0.2)"
-
-            test.addFigure(fig)
-            test.selectFigure()
-
-            // WHEN
-            let center = test.centerOfFigure()
-            // 45, 45
-            let position0 = test.centerOfNWRotateHandle()
-            let position1 = rotatePointAroundPointBy(position0, center, Math.PI/8)
-            let position2 = rotatePointAroundPointBy(position0, center, Math.PI/4)
-
-            test.mouseDownAt(position0)
-            expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
-            expect(test.selectTool.selectedHandle).is.equal(8)
-            test.moveMouseTo(position1)
-            test.mouseUp()
-
-            // 2nd rotation
-            let p1 = {x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0}
-            position2 = rotatePointAroundPointBy(p1, center, Math.PI/8)
-
-            test.mouseDownAt(p1)
-            expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
-            expect(test.selectTool.selectedHandle).is.equal(8)
-            test.moveMouseTo(position2)
-
-            // THEN
-            test.selectionIsRectangle(rectangle, center, Math.PI/4)
-            test.outlineIsRectangle(rectangle, center, Math.PI/4)
-        })
-
-        it("rotates already rotated figure when mouse is released", ()=> {
-            // GIVEN
-            let test = new FigureEditorUser()
-            let rectangle = new Rectangle({ origin: {x:50.5, y: 50.5}, size: {width: 20, height: 30}})
-            let fig = new figure.Rectangle(rectangle)
-            fig.stroke = "#000"
-            fig.fill = "rgba(255,0,0,0.2)"
-
-            test.addFigure(fig)
-            test.selectFigure()
-
-            // WHEN
-            let center = rectangle.center()
-            let position0 = test.centerOfNWRotateHandle()
-            let position1 = rotatePointAroundPointBy(position0, center, Math.PI/8)
-            let position2 = rotatePointAroundPointBy(position0, center, Math.PI/4)
-
-            // 1st rotation
-            test.mouseDownAt(position0)
-            expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
-            expect(test.selectTool.selectedHandle).is.equal(8)
-            test.moveMouseTo(position1)
-            test.mouseUp()
-            test.selectionIsRectangle(rectangle, center, Math.PI/8)
-            test.renderIsRectangle(rectangle, center, Math.PI/8)
-
-            // 2nd rotation
-            let p1 = {x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0}
-            position2 = rotatePointAroundPointBy(p1, center, Math.PI/8)
-
-            test.mouseDownAt(p1)
-            expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
-            expect(test.selectTool.selectedHandle).is.equal(8)
-            test.moveMouseTo(position2)
-            test.mouseUp()
-
-            // THEN            
-            test.selectionIsRectangle(rectangle, center, Math.PI/4)
-            test.renderIsRectangle(rectangle, center, Math.PI/4)
-            test.outlineIsRectangle(rectangle, center, Math.PI/4)
-        })
-
-    //     it("rotate two figures using nw handle", () => {
-    //         // GIVEN
-    //         let test = new FigureEditorPageObject()
-    //         let rectangle0 = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-    //         rectangle0.stroke = "#000"
-    //         rectangle0.fill = "#f00"
-    //         test.addFigure(rectangle0)
-            
-    //         let rectangle1 = new figure.Rectangle({ origin: {x:100, y: 100}, size: {width: 20, height: 30}})
-    //         rectangle1.stroke = "#000"
-    //         rectangle1.fill = "#f00"
-    //         test.addFigure(rectangle1)
-
-    //         test.selectFigure(0)
-    //         test.selectFigure(1)
-
-    //         expect(Tool.selection.selection.size).to.equal(2)
-    //         expect(test.selectTool.boundary).to.almost.eql({origin: {x: 50, y: 50}, size: {width: 70, height: 80}})
-    //         expect(test.selectTool.transformation.isIdentity()).to.be.true
-
-    //         // WHEN
-    //         let oldMouseRotate = test.centerOfNWRotateHandle()
-    //         let center = test.selectTool.boundary.center()
-    //         let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/4)
-
-    //         test.mouseDownAt(oldMouseRotate)
-    //         test.moveMouseTo(newMouseRotate)
-    //         test.mouseUp()
-
-    //         // THEN
-    //         let boundary = test.selectTool.boundary
-    //         let transformation = test.selectTool.transformation
-
-    //         console.log(boundary)
-    //         console.log(transformation)
-    //         // TODO: write test
-
-    //         // let oldMouseRotate = test.centerOfNWRotateHandle()
-    //    })
-    //    it("rotate two figures using nw handle two times", () => {})
-    //    it("rotate two figures using nw handle two times with deselect, select in between", () => {})
-    //    it("select two figures with aligned 90 degree rotation will result in a rotated selection", () => {})
-    //    it("select two figures with non-aligned rotation will result in a selection aligned to the screen", () => {})
     })
 
 
