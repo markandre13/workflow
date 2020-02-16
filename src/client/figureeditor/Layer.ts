@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2018, 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,21 +16,27 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Point } from "../../shared/geometry";
-import { Figure } from "../../shared/workflow_valuetype";
+import { Point, Matrix } from "../../shared/geometry"
+import { Figure } from "../../shared/workflow_valuetype"
 import * as figure from "../figures/Figure"
 import * as valueimpl from "../../shared/workflow_valueimpl"
 
 export class Layer extends valueimpl.Layer {
     findFigureAt(point: Point): Figure | undefined {
-        let mindist = Number.POSITIVE_INFINITY;
+        let mindist = Number.POSITIVE_INFINITY
         let nearestFigure: figure.Figure | undefined;
         for (let index = this.data.length - 1; index >= 0; --index) {
-            let figure = this.data[index];
-            let d = Number(figure.distance(point));
+            let figure = this.data[index]
+            let pointInFigureSpace
+            if (figure.matrix !== undefined) {
+                pointInFigureSpace = new Matrix(figure.matrix).invert().transformPoint(point)
+            } else {
+                pointInFigureSpace = point
+            }
+            let d = figure.distance(pointInFigureSpace)
             if (d < mindist) {
-                mindist = d;
-                nearestFigure = figure;
+                mindist = d
+                nearestFigure = figure
             }
         }
         if (mindist >= figure.Figure.FIGURE_RANGE) {

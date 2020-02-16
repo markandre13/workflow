@@ -48,12 +48,24 @@ describe.only("figureeditor", ()=> {
                     test.addRectangle(rectangle0)
 
                     // WHEN
-                    test.selectFigure()
-
+                    test.mouseDownAt(new Point(60,65))
+                    test.mouseUp()
+            
                     // THEN
                     test.selectionHasRectangle(rectangle0)
                 })
-                it("translated")
+                it("translated", ()=>{
+                    let test = new FigureEditorUser()
+                    let rectangle0 = new Rectangle(50, 50, 20, 30)
+                    test.addRectangle(rectangle0, new Point(100, 0))
+
+                    // WHEN
+                    test.mouseDownAt(new Point(60+100,65))
+                    test.mouseUp()
+            
+                    // THEN
+                    test.selectionHasRectangle(new Rectangle(50+100, 50, 20, 30))
+                })
                 it("scaled")
                 it("rotated", ()=> {
                     // GIVEN
@@ -198,49 +210,56 @@ describe.only("figureeditor", ()=> {
         })
 
         describe("move", ()=> {
-            it.only("single figure", ()=> {
-                // GIVEN
-                // let test = new FigureEditorUser()
-                
-                // test.addRectangle()
-                // test.selectFigure()
-                
-                // // WHEN
-                // let oldCenter = test.centerOfFigure()
-                // test.mouseDownAt(oldCenter)
-                // let translation = new Point(17, -29)
-                // test.moveMouseBy(translation)
-                // test.mouseUp()
+            describe("single figure", ()=> {
+                it("moves figure's outline before mouse is released", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
 
-                // // THEN
-                // let newCenter = pointPlusPoint(oldCenter, translation)
-                // expect(test.centerOfFigure()).to.eql(newCenter)
+                    let r0 = new Rectangle(50, 50, 20, 30)
+                    let translation = new Point(10, -10)
+                    let r1 = new Rectangle(r0)
+                    r1.origin = pointPlusPoint(r1.origin, translation)
+                    test.addRectangle(r0)
 
-                // GIVEN
-                let test = new FigureEditorUser()
+                    test.selectFigure(0)
+                    test.selectionHasRectangle(r0)
 
-                let r0 = new Rectangle(50, 50, 20, 30)
-                let translation = new Point(17, -29)
-                let r1 = new Rectangle(r0)
-                r1.origin = pointPlusPoint(r1.origin, translation)
-                test.addRectangle(r0)
-
-                return
+                    // WHEN
+                    let oldCenter = test.centerOfFigure()
+                    test.mouseDownAt(oldCenter)
+                    test.moveMouseBy(translation)
             
-                test.selectFigure(0)
-                test.selectionHasRectangle(r0)
+                    // THEN
+                    test.selectionHasRectangle(r1)
+                    test.outlineHasRectangle(r1)
+                })
+                it("moves figure when mouse is released", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
 
-                // WHEN
-                let oldCenter = test.centerOfFigure()
-                test.mouseDownAt(oldCenter)
-                
-                test.moveMouseBy(translation)
-                test.mouseUp()
+                    let r0 = new Rectangle(50, 50, 20, 30)
+                    let translation = new Point(10, -10)
+                    let r1 = new Rectangle(r0)
+                    r1.origin = pointPlusPoint(r1.origin, translation)
+                    test.addRectangle(r0)
 
-                // THEN
-                // test.selectionHasRectangle(r1)
-                // test.outlineHasRectangle(r1)
-                test.renderHasRectangle(r1)
+                    test.selectFigure(0)
+                    test.selectionHasRectangle(r0)
+
+                    // WHEN
+                    let oldCenter = test.centerOfFigure()
+                    test.mouseDownAt(oldCenter)
+                    test.moveMouseBy(translation)
+                    test.mouseUp()
+
+                    // THEN
+                    test.selectionHasRectangle(r1)
+                    test.outlineHasRectangle(r1)
+                    test.renderHasRectangle(r1)
+                })
+                it("translated")
+                it("rotated <== CONTINUE HERE, THIS DOES NOT WORK")
+                it("scaled")
             })
         })
        

@@ -190,23 +190,16 @@ export class SelectTool extends Tool {
      *******************************************************************/
     
     private moveSelection(event: EditorEvent) {
-
-        // move decoration & outline
         let moveAbsolute = pointMinusPoint(event, this.mouseDownAt!)
-        let translate = `translate(${moveAbsolute.x}, ${moveAbsolute.y})`
-        this.decoration!.setAttributeNS("", "transform", translate)
-        this.outline!.setAttributeNS("", "transform", translate)
-
-        // change model
-        let moveRelative = pointMinusPoint(event, this.mouseLastAt!)
         this.transformation.identity()
-        this.transformation.translate(moveRelative)
-        event.editor.transformSelection(this.transformation)
-
-        this.mouseLastAt = event
+        this.transformation.translate(moveAbsolute)        
+        this.updateOutlineAndDecorationOfSelection(event.editor)
+        // this.mouseLastAt = event
     }
     
     private stopMove(event: EditorEvent) {
+        this.moveSelection(event)
+        event.editor.transformSelection(this.transformation)
         this.mouseDownAt = undefined
     }
          
@@ -217,10 +210,12 @@ export class SelectTool extends Tool {
      *******************************************************************/
 
     private updateBoundary() {
+        // console.log(`SelectTool.updateBoundary() ENTER`)
         this.boundary = new Rectangle()
 
         if (Tool.selection.empty()) {
             this.boundaryTransformation.identity()
+            // console.log(`SelectTool.updateBoundary() DONE`)
             return
         }
 
@@ -258,7 +253,9 @@ export class SelectTool extends Tool {
         let firstEdge = true
         for(let figure of Tool.selection.selection) {
             let figureBoundary = figure.bounds() as Rectangle
+            // console.log(`figure ${figure.id} matrix`, figure.matrix as Matrix)
             figureBoundary.forAllEdges( (edge)=>{
+                // console.log(`figure ${figure.id} edge ${edge.x}, ${edge.y}`)
                 edge = inverseRotationAroundOrigin.transformPoint(edge)
                 if (firstEdge) {
                     firstEdge = false
@@ -282,6 +279,7 @@ export class SelectTool extends Tool {
             this.boundaryTransformation.rotate(rotation)
             this.boundaryTransformation.translate(center)
         }
+        // console.log(`SelectTool.updateBoundary() DONE`)
     }
 
     getBoundaryHandle(handle: number): Rectangle {
@@ -325,9 +323,7 @@ export class SelectTool extends Tool {
                 v = { x: -1, y:  0}
                 break
         }
-        let r = new Rectangle()
-        r.set(x, y, Figure.HANDLE_RANGE, Figure.HANDLE_RANGE)
-
+        let r = new Rectangle(x, y, Figure.HANDLE_RANGE, Figure.HANDLE_RANGE)
         let m = new Matrix(this.transformation)
         m.prepend(this.boundaryTransformation)
 
@@ -525,7 +521,7 @@ export class SelectTool extends Tool {
 
         let transformation = this.transformation
         this.transformation = new Matrix()
-        console.log(`SelectionTool.stopHandle(): rotation=${transformation.getRotation()}, PI/4=${Math.PI/4}`)
+        // console.log(`SelectionTool.stopHandle(): rotation=${transformation.getRotation()}, PI/4=${Math.PI/4}`)
         event.editor.transformSelection(transformation)
 
         // this.updateBoundaryFromSelection() // because the figure is updated async, or just continue with the current selection?
