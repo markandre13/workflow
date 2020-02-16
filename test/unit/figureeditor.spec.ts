@@ -121,8 +121,84 @@ describe.only("figureeditor", ()=> {
                     test.selectionHasPoint(p)
                 })
 
-                it("orthogonal rotation")
-                it("different rotation")
+                it("rotated orthogonal to each other", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let radiants = Math.PI/8
+
+                    let rectangle0 = new Rectangle(50, 50, 10, 20)
+                    test.addRectangle(rectangle0, rectangle0.center(), radiants)
+                    
+                    let rectangle1 = new Rectangle(70, 110, 30, 40)
+                    test.addRectangle(rectangle1, rectangle1.center(), radiants)
+
+                    let rectangle2 = new Rectangle(60, 80, 5, 10)
+                    test.addRectangle(rectangle2, rectangle2.center(), radiants + Math.PI/2)
+
+                    let rectangle3 = new Rectangle(75, 80, 5, 10)
+                    test.addRectangle(rectangle3, rectangle3.center(), radiants + Math.PI)
+
+                    let rectangle4 = new Rectangle(90, 80, 5, 10)
+                    test.addRectangle(rectangle4, rectangle4.center(), radiants + Math.PI*3/2)
+
+                    test.selectFigure(0)
+                    test.selectFigure(1)
+                    test.selectFigure(2)
+                    test.selectFigure(3)
+                    test.selectFigure(4)
+           
+                    let transform = new Matrix()
+                    transform.translate(pointMinus(rectangle0.center()))
+                    transform.rotate(radiants)
+                    transform.translate(rectangle0.center())
+                    let p = transform.transformPoint(rectangle0.origin)
+                    test.selectionHasPoint(p)
+
+                    transform = new Matrix()
+                    transform.translate(pointMinus(rectangle1.center()))
+                    transform.rotate(radiants)
+                    transform.translate(rectangle1.center())
+                    p = transform.transformPoint(pointPlusSize(rectangle1.origin, rectangle1.size))
+                    test.selectionHasPoint(p)                    
+                })
+                it("different rotation", ()=> {
+                        // GIVEN
+                        let test = new FigureEditorUser()
+                        let radiants = Math.PI/8
+    
+                        let rectangle0 = new Rectangle(50, 50, 10, 20)
+                        test.addRectangle(rectangle0, rectangle0.center(), radiants)
+                        
+                        let rectangle1 = new Rectangle(70, 110, 30, 40)
+                        test.addRectangle(rectangle1, rectangle1.center(), radiants)
+
+                        let rectangle2 = new Rectangle(60, 80, 5, 10)
+                        test.addRectangle(rectangle2, rectangle2.center(), Math.PI/16)
+    
+                        test.selectFigure(0)
+                        test.selectFigure(1)
+                        test.selectFigure(2)
+               
+                        let transform = new Matrix()
+                        transform.translate(pointMinus(rectangle0.center()))
+                        transform.rotate(radiants)
+                        transform.translate(rectangle0.center())
+                        let p = {x: transform.transformPoint({x: rectangle0.origin.x, y: rectangle0.origin.y+rectangle0.size.height}).x,
+                                 y: transform.transformPoint(rectangle0.origin).y }
+                        test.selectionHasPoint(p)
+    
+                        transform = new Matrix()
+                        transform.translate(pointMinus(rectangle1.center()))
+                        transform.rotate(radiants)
+                        transform.translate(rectangle1.center())
+                        p = {x: transform.transformPoint({
+                                x: rectangle1.origin.x+rectangle1.size.width, 
+                                y: rectangle1.origin.y}).x,
+                             y: transform.transformPoint({
+                                 x: rectangle1.origin.x+rectangle1.size.width,
+                                 y: rectangle1.origin.y+rectangle1.size.height}).y }
+                        test.selectionHasPoint(p)
+                })
             })
         })
 

@@ -217,7 +217,6 @@ export class SelectTool extends Tool {
      *******************************************************************/
 
     private updateBoundary() {
-        // console.log("SelectTool.updateBoundary()")
         this.boundary = new Rectangle()
 
         if (Tool.selection.empty()) {
@@ -244,7 +243,7 @@ export class SelectTool extends Tool {
                 firstRotation = false
                 rotation = r
             } else {
-                if (!isEqual(r, rotation)) { // FIXME: use orthogobal to each other not just equal
+                if (!isEqual(r % (Math.PI/2), rotation % (Math.PI/2))) {
                     rotation = 0.0
                     break
                 }

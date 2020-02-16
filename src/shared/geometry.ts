@@ -596,6 +596,8 @@ export class Matrix extends valueimpl.Matrix {
         let r0 = -Math.atan2(-this.b, this.a)
         let r1 = -Math.atan2(this.c, this.d)
         if (isEqual(r0, r1)) {
+            if (r0<0)
+                r0 = Math.PI+r0
             return r0
         }
         return NaN

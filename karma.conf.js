@@ -23,8 +23,8 @@ module.exports = (config) => {
     port: 9876,
     colors: true,
     browsers: ['ChromeHeadless'],
-    autoWatch: true,
-    singleRun: false
+    autoWatch: false,
+    singleRun: true
 
     // browserNoActivityTimeout: 0
   })
