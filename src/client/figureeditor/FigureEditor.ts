@@ -228,6 +228,8 @@ export class FigureEditor extends GenericView<LayerModel> {
                     // console.log(`FigureEditor.updateView(): got transform figures`)
                     let path = cached.path!! as Path
                     // console.log(`  before transform ${JSON.stringify(path)}`)
+                    let m = data.matrix as Matrix
+                    console.log(`FigureEditor.updateView(): transform path of figure ${id} by rotate ${m.getRotation()}, translate=${m.e}, ${m.f}`)
                     cached.path.transform(data.matrix)
                     // console.log(`  after transform ${JSON.stringify(path)}`)
                     cached.svg = cached.figure.updateSVG(cached.path, cached.svg)

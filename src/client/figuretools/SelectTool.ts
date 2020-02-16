@@ -525,6 +525,7 @@ export class SelectTool extends Tool {
 
         let transformation = this.transformation
         this.transformation = new Matrix()
+        console.log(`SelectionTool.stopHandle(): rotation=${transformation.getRotation()}, PI/4=${Math.PI/4}`)
         event.editor.transformSelection(transformation)
 
         // this.updateBoundaryFromSelection() // because the figure is updated async, or just continue with the current selection?

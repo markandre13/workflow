@@ -69,7 +69,7 @@ export class LocalLayerModel implements LayerModel {
             if (!fastFigureIds.has(fig.id))
                 continue
                 
-            if (fig.transform(matrix)) {
+            if (fig.matrix === undefined && fig.transform(matrix)) {
                 // FIXME: trigger this.modified()
                 continue
             }
@@ -78,7 +78,7 @@ export class LocalLayerModel implements LayerModel {
                 fig.matrix = new Matrix()
             let m = fig.matrix as Matrix
             m.prepend(matrix)
-            this.modified.trigger({operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: figureIds})
+            this.modified.trigger({operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: [fig.id]})
         }
     }
 
