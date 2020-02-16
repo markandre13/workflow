@@ -35,292 +35,138 @@ declare global {
     }
 }
 
-describe.only("figureeditor", function() {
+describe.only("figureeditor", ()=> {
     
-    // describe("figure to path", function() {
+    describe("SelectTool", ()=> {
 
-    //     it("rectangle", function() {
-    //         let fig000 = new figure.Rectangle({
-    //             origin: { x: 10, y: 20 },
-    //             size: { width: 30, height: 40 }
-    //         })
-    //         let grp000 = fig000.getPath() as path.Path
-    //         expect(grp000.svg.tagName).to.equal("path")
-    //         expect(grp000.svg.getAttribute("d")).to.equal("M 10 20 L 40 20 L 40 60 L 10 60 Z")
-    //     })
-        
-    //     it("group", function() {
-    //         let fig000 = new figure.Rectangle({
-    //             origin: { x: 10, y: 20 },
-    //             size: { width: 30, height: 40 }
-    //         })
-    //         let fig001 = new figure.Rectangle({
-    //             origin: { x: 50, y: 60 },
-    //             size: { width: 70, height: 80 }
-    //         })
-    //         let fig002 = new figure.Group()
-    //         fig002.add(fig000)
-    //         fig002.add(fig001)
-    //         let grp002 = fig002.getPath() as path.Path
-    //         grp002.updateSVG()
-    //         expect(grp002.svg.tagName).to.equal("g")
-    //         expect(grp002.svg.children.length).to.equal(2)
-    //         expect(grp002.svg.children[0].getAttribute("d")).to.equal("M 10 20 L 40 20 L 40 60 L 10 60 Z")
-    //         expect(grp002.svg.children[1].getAttribute("d")).to.equal("M 50 60 L 120 60 L 120 140 L 50 140 Z")
-    //     })
+        describe("select", ()=> {
+            describe("single figure", ()=> {
+                it("no transformation", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle0 = new Rectangle(50, 50, 20, 30)
+                    test.addRectangle(rectangle0)
 
-    //     describe("transform", function() {
-    //         it("transform from raw data", function() {
-    //             let fig000 = new figure.Rectangle({
-    //                 origin: { x: 10, y: 20 },
-    //                 size: { width: 30, height: 40 }
-    //             })
-    //             let fig001 = new figure.Transform()
-                
-    //             let matrix = new Matrix()
-    //             matrix.scale(2, 2)
-    //             fig001.matrix = matrix
-    //             fig001.childFigures.push(fig000)
+                    // WHEN
+                    test.selectFigure()
 
-    //             let grp001 = fig001.getPath() as path.Path
-    //             grp001.updateSVG()
+                    // THEN
+                    test.selectionHasRectangle(rectangle0)
+                })
 
-    //             expect(grp001.svg.tagName).to.equal("g")
-    //             expect(grp001.svg.children.length).to.equal(1)
-    //             expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-    //         })
-        
-    //         it("transform, add, getPath", function() {
-    //             let fig000 = new figure.Rectangle({
-    //                 origin: { x: 10, y: 20 },
-    //                 size: { width: 30, height: 40 }
-    //             })
-    //             let fig001 = new figure.Transform()
-                
-    //             let matrix = new Matrix()
-    //             matrix.scale(2, 2)
-    //             fig001.transform(matrix)
+                // it("translated", ()=> {})
+                // it("scaled", ()=> {})
 
-    //             fig001.add(fig000)
+                it("rotated", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle0 = new Rectangle(50, 50, 20, 30)
+                    let radiants = Math.PI/8
+                    test.addRectangle(rectangle0, rectangle0.center(), radiants)
 
-    //             let grp001 = fig001.getPath() as path.Path
-    //             grp001.updateSVG()
+                    // WHEN
+                    test.selectFigure()
 
-    //             expect(grp001.svg.tagName).to.equal("g")
-    //             expect(grp001.svg.children.length).to.equal(1)
-    //             expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-    //         })
-            
-    //         it("add, transform, getPath", function() {
-    //             let fig000 = new figure.Rectangle({
-    //                 origin: { x: 10, y: 20 },
-    //                 size: { width: 30, height: 40 }
-    //             })
-    //             let fig001 = new figure.Transform()
-    //             fig001.add(fig000)
+                    // THEN
+                    test.selectionHasRectangle(rectangle0, rectangle0.center(), radiants)
+                })
 
-    //             let matrix = new Matrix()
-    //             matrix.scale(2, 2)
-    //             fig001.transform(matrix)
-                
-    //             let grp001 = fig001.getPath() as path.Path
-    //             grp001.updateSVG()
-                
-    //             expect(grp001.svg.tagName).to.equal("g")
-    //             expect(grp001.svg.children.length).to.equal(1)
-    //             expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-    //         })
+                // it("translated, scaled and rotated", ()=> {})
+            })
 
-    //         it("transform, getPath, add", function() {
-    //             let fig000 = new figure.Rectangle({
-    //                 origin: { x: 10, y: 20 },
-    //                 size: { width: 30, height: 40 }
-    //             })
-    //             let fig001 = new figure.Transform()
+            describe("group of figures", ()=> {
+                it("no transformation", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
 
-    //             let matrix = new Matrix()
-    //             matrix.scale(2, 2)
-    //             fig001.transform(matrix)
+                    let rectangle0 = new Rectangle(50, 50, 10, 20)
+                    test.addRectangle(rectangle0)
+                    
+                    let rectangle1 = new Rectangle(70, 110, 30, 40)
+                    test.addRectangle(rectangle1)
 
-    //             let grp001 = fig001.getPath() as path.Path
+                    test.selectFigure(0)
+                    test.selectFigure(1)
 
-    //             fig001.add(fig000)
-                
-    //             grp001.updateSVG()
-                
-    //             expect(grp001.svg.tagName).to.equal("g")
-    //             expect(grp001.svg.children.length).to.equal(1)
-    //             expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-    //         })
+                    let r2 = new Rectangle(50,50,50,100)
+                    test.selectionHasRectangle(r2)
+                })
 
-    //         it("add, getPath, transform", function() {
-    //             let fig000 = new figure.Rectangle({
-    //                 origin: { x: 10, y: 20 },
-    //                 size: { width: 30, height: 40 }
-    //             })
-    //             let fig001 = new figure.Transform()
+                it("same rotation", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let radiants = Math.PI/8
 
-    //             fig001.add(fig000)
+                    let rectangle0 = new Rectangle(50, 50, 10, 20)
+                    test.addRectangle(rectangle0, rectangle0.center(), radiants)
+                    
+                    let rectangle1 = new Rectangle(70, 110, 30, 40)
+                    test.addRectangle(rectangle1, rectangle1.center(), radiants)
 
-    //             let grp001 = fig001.getPath() as path.Path
+                    test.selectFigure(0)
+                    test.selectFigure(1)
+           
+                    let transform = new Matrix()
+                    transform.translate(pointMinus(rectangle0.center()))
+                    transform.rotate(radiants)
+                    transform.translate(rectangle0.center())
+                    let p = transform.transformPoint(rectangle0.origin)
+                    test.selectionHasPoint(p)
 
-    //             let matrix = new Matrix()
-    //             matrix.scale(2, 2)
-    //             fig001.transform(matrix)
-                
-    //             grp001.updateSVG()
-                
-    //             expect(grp001.svg.tagName).to.equal("g")
-    //             expect(grp001.svg.children.length).to.equal(1)
-    //             expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-    //         })
-
-    //         it("getPath, add, transform", function() {
-    //             let fig000 = new figure.Rectangle({
-    //                 origin: { x: 10, y: 20 },
-    //                 size: { width: 30, height: 40 }
-    //             })
-    //             let fig001 = new figure.Transform()
-
-    //             let grp001 = fig001.getPath() as path.Path
-
-    //             fig001.add(fig000)
-
-    //             let matrix = new Matrix()
-    //             matrix.scale(2, 2)
-    //             fig001.transform(matrix)
-                
-    //             grp001.updateSVG()
-                
-    //             expect(grp001.svg.tagName).to.equal("g")
-    //             expect(grp001.svg.children.length).to.equal(1)
-    //             expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-    //         })
-
-    //         it("getPath, transform, add", function() {
-    //             let fig000 = new figure.Rectangle({
-    //                 origin: { x: 10, y: 20 },
-    //                 size: { width: 30, height: 40 }
-    //             })
-    //             let fig001 = new figure.Transform()
-
-    //             let grp001 = fig001.getPath() as path.Path
-
-    //             let matrix = new Matrix()
-    //             matrix.scale(2, 2)
-    //             fig001.transform(matrix)
-                
-    //             fig001.add(fig000)
-
-    //             grp001.updateSVG()
-
-    //             expect(grp001.svg.tagName).to.equal("g")
-    //             expect(grp001.svg.children.length).to.equal(1)
-    //             expect(grp001.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-    //         })
-    //     })
-        
-    //     describe("outline", function() {
-    //         it("rectangle", function() {
-    //             let fig = new figure.Rectangle({
-    //                 origin: { x: 10, y: 20 },
-    //                 size: { width: 30, height: 40 }
-    //             })
-    //             let path = fig.getPath() as path.Path
-    //             path.updateSVG()
-                
-    //             let outline = tool.Tool.createOutlineCopy(path)
-                
-    //             expect(outline.svg.tagName).to.equal("path")
-    //             expect(outline.svg.getAttribute("d")).to.equal("M 10 20 L 40 20 L 40 60 L 10 60 Z")
-    //         })
-
-    //         it("transform, rectangle", function() {            
-    //             let fig000 = new figure.Rectangle({
-    //                 origin: { x: 10, y: 20 },
-    //                 size: { width: 30, height: 40 }
-    //             })
-    //             let fig001 = new figure.Transform()
-                
-    //             let matrix = new Matrix()
-    //             matrix.scale(2, 2)
-    //             fig001.matrix = matrix
-    //             fig001.childFigures.push(fig000)
-
-    //             let path = fig001.getPath() as path.Path
-    //             path.updateSVG()
-                
-    //             let outline = tool.Tool.createOutlineCopy(path)
-    //             outline.updateSVG()
-
-    //             expect(outline.svg.tagName).to.equal("g")
-    //             expect(outline.svg.children.length).to.equal(1)
-    //             expect(outline.svg.children[0].getAttribute("d")).to.equal("M 20 40 L 80 40 L 80 120 L 20 120 Z")
-    //         })
-    //     })
-    // })
-
-    describe("SelectTool", function() {
-
-        this.beforeAll(()=>{
-            // console.log("before all select tool tests")
+                    transform = new Matrix()
+                    transform.translate(pointMinus(rectangle1.center()))
+                    transform.rotate(radiants)
+                    transform.translate(rectangle1.center())
+                    p = transform.transformPoint(pointPlusSize(rectangle1.origin, rectangle1.size))
+                    test.selectionHasPoint(p)
+                })
+            })
         })
 
-        it("normal selection decoration", ()=> {
-            // GIVEN
-            let test = new FigureEditorUser()
-            test.addRectangle()
+        describe("move", ()=> {
+            it("single figure", ()=> {
+                // GIVEN
+                let test = new FigureEditorUser()
+                
+                test.addRectangle()
+                test.selectFigure()
+                
+                // WHEN
+                let oldCenter = test.centerOfFigure()
+                test.mouseDownAt(oldCenter)
+                let translation = new Point(17, -29)
+                test.moveMouseBy(translation)
+                test.mouseUp()
 
-            // WHEN
-            test.selectFigure()
-
-            // THEN
-            // { origin: {x:50, y: 50}, size: {width: 20, height: 30}}
-            test.selectionHasPoint({x: 50.5, y: 50.5})
-            test.selectionHasPoint({x: 70.5, y: 50.5})
-            test.selectionHasPoint({x: 70.5, y: 80.5})
-            test.selectionHasPoint({x: 50.5, y: 80.5})
-        })
-
-        it("move single figure", ()=> {
-            // GIVEN
-            let test = new FigureEditorUser()
-            test.addRectangle()
-            test.selectFigure()
-            
-            // WHEN
-            let oldCenter = test.centerOfFigure()
-            test.mouseDownAt(oldCenter)
-            let translation = new Point(17, -29)
-            test.moveMouseBy(translation)
-            test.mouseUp()
-
-            // THEN
-            let newCenter = pointPlusPoint(oldCenter, translation)
-            expect(test.centerOfFigure()).to.eql(newCenter)
+                // THEN
+                let newCenter = pointPlusPoint(oldCenter, translation)
+                expect(test.centerOfFigure()).to.eql(newCenter)
+            })
         })
        
-        it("scales figure", ()=> {
-            // GIVEN
-            let test = new FigureEditorUser()
-            let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-            rectangle.stroke = "#000"
-            rectangle.fill = "#f00"
-            test.addFigure(rectangle)
-            test.selectFigure()
-            let oldNWCorner = new Point(rectangle.origin)
-            let oldSECorner = pointPlusSize(rectangle.origin, rectangle.size)
+        describe("scale", ()=>{
+            it("single figure", ()=> {
+                // GIVEN
+                let test = new FigureEditorUser()
+                let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+                rectangle.stroke = "#000"
+                rectangle.fill = "#f00"
+                test.addFigure(rectangle)
+                test.selectFigure()
+                let oldNWCorner = new Point(rectangle.origin)
+                let oldSECorner = pointPlusSize(rectangle.origin, rectangle.size)
 
-            // WHEN
-            test.mouseDownAt(oldNWCorner)
-            let newNWCorner = new Point(40, 65)
-            test.moveMouseTo(newNWCorner)
-            test.mouseUp()
+                // WHEN
+                test.mouseDownAt(oldNWCorner)
+                let newNWCorner = new Point(40, 65)
+                test.moveMouseTo(newNWCorner)
+                test.mouseUp()
 
-            // THEN
-            expect(rectangle.origin).to.eql(newNWCorner)
-            let newSECorner = pointPlusSize(rectangle.origin, rectangle.size)
-            expect(oldSECorner).to.eql(newSECorner)
+                // THEN
+                expect(rectangle.origin).to.eql(newNWCorner)
+                let newSECorner = pointPlusSize(rectangle.origin, rectangle.size)
+                expect(oldSECorner).to.eql(newSECorner)
+            })
         })
 
         describe("rotate", ()=> {
@@ -462,19 +308,29 @@ describe.only("figureeditor", function() {
             describe("group of figures", ()=> {
                 it("rotate two figures using nw handle", () => {
                     // GIVEN
-                    // let test = new FigureEditorUser()
+                    let test = new FigureEditorUser()
 
-                    // let r0 = new Rectangle(50, 50, 10, 20)
-                    // test.addRectangle(r0)
+                    let rectangle0 = new Rectangle(50, 50, 10, 20)
+                    test.addRectangle(rectangle0)
                     
-                    // let r1 = new Rectangle(70, 110, 30, 40)
-                    // test.addRectangle(r1)
+                    let rectangle1 = new Rectangle(70, 110, 30, 40)
+                    test.addRectangle(rectangle1)
 
-                    // test.selectFigure(0)
-                    // test.selectFigure(1)
+                    test.selectFigure(0)
+                    test.selectFigure(1)
 
-                    // let r2 = new Rectangle(50,50,50,100)
-                    // test.selectionHasRectangle(r2)
+                    let r2 = new Rectangle(50,50,50,100)
+                    test.selectionHasRectangle(r2)
+
+                    let m = new Matrix()
+                    m.scale(3,70)
+                    m.rotate(3)
+                    // m.scale(1,2)
+                    let r0 = -Math.atan2(-m.b, m.a)
+                    let r1 = -Math.atan2(m.c, m.d)
+
+
+                    console.log(r0, r1)
 
                     // expect(Tool.selection.selection.size).to.equal(2)
                     // expect(test.selectTool.boundary).to.almost.eql({origin: {x: 50, y: 50}, size: {width: 70, height: 80}})

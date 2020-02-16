@@ -34,7 +34,7 @@
 
 import {
     Point, Rectangle, Matrix,
-    pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus
+    pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus, isEqual
 } from "../../shared/geometry"
 import { Path } from "../paths/Path"
 import { Figure } from "../figures/Figure"
@@ -44,6 +44,7 @@ import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
 import { Transform } from "../figures/Transform"
 import { PathGroup } from "../paths/PathGroup"
+import { isNull } from "util"
 
 export enum SelectToolState {
     NONE,
@@ -224,35 +225,72 @@ export class SelectTool extends Tool {
             return
         }
 
-        // for(let figure of Tool.selection.selection) {
-        //     let figureBoundary = figure.bounds()
-        //     this.boundary.expandByRectangle(figureBoundary)
-        // }
+        let firstRotation = true
+        let rotation = 0.0
+        let sameOrientation = true
+        for(let figure of Tool.selection.selection) {
+            let r: number
+            if (figure.matrix === undefined) {
+                r = 0.0
+            } else {
+                r = (figure.matrix as Matrix).getRotation()
+            }
 
+            if (isNaN(r)) {
+                sameOrientation = false
+                break
+            }
 
-        if (Tool.selection.selection.size > 1)
-            throw Error("can't handle more than one figure yet")
-
-        let figure
-        for(let f of Tool.selection.selection) {
-            figure = f
-            break
+            if (firstRotation) {
+                firstRotation = false
+                rotation = r
+            } else {
+                if (!isEqual(r, rotation)) { // FIXME: use orthogobal to each other not just equal
+                    sameOrientation = false
+                    break
+                }
+                rotation = r
+            }
         }
 
-        if (figure instanceof Transform) {
-            // console.log("it's a transform")
-            this.boundaryTransformation = new Matrix(figure.matrix)
-            for(let f of figure.childFigures) {
-                this.boundary.expandByRectangle(f.bounds())
-            }
-        } else {
-            if (figure && figure.matrix)
-                this.boundaryTransformation = new Matrix(figure.matrix)
-            else
-                this.boundaryTransformation.identity()
-            for(let figure of Tool.selection.selection) {
-                this.boundary.expandByRectangle(figure.bounds())
-            }
+        let rotationAroundOrigin = new Matrix()
+        if (sameOrientation) {
+            rotationAroundOrigin.rotate(rotation)
+        }
+        let inverseRotationAroundOrigin = new Matrix(rotationAroundOrigin).invert()
+
+        // get figure bounds, use figures matrix if available and squeeze it into the boundaryTransformation
+        let boundary = new Rectangle()
+        let flag = true
+        for(let figure of Tool.selection.selection) {
+            // FIXME: typecast hell is bitting me arse...
+            let figureBoundary = figure.bounds() as Rectangle
+            figureBoundary.forAllEdges( (edge)=>{
+                edge = inverseRotationAroundOrigin.transformPoint(edge)
+                if (flag) {
+                    flag = false
+                    boundary.origin = edge   
+                } else {
+                    boundary.expandByPoint(edge)
+                }
+            }, figure.matrix as Matrix)
+            // this.boundary.expandByRectangle(figureBoundary, figure.matrix as Matrix)
+        }
+        
+        let center = boundary.center()
+        center = rotationAroundOrigin.transformPoint(center)
+
+        let w = boundary.size.width/2
+        let h = boundary.size.height/2
+     
+        this.boundary.origin = pointMinusPoint(center, {x: w, y: h})
+        this.boundary.size = boundary.size
+
+        this.boundaryTransformation = new Matrix()
+        if (sameOrientation) {
+            this.boundaryTransformation.translate(pointMinus(center))
+            this.boundaryTransformation.rotate(rotation)
+            this.boundaryTransformation.translate(center)
         }
     }
 

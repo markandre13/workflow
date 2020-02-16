@@ -64,6 +64,8 @@ valuetype Matrix {
 //    sequence<double, 2> transformArrayPoint(in sequence<double, 2> point);
 // 2 is maximum size, we would like exact size
     sequence<double> transformArrayPoint(in sequence<double> point);
+
+    double getRotation();
 */
 };
 

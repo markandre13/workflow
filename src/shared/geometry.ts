@@ -497,6 +497,7 @@ export function intersectsRectLine(rect: Rectangle, line: Array<Point>): boolean
     return false
 }
 
+// FIXME: DO A HUGE OVERHAUL: ADOPT FUNCTIONAL STYLE, DON'T LET METHODS RETURNING A MATRIX MODIFY THE MATRIX, RETURN A NEW ONE
 export class Matrix extends valueimpl.Matrix {
     constructor(matrix?: Partial<Matrix>) {
         super(matrix)
@@ -521,11 +522,12 @@ export class Matrix extends valueimpl.Matrix {
         return this.b === 0.0 && this.c === 0.0
     }
     
-    identity() {
+    identity(): Matrix {
         [ this.a, this.b, this.c, this.d, this.e, this.f ] = [ 1, 0, 0, 1, 0, 0]
+        return this
     }
     
-    append(matrix: Matrix) {
+    append(matrix: Matrix): Matrix {
         [ this.a, this.b, this.c, this.d, this.e, this.f ] =
         [ this.a * matrix.a + this.c * matrix.b,
           this.b * matrix.a + this.d * matrix.b,
@@ -533,9 +535,10 @@ export class Matrix extends valueimpl.Matrix {
           this.b * matrix.c + this.d * matrix.d,
           this.a * matrix.e + this.c * matrix.f + this.e,
           this.b * matrix.e + this.d * matrix.f + this.f ]
+        return this
     }
 
-    prepend(matrix: Matrix) {
+    prepend(matrix: Matrix): Matrix {
         [ this.a, this.b, this.c, this.d, this.e, this.f ] =
         [ matrix.a * this.a + matrix.c * this.b,
           matrix.b * this.a + matrix.d * this.b,
@@ -543,9 +546,10 @@ export class Matrix extends valueimpl.Matrix {
           matrix.b * this.c + matrix.d * this.d,
           matrix.a * this.e + matrix.c * this.f + matrix.e,
           matrix.b * this.e + matrix.d * this.f + matrix.f ]
+        return this
     }
  
-    invert() {
+    invert(): Matrix {
         let d = 1.0 / (this.a * this.d - this.c * this.b)
         let n11 = d *  this.d
         let n12 = d * -this.b
@@ -560,54 +564,70 @@ export class Matrix extends valueimpl.Matrix {
         this.d = n22
         this.e  = nX
         this.f  = nY
+        return this
     }
     
-    translate(point: Point) {
+    translate(point: Point): Matrix {
         let m = new Matrix({
             a: 1.0, c: 0.0, e: point.x,
             b: 0.0, d: 1.0, f: point.y
         })
         this.prepend(m)
+        return this
     }
 
-    rotate(radiant: number) {
+    rotate(radiant: number): Matrix {
         let m = new Matrix({
             a:  Math.cos(radiant), c: -Math.sin(radiant), e: 0,
             b:  Math.sin(radiant), d:  Math.cos(radiant), f: 0
         })
         this.prepend(m)
+        return this
+    }
+
+    getRotation(): number {
+        let r0 = -Math.atan2(-this.b, this.a)
+        let r1 = -Math.atan2(this.c, this.d)
+        if (isEqual(r0, r1)) {
+            return r0
+        }
+        return NaN
     }
     
-    scale(x: number, y:number) {
+    scale(x: number, y:number): Matrix {
         let m = new Matrix({
             a: x, c: 0, e: 0,
             b: 0, d: y, f: 0
         })
         this.prepend(m)
+        return this
     }
 
-    postTranslate(point: Point) {
+    postTranslate(point: Point): Matrix {
         let m = new Matrix({
             a: 1.0, c: 0.0, e: point.x,
             b: 0.0, d: 1.0, f: point.y
         })
         this.append(m)
+        return this
     }
 
-    postRotate(radiant: number) {
+    postRotate(radiant: number): Matrix {
         let m = new Matrix({
             a:  Math.cos(radiant), c: -Math.sin(radiant), e: 0,
             b:  Math.sin(radiant), d:  Math.cos(radiant), f: 0
         })
         this.append(m)
+        return this
     }
     
-    postScale(x: number, y:number) {
+    postScale(x: number, y:number): Matrix {
         let m = new Matrix({
             a: x, c: 0, e: 0,
             b: 0, d: y, f: 0
         })
         this.append(m)
+        return this
     }
     
     transformPoint(point: Point): Point {
