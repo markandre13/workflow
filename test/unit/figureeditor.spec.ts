@@ -120,6 +120,9 @@ describe.only("figureeditor", ()=> {
                     p = transform.transformPoint(pointPlusSize(rectangle1.origin, rectangle1.size))
                     test.selectionHasPoint(p)
                 })
+
+                it("orthogonal rotation")
+                it("different rotation")
             })
         })
 
@@ -321,16 +324,6 @@ describe.only("figureeditor", ()=> {
 
                     let r2 = new Rectangle(50,50,50,100)
                     test.selectionHasRectangle(r2)
-
-                    let m = new Matrix()
-                    m.scale(3,70)
-                    m.rotate(3)
-                    // m.scale(1,2)
-                    let r0 = -Math.atan2(-m.b, m.a)
-                    let r1 = -Math.atan2(m.c, m.d)
-
-
-                    console.log(r0, r1)
 
                     // expect(Tool.selection.selection.size).to.equal(2)
                     // expect(test.selectTool.boundary).to.almost.eql({origin: {x: 50, y: 50}, size: {width: 70, height: 80}})

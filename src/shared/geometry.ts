@@ -53,15 +53,15 @@ export class Size extends valueimpl.Size {
 
 export function pointPlusSize(point: Point, size: Size): Point {
     return new Point({
-        x: point.x+size.width,
-        y: point.y+size.height
+        x: point.x + size.width,
+        y: point.y + size.height
     })
 }
 
-export function pointMinusPoint(a: Point, b: Point): Point {
+export function pointMinusSize(point: Point, size: Size): Point {
     return new Point({
-        x: a.x - b.x,
-        y: a.y - b.y
+        x: point.x - size.width,
+        y: point.y - size.height
     })
 }
 
@@ -69,6 +69,13 @@ export function pointPlusPoint(a: Point, b: Point): Point {
     return new Point({
         x: a.x + b.x,
         y: a.y + b.y
+    })
+}
+
+export function pointMinusPoint(a: Point, b: Point): Point {
+    return new Point({
+        x: a.x - b.x,
+        y: a.y - b.y
     })
 }
 

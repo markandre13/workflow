@@ -34,7 +34,7 @@
 
 import {
     Point, Rectangle, Matrix,
-    pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus, isEqual
+    pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual
 } from "../../shared/geometry"
 import { Path } from "../paths/Path"
 import { Figure } from "../figures/Figure"
@@ -225,20 +225,19 @@ export class SelectTool extends Tool {
             return
         }
 
+        // get rotation of the selected figures
         let firstRotation = true
         let rotation = 0.0
-        let sameOrientation = true
         for(let figure of Tool.selection.selection) {
             let r: number
             if (figure.matrix === undefined) {
                 r = 0.0
             } else {
                 r = (figure.matrix as Matrix).getRotation()
-            }
-
-            if (isNaN(r)) {
-                sameOrientation = false
-                break
+                if (isNaN(r)) {
+                    rotation = 0.0
+                    break
+                }
             }
 
             if (firstRotation) {
@@ -246,48 +245,40 @@ export class SelectTool extends Tool {
                 rotation = r
             } else {
                 if (!isEqual(r, rotation)) { // FIXME: use orthogobal to each other not just equal
-                    sameOrientation = false
+                    rotation = 0.0
                     break
                 }
-                rotation = r
             }
         }
 
+        // get boundary of selected figures in a coordinate system rotated by 'rotation'
         let rotationAroundOrigin = new Matrix()
-        if (sameOrientation) {
-            rotationAroundOrigin.rotate(rotation)
-        }
+        rotationAroundOrigin.rotate(rotation)
         let inverseRotationAroundOrigin = new Matrix(rotationAroundOrigin).invert()
-
-        // get figure bounds, use figures matrix if available and squeeze it into the boundaryTransformation
         let boundary = new Rectangle()
-        let flag = true
+        let firstEdge = true
         for(let figure of Tool.selection.selection) {
-            // FIXME: typecast hell is bitting me arse...
             let figureBoundary = figure.bounds() as Rectangle
             figureBoundary.forAllEdges( (edge)=>{
                 edge = inverseRotationAroundOrigin.transformPoint(edge)
-                if (flag) {
-                    flag = false
+                if (firstEdge) {
+                    firstEdge = false
                     boundary.origin = edge   
                 } else {
                     boundary.expandByPoint(edge)
                 }
             }, figure.matrix as Matrix)
-            // this.boundary.expandByRectangle(figureBoundary, figure.matrix as Matrix)
         }
         
-        let center = boundary.center()
-        center = rotationAroundOrigin.transformPoint(center)
+        // get center in real coordinate system
+        let center = rotationAroundOrigin.transformPoint(boundary.center())
 
-        let w = boundary.size.width/2
-        let h = boundary.size.height/2
-     
-        this.boundary.origin = pointMinusPoint(center, {x: w, y: h})
+        // setup rotated boundary
+        this.boundary.origin = pointMinusSize(center, sizeMultiplyNumber(boundary.size, 0.5))
         this.boundary.size = boundary.size
 
         this.boundaryTransformation = new Matrix()
-        if (sameOrientation) {
+        if (rotation != 0.0) {
             this.boundaryTransformation.translate(pointMinus(center))
             this.boundaryTransformation.rotate(rotation)
             this.boundaryTransformation.translate(center)
