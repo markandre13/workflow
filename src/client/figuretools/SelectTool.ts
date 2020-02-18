@@ -325,7 +325,7 @@ export class SelectTool extends Tool {
         }
         let r = new Rectangle(x, y, Figure.HANDLE_RANGE, Figure.HANDLE_RANGE)
         let m = new Matrix(this.transformation)
-        m.prepend(this.boundaryTransformation)
+        m.append(this.boundaryTransformation)
 
         r.origin = m.transformPoint(r.origin)
         r.origin.x -= Figure.HANDLE_RANGE / 2.0

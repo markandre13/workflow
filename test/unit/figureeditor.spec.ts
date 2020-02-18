@@ -236,13 +236,9 @@ describe.only("figureeditor", ()=> {
                 it("moves figure when mouse is released", ()=> {
                     // GIVEN
                     let test = new FigureEditorUser()
-
                     let r0 = new Rectangle(50, 50, 20, 30)
                     let translation = new Point(10, -10)
-                    let r1 = new Rectangle(r0)
-                    r1.origin = pointPlusPoint(r1.origin, translation)
                     test.addRectangle(r0)
-
                     test.selectFigure(0)
                     test.selectionHasRectangle(r0)
 
@@ -253,12 +249,34 @@ describe.only("figureeditor", ()=> {
                     test.mouseUp()
 
                     // THEN
+                    let r1 = new Rectangle(r0)
+                    r1.origin = pointPlusPoint(r1.origin, translation)
                     test.selectionHasRectangle(r1)
                     test.outlineHasRectangle(r1)
                     test.renderHasRectangle(r1)
                 })
                 it("translated")
-                it("rotated <== CONTINUE HERE, THIS DOES NOT WORK")
+                it("rotated", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let r0 = new Rectangle(50, 50, 20, 30)
+                    test.addRectangle(r0, r0.center(), Math.PI/8)
+                    test.selectFigure(0)
+                    
+                    // WHEN
+                    test.mouseDownAt(r0.center())
+                    let translation = new Point(100, 0)
+                    test.moveMouseBy(translation)
+                    test.mouseUp()
+
+                    // THEN
+                    let r1 = new Rectangle(r0)
+                    r1.origin = pointPlusPoint(r1.origin, translation)
+
+                    test.selectionHasRectangle(r1, r1.center(), Math.PI/8)
+                    test.outlineHasRectangle(r1, r1.center(), Math.PI/8)
+                    test.renderHasRectangle(r1, r1.center(), Math.PI/8)
+                })
                 it("scaled")
             })
         })
