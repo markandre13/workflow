@@ -282,27 +282,52 @@ describe.only("figureeditor", ()=> {
         })
        
         describe("scale", ()=>{
-            it("single figure", ()=> {
-                // GIVEN
-                let test = new FigureEditorUser()
-                let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-                rectangle.stroke = "#000"
-                rectangle.fill = "#f00"
-                test.addFigure(rectangle)
-                test.selectFigure()
-                let oldNWCorner = new Point(rectangle.origin)
-                let oldSECorner = pointPlusSize(rectangle.origin, rectangle.size)
+            describe("single figure", ()=> {
+                it("scales figure's outline before mouse is released", ()=>{
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+                    rectangle.stroke = "#000"
+                    rectangle.fill = "#f00"
+                    test.addFigure(rectangle)
+                    test.selectFigure()
+                    let oldNWCorner = new Point(rectangle.origin)
+                    let oldSECorner = pointPlusSize(rectangle.origin, rectangle.size)
 
-                // WHEN
-                test.mouseDownAt(oldNWCorner)
-                let newNWCorner = new Point(40, 65)
-                test.moveMouseTo(newNWCorner)
-                test.mouseUp()
+                    // WHEN
+                    test.mouseDownAt(oldNWCorner)
+                    let newNWCorner = new Point(40, 65)
+                    test.moveMouseTo(newNWCorner)
+                    // test.mouseUp()
 
-                // THEN
-                expect(rectangle.origin).to.eql(newNWCorner)
-                let newSECorner = pointPlusSize(rectangle.origin, rectangle.size)
-                expect(oldSECorner).to.eql(newSECorner)
+                    // THEN
+                    let scaled = new Rectangle(40, 65, 30, 15)
+                    test.selectionHasRectangle(scaled)
+                    test.outlineHasRectangle(scaled)
+                })
+                it("scales figure when mouse is released", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
+                    rectangle.stroke = "#000"
+                    rectangle.fill = "#f00"
+                    test.addFigure(rectangle)
+                    test.selectFigure()
+                    let oldNWCorner = new Point(rectangle.origin)
+                    let oldSECorner = pointPlusSize(rectangle.origin, rectangle.size)
+
+                    // WHEN
+                    test.mouseDownAt(oldNWCorner)
+                    let newNWCorner = new Point(40, 65)
+                    test.moveMouseTo(newNWCorner)
+                    test.mouseUp()
+
+                    // THEN
+                    let scaled = new Rectangle(40, 65, 30, 15)
+                    test.selectionHasRectangle(scaled)
+                    test.outlineHasRectangle(scaled)
+                    test.renderHasRectangle(scaled)
+                })
             })
         })
         describe("rotate", ()=> {

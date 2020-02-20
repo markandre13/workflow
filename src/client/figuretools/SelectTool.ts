@@ -466,22 +466,22 @@ export class SelectTool extends Tool {
         // console.log(`  x0=${x0}, y0=${y0}, x1=${x1}, y1=${y1}`)
         // console.log(`  sx=${sx}, sy=${sy}`)
 
-        // let X0, OX0, Y0, OY0
+        let X0, OX0, Y0, OY0
         // if (event.editor.getMatrix()) {
-            let [X0, Y0] = m.transformArrayPoint([x0, y0])
-            let [OX0, OY0] = m.transformArrayPoint([ox0, oy0])
+            // let [X0, Y0] = m.transformArrayPoint([x0, y0])
+            // let [OX0, OY0] = m.transformArrayPoint([ox0, oy0])
         //   ...
         // } else {
             X0 = x0; Y0 = y0
             OX0 = ox0; OY0 = oy0
         // }
-        let m2 = new Matrix()
         // console.log(`  translate(${-OX0}, ${-OY0})`)
         // console.log(`  scale(${sx}, ${sy})`)
         // console.log(`  translate(${X0}, ${Y0})`)
-        m2.translate({x: -OX0, y: -OY0})
-        m2.scale(sx, sy)
-        m2.translate({x: X0, y: Y0})
+        this.transformation.identity()
+        this.transformation.translate({x: -OX0, y: -OY0})
+        this.transformation.scale(sx, sy)
+        this.transformation.translate({x: X0, y: Y0})
         // this.transformation.prepend(m2)
 
         // up to here the math for m2 is correct
@@ -490,7 +490,7 @@ export class SelectTool extends Tool {
         
         // this.boundaryTransformation = m2
         //this.boundaryTransformation.identity()
-        this.transformation = m2
+        // this.transformation = m2
         
         this.updateOutlineAndDecorationOfSelection(event.editor)
     }
