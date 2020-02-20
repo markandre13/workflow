@@ -436,6 +436,28 @@ describe.only("figureeditor", ()=> {
                     test.renderHasRectangle(rectangle, center, Math.PI/4)
                     test.outlineHasRectangle(rectangle, center, Math.PI/4)
                 })
+                it("rotates a translated figure", ()=>{
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle0 = new Rectangle(50, 50, 20, 30)
+                    let translate = new Point(100, 0)
+                    test.addRectangle(rectangle0, translate)
+                    test.selectFigure()
+
+                    // WHEN
+                    let handleRange = figure.Figure.HANDLE_RANGE
+                    let center = pointPlusPoint(rectangle0.center(), translate)
+                    let down = pointMinusPoint(
+                        pointPlusPoint(rectangle0.origin, translate), {x: handleRange, y: handleRange})
+                    let up = rotatePointAroundPointBy(down, center, Math.PI/8)
+
+                    test.mouseDownAt(down)
+                    test.moveMouseTo(up)
+                    test.mouseUp()
+            
+                    // THEN
+                    test.selectionHasRectangle(new Rectangle(50+100, 50, 20, 30), center, Math.PI/8)
+                })
             })
 
             describe("group of figures", ()=> {
