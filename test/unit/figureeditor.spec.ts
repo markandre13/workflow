@@ -169,50 +169,102 @@ describe.only("figureeditor", ()=> {
                     test.selectionHasPoint(p)                    
                 })
                 it("different rotation", ()=> {
-                        // GIVEN
-                        let test = new FigureEditorUser()
-                        let radiants = Math.PI/8
-    
-                        let rectangle0 = new Rectangle(50, 50, 10, 20)
-                        test.addRectangle(rectangle0, rectangle0.center(), radiants)
-                        
-                        let rectangle1 = new Rectangle(70, 110, 30, 40)
-                        test.addRectangle(rectangle1, rectangle1.center(), radiants)
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let radiants = Math.PI/8
 
-                        let rectangle2 = new Rectangle(60, 80, 5, 10)
-                        test.addRectangle(rectangle2, rectangle2.center(), Math.PI/16)
-    
-                        test.selectFigure(0)
-                        test.selectFigure(1)
-                        test.selectFigure(2)
-               
-                        let transform = new Matrix()
-                        transform.translate(pointMinus(rectangle0.center()))
-                        transform.rotate(radiants)
-                        transform.translate(rectangle0.center())
-                        let p = {x: transform.transformPoint({x: rectangle0.origin.x, y: rectangle0.origin.y+rectangle0.size.height}).x,
-                                 y: transform.transformPoint(rectangle0.origin).y }
-                        test.selectionHasPoint(p)
-    
-                        transform = new Matrix()
-                        transform.translate(pointMinus(rectangle1.center()))
-                        transform.rotate(radiants)
-                        transform.translate(rectangle1.center())
-                        p = {x: transform.transformPoint({
-                                x: rectangle1.origin.x+rectangle1.size.width, 
-                                y: rectangle1.origin.y}).x,
-                             y: transform.transformPoint({
-                                 x: rectangle1.origin.x+rectangle1.size.width,
-                                 y: rectangle1.origin.y+rectangle1.size.height}).y }
-                        test.selectionHasPoint(p)
+                    let rectangle0 = new Rectangle(50, 50, 10, 20)
+                    test.addRectangle(rectangle0, rectangle0.center(), radiants)
+                    
+                    let rectangle1 = new Rectangle(70, 110, 30, 40)
+                    test.addRectangle(rectangle1, rectangle1.center(), radiants)
+
+                    let rectangle2 = new Rectangle(60, 80, 5, 10)
+                    test.addRectangle(rectangle2, rectangle2.center(), Math.PI/16)
+
+                    test.selectFigure(0)
+                    test.selectFigure(1)
+                    test.selectFigure(2)
+            
+                    let transform = new Matrix()
+                    transform.translate(pointMinus(rectangle0.center()))
+                    transform.rotate(radiants)
+                    transform.translate(rectangle0.center())
+                    let p = {x: transform.transformPoint({x: rectangle0.origin.x, y: rectangle0.origin.y+rectangle0.size.height}).x,
+                                y: transform.transformPoint(rectangle0.origin).y }
+                    test.selectionHasPoint(p)
+
+                    transform = new Matrix()
+                    transform.translate(pointMinus(rectangle1.center()))
+                    transform.rotate(radiants)
+                    transform.translate(rectangle1.center())
+                    p = {x: transform.transformPoint({
+                            x: rectangle1.origin.x+rectangle1.size.width, 
+                            y: rectangle1.origin.y}).x,
+                            y: transform.transformPoint({
+                                x: rectangle1.origin.x+rectangle1.size.width,
+                                y: rectangle1.origin.y+rectangle1.size.height}).y }
+                    test.selectionHasPoint(p)
                 })
             })
         })
 
         describe("marquee", ()=> {
-            it("single figure")
-            it("group of figures")
-            it("translated figure")
+            it("single figure", ()=>{
+                // GIVEN
+                let test = new FigureEditorUser()
+                let rectangle0 = new Rectangle(50, 50, 20, 30)
+                test.addRectangle(rectangle0)
+
+                // WHEN
+                test.mouseDownAt({x: 45, y: 45})
+                test.moveMouseTo({x: 75, y: 85})
+                test.mouseUp()
+
+                // THEN
+                test.selectionHasRectangle(rectangle0)
+            })
+            it("subset of group of figures", ()=> {
+                // GIVEN
+                let test = new FigureEditorUser()
+                let innerRect0 = new Rectangle(50, 50, 10, 10)
+                test.addRectangle(innerRect0)
+                let innerRect1 = new Rectangle(70, 70, 10, 10)
+                test.addRectangle(innerRect1)
+
+                let leftRect = new Rectangle(30, 60, 10, 10)
+                test.addRectangle(leftRect)
+                let topRect = new Rectangle(60, 30, 10, 10)
+                test.addRectangle(topRect)
+                let rightRect = new Rectangle(90, 60, 10, 10)
+                test.addRectangle(rightRect)
+                let bottomRect = new Rectangle(60, 90, 10, 10)
+                test.addRectangle(bottomRect)
+
+                // WHEN
+                test.mouseDownAt({x: 45, y: 45})
+                test.moveMouseTo({x: 85, y: 85})
+                test.mouseUp()
+
+                // THEN
+                test.selectionHasPoint(innerRect0.origin)
+                test.selectionHasPoint(pointPlusSize(innerRect1.origin, innerRect1.size))
+            })
+            it("translated figure", ()=> {
+                // GIVEN
+                let test = new FigureEditorUser()
+                let rectangle0 = new Rectangle(50, 50, 20, 30)
+                test.addRectangle(rectangle0, {x: 100, y: 0})
+
+                // WHEN
+                test.mouseDownAt({x: 145, y: 45})
+                test.moveMouseTo({x: 175, y: 85})
+                test.mouseUp()
+
+                // THEN
+                let rectangle1 = new Rectangle(150, 50, 20, 30)
+                test.selectionHasRectangle(rectangle1)
+            })
         })
 
         describe("move", ()=> {
@@ -702,8 +754,6 @@ describe.only("figureeditor", ()=> {
                 test.renderHasRectangle(rect3)
             })
         })
-
-
     })
 
 

@@ -18,18 +18,11 @@
 
 /******************************************************************
  * TERMS
- * o decoration: a rectangular frame with the handles
+ * o decoration: a rectangular frame with the handles (FIXME: frame is missing, TODO: pivot point for rotation as handle)
  * o outline   : an outline of the selected figures
  *               transformations will only be applied to the outline
  *               until the mouse is released, upon which the transformation
  *               is applied to the model/send to the server
- *               sure? what about a sequence of transformations? undo & transform again?
- * 
- * UPCOMING IMPLEMENTATION FOR ROTATION
- * o when figures are selected, we calculate the decoration and it's
- *   transformation (currently transformation is set to identity regularly)
- * o when figures do not have a similar transformation, identity will
- *   be used
  ******************************************************************/
 
 import {
@@ -42,9 +35,7 @@ import { AttributedFigure } from "../figures/AttributedFigure"
 import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
-import { Transform } from "../figures/Transform"
-import { PathGroup } from "../paths/PathGroup"
-import { isNull } from "util"
+
 
 export enum SelectToolState {
     NONE,
@@ -596,11 +587,17 @@ export class SelectTool extends Tool {
             if (Tool.selection.has(figure))
                 continue
 
-            if (!this.marqueeRectangle!.containsRectangle(figure.bounds() as Rectangle))
+            let figureInMarquee = true
+            let bounds = figure.bounds() as Rectangle
+            bounds.forAllEdges( (edge)=> {
+                if (!this.marqueeRectangle!.contains(edge))
+                    figureInMarquee = false
+            }, figure.matrix as Matrix)
+
+            if (!figureInMarquee)
                 continue
 
             let svg = this.createOutline(editor, figure)
-
             editor.decorationOverlay.appendChild(svg)
             this.marqueeOutlines.set(figure, svg)
         }
