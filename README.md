@@ -1,4 +1,6 @@
-# <img src="img/logo.svg" width="64" height="64" alt="workflow"> A Collaborative Real-Time White- and Kanban Board
+# <img src="img/logo.svg" width="64" height="64" alt="workflow" /> A Collaborative Real-Time White- and Kanban Board
+
+<img src="img/screenshot.png" width="773" height="559" alt="screenshot" />
 
 Managing the software development process through Lean/Agile methodologies
 means to apply the same steps used in creating an algorithm to the software
