@@ -704,13 +704,11 @@ describe.only("figureeditor", ()=> {
                     test.renderHasRectangle(rectangle0, center, Math.PI/4)
                     test.renderHasRectangle(rectangle1, center, Math.PI/4)
                 })
-
-                //         it("rotate two figures using nw handle two times", () => {})
-                //         it("rotate two figures using nw handle two times with deselect, select in between", () => {})
-                //         it("select two figures with aligned 90 degree rotation will result in a rotated selection", () => {})
-                //         it("select two figures with non-aligned rotation will result in a selection aligned to the screen", () => {})
             })
-
+        })
+        describe("delete", ()=>{
+            it("single figure")
+            it("subset of group of figures")
         })
         describe("lifecycle", ()=>{
             it("switch between operations (scale, move, scale)", ()=>{
@@ -755,7 +753,6 @@ describe.only("figureeditor", ()=> {
             })
         })
     })
-
 
     describe("figureeditor's path and svg cache", ()=> {
         it("adding one figure creates one path and one svg", ()=> {

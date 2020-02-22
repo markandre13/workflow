@@ -66,7 +66,7 @@ export class LocalLayerModel implements LayerModel {
         let fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         let layer = this.layerById(layerID)
         for (let index in layer.data) {
-            let fig = layer.data[index] // FIXME: the ids are an index into the array...?
+            let fig = layer.data[index]
             if (!fastFigureIds.has(fig.id))
                 continue
                 
@@ -81,6 +81,17 @@ export class LocalLayerModel implements LayerModel {
             m.prepend(matrix)
             this.modified.trigger({operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: [fig.id]})
         }
+    }
+
+    delete(layerID: number, figureIds: Array<number>): void {
+        let fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
+        let layer = this.layerById(layerID)
+        for(let i=layer.data.length-1; i>=0; --i) {
+            if (!fastFigureIds.has(layer.data[i].id))
+                continue
+            layer.data.splice(i, 1)
+        }
+        this.modified.trigger({operation: Operation.DELETE_FIGURES, figures: figureIds})
     }
 
     figureIdsAsSet(figureIds: Array<number>): Set<number> {

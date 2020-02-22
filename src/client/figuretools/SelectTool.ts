@@ -36,7 +36,6 @@ import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
 
-
 export enum SelectToolState {
     NONE,
     DRAG_MARQUEE,       // select figures using a marquee rectangle
@@ -175,6 +174,15 @@ export class SelectTool extends Tool {
         this.state = SelectToolState.NONE
         this.transformation.identity()
         this.updateBoundary()
+    }
+
+    keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
+        if (keyboardEvent.key === "Backspace" || keyboardEvent.key === "Delete") {
+            editor.deleteSelection()
+            Tool.selection.modified.lock()
+            Tool.selection.clear()
+            Tool.selection.modified.unlock()
+        }
     }
 
     /*******************************************************************

@@ -41,4 +41,5 @@ export class BoardModel extends valueimpl.BoardModel implements LayerModel {
     add(layerID: number, figure: Figure) {
         this.board!.add(layerID, figure)
     }
+    delete(layerID: number, indices: Array<number>): void {}
 }

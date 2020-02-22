@@ -39,6 +39,7 @@ export class Tool {
     mousedown(e: EditorEvent) {}
     mousemove(e: EditorEvent) {}
     mouseup(e: EditorEvent) {}
+    keydown(ed: FigureEditor, e: KeyboardEvent) {}
     
     constructor() {
         if (Tool.selection === undefined) Tool.selection = new FigureSelectionModel() // FIXME: initialization via static doesn't work

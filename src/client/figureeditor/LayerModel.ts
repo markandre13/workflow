@@ -26,4 +26,5 @@ export interface LayerModel {
     layers: Array<Layer>
     add(layerID: number, figure: Figure): void
     transform(layerID: number, indices: Array<number>, matrix: Matrix): void
+    delete(layerID: number, indices: Array<number>): void
 }

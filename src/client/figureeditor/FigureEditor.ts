@@ -34,7 +34,7 @@ export enum Operation {
     ADD_LAYERS,
     REMOVE_LAYERS,
     ADD_FIGURES,
-    REMOVE_FIGURES,
+    DELETE_FIGURES,
     TRANSFORM_FIGURES, // translate, rotate, scale
     UPDATE_FIGURES, // get new path
     MOVE_HANDLE
@@ -79,12 +79,21 @@ export class FigureEditor extends GenericView<LayerModel> {
         this.scrollView.style.width = "100%"
         this.scrollView.style.height = "100%"
         this.scrollView.onmousedown = (mouseEvent: MouseEvent) => {
+            //this.scrollView.focus({preventScroll: false})
+
+            window.onkeydown = (keyboardEvent: KeyboardEvent) => {
+                keyboardEvent.preventDefault()
+                if (this.tool && this.selectedLayer)
+                    this.tool.keydown(this, keyboardEvent)
+            }
+
             mouseEvent.preventDefault()
             this.mouseButtonIsDown = true
             if (this.tool && this.selectedLayer)
                 this.tool.mousedown(this.createEditorEvent(mouseEvent))
         }
         this.scrollView.onmousemove = (mouseEvent: MouseEvent) => {
+            
             mouseEvent.preventDefault()
             if (!this.mouseButtonIsDown)
                 return
@@ -236,8 +245,7 @@ export class FigureEditor extends GenericView<LayerModel> {
                     cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
 
                     // variant iii: add transform to SVGElement
-                }
-                break
+                } break
                 case Operation.UPDATE_FIGURES:
                     for(let id of data.figures) {
                         let cached = this.cache.get(id)
@@ -255,6 +263,16 @@ export class FigureEditor extends GenericView<LayerModel> {
                         if (cached.figure.matrix)
                             cached.path.transform(cached.figure.matrix as Matrix)
                         cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
+                    }
+                    break
+                case Operation.DELETE_FIGURES:
+                    for(let id of data.figures) {
+                        let cached = this.cache.get(id)
+                        if (!cached)
+                            throw Error(`FigureEditor error: cache lacks id $id`)
+                        if (cached.svg !== undefined)
+                            layer.removeChild(cached.svg)
+                        this.cache.delete(id)
                     }
                     break
         }
@@ -326,6 +344,9 @@ export class FigureEditor extends GenericView<LayerModel> {
     transformSelection(matrix: Matrix): void {
         // console.log("FigureEditor.transformSelection()")
         this.model!.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
+    }
+    deleteSelection(): void {
+        this.model!.delete(this.selectedLayer!.id, Tool.selection.figureIds())
     }
     addFigure(figure: Figure): void {
         this.model!.add(this.selectedLayer!.id, figure)
