@@ -37,21 +37,25 @@ import { StrokeAndFillModel } from "./widgets/strokeandfill"
 
 import { BoardModel } from "./BoardModel"
 import { BoardListener_impl } from "./BoardListener_impl"
+import { LocalLayerModel } from "./figureeditor/LocalLayerModel"
 
 // import { testWrap } from "./wordwrap/test"
 
 export class Client_impl extends skel.Client {
-    server: inf.Server
+    server: inf.Server|undefined
 
-    constructor(orb: ORB, server: inf.Server) {
+    constructor(orb: ORB, server?: inf.Server) {
         super(orb)
-        console.log("Client_impl.constructor()")
-        this.server = server
-        server.setClient(this)
-        this.initializeSession()
+        if (server !== undefined) {
+            this.server = server
+            server.setClient(this)
+            this.initializeSession()
+        } else {
+            this.offline()
+        }
     }
     
-    initializeSession() {
+    private initializeSession() {
         let session=""
         if (document.cookie) {
             let cookies = document.cookie.split(";")
@@ -63,7 +67,7 @@ export class Client_impl extends skel.Client {
                 }
             }
         }
-        this.server.initializeWebSession(session)
+        this.server!!.initializeWebSession(session)
     }
 
     async logonScreen(lifetime: number, disclaimer: string, inRemember: boolean, errorMessage: string) {
@@ -80,7 +84,7 @@ export class Client_impl extends skel.Client {
 
         let logonAction = template.action("logon", () => {
             template.clear()
-            this.server.logon(logon.value, password.value, remember.value)
+            this.server!!.logon(logon.value, password.value, remember.value)
         })
 
         let checkLogonCondition = function() {
@@ -115,13 +119,27 @@ export class Client_impl extends skel.Client {
     }
 
     private async createBoardModel() {
-        let project = await this.server.getProject(1)
+        let project = await this.server!!.getProject(1)
         let board = await project.getBoard(1)
         let boardmodel = await board.getModel() as BoardModel // FIXME: getModel should also set the listener so that we won't skip a beat
         boardmodel.board = board
         let boardListener = new BoardListener_impl(this.orb, boardmodel)
         board.addListener(boardListener)
         bind("board", boardmodel)
+    }
+
+    private async offline() {
+        let homeScreen = dom.instantiateTemplate('homeScreen')
+
+        this.createMenuActions("Maria Doe", "user@localhost")
+        this.createAvatarModel("img/avatars/whale.svg")
+        this.createToolModel() // for figureeditor
+        this.createStrokeAndFillModel()
+
+        let model = new LocalLayerModel()
+        bind("board", model)
+        dom.erase(document.body)
+        dom.add(document.body, homeScreen)
     }
 
     private createMenuActions(fullname: string, email: string) {

@@ -46,7 +46,7 @@ export async function runtest(test: Function) {
     }
 }
 
-export async function main(url: string) {
+export async function main(url: string|undefined) {
     registerCustomElements();
 
     let orb = new ORB()
@@ -64,6 +64,11 @@ export async function main(url: string) {
     if (false) {
         document.body.innerHTML=""
         testMath2()
+        return
+    }
+
+    if (url === undefined) {
+        new Client_impl(orb)
         return
     }
 
