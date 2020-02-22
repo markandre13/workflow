@@ -331,7 +331,7 @@ class Board_impl extends skel.Board {
         
         let layer = this.layerById(layerID)
         for (let index in layer.data) {
-            let fig = layer.data[index]
+            let fig = layer.data[index] as figure.Figure
             if (!figureIdSet.has(fig.id))
                 continue
                 

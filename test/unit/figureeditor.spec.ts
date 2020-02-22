@@ -255,8 +255,8 @@ describe.only("figureeditor", ()=> {
                     test.outlineHasRectangle(r1)
                     test.renderHasRectangle(r1)
                 })
-                it("translated")
-                it("rotated", ()=> {
+                it("moves a translated figure")
+                it("moves a rotated figure", ()=> {
                     // GIVEN
                     let test = new FigureEditorUser()
                     let r0 = new Rectangle(50, 50, 20, 30)
@@ -277,7 +277,7 @@ describe.only("figureeditor", ()=> {
                     test.outlineHasRectangle(r1, r1.center(), Math.PI/8)
                     test.renderHasRectangle(r1, r1.center(), Math.PI/8)
                 })
-                it("scaled")
+                it("moves a scaled figure")
             })
         })
        
@@ -286,19 +286,15 @@ describe.only("figureeditor", ()=> {
                 it("scales figure's outline before mouse is released", ()=>{
                     // GIVEN
                     let test = new FigureEditorUser()
-                    let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-                    rectangle.stroke = "#000"
-                    rectangle.fill = "#f00"
-                    test.addFigure(rectangle)
+                    let rectangle = new Rectangle(50, 50, 20, 30)
+                    test.addRectangle(rectangle)
                     test.selectFigure()
-                    let oldNWCorner = new Point(rectangle.origin)
-                    let oldSECorner = pointPlusSize(rectangle.origin, rectangle.size)
+                    let down = new Point(rectangle.origin)
+                    let up = new Point(40, 65)
 
                     // WHEN
-                    test.mouseDownAt(oldNWCorner)
-                    let newNWCorner = new Point(40, 65)
-                    test.moveMouseTo(newNWCorner)
-                    // test.mouseUp()
+                    test.mouseDownAt(down)
+                    test.moveMouseTo(up)
 
                     // THEN
                     let scaled = new Rectangle(40, 65, 30, 15)
@@ -308,18 +304,15 @@ describe.only("figureeditor", ()=> {
                 it("scales figure when mouse is released", ()=> {
                     // GIVEN
                     let test = new FigureEditorUser()
-                    let rectangle = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-                    rectangle.stroke = "#000"
-                    rectangle.fill = "#f00"
-                    test.addFigure(rectangle)
+                    let rectangle = new Rectangle(50, 50, 20, 30)
+                    test.addRectangle(rectangle)
                     test.selectFigure()
-                    let oldNWCorner = new Point(rectangle.origin)
-                    let oldSECorner = pointPlusSize(rectangle.origin, rectangle.size)
+                    let down = new Point(rectangle.origin)
+                    let up = new Point(40, 65)
 
                     // WHEN
-                    test.mouseDownAt(oldNWCorner)
-                    let newNWCorner = new Point(40, 65)
-                    test.moveMouseTo(newNWCorner)
+                    test.mouseDownAt(down)
+                    test.moveMouseTo(up)
                     test.mouseUp()
 
                     // THEN
@@ -327,6 +320,90 @@ describe.only("figureeditor", ()=> {
                     test.selectionHasRectangle(scaled)
                     test.outlineHasRectangle(scaled)
                     test.renderHasRectangle(scaled)
+                })
+                it("scales already scaled figure's outline before mouse is released")
+                it("scales already scaled figure when mouse is released")
+                it("scales a translated figure")
+                it("scales a rotated figure", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rectangle = new Rectangle(50, 50, 20, 30)
+                    let scaled = new Rectangle(40, 65, 30, 15)
+                    test.addRectangle(rectangle, rectangle.center(), Math.PI/8)
+                    test.selectFigure()
+
+                    // WHEN
+                    let down = rotatePointAroundPointBy(rectangle.origin, rectangle.center(), Math.PI/8)
+                    let up = rotatePointAroundPointBy(scaled.origin, rectangle.center(), Math.PI/8)
+                    test.mouseDownAt(down)
+                    test.moveMouseTo(up)
+                    test.mouseUp()
+
+                    // THEN
+                    test.selectionHasRectangle(scaled, rectangle.center(), Math.PI/8)
+                    test.outlineHasRectangle(scaled, rectangle.center(), Math.PI/8)
+                    test.renderHasRectangle(scaled, rectangle.center(), Math.PI/8)
+                })
+            })
+            describe("group of figures", ()=>{
+                it("scales outline of two figure before mouse is released", ()=>{
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rect0 = new Rectangle(50, 50, 20, 30)
+                    let rect1 = new Rectangle(100, 100, 40, 50)
+                    test.addRectangle(rect0)
+                    test.addRectangle(rect1)
+                    test.selectFigure(0)
+                    test.selectFigure(1)
+
+                    let selection = new Rectangle(50, 50, 90, 100)
+                    test.selectionHasRectangle(selection)
+
+                    let down = new Point(rect0.origin)
+                    let up = new Point(40, 60)
+
+                    // WHEN
+                    test.mouseDownAt(down)
+                    test.moveMouseTo(up)
+                    // test.mouseUp()
+
+                    // THEN
+                    let scaled = new Rectangle(40, 60, 100, 90)
+                    test.selectionHasRectangle(scaled)
+                    test.outlineHasPoint(scaled.origin)
+                    test.outlineHasPoint(pointPlusSize(scaled.origin, scaled.size))
+                    // test.renderHasRectangle(scaled)
+                })
+                it("scales two figures when mouse is released", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let rect0 = new Rectangle(50, 50, 20, 30)
+                    let rect1 = new Rectangle(100, 100, 40, 50)
+                    test.addRectangle(rect0)
+                    test.addRectangle(rect1)
+                    test.selectFigure(0)
+                    test.selectFigure(1)
+
+                    let selection = new Rectangle(50, 50, 90, 100)
+                    test.selectionHasRectangle(selection)
+
+                    let down = new Point(rect0.origin)
+                    let up = new Point(40, 60)
+
+                    // WHEN
+                    test.mouseDownAt(down)
+                    test.moveMouseTo(up)
+                    test.mouseUp()
+
+                    // THEN
+                    let scaled = new Rectangle(40, 60, 100, 90)
+                    test.selectionHasRectangle(scaled)
+                    test.outlineHasPoint(scaled.origin)
+                    test.outlineHasPoint(pointPlusSize(scaled.origin, scaled.size))
+                    test.renderHasPoint(scaled.origin)
+                    test.renderHasPoint(pointPlusSize(scaled.origin, scaled.size))
+
+                    // followd by move & scale does not work, and other combinations also. might need to recalculate boundary!!! write some tests 1st!!!
                 })
             })
         })
@@ -483,6 +560,7 @@ describe.only("figureeditor", ()=> {
                     // THEN
                     test.selectionHasRectangle(new Rectangle(50+100, 50, 20, 30), center, Math.PI/8)
                 })
+                it("rotates a scaled figure")
             })
 
             describe("group of figures", ()=> {
@@ -554,6 +632,49 @@ describe.only("figureeditor", ()=> {
             })
 
         })
+        describe("lifecycle", ()=>{
+            it("switch between operations (scale, move, scale)", ()=>{
+                // GIVEN
+                let test = new FigureEditorUser()
+                let rect0 = new Rectangle(50, 50, 20, 30)
+                test.addRectangle(rect0)
+                test.selectFigure(0)
+
+                // scale
+                let rect1 = new Rectangle(40, 60, 30, 20)
+                let down0 = new Point(rect0.origin)
+                let up0 = new Point(rect1.origin)
+                test.mouseDownAt(down0)
+                test.moveMouseTo(up0)
+                test.mouseUp()
+                test.selectionHasRectangle(rect1)
+                test.outlineHasRectangle(rect1)
+                test.renderHasRectangle(rect1)
+
+                // move
+                let rect2 = new Rectangle(140, 60, 30, 20)
+                let down1 = new Point(65,65)
+                let up1 = new Point(165,65)
+                test.mouseDownAt(down1)
+                test.moveMouseTo(up1)
+                test.mouseUp()
+                test.selectionHasRectangle(rect2)
+                test.outlineHasRectangle(rect2)
+                test.renderHasRectangle(rect2)
+
+                // scale
+                let rect3 = new Rectangle(130, 70, 40, 10)
+                let down2 = new Point(rect2.origin)
+                let up2 = new Point(rect3.origin)
+                test.mouseDownAt(down2)
+                test.moveMouseTo(up2)
+                test.mouseUp()
+                test.selectionHasRectangle(rect3)
+                test.outlineHasRectangle(rect3)
+                test.renderHasRectangle(rect3)
+            })
+        })
+
 
     })
 

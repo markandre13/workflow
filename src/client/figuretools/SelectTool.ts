@@ -180,7 +180,10 @@ export class SelectTool extends Tool {
                 this.stopMove(event)
                 break
         }
+        // reset state for next operation
         this.state = SelectToolState.NONE
+        this.transformation.identity()
+        this.updateBoundary()
     }
 
     /*******************************************************************
@@ -211,10 +214,10 @@ export class SelectTool extends Tool {
 
     private updateBoundary() {
         // console.log(`SelectTool.updateBoundary() ENTER`)
+        this.boundaryTransformation.identity()
         this.boundary = new Rectangle()
 
         if (Tool.selection.empty()) {
-            this.boundaryTransformation.identity()
             // console.log(`SelectTool.updateBoundary() DONE`)
             return
         }
@@ -273,7 +276,6 @@ export class SelectTool extends Tool {
         this.boundary.origin = pointMinusSize(center, sizeMultiplyNumber(boundary.size, 0.5))
         this.boundary.size = boundary.size
 
-        this.boundaryTransformation = new Matrix()
         if (rotation != 0.0) {
             this.boundaryTransformation.translate(pointMinus(center))
             this.boundaryTransformation.rotate(rotation)
@@ -346,7 +348,7 @@ export class SelectTool extends Tool {
     }
     
     private setCursorForHandle(handle: number, svg: SVGElement) {
-        return
+        // return
         switch(handle) {
             case 0:
                 svg.setAttributeNS("", "style", `cursor: url(${Tool.cursorPath}select-resize-nw.svg) 6 6, move`)
@@ -405,6 +407,7 @@ export class SelectTool extends Tool {
             return false
         for(let handle = 0; handle<16; ++handle) {
             let rectangle = this.getBoundaryHandle(handle)
+            // console.log(`  check handle ${handle} at ${rectangle.origin.x}, ${rectangle.origin.y}`)
             if (!rectangle.contains(event))
                 continue
             this.selectedHandle = handle
@@ -466,23 +469,24 @@ export class SelectTool extends Tool {
         // console.log(`  x0=${x0}, y0=${y0}, x1=${x1}, y1=${y1}`)
         // console.log(`  sx=${sx}, sy=${sy}`)
 
-        let X0, OX0, Y0, OY0
-        // if (event.editor.getMatrix()) {
-            // let [X0, Y0] = m.transformArrayPoint([x0, y0])
-            // let [OX0, OY0] = m.transformArrayPoint([ox0, oy0])
-        //   ...
+        // let X0, OX0, Y0, OY0
+        // if (this.boundaryTransformation) {
+            // let [X0, Y0]   = this.boundaryTransformation.transformArrayPoint([x0, y0])
+            // let [OX0, OY0] = this.boundaryTransformation.transformArrayPoint([ox0, oy0])
         // } else {
-            X0 = x0; Y0 = y0
-            OX0 = ox0; OY0 = oy0
+            let [X0, Y0] = [x0, y0]
+            let [OX0, OY0] = [ox0, oy0]
         // }
         // console.log(`  translate(${-OX0}, ${-OY0})`)
         // console.log(`  scale(${sx}, ${sy})`)
         // console.log(`  translate(${X0}, ${Y0})`)
         this.transformation.identity()
+        this.transformation.append(m)
         this.transformation.translate({x: -OX0, y: -OY0})
         this.transformation.scale(sx, sy)
         this.transformation.translate({x: X0, y: Y0})
-        // this.transformation.prepend(m2)
+        
+        this.transformation.prepend(this.boundaryTransformation)
 
         // up to here the math for m2 is correct
 

@@ -34,6 +34,7 @@ import { Client_impl } from "./Client_impl"
 import { BoardModel } from "./BoardModel"
 import { FigureEditorUser } from "./figureeditor/FigureEditorUser"
 import { Tool } from "./figuretools/Tool"
+import { Path } from './paths/Path'
 
 export async function runtest(test: Function) {
     window.customElements.define("toad-figureeditor", FigureEditor)
@@ -62,7 +63,7 @@ export async function main(url: string) {
 
     if (false) {
         document.body.innerHTML=""
-        testMath()
+        testMath2()
         return
     }
 
@@ -230,14 +231,14 @@ function testMath2() {
     svg.appendChild(wantRectangle)
 
     // CALCULATION
-    let im = new Matrix(rotateMatrix)
-    im.invert()
+    let inverseRotateMatrix = new Matrix(rotateMatrix)
+    inverseRotateMatrix.invert()
 
     // let [x2, y2] = im.transformArrayPoint([x0, y0])
     // console.log(`  start scale = (${x2}, ${y2})`)
 
     // from screen to boundary coordinates
-    let [x3, y3] = im.transformArrayPoint([x1, y1])
+    let [x3, y3] = inverseRotateMatrix.transformArrayPoint([x1, y1])
     console.log(`  end scale = (${x3}, ${y3})`)
 
     // old boundary
@@ -268,7 +269,7 @@ function testMath2() {
     scaleMatrix.postScale(sx, sy)
     scaleMatrix.postTranslate({x: -ox0, y: -oy0})
     
-    // render the shit
+    // the green rectangle is the one we want
     let gotRectangle = document.createElementNS("http://www.w3.org/2000/svg", "rect")
     gotRectangle.setAttributeNS("", "stroke", "#000")
     gotRectangle.setAttributeNS("", "fill", "#0f0")
@@ -278,6 +279,31 @@ function testMath2() {
     gotRectangle.setAttributeNS("", "height", String(r.size.height))
     gotRectangle.setAttributeNS("", "transform", `matrix(${scaleMatrix.a} ${scaleMatrix.b} ${scaleMatrix.c} ${scaleMatrix.d} ${scaleMatrix.e} ${scaleMatrix.f})`)
     svg.appendChild(gotRectangle)
+
+    // now simulate how scaling a path would work, using a red rectangle
+    let path = new Path()
+    path.appendRect(r)
+    path.transform(rotateMatrix)
+
+    let scaler = new Matrix()
+   
+    scaler.append(inverseRotateMatrix)
+    scaler.translate({x: -ox0, y: -oy0})
+    scaler.scale(sx, sy)
+    scaler.translate({x: nx0, y: ny0})
+    scaler.prepend(rotateMatrix)
+
+    // scaler.translate({x: -ox0, y: -oy0})
+    // scaler.translate({x: nx0, y: ny0})
+
+    path.transform(scaler)
+    
+    let svgPath = document.createElementNS("http://www.w3.org/2000/svg", "path") 
+    svgPath.setPathData(path.data)
+    svg.setAttributeNS("", "stroke-width", "1")
+    svg.setAttributeNS("", "stroke", "#f00")
+    svg.setAttributeNS("", "fill", "none")
+    svg.appendChild(svgPath)
 }
 
 // try to tweak the 'render pipeline' of SelectTool, Transform, PathGroup, Path, Rectangle to create a correct outline
