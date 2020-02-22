@@ -59,10 +59,7 @@ export class LocalLayerModel implements LayerModel {
 
     transform(layerID: number, figureIds: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
         // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${JSON.stringify(matrix)})`)
-
         let fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
-        
-        let newIdArray = new Array<number>()
         let layer = this.layerById(layerID)
         for (let index in layer.data) {
             let fig = layer.data[index] // FIXME: the ids are an index into the array...?
@@ -70,7 +67,7 @@ export class LocalLayerModel implements LayerModel {
                 continue
                 
             if (fig.matrix === undefined && fig.transform(matrix)) {
-                // FIXME: trigger this.modified()
+                this.modified.trigger({operation: Operation.UPDATE_FIGURES, figures: [fig.id]})
                 continue
             }
 

@@ -35,7 +35,8 @@ export enum Operation {
     REMOVE_LAYERS,
     ADD_FIGURES,
     REMOVE_FIGURES,
-    TRANSFORM_FIGURES,
+    TRANSFORM_FIGURES, // translate, rotate, scale
+    UPDATE_FIGURES, // get new path
     MOVE_HANDLE
 }
 
@@ -237,6 +238,25 @@ export class FigureEditor extends GenericView<LayerModel> {
                     // variant iii: add transform to SVGElement
                 }
                 break
+                case Operation.UPDATE_FIGURES:
+                    for(let id of data.figures) {
+                        let cached = this.cache.get(id)
+                        if (!cached)
+                            throw Error(`FigureEditor error: cache lacks id $id`)
+                        if (cached.figure instanceof Group) {
+                            throw Error("FigureEditor.updateView(): UPDATE_FIGURES for groups not implemented yet")
+                        }
+                        if (!cached.path)
+                            throw Error("FigureEditor.updateView(): expected path in cache")
+                        if (!cached.svg)
+                            throw Error("FigureEditor.updateView(): expected svg in cache")
+    
+                        cached.path = cached.figure.getPath() as AbstractPath
+                        if (cached.figure.matrix)
+                            cached.path.transform(cached.figure.matrix as Matrix)
+                        cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
+                    }
+                    break
         }
         
         // update scrollbars

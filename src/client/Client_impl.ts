@@ -37,6 +37,7 @@ import { StrokeAndFillModel } from "./widgets/strokeandfill"
 
 import { BoardModel } from "./BoardModel"
 import { BoardListener_impl } from "./BoardListener_impl"
+import { LocalLayer } from "./figureeditor/LocalLayer"
 import { LocalLayerModel } from "./figureeditor/LocalLayerModel"
 
 // import { testWrap } from "./wordwrap/test"
@@ -131,12 +132,15 @@ export class Client_impl extends skel.Client {
     private async offline() {
         let homeScreen = dom.instantiateTemplate('homeScreen')
 
-        this.createMenuActions("Maria Doe", "user@localhost")
+        // this.createMenuActions("Maria Doe", "user@localhost")
         this.createAvatarModel("img/avatars/whale.svg")
         this.createToolModel() // for figureeditor
         this.createStrokeAndFillModel()
 
         let model = new LocalLayerModel()
+        let layer = new LocalLayer()
+        model.layers.push(layer)
+
         bind("board", model)
         dom.erase(document.body)
         dom.add(document.body, homeScreen)

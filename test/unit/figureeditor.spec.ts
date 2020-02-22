@@ -233,12 +233,34 @@ describe.only("figureeditor", ()=> {
                     test.selectionHasRectangle(r1)
                     test.outlineHasRectangle(r1)
                 })
-                it("moves figure when mouse is released", ()=> {
+                it("moves figure without matrix when mouse is released", ()=> {
                     // GIVEN
                     let test = new FigureEditorUser()
                     let r0 = new Rectangle(50, 50, 20, 30)
                     let translation = new Point(10, -10)
                     test.addRectangle(r0)
+                    test.selectFigure(0)
+                    test.selectionHasRectangle(r0)
+
+                    // WHEN
+                    let oldCenter = test.centerOfFigure()
+                    test.mouseDownAt(oldCenter)
+                    test.moveMouseBy(translation)
+                    test.mouseUp()
+
+                    // THEN
+                    let r1 = new Rectangle(r0)
+                    r1.origin = pointPlusPoint(r1.origin, translation)
+                    test.selectionHasRectangle(r1)
+                    test.outlineHasRectangle(r1)
+                    test.renderHasRectangle(r1)
+                })
+                it("moves figure with matrix when mouse is released", ()=> {
+                    // GIVEN
+                    let test = new FigureEditorUser()
+                    let r0 = new Rectangle(50, 50, 20, 30)
+                    let translation = new Point(10, -10)
+                    test.addRectangle(r0, new Point(), 0)
                     test.selectFigure(0)
                     test.selectionHasRectangle(r0)
 

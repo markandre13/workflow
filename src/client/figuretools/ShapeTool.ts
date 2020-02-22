@@ -24,6 +24,7 @@ import { Tool } from "./Tool"
 export class ShapeTool extends Tool {
     creator: Function
     shape?: Shape
+    svg?: SVGElement
 
     constructor(creator: Function) {
         super()
@@ -38,41 +39,46 @@ export class ShapeTool extends Tool {
     }
 
     mousedown(event: EditorEvent) {
-        // this.shape = this.creator() as Shape
-        // this.shape.setHandlePosition(0, event)
-        // this.shape.setHandlePosition(2, event)
-        // if (event.editor.strokeAndFillModel) {
-        //     this.shape.stroke = event.editor.strokeAndFillModel.stroke
-        //     this.shape.fill = event.editor.strokeAndFillModel.fill
-        // }
+        this.shape = this.creator() as Shape
+        this.shape.setHandlePosition(0, event)
+        this.shape.setHandlePosition(2, event)
+        if (event.editor.strokeAndFillModel) {
+            this.shape.stroke = event.editor.strokeAndFillModel.stroke
+            this.shape.fill = event.editor.strokeAndFillModel.fill
+        }
         
-        // let path = this.shape.getPath() as AbstractPath
-        // Tool.setOutlineColors(path)
-        // event.editor.decorationOverlay.appendChild(path.svg)
+        let path = this.shape.getPath() as AbstractPath
+        this.svg = this.shape.updateSVG(path)
+        // Tool.setOutlineColors(path) FIXME
+        event.editor.decorationOverlay.appendChild(this.svg)
     }
 
     mousemove(event: EditorEvent) {
-        this.shape!.setHandlePosition(2, event)
+        let shape = this.shape!
+        shape.setHandlePosition(2, event)
+        let path = shape.getPath() as AbstractPath
+        shape.updateSVG(path, this.svg)
     }
 
     mouseup(event: EditorEvent) {
-        // let shape = this.shape!
+        let shape = this.shape!
     
-        // shape.setHandlePosition(2, event)
-        
-        // if (shape.size.width<0) {
-        //     shape.origin.x += shape.size.width
-        //     shape.size.width = -shape.size.width
-        // }
-        // if (shape.size.height<0) {
-        //     shape.origin.y += shape.size.height
-        //     shape.size.height = -shape.size.height
-        // }
+        shape.setHandlePosition(2, event)
+
+        if (shape.size.width<0) {
+            shape.origin.x += shape.size.width
+            shape.size.width = -shape.size.width
+        }
+        if (shape.size.height<0) {
+            shape.origin.y += shape.size.height
+            shape.size.height = -shape.size.height
+        }
 
         // let path = shape.getPath() as AbstractPath
-        // event.editor.decorationOverlay.removeChild(path.svg)
+        event.editor.decorationOverlay.removeChild(this.svg!!)
 
-        // event.editor.addFigure(shape)
-        // this.shape = undefined
+        event.editor.addFigure(shape)
+        this.shape = undefined
+        this.svg = undefined
     }
 }

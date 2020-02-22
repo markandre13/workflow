@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,12 +80,10 @@ export class FigureEditorUser {
         if (rectangle === undefined)
             rectangle = new Rectangle()
         let fig = new figure.Rectangle(rectangle)
-        console.log("created", fig)
         fig.id = ++this.id
         fig.stroke = "#000"
         fig.fill = "rgba(255,0,0,0.2)"
         if (center !== undefined && radiant !== undefined) {
-            console.log("add rotation matrix")
             let transform = new Matrix()
             transform.translate(pointMinus(center))
             transform.rotate(radiant)
@@ -93,14 +91,12 @@ export class FigureEditorUser {
             fig.matrix = transform
         } else
         if (center !== undefined) {
-            console.log("add translation matrix")
             let transform = new Matrix()
             transform.translate(center)
             fig.matrix = transform
         }
         this.model.add(0, fig)
         this.figures.push(fig)
-        console.log("return as", fig)
     }
 
     selectFigure(index = 0, shift = true) {
