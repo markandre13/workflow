@@ -28,10 +28,12 @@ import { Operation } from "./FigureEditor"
 import { Tool } from "../figuretools"
 
 export class LocalLayerModel implements LayerModel {
+    idCounter: number
     modified: Signal
     layers: Array<LocalLayer>
     
     constructor() {
+        this.idCounter = 0
         this.modified = new Signal()
         this.modified.add(()=>{
             // console.log("LocalLayerModel.modified()")
@@ -50,6 +52,8 @@ export class LocalLayerModel implements LayerModel {
     add(layerId: number, figure: figure.Figure) {
         // console.log(`LocalLayerModel.add(${layerId})`)
         let layer = this.layerById(layerId)
+        figure.id = this.idCounter
+        ++this.idCounter
         layer.data.push(figure)
         this.modified.trigger()
     }

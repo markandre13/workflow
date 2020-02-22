@@ -209,6 +209,12 @@ describe.only("figureeditor", ()=> {
             })
         })
 
+        describe("marquee", ()=> {
+            it("single figure")
+            it("group of figures")
+            it("translated figure")
+        })
+
         describe("move", ()=> {
             describe("single figure", ()=> {
                 it("moves figure's outline before mouse is released", ()=> {
@@ -705,13 +711,12 @@ describe.only("figureeditor", ()=> {
         it("adding one figure creates one path and one svg", ()=> {
             let test = new FigureEditorUser()
             let fig1 = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 20, height: 30}})
-            fig1.id = 1
             test.addFigure(fig1)
 
             // cache should contain figure, path & svg
             let cache = test.figureeditor.cache
             expect(cache.size).to.equal(1)
-            let ce = cache.get(1)!!
+            let ce = cache.get(0)!!
             expect(ce.figure).to.equal(fig1)
             expect(ce.path).to.not.undefined
             expect(ce.svg).to.not.undefined
@@ -723,22 +728,20 @@ describe.only("figureeditor", ()=> {
         it("adding two figures creates two paths and two svgs", ()=> {
             let test = new FigureEditorUser()
             let fig1 = new figure.Rectangle({ origin: {x:50, y: 10}, size: {width: 20, height: 30}})
-            fig1.id = 1
             test.addFigure(fig1)
 
             let fig2 = new figure.Rectangle({ origin: {x:50, y: 50}, size: {width: 10, height: 40}})
-            fig2.id = 2
             test.addFigure(fig2)
 
             // cache should contain figure, path & svg
             let cache = test.figureeditor.cache
             expect(cache.size).to.equal(2)
-            let ce1 = cache.get(1)!
+            let ce1 = cache.get(0)!
             expect(ce1.figure).to.equal(fig1)
             expect(ce1.path).to.not.undefined
             expect(ce1.svg).to.not.undefined
 
-            let ce2 = cache.get(2)!
+            let ce2 = cache.get(1)!
             expect(ce2.figure).to.equal(fig2)
             expect(ce2.path).to.not.undefined
             expect(ce2.svg).to.not.undefined
