@@ -67,14 +67,14 @@ export class FigureEditorUser {
 
     // semantic operations
 
-    addFigure(figure: Figure) {
+    addFigure(figure: Figure): void {
         if (this.verbose)
             console.log("### ADD FIGURE")
         this.model.add(0, figure)
         this.figures.push(figure)
     }
 
-    addRectangle(rectangle?: Rectangle, center?: Point, radiant?: number) {
+    addRectangle(rectangle?: Rectangle, center?: Point, radiant?: number): void {
         if (this.verbose)
             console.log("### ADD RECTANGLE")
         if (rectangle === undefined)
@@ -99,7 +99,7 @@ export class FigureEditorUser {
         this.figures.push(fig)
     }
 
-    selectFigure(index = 0, shift = true) {
+    selectFigure(index = 0, shift = true): void {
         if (this.verbose)
             console.log("### SELECT FIGURE")
         this.clickInsideFigure(index, shift)
@@ -108,7 +108,7 @@ export class FigureEditorUser {
         // expect(Tool.selection.has(this.figures[index])).to.be.true
     }
 
-    selectionHasPoint(point: Point) {
+    selectionHasPoint(point: Point): void {
         if (Tool.selection.empty())
             throw Error("Error: selection decoration is empty")
         let msg = ""
@@ -121,7 +121,7 @@ export class FigureEditorUser {
         throw Error(`Selection decoration has no edge (${point.x}, ${point.y}). We have ${msg}`)
     }
 
-    selectionHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number) {
+    selectionHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number): void {
         // console.log("=== selectionHasRectangle ===")
         // console.log("transformation", this.selectTool.transformation)
         // console.log("boundary", this.selectTool.boundary)
@@ -140,7 +140,7 @@ export class FigureEditorUser {
         }, transform)
     }
 
-    renderHasPoint(point: Point) {
+    renderHasPoint(point: Point): void {
         let msg = ""
         for(let [id, ce] of this.figureeditor.cache) {
             for (let segment of (ce.path as Path).data) {
@@ -160,7 +160,7 @@ export class FigureEditorUser {
         throw Error(`Rendered path has no edge (${point.x}, ${point.y}). We have ${msg}`)
     }
 
-    renderHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number) {
+    renderHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number): void {
         let transform: Matrix|undefined = undefined
         if (center !== undefined && radiant !== undefined) {
             transform = new Matrix()
@@ -174,7 +174,7 @@ export class FigureEditorUser {
         }, transform)
     }
 
-    outlineHasPoint(point: Point) {
+    outlineHasPoint(point: Point): void {
         let outline = this.selectTool.outline!!
         let msg = ""
         for(let i=0; i<outline.childNodes.length; ++i) {
@@ -197,7 +197,7 @@ export class FigureEditorUser {
         throw Error(`Outline path has no edge (${point.x}, ${point.y}). We have ${msg}`)
     }
 
-    outlineHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number) {
+    outlineHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number): void {
         let transform: Matrix|undefined = undefined
         if (center !== undefined && radiant !== undefined) {
             transform = new Matrix()
@@ -211,7 +211,12 @@ export class FigureEditorUser {
         }, transform)
     }
 
-    mouseDownAt(point: Point, shift = true) {
+    keydown(key: string): void {
+        let k = new KeyboardEvent("keydown", {key: key})
+        this.selectTool.keydown(this.figureeditor, k)
+    }
+
+    mouseDownAt(point: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE DOWN AT ${point}`)
         this.mousePosition = new Point(point)
@@ -223,27 +228,27 @@ export class FigureEditorUser {
         this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
-    moveMouseBy(translation: Point, shift = true) {
+    moveMouseBy(translation: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MMOVE MOUSE BY ${translation}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
         this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
-    mouseUp(shift = true) {
+    mouseUp(shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE UP`)
         this.selectTool.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
-    mouseClickAt(point: Point, shift=false) {
+    mouseClickAt(point: Point, shift=false): void {
         if (this.verbose)
             console.log(`### MOUSE CLICK AT ${point}`)
         this.mouseDownAt(point, shift)
         this.mouseUp(shift)
     }
 
-    clickInsideFigure(index = 0, shift = false) {
+    clickInsideFigure(index = 0, shift = false): void {
         if (this.verbose)
             console.log(`### CLICK INSIDE FIGURE ${index}`)
         this.mouseDownAt(this.centerOfFigure(index), shift)

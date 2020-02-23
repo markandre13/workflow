@@ -707,8 +707,55 @@ describe.only("figureeditor", ()=> {
             })
         })
         describe("delete", ()=>{
-            it("single figure")
-            it("subset of group of figures")
+            it("single figure", ()=>{
+                // GIVEN
+                let test = new FigureEditorUser()
+                let rectangle0 = new Rectangle(50, 50, 20, 30)
+                test.addRectangle(rectangle0)
+
+                // WHEN
+                test.mouseDownAt({x: 45, y: 45})
+                test.moveMouseTo({x: 75, y: 85})
+                test.mouseUp()
+
+                expect(test.model.layers[0].data.length).to.equal(1)
+                test.keydown("Delete")
+
+                // THEN
+                expect(Tool.selection.empty()).to.be.true
+                expect(test.model.layers[0].data.length).to.equal(0)
+            })
+            it("subset of group of figures", ()=> {
+                // GIVEN
+                let test = new FigureEditorUser()
+                let innerRect0 = new Rectangle(50, 50, 10, 10)
+                test.addRectangle(innerRect0)
+                let innerRect1 = new Rectangle(70, 70, 10, 10)
+                test.addRectangle(innerRect1)
+
+                let leftRect = new Rectangle(30, 60, 10, 10)
+                test.addRectangle(leftRect)
+                let topRect = new Rectangle(60, 30, 10, 10)
+                test.addRectangle(topRect)
+                let rightRect = new Rectangle(90, 60, 10, 10)
+                test.addRectangle(rightRect)
+                let bottomRect = new Rectangle(60, 90, 10, 10)
+                test.addRectangle(bottomRect)
+
+                // WHEN
+                test.mouseDownAt({x: 45, y: 45})
+                test.moveMouseTo({x: 85, y: 85})
+                test.mouseUp()
+
+                expect(test.model.layers[0].data.length).to.equal(6)
+                test.keydown("Delete")
+
+                // THEN
+                expect(Tool.selection.empty()).to.be.true
+                expect(test.model.layers[0].data.length).to.equal(4)
+            })
+
+
         })
         describe("lifecycle", ()=>{
             it("switch between operations (scale, move, scale)", ()=>{
