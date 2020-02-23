@@ -71,11 +71,16 @@ export class FigureEditor extends GenericView<LayerModel> {
 
     constructor() {
         super()
+       
         this.cache = new Map<number, CacheEntry>()
         this.mouseButtonIsDown = false
+        this.bounds = new Rectangle()
+        this.zoom = 1.0
+
         this.scrollView = document.createElement("div")
+        this.id="scrollView"
         this.scrollView.style.overflow = "scroll"
-        this.scrollView.style.background = "#fff"
+        this.scrollView.style.background = "#aaa"
         this.scrollView.style.width = "100%"
         this.scrollView.style.height = "100%"
         this.scrollView.onmousedown = (mouseEvent: MouseEvent) => {
@@ -106,14 +111,16 @@ export class FigureEditor extends GenericView<LayerModel> {
             if (this.tool && this.selectedLayer)
                 this.tool.mouseup(this.createEditorEvent(mouseEvent))
         }
-        this.bounds = new Rectangle()
-        this.zoom = 1.0
+
         this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        this.svgView.id = "svgView"
         this.svgView.style.position = "relative"
         this.svgView.style.backgroundColor = "rgb(255,255,255)"
         this.scrollView.appendChild(this.svgView)
+
         this.decorationOverlay = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.svgView.appendChild(this.decorationOverlay)
+
         this.attachShadow({ mode: 'open' })
         this.shadowRoot!.appendChild(this.scrollView)
     }

@@ -19,7 +19,7 @@
 import * as dom from "toad.js/lib/dom"
 import {
     Template, TextModel, HtmlModel,
-    bind, action,
+    bind, action
 } from "toad.js"
 
 import { AccountPreferences } from "./AccountPreferences"
@@ -31,7 +31,7 @@ import * as skel from "../shared/workflow_skel"
 import * as Rectangle from "./figures/Rectangle"
 import * as Circle from "./figures/Circle"
 
-import { SelectTool, ShapeTool } from "./figuretools"
+import { SelectTool, ShapeTool, TextTool } from "./figuretools"
 import { ToolModel } from "./figuretools/ToolModel"
 import { StrokeAndFillModel } from "./widgets/strokeandfill"
 
@@ -172,6 +172,7 @@ export class Client_impl extends skel.Client {
         toolmodel.add("select", new SelectTool())
         toolmodel.add("rectangle", new ShapeTool(() => { return new Rectangle.Rectangle() }))
         toolmodel.add("circle", new ShapeTool(() => { return new Circle.Circle() }))
+        toolmodel.add("text", new TextTool())
         toolmodel.stringValue = "select"
         bind("tool", toolmodel) // for tool buttons
         bind("board", toolmodel)

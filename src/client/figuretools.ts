@@ -19,4 +19,5 @@
 export * from "./figuretools/Tool"
 export * from "./figuretools/SelectTool"
 export * from "./figuretools/ShapeTool"
+export * from "./figuretools/TextTool"
 export * from "./figuretools/ToolModel"
