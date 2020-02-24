@@ -98,10 +98,7 @@ export class FigureEditor extends GenericView<LayerModel> {
                 this.tool.mousedown(this.createEditorEvent(mouseEvent))
         }
         this.scrollView.onmousemove = (mouseEvent: MouseEvent) => {
-            
             mouseEvent.preventDefault()
-            if (!this.mouseButtonIsDown)
-                return
             if (this.tool && this.selectedLayer)
                 this.tool.mousemove(this.createEditorEvent(mouseEvent))
         }
@@ -339,14 +336,14 @@ export class FigureEditor extends GenericView<LayerModel> {
     }
     createEditorEvent(mouseEvent?: MouseEvent): EditorEvent {
         if (mouseEvent === undefined) {
-            return { editor: this, x: 0, y: 0, shiftKey: false }
+            return { editor: this, x: 0, y: 0, shiftKey: false, mouseDown: false }
         }
         // (e.clientX-r.left, e.clientY-r.top) begins at the upper left corner of the editor window
         //                                     scrolling and origin are ignored
         let r = this.scrollView.getBoundingClientRect()
         let x = (mouseEvent.clientX + 0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x) / this.zoom
         let y = (mouseEvent.clientY + 0.5 - r.top + this.scrollView.scrollTop + this.bounds.origin.y) / this.zoom
-        return { editor: this, x: x, y: y, shiftKey: mouseEvent.shiftKey }
+        return { editor: this, x: x, y: y, shiftKey: mouseEvent.shiftKey, mouseDown: this.mouseButtonIsDown }
     }
     transformSelection(matrix: Matrix): void {
         // console.log("FigureEditor.transformSelection()")

@@ -35,32 +35,48 @@ import { AttributedFigure } from "../figures/AttributedFigure"
 import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
+import { runInThisContext } from "vm"
 
-export enum TextToolState {
+enum TextCursor {
+    NONE,
+    EDIT,
+    AREA,
+    SHAPE,
+    PATH
+}
+
+enum TextToolState {
     NONE
 }
 
 export class TextTool extends Tool {
     state: TextToolState
+    currentCursor: TextCursor
 
     constructor() {
         super()
         this.state = TextToolState.NONE
+        this.currentCursor = TextCursor.NONE
     }
     
     activate(event: EditorEvent) {
-        this.setCursorForHandle(0, event.editor.svgView)
     }
     
     deactivate(event: EditorEvent) {
-        event.editor.svgView.style.cursor = ""
+        this.setCursor(TextCursor.NONE, event.editor.svgView)
     }
 
     mousedown(event: EditorEvent) {
     }
 
     mousemove(event: EditorEvent) {
-
+        let figure = event.editor.selectedLayer!.findFigureAt(event)
+        // console.log(`at ${event.x},${event.y} found ${figure}`)
+        if (figure === undefined) {
+            this.setCursor(TextCursor.AREA, event.editor.svgView)
+        } else {
+            this.setCursor(TextCursor.SHAPE, event.editor.svgView)
+        }
     }
 
     mouseup(event: EditorEvent) {
@@ -70,12 +86,27 @@ export class TextTool extends Tool {
 
     }
     
-    private setCursorForHandle(handle: number, svg: SVGElement) {
-        // return
-        switch(handle) {
-            case 0:
-                svg.style.cursor = `url(${Tool.cursorPath}text-plain.svg) 9 11, move`
+    private setCursor(type: TextCursor, svg: SVGElement) {
+        if (this.currentCursor === type)
+            return
+        this.currentCursor = type
+        svg.style.cursor = ""
+        switch(type) {
+            case TextCursor.NONE:
+                svg.style.cursor = ""
                 break
+            case TextCursor.EDIT:
+                svg.style.cursor = `url(${Tool.cursorPath}text-edit.svg) 9 12, move`
+                break
+            case TextCursor.AREA:
+                svg.style.cursor = `url(${Tool.cursorPath}text-area.svg) 9 12, move`
+                break
+            case TextCursor.SHAPE:
+                svg.style.cursor = `url(${Tool.cursorPath}text-shape.svg) 9 12, move`
+                break
+            case TextCursor.PATH:
+                svg.style.cursor = `url(${Tool.cursorPath}text-path.svg) 9 12, move`
+                break                        
         }
     }
 }

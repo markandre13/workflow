@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 32 32">
+
+  <rect stroke="#fff" fill="#000" x="4.5" y="3.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="2.5" y="5.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="0.5" y="7.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="0.5" y="9.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="2.5" y="11.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="4.5" y="13.5" width="2" height="2"/>
+
+  <rect stroke="#fff" fill="#000" x="12.5" y="3.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="14.5" y="5.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="16.5" y="7.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="16.5" y="9.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="14.5" y="11.5" width="2" height="2"/>
+  <rect stroke="#fff" fill="#000" x="12.5" y="13.5" width="2" height="2"/>
+
+  <path stroke="#fff" fill="#000" d="M 8.5 11.5 L 8.5 4.5 L 5.5 1.5 L 6.5 0.5 L 7.5 0.5 L 9.5 2.5 L 11.5 0.5 L 12.5 0.5 L 13.5 1.5 L 10.5 4.5 L 10.5 11.5 L 12.5 11.5 L 12.5 13.5 L 10.5 13.5 L 10.5 14.5 L 13.5 17.5 L 12.5 18.5 L 11.5 18.5 L 9.5 16.5 L 7.5 18.5 L 6.5 18.5 L 5.5 17.5 L 8.5 14.5 L 8.5 13.5 L 6.5 13.5 L 6.5 11.5 Z"/>
+</svg>

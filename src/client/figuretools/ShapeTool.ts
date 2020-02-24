@@ -54,6 +54,8 @@ export class ShapeTool extends Tool {
     }
 
     mousemove(event: EditorEvent) {
+        if (!event.mouseDown)
+            return
         let shape = this.shape!
         shape.setHandlePosition(2, event)
         let path = shape.getPath() as AbstractPath

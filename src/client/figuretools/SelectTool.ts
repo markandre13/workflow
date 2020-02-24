@@ -142,6 +142,8 @@ export class SelectTool extends Tool {
     }
 
     mousemove(event: EditorEvent) {
+        if (!event.mouseDown)
+            return
         switch(this.state) {
             case SelectToolState.MOVE_HANDLE:
                 this.moveHandle(event)
