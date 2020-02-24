@@ -214,7 +214,7 @@ export class FigureEditor extends GenericView<LayerModel> {
                         if (cached.figure.matrix)
                             cached.path.transform(cached.figure.matrix as Matrix)
                     }
-                    let svg = cached.figure.updateSVG(cached.path, cached.svg)
+                    let svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
                     if (!cached.svg) {
                         layer.appendChild(svg) // FIXME: need to do positional insert 
                         cached.svg = svg
@@ -246,7 +246,7 @@ export class FigureEditor extends GenericView<LayerModel> {
                     // console.log(`FigureEditor.updateView(): transform path of figure ${id} by rotate ${m.getRotation()}, translate=${m.e}, ${m.f}`)
                     cached.path.transform(data.matrix)
                     // console.log(`  after transform ${JSON.stringify(path)}`)
-                    cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
+                    cached.svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
 
                     // variant iii: add transform to SVGElement
                 } break
@@ -266,7 +266,7 @@ export class FigureEditor extends GenericView<LayerModel> {
                         cached.path = cached.figure.getPath() as AbstractPath
                         if (cached.figure.matrix)
                             cached.path.transform(cached.figure.matrix as Matrix)
-                        cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
+                        cached.svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
                     }
                     break
                 case Operation.DELETE_FIGURES:

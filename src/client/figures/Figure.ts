@@ -28,7 +28,7 @@ export abstract class Figure extends valueimpl.Figure
         super(init)
     }
 
-    updateSVG(path: AbstractPath, svg?: SVGElement): SVGElement {
+    updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         throw Error("This figure does not implement updateSVG()")
     }
 }

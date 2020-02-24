@@ -23,6 +23,10 @@ import { Shape } from "./Shape"
 import * as valuetype from "../../shared/workflow_valuetype"
 import * as value     from "../../shared/workflow_value"
 
+import { WordWrap, Slice, WordSource } from "../wordwrap/wordwrap"
+import { TextSource } from "../wordwrap/TextSource"
+import { Cursor } from "../wordwrap/Cursor"
+
 export class Text extends Shape implements valuetype.figure.Text {
     text!: string
     constructor(init?: Partial<Text>) {
@@ -32,8 +36,8 @@ export class Text extends Shape implements valuetype.figure.Text {
         // this.strokeWidth = 0.0
         value.figure.initText(this, init)
 
-        this.size.height = 25
-        this.size.width = this.text.length * 12
+        this.size.height = 100
+        this.size.width = 100
     }
     distance(pt: Point): number {
         // FIXME: not final: RANGE and fill="none" need to be considered
@@ -48,17 +52,18 @@ export class Text extends Shape implements valuetype.figure.Text {
         path.appendRect(this)
         return path
     }
-    updateSVG(path: AbstractPath, svg?: SVGElement): SVGElement {
-        if (!svg)
-            svg = document.createElementNS("http://www.w3.org/2000/svg", "text") 
-        let svgPath = svg as SVGTextElement
-        let p = path as Path
-        svgPath.textContent = this.text
-        svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
-        svg.setAttributeNS("", "stroke", this.stroke)
-        svg.setAttributeNS("", "fill", this.fill)
-        svg.setAttributeNS("", "x", p.data[0].values[0])
-        svg.setAttributeNS("", "y", p.data[0].values[1])
+    updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
+        if (!svg) {
+            svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
+            parentSVG.appendChild(svg)
+            let textSource = new TextSource("Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+            textSource.initializeWordBoxes(svg)
+            let wordwrap = new WordWrap(path as Path, textSource)
+            wordwrap.placeWordBoxes(textSource)
+            textSource.displayWordBoxes()
+            new Cursor(svg, wordwrap, textSource)
+            parentSVG.removeChild(svg) // FIXME: change API so that figures add themselves to the parent
+        }
         return svg
     }
 }

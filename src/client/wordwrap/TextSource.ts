@@ -26,7 +26,7 @@ export class TextSource implements WordSource {
 
     space: number // hack
     
-    constructor(text: string | undefined = undefined) {
+    constructor(text?: string) {
         this.rectangles = new Array<Word>()
         this.current = 0
         this.space = 0
@@ -52,6 +52,7 @@ export class TextSource implements WordSource {
             let rectangle = new Word(word.length * 8, 16, word)
             this.rectangles.push(rectangle)
         }
+        // console.log(`TextSource initialized with ${this.rectangles.length} words.`)
     }
 
     reset() {
@@ -62,14 +63,14 @@ export class TextSource implements WordSource {
         }
     }
 
-    initializeWordBoxes(svg: SVGElement) {
+    initializeWordBoxes(parentSVG: SVGElement) {
         // no whitespace handling yet, hence we just fake it by adding a space to
         // every words box and then center the text in the middle
         let spacer = document.createElementNS("http://www.w3.org/2000/svg", "text")
         spacer.innerHTML = "&nbsp;"
-        svg.appendChild(spacer)
+        parentSVG.appendChild(spacer)
         this.space = spacer.getComputedTextLength()
-        svg.removeChild(spacer)
+        parentSVG.removeChild(spacer)
 
         for(let r of this.rectangles) {
             let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
@@ -80,10 +81,11 @@ export class TextSource implements WordSource {
             text.setAttributeNS("", "y", "0")
             //text.setAttributeNS("", "height", String(r.size.height))
             text.textContent = r.word
-            svg.appendChild(text)
+            parentSVG.appendChild(text)
             r.size.width = text.getComputedTextLength()+this.space // do it later so all children can be added to the dom at once?
             let bbox = text.getBBox()
             r.size.height = bbox.height
+            // console.log(`TextSource initialized word '${r.word}' box with ${r.size.width}, ${r.size.height} words.`)
             //console.log(r.size)
             r.svg = text
         }

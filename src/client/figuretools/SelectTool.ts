@@ -654,7 +654,7 @@ export class SelectTool extends Tool {
         if (figure.matrix !== undefined)
             path.transform(figure.matrix as Matrix)
         path.transform(this.transformation)
-        let svg = figure.updateSVG(path, undefined)
+        let svg = figure.updateSVG(path, editor.decorationOverlay, undefined)
         this.setOutlineColors(svg)
         return svg
     }

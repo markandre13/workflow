@@ -48,7 +48,7 @@ export class Circle extends Shape implements valuetype.figure.Circle {
         path.appendCircle(this)
         return path
     }
-    updateSVG(path: AbstractPath, svg?: SVGElement): SVGElement {
+    updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
             svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
         let svgPath = svg as SVGPathElement

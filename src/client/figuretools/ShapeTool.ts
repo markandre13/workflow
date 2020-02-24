@@ -48,7 +48,7 @@ export class ShapeTool extends Tool {
         }
         
         let path = this.shape.getPath() as AbstractPath
-        this.svg = this.shape.updateSVG(path)
+        this.svg = this.shape.updateSVG(path, event.editor.decorationOverlay)
         // Tool.setOutlineColors(path) FIXME
         event.editor.decorationOverlay.appendChild(this.svg)
     }
@@ -59,7 +59,7 @@ export class ShapeTool extends Tool {
         let shape = this.shape!
         shape.setHandlePosition(2, event)
         let path = shape.getPath() as AbstractPath
-        shape.updateSVG(path, this.svg)
+        shape.updateSVG(path, event.editor.decorationOverlay, this.svg)
     }
 
     mouseup(event: EditorEvent) {

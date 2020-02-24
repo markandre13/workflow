@@ -90,7 +90,7 @@ valuetype Figure {
     public Matrix_ptr matrix;
 
     Path getPath();
-    SVGElement updateSVG(in AbstractPath path, in SVGElement_ptr svg); 
+    SVGElement updateSVG(in AbstractPath path, in SVGElement parentSVG, in SVGElement_ptr svg); 
     
     boolean transform(in Matrix matrix);
     Rectangle bounds();
