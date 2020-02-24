@@ -117,17 +117,16 @@ module figure {
     valuetype Circle: Shape {
     };
 
+    valuetype Text: Shape {
+        public string text;
+    };
+
     valuetype Group: Figure {
 	    public sequence<Figure> childFigures;
     };
 
     valuetype Transform: Group {
 	    public Matrix matrix;
-    };
-
-    valuetype Text: Figure {
-        public Point origin;
-        public string text;
     };
 };
 

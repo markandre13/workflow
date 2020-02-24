@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2018, 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,5 +21,6 @@ export * from "./figures/AttributedFigure"
 export * from "./figures/Shape"
 export * from "./figures/Rectangle"
 export * from "./figures/Circle"
+export * from "./figures/Text"
 export * from "./figures/Group"
 export * from "./figures/Transform"

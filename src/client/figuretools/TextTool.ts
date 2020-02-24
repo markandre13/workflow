@@ -35,7 +35,8 @@ import { AttributedFigure } from "../figures/AttributedFigure"
 import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
-import { runInThisContext } from "vm"
+import * as figures from "../figures"
+import { figure } from "../../shared/workflow_value"
 
 enum TextCursor {
     NONE,
@@ -67,6 +68,8 @@ export class TextTool extends Tool {
     }
 
     mousedown(event: EditorEvent) {
+        let text = new figures.Text({origin: event, text: "Hello World!"})
+        event.editor.addFigure(text)
     }
 
     mousemove(event: EditorEvent) {
@@ -75,7 +78,11 @@ export class TextTool extends Tool {
         if (figure === undefined) {
             this.setCursor(TextCursor.AREA, event.editor.svgView)
         } else {
-            this.setCursor(TextCursor.SHAPE, event.editor.svgView)
+            if (figure instanceof figures.Text) {
+                this.setCursor(TextCursor.EDIT, event.editor.svgView)
+            } else {
+                this.setCursor(TextCursor.SHAPE, event.editor.svgView)
+            }
         }
     }
 
