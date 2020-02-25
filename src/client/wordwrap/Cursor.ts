@@ -43,8 +43,8 @@ export class Cursor {
         this.offsetWord = 0
         this.offsetChar = 0
         this.cursor = this.createCursor()
-        this.catchKeyboard()
-        this.catchMouse()
+        // this.catchKeyboard()
+        // this.catchMouse()
     }
 
     createCursor(): SVGLineElement {
@@ -57,99 +57,104 @@ export class Cursor {
     }
 
     catchKeyboard() {
-        window.onkeydown = (e: KeyboardEvent) => {
-            e.preventDefault()
-            let KEY_LEFT = 37, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40
-            let r = this.boxes[this.offsetWord]!
-            // console.log(`keydown ${e.key} ${e.code} ${e.charCode} ${e.key} ${e.keyCode}`)
-            switch (e.keyCode) { // FIXME: keyCode is marked as deprecated in TypeScript definition
-                case KEY_RIGHT:
-                    ++this.offsetChar
-                    if (this.offsetChar > r.word.length) {
-                        if (this.offsetWord >= this.boxes.length || this.boxes[this.offsetWord].endOfWrap) {
-                            --this.offsetChar
-                            break
-                        }
-                        this.offsetChar = 0
-                        ++this.offsetWord
-                    }
-                    this.updateCursor()
-                    break
-                case KEY_LEFT:
-                    if (this.offsetWord === 0 && this.offsetChar === 0)
-                        break
-                    --this.offsetChar
-                    if (this.offsetChar < 0) {
-                        --this.offsetWord
-                        r = this.boxes[this.offsetWord]!
-                        this.offsetChar = r.word.length
-                    }
-                    this.updateCursor()
-                    break
-                default:
-                    if (e.key.length == 1) {
-                        r.word = r.word.slice(0, this.offsetChar) + e.key + r.word.slice(this.offsetChar)
-                        r.svg!.textContent = r.word
-                        this.offsetChar++
-                        // this.updateCursor()
-                        
-                        // console.log(`update wrap: old box width = ${r.size.width}`)
-                        r.size.width = r.svg!.getComputedTextLength() // FIXME: move into TextSource
-                        // console.log(`update wrap: new box width = ${r.size.width}`)
-
-                        this.textSource.reset()
-                        // this.wordwrap.trace = true
-                        this.wordwrap.initializeSweepBufferFrom(this.wordwrap.path)
-                        this.wordwrap.placeWordBoxes(this.textSource)
-                        this.textSource.placeWordBoxes()
-                        this.updateCursor()
-                    }
-            }
-
-            switch (e.keyCode) { // FIXME: keyCode is marked as deprecated in TypeScript definition
-                case KEY_DOWN:
-                    // console.log("keyDown: start")
-                    if (this.xDuringVerticalMovement === undefined)
-                        this.xDuringVerticalMovement = this.position.x
-
-                    if (this.gotoNextRow()) {
-                        // console.log("keyDown: found next line")
-                        this.goNearX(this.xDuringVerticalMovement)
-                        this.updateCursor()
-                    }
-                    // console.log("keyDown: done")
-                    break
-                case KEY_UP:
-                    // console.log("keyDown: start")
-                    if (this.xDuringVerticalMovement === undefined)
-                        this.xDuringVerticalMovement = this.position.x
-                    if (this.gotoPreviousRow()) {
-                        // console.log("keyDown: found previous line")
-                        this.goNearX(this.xDuringVerticalMovement)
-                        this.updateCursor()
-                    }
-                    // console.log("keyDown: done")
-                    break
-                default:
-                    this.xDuringVerticalMovement = undefined    
-            }
-        }
+        window.onkeydown = (e: KeyboardEvent)=>{ this.keydown(e) }
     }
 
     catchMouse() {
-        this.svg.onmousedown = (e: MouseEvent) => { 
-            let b = this.svg.getBoundingClientRect()
-            let p = new Point({x: e.clientX - b.left, y: e.clientY - b.top})
-            // console.log(`mouse down at client ${p.x}, ${p.y}`)
+        this.svg.onmousedown = (e: MouseEvent) => { this.mousedown(e) }
+    }
 
-            this.offsetWord = 0
-            this.offsetChar = 0
-            if (this.goNearY(p.y)) {
-                this.goNearX(p.x)
-                this.updateCursor()
-            }
+    mousedown(e: MouseEvent) {
+        let b = this.svg.getBoundingClientRect()
+        let p = new Point({x: e.clientX - b.left, y: e.clientY - b.top})
+        // console.log(`mouse down at client ${p.x}, ${p.y}`)
+
+        this.offsetWord = 0
+        this.offsetChar = 0
+        if (this.goNearY(p.y)) {
+            this.goNearX(p.x)
+            this.updateCursor()
         }
     }
+        
+    keydown(e: KeyboardEvent) {
+        e.preventDefault()
+        let KEY_LEFT = 37, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40
+        let r = this.boxes[this.offsetWord]!
+        // console.log(`keydown ${e.key} ${e.code} ${e.charCode} ${e.key} ${e.keyCode}`)
+        switch (e.keyCode) { // FIXME: keyCode is marked as deprecated in TypeScript definition
+            case KEY_RIGHT:
+                ++this.offsetChar
+                if (this.offsetChar > r.word.length) {
+                    if (this.offsetWord >= this.boxes.length || this.boxes[this.offsetWord].endOfWrap) {
+                        --this.offsetChar
+                        break
+                    }
+                    this.offsetChar = 0
+                    ++this.offsetWord
+                }
+                this.updateCursor()
+                break
+            case KEY_LEFT:
+                if (this.offsetWord === 0 && this.offsetChar === 0)
+                    break
+                --this.offsetChar
+                if (this.offsetChar < 0) {
+                    --this.offsetWord
+                    r = this.boxes[this.offsetWord]!
+                    this.offsetChar = r.word.length
+                }
+                this.updateCursor()
+                break
+            default:
+                if (e.key.length == 1) {
+                    r.word = r.word.slice(0, this.offsetChar) + e.key + r.word.slice(this.offsetChar)
+                    r.svg!.textContent = r.word
+                    this.offsetChar++
+                    // this.updateCursor()
+                    
+                    // console.log(`update wrap: old box width = ${r.size.width}`)
+                    r.size.width = r.svg!.getComputedTextLength() // FIXME: move into TextSource
+                    // console.log(`update wrap: new box width = ${r.size.width}`)
+
+                    this.textSource.reset()
+                    // this.wordwrap.trace = true
+                    this.wordwrap.initializeSweepBufferFrom(this.wordwrap.path)
+                    this.wordwrap.placeWordBoxes(this.textSource)
+                    this.textSource.placeWordBoxes()
+                    this.updateCursor()
+                }
+        }
+
+        switch (e.keyCode) { // FIXME: keyCode is marked as deprecated in TypeScript definition
+            case KEY_DOWN:
+                // console.log("keyDown: start")
+                if (this.xDuringVerticalMovement === undefined)
+                    this.xDuringVerticalMovement = this.position.x
+
+                if (this.gotoNextRow()) {
+                    // console.log("keyDown: found next line")
+                    this.goNearX(this.xDuringVerticalMovement)
+                    this.updateCursor()
+                }
+                // console.log("keyDown: done")
+                break
+            case KEY_UP:
+                // console.log("keyDown: start")
+                if (this.xDuringVerticalMovement === undefined)
+                    this.xDuringVerticalMovement = this.position.x
+                if (this.gotoPreviousRow()) {
+                    // console.log("keyDown: found previous line")
+                    this.goNearX(this.xDuringVerticalMovement)
+                    this.updateCursor()
+                }
+                // console.log("keyDown: done")
+                break
+            default:
+                this.xDuringVerticalMovement = undefined    
+        }
+    }
+    
 
     // FIXME: name does not indicate position is not changed
     gotoNextRow(): boolean {

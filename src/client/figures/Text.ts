@@ -35,9 +35,6 @@ export class Text extends Shape implements valuetype.figure.Text {
         this.fill = "#000"
         // this.strokeWidth = 0.0
         value.figure.initText(this, init)
-
-        this.size.height = 100
-        this.size.width = 100
     }
     distance(pt: Point): number {
         // FIXME: not final: RANGE and fill="none" need to be considered
@@ -61,7 +58,7 @@ export class Text extends Shape implements valuetype.figure.Text {
             let wordwrap = new WordWrap(path as Path, textSource)
             wordwrap.placeWordBoxes(textSource)
             textSource.displayWordBoxes()
-            new Cursor(svg, wordwrap, textSource)
+            // new Cursor(svg, wordwrap, textSource)
             parentSVG.removeChild(svg) // FIXME: change API so that figures add themselves to the parent
         }
         return svg

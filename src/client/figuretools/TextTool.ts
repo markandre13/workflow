@@ -47,12 +47,17 @@ enum TextCursor {
 }
 
 enum TextToolState {
-    NONE
+    NONE,
+    AREA
 }
 
 export class TextTool extends Tool {
     state: TextToolState
     currentCursor: TextCursor
+
+    mouseDownAt!: Point
+    defs!: SVGDefsElement
+    svgRect!: SVGRectElement
 
     constructor() {
         super()
@@ -68,25 +73,78 @@ export class TextTool extends Tool {
     }
 
     mousedown(event: EditorEvent) {
-        let text = new figures.Text({origin: event, text: "Hello World!"})
-        event.editor.addFigure(text)
+        let figure = event.editor.selectedLayer!.findFigureAt(event)
+        if (figure === undefined) {
+            this.state = TextToolState.AREA
+            this.mouseDownAt = event
+            // create text area
+            this.defs = document.createElementNS("http://www.w3.org/2000/svg", "defs")
+            this.defs.innerHTML = 
+            `<pattern id="textToolPattern"
+                x="0" y="0" width="100" height="4"
+                patternUnits="userSpaceOnUse"
+                patternTransform="rotate(45)">
+               <line x1="0" y1="0" x2="100" y2="0" style="stroke: rgb(79,128,255)" />
+            </pattern>`
+            event.editor.svgView.appendChild(this.defs)
+
+            this.svgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            this.svgRect.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
+            this.svgRect.setAttributeNS("", 'fill', 'url(#textToolPattern)')
+            event.editor.decorationOverlay.appendChild(this.svgRect)
+        } else {
+            if (figure instanceof figures.Text) {
+                // edit text
+            } else {
+                // create text within shape
+            }
+        }
+        // let text = new figures.Text({origin: event})
+        // event.editor.addFigure(text)
     }
 
     mousemove(event: EditorEvent) {
-        let figure = event.editor.selectedLayer!.findFigureAt(event)
-        // console.log(`at ${event.x},${event.y} found ${figure}`)
-        if (figure === undefined) {
-            this.setCursor(TextCursor.AREA, event.editor.svgView)
-        } else {
-            if (figure instanceof figures.Text) {
-                this.setCursor(TextCursor.EDIT, event.editor.svgView)
-            } else {
-                this.setCursor(TextCursor.SHAPE, event.editor.svgView)
-            }
+        switch(this.state) {
+            case TextToolState.NONE:
+                let figure = event.editor.selectedLayer!.findFigureAt(event)
+                // console.log(`at ${event.x},${event.y} found ${figure}`)
+                if (figure === undefined) {
+                    this.setCursor(TextCursor.AREA, event.editor.svgView)
+                } else {
+                    if (figure instanceof figures.Text) {
+                        this.setCursor(TextCursor.EDIT, event.editor.svgView)
+                    } else {
+                        this.setCursor(TextCursor.SHAPE, event.editor.svgView)
+                    }
+                }
+                break
+            case TextToolState.AREA:
+                let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
+                if (x1<x0) [x0,x1] = [x1,x0]
+                if (y1<y0) [y0,y1] = [y1,y0]
+                this.svgRect!.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
+                this.svgRect!.setAttributeNS("", "y", String(Math.round(y0)+0.5))
+                this.svgRect!.setAttributeNS("", "width", String(Math.round(x1-x0)))
+                this.svgRect!.setAttributeNS("", "height", String(Math.round(y1-y0)))
+                break
         }
     }
 
     mouseup(event: EditorEvent) {
+        switch(this.state) {
+            case TextToolState.AREA:
+                this.state = TextToolState.NONE
+                event.editor.decorationOverlay.removeChild(this.svgRect)
+                event.editor.svgView.removeChild(this.defs)
+
+                let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
+                if (x1<x0) [x0,x1] = [x1,x0]
+                if (y1<y0) [y0,y1] = [y1,y0]
+                let rect = new Rectangle({origin: { x: x0, y: y0 }, size: { width: x1-x0, height: y1-y0 }})
+                let text = new figures.Text(rect)
+                event.editor.addFigure(text)
+                break
+        }
     }
 
     keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
