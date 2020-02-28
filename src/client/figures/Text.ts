@@ -29,6 +29,7 @@ import { Cursor } from "../wordwrap/Cursor"
 
 export class Text extends Shape implements valuetype.figure.Text {
     text!: string
+    cursor!: Cursor
     constructor(init?: Partial<Text>) {
         super(init)
         this.stroke = "none"
@@ -58,7 +59,7 @@ export class Text extends Shape implements valuetype.figure.Text {
             let wordwrap = new WordWrap(path as Path, textSource)
             wordwrap.placeWordBoxes(textSource)
             textSource.displayWordBoxes()
-            // new Cursor(svg, wordwrap, textSource)
+            this.cursor = new Cursor(svg, wordwrap, textSource)
             parentSVG.removeChild(svg) // FIXME: change API so that figures add themselves to the parent
         }
         return svg

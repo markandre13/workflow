@@ -20,6 +20,7 @@ import { Word } from "./Word"
 import { Point } from "../../shared/workflow_valueimpl"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
+import { EditorEvent } from "../figureeditor"
 
 export class Cursor {
     svg: SVGElement
@@ -43,8 +44,6 @@ export class Cursor {
         this.offsetWord = 0
         this.offsetChar = 0
         this.cursor = this.createCursor()
-        // this.catchKeyboard()
-        // this.catchMouse()
     }
 
     createCursor(): SVGLineElement {
@@ -56,23 +55,11 @@ export class Cursor {
         return cursor
     }
 
-    catchKeyboard() {
-        window.onkeydown = (e: KeyboardEvent)=>{ this.keydown(e) }
-    }
-
-    catchMouse() {
-        this.svg.onmousedown = (e: MouseEvent) => { this.mousedown(e) }
-    }
-
-    mousedown(e: MouseEvent) {
-        let b = this.svg.getBoundingClientRect()
-        let p = new Point({x: e.clientX - b.left, y: e.clientY - b.top})
-        // console.log(`mouse down at client ${p.x}, ${p.y}`)
-
+    mousedown(e: EditorEvent) {
         this.offsetWord = 0
         this.offsetChar = 0
-        if (this.goNearY(p.y)) {
-            this.goNearX(p.x)
+        if (this.goNearY(e.y)) {
+            this.goNearX(e.x)
             this.updateCursor()
         }
     }

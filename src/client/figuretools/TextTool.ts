@@ -48,7 +48,8 @@ enum TextCursor {
 
 enum TextToolState {
     NONE,
-    AREA
+    AREA,
+    EDIT
 }
 
 export class TextTool extends Tool {
@@ -59,6 +60,8 @@ export class TextTool extends Tool {
     defs!: SVGDefsElement
     svgRect!: SVGRectElement
 
+    text!: figures.Text
+
     constructor() {
         super()
         this.state = TextToolState.NONE
@@ -66,6 +69,7 @@ export class TextTool extends Tool {
     }
     
     activate(event: EditorEvent) {
+        this.state = TextToolState.NONE
     }
     
     deactivate(event: EditorEvent) {
@@ -94,7 +98,9 @@ export class TextTool extends Tool {
             event.editor.decorationOverlay.appendChild(this.svgRect)
         } else {
             if (figure instanceof figures.Text) {
-                // edit text
+                this.text = figure
+                this.state = TextToolState.EDIT
+                this.text.cursor.mousedown(event)
             } else {
                 // create text within shape
             }
@@ -148,7 +154,9 @@ export class TextTool extends Tool {
     }
 
     keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
-
+        if (this.state == TextToolState.EDIT) {
+            this.text.cursor.keydown(keyboardEvent)
+        }
     }
     
     private setCursor(type: TextCursor, svg: SVGElement) {
