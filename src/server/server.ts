@@ -19,22 +19,18 @@
 console.log('booting workflow server v0.1')
 
 import * as knex from 'knex'
-import * as crypto from "crypto"
-//import * as scrypt from "scrypt"
-var scrypt = require("scrypt")
+import * as crypto from 'crypto'
+import * as scrypt from 'scrypt'
 var scryptParameters = scrypt.paramsSync(0.1)
 
 import { ORB } from 'corba.js/lib/orb/orb-nodejs' // FIXME corba.js/nodejs corba.js/browser ?
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
-// import { Figure, FigureModel, BoardModel } from "../shared/workflow_valueimpl"
 
-import * as geometry from "../shared/geometry"
 import { Point, Size, Rectangle, Matrix } from "../shared/geometry"
 
 import * as value     from "../shared/workflow_value"
 import * as valuetype from "../shared/workflow_valuetype"
-// import * as valueimpl from "../shared/workflow_valueimpl"
 
 let testing = true
 
@@ -551,6 +547,5 @@ namespace figure {
         setHandlePosition(handle: number, pt: Point): void {
         }
     }
-
 
 } // namespace figure

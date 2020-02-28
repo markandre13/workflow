@@ -34,6 +34,7 @@
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.12.28",
     "@types/puppeteer": "^1.20.3",
+    "@types/scrypt": "^6.0.0",
     "@types/sqlite3": "^3.1.6",
     "@types/ws": "^6.0.4",
     "chai": "^4.2.0",
