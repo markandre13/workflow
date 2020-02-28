@@ -77,8 +77,7 @@ export class LocalLayerModel implements LayerModel {
 
             if (fig.matrix === undefined)
                 fig.matrix = new Matrix()
-            let m = fig.matrix as Matrix
-            m.prepend(matrix)
+            fig.matrix.prepend(matrix)
             this.modified.trigger({operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: [fig.id]})
         }
     }

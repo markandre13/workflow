@@ -65,12 +65,12 @@ export class BoardListener_impl extends skel.BoardListener {
             // let transform = new Transform()
             // transform.id = newIds.shift()!
             // transform.transform(matrix)
-            // let oldPath = fig.getPath() as AbstractPath
+            // let oldPath = fig.getPath()
             // let oldParentNode = oldPath.svg.parentNode!
             // let oldNextSibling = oldPath.svg.nextSibling
             // oldParentNode.removeChild(oldPath.svg)
             // transform.add(fig)
-            // let newPath = transform.getPath() as AbstractPath
+            // let newPath = transform.getPath()
             // newPath.updateSVG();
             // oldParentNode.insertBefore(newPath.svg, oldNextSibling)
             // layer.data[index] = transform

@@ -38,7 +38,7 @@ export class Layer implements valuetype.Layer {
         let mindist = Number.POSITIVE_INFINITY
         let nearestFigure: Figure | undefined;
         for (let index = this.data.length - 1; index >= 0; --index) {
-            let figure = this.data[index] as Figure
+            let figure = this.data[index]
             let pointInFigureSpace
             if (figure.matrix !== undefined) {
                 pointInFigureSpace = new Matrix(figure.matrix).invert().transformPoint(point)

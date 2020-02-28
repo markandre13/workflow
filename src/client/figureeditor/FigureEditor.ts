@@ -172,7 +172,7 @@ export class FigureEditor extends GenericView<LayerModel> {
             return
         }
 
-        this.selectedLayer = this.model.layers[0] as Layer
+        this.selectedLayer = this.model.layers[0]
         if (!this.layer) { // FIXME: this is a kludge to handle one layer, but we want to handle adding/removing multiple layers
             this.layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
             this.svgView.insertBefore(this.layer, this.decorationOverlay)
@@ -189,7 +189,7 @@ export class FigureEditor extends GenericView<LayerModel> {
                     let notInCache = !this.cache.has(figure.id)
                     if (notInCache) {
                         // console.log(`### FigureEditor.updateView(): ADD FIGURE WITH ID ${figure.id} TO THE CACHE`)
-                        this.cache.set(figure.id, new CacheEntry(figure as figure.Figure))
+                        this.cache.set(figure.id, new CacheEntry(figure))
                     }
                     return notInCache
                 })
@@ -210,9 +210,9 @@ export class FigureEditor extends GenericView<LayerModel> {
                         throw Error("FigureEditor.updateView(): ADD_FIGURES for groups not implemented yet")
                     }
                     if (!cached.path) {
-                        cached.path = cached.figure.getPath() as AbstractPath
+                        cached.path = cached.figure.getPath()
                         if (cached.figure.matrix)
-                            cached.path.transform(cached.figure.matrix as Matrix)
+                            cached.path.transform(cached.figure.matrix)
                     }
                     let svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
                     if (!cached.svg) {
@@ -235,14 +235,14 @@ export class FigureEditor extends GenericView<LayerModel> {
                         throw Error("FigureEditor.updateView(): expected svg in cache")
 
                     // variant i: get a new path
-                    // cached.path = cached.figure.getPath() as AbstractPath
+                    // cached.path = cached.figure.getPath()
                     // cached.svg = cached.figure.updateSVG(cached.path, cached.svg)
 
                     // variant ii: update the existing path
                     // console.log(`FigureEditor.updateView(): got transform figures`)
-                    let path = cached.path!! as Path
+                    let path = cached.path!!
                     // console.log(`  before transform ${JSON.stringify(path)}`)
-                    let m = data.matrix as Matrix
+                    let m = data.matrix
                     // console.log(`FigureEditor.updateView(): transform path of figure ${id} by rotate ${m.getRotation()}, translate=${m.e}, ${m.f}`)
                     cached.path.transform(data.matrix)
                     // console.log(`  after transform ${JSON.stringify(path)}`)
@@ -263,9 +263,9 @@ export class FigureEditor extends GenericView<LayerModel> {
                         if (!cached.svg)
                             throw Error("FigureEditor.updateView(): expected svg in cache")
     
-                        cached.path = cached.figure.getPath() as AbstractPath
+                        cached.path = cached.figure.getPath()
                         if (cached.figure.matrix)
-                            cached.path.transform(cached.figure.matrix as Matrix)
+                            cached.path.transform(cached.figure.matrix)
                         cached.svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
                     }
                     break

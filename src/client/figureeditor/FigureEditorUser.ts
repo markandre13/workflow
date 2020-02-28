@@ -259,7 +259,7 @@ export class FigureEditorUser {
         let f = this.figures[index]
         let center = f.bounds().center()
         if (f.matrix)
-            center = (f.matrix as Matrix).transformPoint(center)
+            center = f.matrix.transformPoint(center)
         return center
     }
 

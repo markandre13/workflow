@@ -47,7 +47,7 @@ export class ShapeTool extends Tool {
             this.shape.fill = event.editor.strokeAndFillModel.fill
         }
         
-        let path = this.shape.getPath() as AbstractPath
+        let path = this.shape.getPath()
         this.svg = this.shape.updateSVG(path, event.editor.decorationOverlay)
         // Tool.setOutlineColors(path) FIXME
         event.editor.decorationOverlay.appendChild(this.svg)
@@ -58,7 +58,7 @@ export class ShapeTool extends Tool {
             return
         let shape = this.shape!
         shape.setHandlePosition(2, event)
-        let path = shape.getPath() as AbstractPath
+        let path = shape.getPath()
         shape.updateSVG(path, event.editor.decorationOverlay, this.svg)
     }
 
@@ -76,7 +76,7 @@ export class ShapeTool extends Tool {
             shape.size.height = -shape.size.height
         }
 
-        // let path = shape.getPath() as AbstractPath
+        // let path = shape.getPath()
         event.editor.decorationOverlay.removeChild(this.svg!!)
 
         event.editor.addFigure(shape)

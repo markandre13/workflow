@@ -50,7 +50,7 @@ export class Group extends Figure implements valuetype.figure.Group {
         throw Error("nope")
         // let path = new PathGroup()
         // for (let child of this.childFigures) {
-        //     path.add(child.getPath() as AbstractPath)
+        //     path.add(child.getPath())
         // }
         // return path
     }

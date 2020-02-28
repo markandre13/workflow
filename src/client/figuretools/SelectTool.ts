@@ -231,7 +231,7 @@ export class SelectTool extends Tool {
             if (figure.matrix === undefined) {
                 r = 0.0
             } else {
-                r = (figure.matrix as Matrix).getRotation()
+                r = figure.matrix.getRotation()
                 if (isNaN(r)) {
                     rotation = 0.0
                     break
@@ -256,8 +256,8 @@ export class SelectTool extends Tool {
         let boundary = new Rectangle()
         let firstEdge = true
         for(let figure of Tool.selection.selection) {
-            let figureBoundary = figure.bounds() as Rectangle
-            // console.log(`figure ${figure.id} matrix`, figure.matrix as Matrix)
+            let figureBoundary = figure.bounds()
+            // console.log(`figure ${figure.id} matrix`, figure.matrix)
             figureBoundary.forAllEdges( (edge)=>{
                 // console.log(`figure ${figure.id} edge ${edge.x}, ${edge.y}`)
                 edge = inverseRotationAroundOrigin.transformPoint(edge)
@@ -267,7 +267,7 @@ export class SelectTool extends Tool {
                 } else {
                     boundary.expandByPoint(edge)
                 }
-            }, figure.matrix as Matrix)
+            }, figure.matrix)
         }
         
         // get center in real coordinate system
@@ -598,11 +598,11 @@ export class SelectTool extends Tool {
                 continue
 
             let figureInMarquee = true
-            let bounds = figure.bounds() as Rectangle
+            let bounds = figure.bounds()
             bounds.forAllEdges( (edge)=> {
                 if (!this.marqueeRectangle!.contains(edge))
                     figureInMarquee = false
-            }, figure.matrix as Matrix)
+            }, figure.matrix)
 
             if (!figureInMarquee)
                 continue
