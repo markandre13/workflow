@@ -650,9 +650,9 @@ export class SelectTool extends Tool {
     }
 
     createOutline(editor: FigureEditor, figure: Figure) {
-        let path = figure.getPath() as Path
+        let path = figure.getPath()
         if (figure.matrix !== undefined)
-            path.transform(figure.matrix as Matrix)
+            path.transform(figure.matrix)
         path.transform(this.transformation)
         let svg = figure.updateSVG(path, editor.decorationOverlay, undefined)
         this.setOutlineColors(svg)

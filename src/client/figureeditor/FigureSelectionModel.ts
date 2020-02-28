@@ -17,7 +17,7 @@
  */
 
 import { Signal } from "toad.js"
-import { Figure } from "../../shared/workflow_valuetype"
+import { Figure } from "../figures"
 
 export class FigureSelectionModel {
     modified: Signal

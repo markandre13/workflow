@@ -21,7 +21,7 @@ import { Figure } from "./Figure"
 import { Group } from "./Group"
 import * as valuetype from "../../shared/workflow_valuetype"
 import * as value     from "../../shared/workflow_value"
-import { AbstractPath } from "../paths/AbstractPath"
+// import { AbstractPath } from "../paths/AbstractPath"
 import { PathGroup } from "../paths/PathGroup"
 import { Path } from "../paths/Path"
 
@@ -63,7 +63,7 @@ export class Transform extends Group implements valuetype.figure.Transform {
     }
     setHandlePosition(handle: number, pt: Point): void {
     }
-    getPath(): AbstractPath {
+    getPath(): Path {
         let path = super.getPath()
         path.transform(this.matrix)
         return path

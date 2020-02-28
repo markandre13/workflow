@@ -19,18 +19,28 @@
 import { Signal } from "toad.js"
 import { Matrix } from "../shared/geometry"
 import { Figure } from "./figures/Figure"
+import { Layer } from "./figureeditor/Layer"
 import { LayerModel } from "./figureeditor/LayerModel"
 
 import * as inf from "../shared/workflow"
-import * as stub from "../shared/workflow_stub"
-import * as valueimpl from "../shared/workflow_valueimpl"
+import * as value from "../shared/workflow_value"
+import * as valuetype from "../shared/workflow_valuetype"
 
 // FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
-export class BoardModel extends valueimpl.BoardModel implements LayerModel {
+export class BoardModel implements valuetype.BoardModel, LayerModel {
+    // BoardModel
+    bid!: number
+    name!: string
+    description!: string
+    layers!: Array<Layer>
+
+    // LayerModel
     modified: Signal
+
     board?: inf.Board
-    constructor() {
-        super();
+
+    constructor(init: Partial<value.BoardModel>) {
+        value.initBoardModel(this, init)
         this.modified = new Signal()
         console.log("BoardModel.constructor()")
     }

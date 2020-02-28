@@ -20,12 +20,12 @@ import { Point, Rectangle, Matrix } from "../../shared/geometry"
 import { Figure } from "./Figure"
 import * as valuetype from "../../shared/workflow_valuetype"
 import * as value     from "../../shared/workflow_value"
-import { AbstractPath } from "../paths/AbstractPath"
+import { Path } from "../paths/Path"
 import { PathGroup } from "../paths/PathGroup"
 
 export class Group extends Figure implements valuetype.figure.Group {
     childFigures!: Array<Figure>
-    constructor(init?: Partial<Group>) {
+    constructor(init?: Partial<value.figure.Group>) {
         super(init)
         value.figure.initGroup(this, init)
     }
@@ -46,11 +46,12 @@ export class Group extends Figure implements valuetype.figure.Group {
     }
     setHandlePosition(handle: number, pt: Point): void {
     }
-    getPath(): AbstractPath {
-        let path = new PathGroup()
-        for (let child of this.childFigures) {
-            path.add(child.getPath() as AbstractPath)
-        }
-        return path
+    getPath(): Path {
+        throw Error("nope")
+        // let path = new PathGroup()
+        // for (let child of this.childFigures) {
+        //     path.add(child.getPath() as AbstractPath)
+        // }
+        // return path
     }
 }

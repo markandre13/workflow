@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as valueinf  from "./workflow_value"
 import * as valueimpl from "./workflow_valueimpl"
 import * as valuetype from "./workflow_valuetype"
 
@@ -506,7 +507,7 @@ export function intersectsRectLine(rect: Rectangle, line: Array<Point>): boolean
 
 // FIXME: DO A HUGE OVERHAUL: ADOPT FUNCTIONAL STYLE, DON'T LET METHODS RETURNING A MATRIX MODIFY THE MATRIX, RETURN A NEW ONE
 export class Matrix extends valueimpl.Matrix {
-    constructor(matrix?: Partial<Matrix>) {
+    constructor(matrix?: Partial<valueinf.Matrix>) {
         super(matrix)
         if (matrix === undefined) {
             this.a = 1.0

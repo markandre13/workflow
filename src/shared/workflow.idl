@@ -40,7 +40,7 @@ valuetype Size {
 // ⎣0 0 1⎦   ⎣1⎦   ⎣1 ⎦
 valuetype Matrix {
     public double a, b, c, d, e, f;
-/*
+
     // FIXME: declaring operations will make the resulting class 'abstract',
     // previnting us to use it as an attribute because it can not be
     // instantiated. this is were CORBA's factory would be of help, because
@@ -53,20 +53,21 @@ valuetype Matrix {
     // without any prototype hacks when implementing the valuetypes.
     // (can interfaces have static functions? also: factory?)
 
-    void identity();
-    void append(in Matrix matrix);
-    void prepend(in Matrix matrix);
-    void invert();
-    void translate(in Point point);
-    void rotate(in double radiant);
-    void scale(in double x, in double y);
+    Matrix identity();
+    /*
+    Matrix append(in Matrix matrix);
+    Matrix prepend(in Matrix matrix);
+    Matrix invert();
+    Matrix translate(in Point point);
+    Matrix rotate(in double radiant);
+    Matrix scale(in double x, in double y);
     Point transformPoint(in Point point);
-//    sequence<double, 2> transformArrayPoint(in sequence<double, 2> point);
-// 2 is maximum size, we would like exact size
+    // 2 is maximum size, we would like exact size
+    // sequence<double, 2> transformArrayPoint(in sequence<double, 2> point);
     sequence<double> transformArrayPoint(in sequence<double> point);
 
     double getRotation();
-*/
+    */
 };
 
 valuetype Rectangle {

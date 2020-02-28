@@ -16,19 +16,30 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as valueimpl from "../../shared/workflow_valueimpl"
-import { AbstractPath } from "../paths/AbstractPath"
+import * as value  from "../../shared/workflow_value"
+import * as valuetype from "../../shared/workflow_valuetype"
+import { Path, AbstractPath } from "../paths"
+import { Point, Rectangle, Matrix } from "../../shared/geometry"
 
-export abstract class Figure extends valueimpl.Figure
+export abstract class Figure implements valuetype.Figure
 {
+    id!: number
+    matrix!: Matrix // FIXME in corba.js: should be optional
+
     public static readonly FIGURE_RANGE = 5.0
     public static readonly HANDLE_RANGE = 5.0
     
-    constructor(init?: Partial<Figure>) {
-        super(init)
+    constructor(init?: Partial<value.Figure>) {
+        value.initFigure(this, init)
     }
 
+    abstract getPath(): Path
     updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
-        throw Error("This figure does not implement updateSVG()")
+        throw Error("updateSVG is not implemented for this class")
     }
+    abstract transform(matrix: Matrix): boolean
+    abstract bounds(): Rectangle
+    abstract distance(point: Point): number
+    abstract getHandlePosition(handleId: number): Point | undefined
+    abstract setHandlePosition(handleId: number, position: Point): void
 }
