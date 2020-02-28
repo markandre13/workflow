@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2018, 2020 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,14 +27,14 @@ var scryptParameters = scrypt.paramsSync(0.1)
 import { ORB } from 'corba.js/lib/orb/orb-nodejs' // FIXME corba.js/nodejs corba.js/browser ?
 import * as skel from "../shared/workflow_skel"
 import * as stub from "../shared/workflow_stub"
-import { Figure, FigureModel, BoardModel } from "../shared/workflow_valueimpl"
+// import { Figure, FigureModel, BoardModel } from "../shared/workflow_valueimpl"
 
 import * as geometry from "../shared/geometry"
 import { Point, Size, Rectangle, Matrix } from "../shared/geometry"
 
 import * as value     from "../shared/workflow_value"
 import * as valuetype from "../shared/workflow_valuetype"
-import * as valueimpl from "../shared/workflow_valueimpl"
+// import * as valueimpl from "../shared/workflow_valueimpl"
 
 let testing = true
 
@@ -49,6 +49,8 @@ let disclaimer=`Welcome to WorkFlow
           management.<br />
           Use is subject to audit at any time by MARK-13 management.
         </p>`
+
+
 
 console.log('database...');
 
@@ -126,10 +128,10 @@ async function main() {
     ORB.registerValueType("figure.AttributedFigure", figure.AttributedFigure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
     ORB.registerValueType("figure.Circle", figure.Circle)
-    ORB.registerValueType("figure.Group", valueimpl.figure.Group)
+    ORB.registerValueType("figure.Group", figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
     ORB.registerValueType("FigureModel", FigureModel)
-    ORB.registerValueType("BoardModel", valueimpl.BoardModel)
+    ORB.registerValueType("BoardModel", BoardModel)
     ORB.registerValueType("Layer", Layer)
     
     orb.bind("WorkflowServer", new WorkflowServer_impl(orb))
@@ -259,7 +261,7 @@ class Project_impl extends skel.Project {
         }
 
         result[0].layers = this.orb.deserialize(result[0].layers)
-        let boardmodel = new valueimpl.BoardModel(result[0])
+        let boardmodel = new BoardModel(result[0])
         board = new Board_impl(this.orb, boardmodel)
         this.boards.set(boardID, board)
         console.log("return restored board "+boardID)
@@ -331,7 +333,7 @@ class Board_impl extends skel.Board {
         
         let layer = this.layerById(layerID)
         for (let index in layer.data) {
-            let fig = layer.data[index] as figure.Figure
+            let fig = layer.data[index]
             if (!figureIdSet.has(fig.id))
                 continue
                 
@@ -350,6 +352,43 @@ class Board_impl extends skel.Board {
             listener[0].transform(layerID, figureIdArray, matrix, newIdArray)
         }
     }
+}
+
+
+class BoardModel implements valuetype.BoardModel {
+    bid!: number
+    name!: string
+    description!: string
+    layers!: Array<Layer>
+
+    constructor(init?: Partial<BoardModel>) {
+        value.initBoardModel(this, init)
+    }
+}
+
+export class FigureModel implements valuetype.FigureModel {
+    data!: Array<Figure>
+
+    constructor(init?: Partial<FigureModel>) {
+        value.initFigureModel(this, init)
+    }
+}
+
+export abstract class Figure implements valuetype.Figure {
+    id!: number
+    matrix!: Matrix | undefined
+
+    constructor(init?: Partial<Figure>) {
+        value.initFigure(this, init)
+    }
+    getPath(): Path { throw Error("Not implemented on Server")}
+    updateSVG(path: AbstractPath, parentSVG: SVGElement, svg: SVGElement | undefined): SVGElement { throw Error("Not implemented on Server")}
+    bounds(): valuetype.Rectangle { throw Error("Not implemented on Server")}
+    distance(point: valuetype.Point): number { throw Error("Not implemented on Server")}
+
+    abstract transform(matrix: valuetype.Matrix): boolean
+    abstract getHandlePosition(handleId: number): Point | undefined
+    abstract setHandlePosition(handleId: number, position: valuetype.Point): void
 }
 
 export class Layer extends FigureModel implements valuetype.Layer {
@@ -382,164 +421,136 @@ export class Layer extends FigureModel implements valuetype.Layer {
 // FIXME: share with client
 namespace figure {
 
-export abstract class Figure extends valueimpl.Figure
-{
-    public static readonly FIGURE_RANGE = 5.0
-    public static readonly HANDLE_RANGE = 5.0
+    export abstract class AttributedFigure extends Figure implements valuetype.figure.AttributedFigure
+    {
+        stroke!: string
+        strokeWidth!: number
+        fill!: string
 
-    constructor(init?: Partial<Figure>) {
-        super(init)
-        console.log("workflow.Figure.constructor()")
-    }
-    
-    getPath(): Path {
-	    throw Error("not implemented")
-    }
-
-    updateSVG(path: AbstractPath, svg?: SVGElement): SVGElement {
-        throw Error("not implemented")
-    }
-
-    distance(pt: Point): number {
-        throw Error("not implemented")
-    }
-
-    bounds(): geometry.Rectangle {
-        throw Error("not implemented")
-    }
-    
-}
-
-export abstract class AttributedFigure extends Figure implements valuetype.figure.AttributedFigure
-{
-    stroke!: string
-    strokeWidth!: number
-    fill!: string
-
-    constructor(init?: Partial<AttributedFigure>) {
-        super(init)
-        value.figure.initAttributedFigure(this, init)
-        this.stroke = "#000"
-        this.strokeWidth = 1.0
-        this.fill = "#fff"
-    }
-}
-
-export abstract class Shape extends AttributedFigure implements valuetype.figure.Shape
-{
-    origin!: Point
-    size!: Size
-
-    constructor(init?: Partial<Shape>) {
-        super(init)
-        value.figure.initShape(this, init)
-    }
-
-    transform(transform: Matrix): boolean {
-        if (!transform.isOnlyTranslateAndScale())
-            return false
-        this.origin = transform.transformPoint(this.origin)
-        this.size   = transform.transformSize(this.size)
-        return true
-    }
-    
-    getHandlePosition(i: number): Point | undefined {
-        switch(i) {
-            case 0: return { x:this.origin.x,                 y:this.origin.y }
-            case 1: return { x:this.origin.x+this.size.width, y:this.origin.y }
-            case 2: return { x:this.origin.x+this.size.width, y:this.origin.y+this.size.height }
-            case 3: return { x:this.origin.x,                 y:this.origin.y+this.size.height }
-        }
-        return undefined
-    }
-
-    setHandlePosition(handle: number, pt: Point): void {
-        if (handle<0 || handle>3)
-            throw Error("fuck")
-
-        if (handle==0 || handle==3) {
-            this.size.width  += this.origin.x - pt.x;
-            this.origin.x=pt.x;
-        } else {
-            this.size.width  += pt.x - (this.origin.x+this.size.width)
-        }
-        if (handle==0 || handle==1) {
-            this.size.height += this.origin.y - pt.y
-            this.origin.y = pt.y
-        } else {
-            this.size.height += pt.y - (this.origin.y+this.size.height)
+        constructor(init?: Partial<AttributedFigure>) {
+            super(init)
+            value.figure.initAttributedFigure(this, init)
+            this.stroke = "#000"
+            this.strokeWidth = 1.0
+            this.fill = "#fff"
         }
     }
-}
 
-export class Rectangle extends Shape implements valuetype.figure.Rectangle
-{
-    constructor(init?: Partial<Rectangle>) {
-        super(init)
-        value.figure.initRectangle(this, init)
-        this.stroke = "#000"
-        this.strokeWidth = 1.0
-        this.fill = "#fff"
-    }
-    
-}
+    export abstract class Shape extends AttributedFigure implements valuetype.figure.Shape
+    {
+        origin!: Point
+        size!: Size
 
-export class Circle extends Shape implements valuetype.figure.Circle
-{
-    stroke: string
-    fill: string
-    
-    constructor(init?: Partial<Rectangle>) {
-        super(init)
-        value.figure.initRectangle(this, init)
-        this.stroke = "#000"
-        this.fill = "#fff"
-    }
-    
-}
+        constructor(init?: Partial<Shape>) {
+            super(init)
+            value.figure.initShape(this, init)
+        }
 
-export class Group extends Figure implements valuetype.figure.Group
-{
-    childFigures!: Array<Figure>
+        transform(transform: Matrix): boolean {
+            if (!transform.isOnlyTranslateAndScale())
+                return false
+            this.origin = transform.transformPoint(this.origin)
+            this.size   = transform.transformSize(this.size)
+            return true
+        }
+        
+        getHandlePosition(i: number): Point | undefined {
+            switch(i) {
+                case 0: return { x:this.origin.x,                 y:this.origin.y }
+                case 1: return { x:this.origin.x+this.size.width, y:this.origin.y }
+                case 2: return { x:this.origin.x+this.size.width, y:this.origin.y+this.size.height }
+                case 3: return { x:this.origin.x,                 y:this.origin.y+this.size.height }
+            }
+            return undefined
+        }
 
-    constructor(init?: Partial<Group>) {
-        super(init)
-        value.figure.initGroup(this, init)
-    }
+        setHandlePosition(handle: number, pt: Point): void {
+            if (handle<0 || handle>3)
+                throw Error("fuck")
 
-    transform(transform: Matrix): boolean {
-        return true
-    }
-    
-    getHandlePosition(i: number): Point | undefined {
-        return undefined
-    }
-
-    setHandlePosition(handle: number, pt: Point): void {
-    }
-}
-
-
-export class Transform extends Group implements valuetype.figure.Transform {
-    matrix!: Matrix
-
-    constructor(init?: Partial<Transform>) {
-        super(init)
-        value.figure.initTransform(this, init)
+            if (handle==0 || handle==3) {
+                this.size.width  += this.origin.x - pt.x;
+                this.origin.x=pt.x;
+            } else {
+                this.size.width  += pt.x - (this.origin.x+this.size.width)
+            }
+            if (handle==0 || handle==1) {
+                this.size.height += this.origin.y - pt.y
+                this.origin.y = pt.y
+            } else {
+                this.size.height += pt.y - (this.origin.y+this.size.height)
+            }
+        }
     }
 
-    transform(transform: Matrix): boolean {
-        this.matrix.append(transform)
-        return true
-    }
-    
-    getHandlePosition(i: number): Point | undefined {
-        return undefined
+    export class Rectangle extends Shape implements valuetype.figure.Rectangle
+    {
+        constructor(init?: Partial<Rectangle>) {
+            super(init)
+            value.figure.initRectangle(this, init)
+            this.stroke = "#000"
+            this.strokeWidth = 1.0
+            this.fill = "#fff"
+        }
+        
     }
 
-    setHandlePosition(handle: number, pt: Point): void {
+    export class Circle extends Shape implements valuetype.figure.Circle
+    {
+        stroke: string
+        fill: string
+        
+        constructor(init?: Partial<Rectangle>) {
+            super(init)
+            value.figure.initCircle(this, init)
+            this.stroke = "#000"
+            this.fill = "#fff"
+        }
+        
     }
-}
+
+    export class Group extends Figure implements valuetype.figure.Group
+    {
+        childFigures!: Array<Figure>
+
+        constructor(init?: Partial<Group>) {
+            super(init)
+            value.figure.initGroup(this, init)
+        }
+
+        transform(transform: Matrix): boolean {
+            return true
+        }
+        
+        getHandlePosition(i: number): Point | undefined {
+            return undefined
+        }
+
+        setHandlePosition(handle: number, pt: Point): void {
+        }
+    }
+
+
+    export class Transform extends Group implements valuetype.figure.Transform {
+        matrix!: Matrix
+
+        constructor(init?: Partial<Transform>) {
+            super(init)
+            value.figure.initTransform(this, init)
+        }
+
+        transform(transform: Matrix): boolean {
+            this.matrix.append(transform)
+            return true
+        }
+        
+        getHandlePosition(i: number): Point | undefined {
+            return undefined
+        }
+
+        setHandlePosition(handle: number, pt: Point): void {
+        }
+    }
 
 
 } // namespace figure
