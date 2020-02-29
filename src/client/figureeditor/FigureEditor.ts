@@ -30,6 +30,18 @@ import { Group } from "../figures/Group"
 
 import * as figure from "../figures"
 
+let style = document.createElement("style")
+style.textContent =`
+    .cursor-blink {
+      animation: cursor-blink 1s steps(1, start) infinite;
+    }
+
+    @keyframes cursor-blink {
+        50% { opacity: 0;       }
+            100% { opacity: 1; }
+    }
+`
+
 export enum Operation {
     ADD_LAYERS,
     REMOVE_LAYERS,
@@ -119,6 +131,7 @@ export class FigureEditor extends GenericView<LayerModel> {
         this.svgView.appendChild(this.decorationOverlay)
 
         this.attachShadow({ mode: 'open' })
+        this.shadowRoot!.appendChild(document.importNode(style, true))
         this.shadowRoot!.appendChild(this.scrollView)
     }
     setTool(tool?: Tool) {
