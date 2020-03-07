@@ -252,9 +252,19 @@ export class Tool {
 
     updateOutlineAndDecorationOfSelection(editor: FigureEditor): void {
         // console.log(`Tool.updateOutlineAndDecorationOfSelection() for selection of ${Tool.selection.selection.size} figures`)
+        this.updateOutlineOfSelection(editor)
+        this.updateDecorationOfSelection(editor)
+    }
+
+    updateOutlineOfSelection(editor: FigureEditor): void {
+        // console.log(`Tool.updateOutlineAndDecorationOfSelection() for selection of ${Tool.selection.selection.size} figures`)
         this.removeOutlines(editor)
-        this.removeDecoration(editor)
         this.createOutlines(editor)
+    }
+
+    updateDecorationOfSelection(editor: FigureEditor): void {
+        // console.log(`Tool.updateOutlineAndDecorationOfSelection() for selection of ${Tool.selection.selection.size} figures`)
+        this.removeDecoration(editor)
         this.createDecoration(editor)            
     }
 
@@ -332,11 +342,12 @@ export class Tool {
 
         // transform path to screen
         let m = new Matrix(this.transformation)
-        m.prepend(this.boundaryTransformation)
+        m.append(this.boundaryTransformation)
         path.transform(m)
     
         // display path
-        this.decoration!.appendChild(path.createSVG("#rgb(79,128,255)"))
+        let svg = path.createSVG("rgb(79,128,255)")
+        this.decoration!.appendChild(svg)
     }
     
     createDecorationHandles(editor: FigureEditor) {

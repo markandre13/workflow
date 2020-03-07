@@ -101,6 +101,9 @@ export class TextTool extends Tool {
                 this.text = figure
                 this.state = TextToolState.EDIT
                 this.text.cursor.mousedown(event)
+                Tool.selection.clear()
+                Tool.selection.add(figure)
+                this.updateDecorationOfSelection(event.editor)
             } else {
                 // create text within shape
             }
@@ -140,7 +143,7 @@ export class TextTool extends Tool {
     mouseup(event: EditorEvent) {
         switch(this.state) {
             case TextToolState.AREA:
-                this.state = TextToolState.NONE
+                this.state = TextToolState.EDIT
                 event.editor.decorationOverlay.removeChild(this.svgRect)
                 event.editor.svgView.removeChild(this.defs)
 
@@ -148,12 +151,12 @@ export class TextTool extends Tool {
                 if (x1<x0) [x0,x1] = [x1,x0]
                 if (y1<y0) [y0,y1] = [y1,y0]
                 let rect = new Rectangle({origin: { x: x0, y: y0 }, size: { width: x1-x0, height: y1-y0 }})
-                let text = new figures.Text(rect)
-                event.editor.addFigure(text)
+                this.text = new figures.Text(rect)
+                event.editor.addFigure(this.text)
 
                 Tool.selection.clear()
-                Tool.selection.add(text)
-                this.updateOutlineAndDecorationOfSelection(event.editor)
+                Tool.selection.add(this.text)
+                this.updateDecorationOfSelection(event.editor)
                 break
         }
     }
