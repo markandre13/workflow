@@ -70,7 +70,7 @@ export class FigureEditor extends GenericView<LayerModel> {
     bounds: Rectangle
     zoom: number
     svgView: SVGElement
-    private tool?: Tool
+    tool?: Tool
     toolModel?: ToolModel
     strokeAndFillModel?: StrokeAndFillModel
     mouseButtonIsDown: boolean

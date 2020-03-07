@@ -15,7 +15,7 @@
     "compile-client": "webpack",
     "compile-server": "tsc -p tsconfig-server.json",
     "test-ui": "npm run compile-idl && webpack --config webpack-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
-    "test-unit": "npm run compile-idl && karma start"
+    "test": "npm run compile-idl && karma start"
   },
   "dependencies": {
     "assert": "^2.0.0",

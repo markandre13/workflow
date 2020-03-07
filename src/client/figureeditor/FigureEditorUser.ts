@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { SelectTool, Tool } from "../figuretools"
+import { SelectTool, TextTool, Tool } from "../figuretools"
 import { LocalLayerModel } from "./LocalLayerModel"
 import { Figure } from "../figures"
 import * as figure from "../figures"
@@ -32,6 +32,7 @@ import { EditorEvent } from "./EditorEvent"
 export class FigureEditorUser {
     figureeditor: FigureEditor
     selectTool: SelectTool
+    textTool: TextTool
     id: number
     model: LocalLayerModel
     figures: Array<Figure>
@@ -40,32 +41,35 @@ export class FigureEditorUser {
     constructor(verbose=false) {
         this.verbose = verbose
         this.id = 0
-        let figureeditor = new FigureEditor()
+        this.figureeditor = new FigureEditor()
         document.body.innerHTML = ""
-        document.body.appendChild(figureeditor)
+        document.body.appendChild(this.figureeditor)
 
         Tool.cursorPath = "base/img/cursor/"
         if (Tool.selection)
             Tool.selection.clear()
 
-        let selectTool = new SelectTool()
-        figureeditor.setTool(selectTool)
+        this.selectTool = new SelectTool()
+        this.textTool = new TextTool()
+        this.figureeditor.setTool(this.selectTool)
+
         Tool.selection.clear()
 
         let model = new LocalLayerModel()
         let layer = new LocalLayer()
         
         model.layers.push(layer)
-        figureeditor.setModel(model)
+        this.figureeditor.setModel(model)
 
-        this.figureeditor = figureeditor
-        this.selectTool = selectTool
         this.model = model
         this.mousePosition = new Point()
         this.figures = []
     }
 
     // semantic operations
+
+    selectSelectTool() { this.figureeditor.setTool(this.selectTool)}
+    selectTextTool() { this.figureeditor.setTool(this.textTool)}
 
     addFigure(figure: Figure): void {
         if (this.verbose)
@@ -213,32 +217,32 @@ export class FigureEditorUser {
 
     keydown(key: string): void {
         let k = new KeyboardEvent("keydown", {key: key})
-        this.selectTool.keydown(this.figureeditor, k)
+        this.figureeditor.tool!.keydown(this.figureeditor, k)
     }
 
     mouseDownAt(point: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE DOWN AT ${point}`)
         this.mousePosition = new Point(point)
-        this.selectTool.mousedown(new EditorEvent(this.figureeditor, point, {shiftKey: shift}))
+        this.figureeditor.tool!.mousedown(new EditorEvent(this.figureeditor, point, {shiftKey: shift}))
     }
 
     moveMouseTo(point: Point, shift = true) {
         this.mousePosition = new Point(point)
-        this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
+        this.figureeditor.tool!.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
     moveMouseBy(translation: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MMOVE MOUSE BY ${translation}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
-        this.selectTool.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
+        this.figureeditor.tool!.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
     mouseUp(shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE UP`)
-        this.selectTool.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
+        this.figureeditor.tool!.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
     mouseClickAt(point: Point, shift=false): void {
