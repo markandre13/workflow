@@ -112,6 +112,7 @@ export class TextTool extends Tool {
     mousemove(event: EditorEvent) {
         switch(this.state) {
             case TextToolState.NONE:
+            case TextToolState.EDIT:
                 let figure = event.editor.selectedLayer!.findFigureAt(event)
                 // console.log(`at ${event.x},${event.y} found ${figure}`)
                 if (figure === undefined) {
