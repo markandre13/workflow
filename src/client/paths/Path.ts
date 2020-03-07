@@ -205,4 +205,12 @@ export class Path extends AbstractPath {
         svg.setAttributeNS("", "fill", fill)
         return svg
     }
+
+    updateSVG(parentSVG: SVGElement, svg?: SVGElement): SVGElement {
+        if (!svg)
+            svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
+        let svgPath = svg as SVGPathElement
+        svgPath.setPathData(this.data)
+        return svg
+    }
 }

@@ -284,7 +284,7 @@ export class Tool {
         if (figure.matrix !== undefined)
             path.transform(figure.matrix)
         path.transform(this.transformation)
-        let svg = figure.updateSVG(path, editor.decorationOverlay, undefined)
+        let svg = path.updateSVG(editor.decorationOverlay, undefined)
         this.setOutlineColors(svg)
         return svg
     }
