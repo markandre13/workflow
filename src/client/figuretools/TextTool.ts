@@ -150,6 +150,10 @@ export class TextTool extends Tool {
                 let rect = new Rectangle({origin: { x: x0, y: y0 }, size: { width: x1-x0, height: y1-y0 }})
                 let text = new figures.Text(rect)
                 event.editor.addFigure(text)
+
+                Tool.selection.clear()
+                Tool.selection.add(text)
+                this.updateOutlineAndDecorationOfSelection(event.editor)
                 break
         }
     }

@@ -35,7 +35,7 @@ declare global {
     }
 }
 
-describe("FigureEditor", ()=> {
+describe.only("FigureEditor", ()=> {
     
     describe("SelectTool", ()=> {
 

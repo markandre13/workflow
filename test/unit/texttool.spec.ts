@@ -44,7 +44,7 @@ describe.only("FigureEditor", ()=> {
                 test.selectTextTool()
            
                 // WHEN
-                test.mouseDownAt(new Point(60,65))
+                test.mouseDownAt(new Point(60, 65))
                 test.moveMouseBy(new Point(60, 30))
                 test.mouseUp()
         
