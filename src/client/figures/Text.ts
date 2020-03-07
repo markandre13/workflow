@@ -61,6 +61,13 @@ export class Text extends Shape implements valuetype.figure.Text {
             textSource.displayWordBoxes()
             this.cursor = new Cursor(svg, wordwrap, textSource)
             parentSVG.removeChild(svg) // FIXME: change API so that figures add themselves to the parent
+        } else {
+            svg.innerHTML=""
+            let textSource = new TextSource("Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+            textSource.initializeWordBoxes(svg)
+            let wordwrap = new WordWrap(path as Path, textSource)
+            wordwrap.placeWordBoxes(textSource)
+            textSource.displayWordBoxes()
         }
         return svg
     }
