@@ -41,7 +41,7 @@ describe.only("figureeditor", ()=> {
 
         describe("select", ()=> {
             describe("single figure", ()=> {
-                it.only("no transformation", ()=> {
+                it("no transformation", ()=> {
                     // GIVEN
                     let test = new FigureEditorUser()
                     let rectangle0 = new Rectangle(50, 50, 20, 30)

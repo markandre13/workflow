@@ -40,7 +40,7 @@ export class FigureEditorUser {
     constructor(verbose=false) {
         this.verbose = verbose
         this.id = 0
-        let figureeditor = document.createElement("toad-figureeditor") as FigureEditor
+        let figureeditor = new FigureEditor()
         document.body.innerHTML = ""
         document.body.appendChild(figureeditor)
 
