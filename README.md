@@ -2,7 +2,7 @@
 
 <p align="center"><img src="img/screenshot.png" width="386" height="279" alt="screenshot" /></p>
 
-<p align="center"><img src="img/underconstruction.gif" width="367" height="22" alt="UNDER CONSTRUCTION" /></p>
+<p align="center"><a href="https://markandre13.github.io/workflow-demo/">Live Demo<a/></p>
 
 Managing the software development process through Lean/Agile methodologies
 means to apply the same steps used in creating an algorithm to the software
