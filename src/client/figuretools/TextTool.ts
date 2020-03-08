@@ -74,6 +74,9 @@ export class TextTool extends Tool {
     
     deactivate(event: EditorEvent) {
         this.setCursor(TextCursor.NONE, event.editor.svgView)
+        event.editor.svgView.style.cursor = "default"
+        this.removeOutlines(event.editor)
+        this.removeDecoration(event.editor)
     }
 
     mousedown(event: EditorEvent) {
@@ -174,7 +177,7 @@ export class TextTool extends Tool {
         svg.style.cursor = ""
         switch(type) {
             case TextCursor.NONE:
-                svg.style.cursor = ""
+                svg.style.cursor = "default"
                 break
             case TextCursor.EDIT:
                 svg.style.cursor = `url(${Tool.cursorPath}text-edit.svg) 9 12, move`

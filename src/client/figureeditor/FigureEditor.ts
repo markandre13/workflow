@@ -188,6 +188,7 @@ export class FigureEditor extends GenericView<LayerModel> {
         this.selectedLayer = this.model.layers[0]
         if (!this.layer) { // FIXME: this is a kludge to handle one layer, but we want to handle adding/removing multiple layers
             this.layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
+            this.layer.style.cursor = "inherit"
             this.svgView.insertBefore(this.layer, this.decorationOverlay)
         }
         let layer = this.layer

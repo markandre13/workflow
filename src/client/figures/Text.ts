@@ -53,6 +53,7 @@ export class Text extends Shape implements valuetype.figure.Text {
     updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg) {
             svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
+            svg.style.cursor = "inherit"
             parentSVG.appendChild(svg)
             let textSource = new TextSource("Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
             textSource.initializeWordBoxes(svg)

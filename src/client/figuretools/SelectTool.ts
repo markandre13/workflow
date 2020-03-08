@@ -73,6 +73,7 @@ export class SelectTool extends Tool {
     }
     
     activate(event: EditorEvent) {
+        event.editor.svgView.style.cursor = "default"
         Tool.selection.modified.add( () => {
             this.updateOutlineAndDecorationOfSelection(event.editor)
         }, this)

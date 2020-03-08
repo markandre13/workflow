@@ -74,6 +74,7 @@ export class TextSource implements WordSource {
 
         for(let r of this.rectangles) {
             let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
+            text.style.cursor = "inherit"
             text.setAttributeNS("", "stroke", "none")
             text.setAttributeNS("", "fill", "none")
             text.setAttributeNS("", "x", "0")
