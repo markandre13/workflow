@@ -29,6 +29,7 @@ import { Cursor } from "../wordwrap/Cursor"
 
 export class Text extends Shape implements valuetype.figure.Text {
     text!: string
+    textSource: TextSource
     cursor!: Cursor
     constructor(init?: Partial<Text>) {
         super(init)
@@ -36,6 +37,10 @@ export class Text extends Shape implements valuetype.figure.Text {
         this.fill = "#000"
         // this.strokeWidth = 0.0
         value.figure.initText(this, init)
+
+        this.text ="Lorem Yps Heft"
+
+        this.textSource = new TextSource(this.text)
     }
     distance(pt: Point): number {
         // FIXME: not final: RANGE and fill="none" need to be considered
@@ -55,20 +60,21 @@ export class Text extends Shape implements valuetype.figure.Text {
             svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
             svg.style.cursor = "inherit"
             parentSVG.appendChild(svg)
-            let textSource = new TextSource("Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
-            textSource.initializeWordBoxes(svg)
-            let wordwrap = new WordWrap(path as Path, textSource)
-            wordwrap.placeWordBoxes(textSource)
-            textSource.displayWordBoxes()
-            this.cursor = new Cursor(svg, wordwrap, textSource)
+    
+            this.textSource.initializeWordBoxes(svg)
+            let wordwrap = new WordWrap(path as Path)
+            wordwrap.placeWordBoxes(this.textSource)
+            this.textSource.displayWordBoxes()
+
+            this.cursor = new Cursor(svg, wordwrap, this.textSource)
             parentSVG.removeChild(svg) // FIXME: change API so that figures add themselves to the parent
         } else {
             svg.innerHTML=""
-            let textSource = new TextSource("Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
-            textSource.initializeWordBoxes(svg)
-            let wordwrap = new WordWrap(path as Path, textSource)
-            wordwrap.placeWordBoxes(textSource)
-            textSource.displayWordBoxes()
+
+            this.textSource.initializeWordBoxes(svg)
+            let wordwrap = new WordWrap(path as Path)
+            wordwrap.placeWordBoxes(this.textSource)
+            this.textSource.displayWordBoxes()
         }
         return svg
     }

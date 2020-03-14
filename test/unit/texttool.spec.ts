@@ -40,16 +40,18 @@ describe.only("FigureEditor", ()=> {
         describe("Area", ()=> {
             it("create", ()=> {
                 // GIVEN
-                let test = new FigureEditorUser()
+                let test = new FigureEditorUser(true)
                 test.selectTextTool()
            
                 // WHEN
-                test.mouseDownAt(new Point(60, 65))
-                test.moveMouseBy(new Point(60, 30))
+                test.mouseDownAt(new Point(10, 15))
+                test.moveMouseBy(new Point(110, 50))
                 test.mouseUp()
         
                 // THEN
-                test.selectionHasRectangle(new Rectangle(60, 65, 60, 30))
+                test.selectionHasRectangle(new Rectangle(10, 15, 110, 50))
+
+                // test.keydown("A")
             })
         })
     })

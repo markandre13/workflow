@@ -46,21 +46,23 @@ index 70658e7..90a6a7b 100644
 import { expect } from "chai"
 import { Point, Size, Rectangle, pointEqualsPoint, rectangleEqualsRectangle, lineCrossesRect2, lineCrossesLine } from "../../src/shared/geometry"
 import { Path } from "../../src/client/paths"
-import { WordWrap, WordSource, Slice, SweepEvent, withinSlices, appendEventAsNewSlice, printSlices } from "../../src/client/wordwrap/wordwrap"
+import { WordWrap, WordSource, Slice, SweepEvent, withinSlices, appendEventAsNewSlice, printSlices, validateSlices } from "../../src/client/wordwrap/wordwrap"
 import { OrderedArray } from "../../src/client/OrderedArray"
-import { validateSlices } from "../../src/client/wordwrap/wordwrap"
+import { WordBox } from "../../src/client/wordwrap/WordBox"
 
 class BoxSource implements WordSource {
     remaining: number
     style: boolean
     box?: Size
-    rectangles: Array<Rectangle>
+    wordBoxes: Array<WordBox>
     
     constructor(remaining = 4096) {
         this.remaining = remaining
         this.style = true
-        this.rectangles = new Array<Rectangle>()
+        this.wordBoxes = new Array<WordBox>()
     }
+
+    reset(): void {}
 
     pullBox(): Size|undefined {
         if (this.remaining === 0)
@@ -71,8 +73,9 @@ class BoxSource implements WordSource {
     }
 
     placeBox(origin: Point): void {
-        let rectangle = new Rectangle(origin, this.box!)
-        this.rectangles.push(rectangle)
+        let rectangle = new WordBox(0, 0, "") // new WordBox(origin, this.box!)
+        rectangle.set(origin.x, origin.y, this.box!.width, this.box!.height)
+        this.wordBoxes.push(rectangle)
         let path = new Path()
         path.appendRect(rectangle)
         document.getElementById("svg")!.appendChild(path.createSVG(this.style ? "#f00" : "#f80"))
@@ -130,20 +133,20 @@ describe("wordwrap", function() {
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
         
-        expect(boxsource.rectangles.length).to.equal(52)
+        expect(boxsource.wordBoxes.length).to.equal(52)
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[0],
+          boxsource.wordBoxes[0],
           new Rectangle(172.90322580645162, 49.03225806451613, 40, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[1],
+          boxsource.wordBoxes[1],
           new Rectangle(112.90322580645162, 69.03225806451613, 20, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[51],
+          boxsource.wordBoxes[51],
           new Rectangle(171.8279569892473, 209.03225806451613, 20, 20)
         )).to.be.true
     })
@@ -161,20 +164,20 @@ describe("wordwrap", function() {
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
         
-        expect(boxsource.rectangles.length).to.equal(52)
+        expect(boxsource.wordBoxes.length).to.equal(52)
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[0],
+          boxsource.wordBoxes[0],
           new Rectangle(172.90322580645162, 49.03225806451613, 40, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[1],
+          boxsource.wordBoxes[1],
           new Rectangle(112.90322580645162, 69.03225806451613, 20, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[51],
+          boxsource.wordBoxes[51],
           new Rectangle(171.8279569892473, 209.03225806451613, 20, 20)
         )).to.be.true
     })
@@ -194,7 +197,7 @@ describe("wordwrap", function() {
         
 //        console.log(boxsource.rectangles.length)
         
-        expect(boxsource.rectangles.length).to.equal(41)
+        expect(boxsource.wordBoxes.length).to.equal(41)
         
         // FIXME: check some rectangles
     })
@@ -212,7 +215,7 @@ describe("wordwrap", function() {
         
 //        console.log(boxsource.rectangles.length)
         
-        expect(boxsource.rectangles.length).to.equal(40)
+        expect(boxsource.wordBoxes.length).to.equal(40)
         
         // FIXME: check some rectangles
     })
@@ -230,7 +233,7 @@ describe("wordwrap", function() {
         
 //        console.log(boxsource.rectangles.length)
         
-        expect(boxsource.rectangles.length).to.equal(40)
+        expect(boxsource.wordBoxes.length).to.equal(40)
         
         // FIXME: check some rectangles
     })
@@ -251,30 +254,30 @@ describe("wordwrap", function() {
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
         
-        expect(boxsource.rectangles.length).to.equal(180)
+        expect(boxsource.wordBoxes.length).to.equal(180)
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[0],
+          boxsource.wordBoxes[0],
           new Rectangle(34.146341463414636, 40, 40, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[7],
+          boxsource.wordBoxes[7],
           new Rectangle(254.14634146341464, 40, 20, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[8],
+          boxsource.wordBoxes[8],
           new Rectangle(330, 40, 40, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[178],
+          boxsource.wordBoxes[178],
           new Rectangle(260.4878048780488, 360, 40, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[179],
+          boxsource.wordBoxes[179],
           new Rectangle(325, 360, 20, 20)
         )).to.be.true
     })
@@ -295,20 +298,20 @@ describe("wordwrap", function() {
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
         
-        expect(boxsource.rectangles.length).to.equal(168)
+        expect(boxsource.wordBoxes.length).to.equal(168)
         
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[0],
+          boxsource.wordBoxes[0],
           new Rectangle(300, 40, 40, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[1],
+          boxsource.wordBoxes[1],
           new Rectangle(48.29268292682927, 60, 20, 20)
         )).to.be.true
 
         expect(rectangleEqualsRectangle(
-          boxsource.rectangles[167],
+          boxsource.wordBoxes[167],
           new Rectangle(325, 360, 20, 20)
         )).to.be.true
     })
@@ -329,7 +332,7 @@ describe("wordwrap", function() {
         let boxsource = new BoxSource()
         let wordwrap = new WordWrap(path, boxsource)
         
-        expect(boxsource.rectangles.length).to.not.equal(0)
+        expect(boxsource.wordBoxes.length).to.not.equal(0)
     })
     
     describe("levelSlicesHorizontally", function() {

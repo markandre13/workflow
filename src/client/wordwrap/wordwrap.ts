@@ -24,6 +24,7 @@ import {
 } from "../../shared/geometry"
 import { Path } from "../paths"
 import { OrderedArray } from "../OrderedArray"
+import { TextSource} from "./TextSource"
 
 // description of an intersection between path segments
 export class IntersectionPoint {
@@ -510,7 +511,8 @@ export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent,
 
 // FIXME: find another name for WordSource as it gather to many wordwrap result related functionality
 export interface WordSource {
-    rectangles: Array<Rectangle>
+    wordBoxes: Array<Rectangle>
+    reset(): void
     pullBox(): Size|undefined
     placeBox(origin: Point): void
     endOfSlice(): void
@@ -577,12 +579,17 @@ export class WordWrap {
     }
 
     placeWordBoxes(wordsource: WordSource) {
-        if (this.trace)
+        // if (this.trace)
             console.log("WordWrap.placeWordBoxes(): ENTER")
+            try { throw Error() } catch(e) { console.log(e) }
         let slices = new Array<Slice>()
 
         let horizontalSpace = 0
         
+        if ((wordsource as TextSource).current != 0) {
+            throw Error(`wordwrap placeWordBoxes start with box ${(wordsource as TextSource).current}`)
+        }
+        wordsource.reset()
         let box = wordsource.pullBox()
         if (box === undefined) {
             console.log("WordWrap.placeWordBoxes(): NO BOXES")

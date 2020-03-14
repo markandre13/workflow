@@ -26,17 +26,21 @@ import { WordWrapTestRunner, Placer } from "./testrunner"
 import { WordWrap, Slice, WordSource } from "./wordwrap"
 import { TextSource } from "./TextSource"
 import { Cursor } from "./Cursor"
-import { Word } from "./Word"
+import { WordBox } from "./WordBox"
 
 class BoxSource implements WordSource {
     current: number
     boxes: Array<Size>
-    rectangles: Array<Word>
+    wordBoxes: Array<WordBox>
     
     constructor(boxes: Array<Size>) {
         this.boxes = boxes
         this.current = 0
-        this.rectangles = new Array<Word>()
+        this.wordBoxes = new Array<WordBox>()
+    }
+
+    reset(): void {
+        this.current = 0
     }
 
     pullBox(): Size|undefined {
@@ -46,10 +50,10 @@ class BoxSource implements WordSource {
     }
 
     placeBox(origin: Point): void {
-        let rectangle = new Word(this.boxes[this.current].width, this.boxes[this.current].height, "")
+        let rectangle = new WordBox(this.boxes[this.current].width, this.boxes[this.current].height, "")
         rectangle.origin.x = origin.x
         rectangle.origin.y = origin.y
-        this.rectangles.push(rectangle)
+        this.wordBoxes.push(rectangle)
         this.current++
     }
 
@@ -62,13 +66,15 @@ class IteratingBoxSource implements WordSource {
     remaining: number
     style: boolean
     box?: Size
-    rectangles: Array<Rectangle>
+    wordBoxes: Array<Rectangle>
     
     constructor(remaining = 4096) {
         this.remaining = remaining
         this.style = true
-        this.rectangles = new Array<Rectangle>()
+        this.wordBoxes = new Array<Rectangle>()
     }
+
+    reset(): void {}
 
     pullBox(): Size|undefined {
         if (this.remaining === 0)
@@ -81,7 +87,7 @@ class IteratingBoxSource implements WordSource {
 
     placeBox(origin: Point): void {
         let rectangle = new Rectangle(origin, this.box!)
-        this.rectangles.push(rectangle)
+        this.wordBoxes.push(rectangle)
     }
 
     endOfSlice(): void {}
@@ -484,7 +490,7 @@ const wordWrapTest: WordWrapTest[] = [
         let boxSource = new IteratingBoxSource()
         wordwrap.placeWordBoxes(boxSource)
 
-        for(let r of boxSource.rectangles) {
+        for(let r of boxSource.wordBoxes) {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
             rect.setAttributeNS("", "stroke", "#aaa")
             rect.setAttributeNS("", "fill", "none")
@@ -495,9 +501,9 @@ const wordWrapTest: WordWrapTest[] = [
             svg.appendChild(rect)
         }
 
-        if (boxSource.rectangles.length === 0)
+        if (boxSource.wordBoxes.length === 0)
             return undefined
-        return boxSource.rectangles[boxSource.rectangles.length-1].origin
+        return boxSource.wordBoxes[boxSource.wordBoxes.length-1].origin
     }
 }, {
     title: "wordwrap 001",
@@ -529,7 +535,7 @@ const wordWrapTest: WordWrapTest[] = [
             let boxSource = new BoxSource(boxes!)
             wordwrap.placeWordBoxes(boxSource)
     
-            for(let r of boxSource.rectangles) {
+            for(let r of boxSource.wordBoxes) {
                 // console.log(r)
                 let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
                 rect.setAttributeNS("", "stroke", "#aaa")
@@ -541,10 +547,10 @@ const wordWrapTest: WordWrapTest[] = [
                 svg.appendChild(rect)
             }
     
-            if (boxSource.rectangles.length === 0)
+            if (boxSource.wordBoxes.length === 0)
                 return undefined
-            console.log(boxSource.rectangles[boxSource.rectangles.length-1])
-            return boxSource.rectangles[boxSource.rectangles.length-1].origin
+            console.log(boxSource.wordBoxes[boxSource.wordBoxes.length-1])
+            return boxSource.wordBoxes[boxSource.wordBoxes.length-1].origin
         }
 
 }, {

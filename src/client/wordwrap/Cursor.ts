@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Word } from "./Word"
+import { WordBox } from "./WordBox"
 import { Point } from "../../shared/workflow_valueimpl"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
@@ -30,7 +30,7 @@ export class Cursor {
     position: Point
     xDuringVerticalMovement: undefined | number
     cursor: SVGLineElement
-    boxes: Array<Word>
+    boxes: Array<WordBox>
     offsetWord: number
     offsetChar: number
 
@@ -38,20 +38,19 @@ export class Cursor {
         this.svg = svg
         this.wordwrap = wordwrap
         this.textSource = textSource
-        this.boxes = textSource.rectangles
+        this.boxes = textSource.wordBoxes
         this.position = new Point()
         this.xDuringVerticalMovement = undefined
         this.offsetWord = 0
         this.offsetChar = 0
         this.cursor = this.createCursor()
+        this.updateCursor()
+        this.svg.appendChild(this.cursor)
     }
 
     createCursor(): SVGLineElement {
-        let r = this.boxes[0]
-        let cursor = this.cursor = document.createElementNS("http://www.w3.org/2000/svg", "line")
+        let cursor = document.createElementNS("http://www.w3.org/2000/svg", "line")
         cursor.setAttributeNS("", "stroke", "#000")
-        this.updateCursor()
-        this.svg.appendChild(cursor)
         return cursor
     }
 
@@ -108,7 +107,7 @@ export class Cursor {
                     // this.wordwrap.trace = true
                     this.wordwrap.initializeSweepBufferFrom(this.wordwrap.path)
                     this.wordwrap.placeWordBoxes(this.textSource)
-                    this.textSource.placeWordBoxes()
+                    this.textSource.updateSVG()
                     this.updateCursor()
                 }
         }
@@ -267,12 +266,16 @@ export class Cursor {
     
     updateCursor() {
         let r = this.boxes[this.offsetWord]!
-        let x = r.svg!.getSubStringLength(0, this.offsetChar)
+        let x
+        if (r.word.length === 0)
+            x = 0
+        else
+            x = r.svg!.getSubStringLength(0, this.offsetChar)
         // set position
         this.position.x = r.origin.x + x
         this.position.y = r.origin.y
 
-        // console.log(`updateCursor(): offsetWord=${this.offsetWord}, offsetChar=${this.offsetChar}, x=${this.position.x}`)
+        console.log(`updateCursor(): offsetWord=${this.offsetWord}, offsetChar=${this.offsetChar}, x=${this.position.x}, y=${this.position.y}, height=${r.size.height}`)
 
         this.cursor.setAttributeNS("", "x1", String(r.origin.x + x))
         this.cursor.setAttributeNS("", "y1", String(r.origin.y))

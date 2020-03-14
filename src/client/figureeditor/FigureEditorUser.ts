@@ -117,7 +117,7 @@ export class FigureEditorUser {
             throw Error("Error: selection decoration is empty")
         let msg = ""
         for (let i of [0, 2, 4, 6]) {
-            let r = this.selectTool.getBoundaryHandle(i)
+            let r = this.figureeditor.tool!.getBoundaryHandle(i)
             if (r.inside(point))
                 return
             msg = `${msg} (${r.origin.x}, ${r.origin.y})`
@@ -216,25 +216,29 @@ export class FigureEditorUser {
     }
 
     keydown(key: string): void {
+        if (this.verbose)
+            console.log(`### KEY DOWN ${key}`)
         let k = new KeyboardEvent("keydown", {key: key})
         this.figureeditor.tool!.keydown(this.figureeditor, k)
     }
 
     mouseDownAt(point: Point, shift = true): void {
         if (this.verbose)
-            console.log(`### MOUSE DOWN AT ${point}`)
+            console.log(`### MOUSE DOWN AT ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
         this.figureeditor.tool!.mousedown(new EditorEvent(this.figureeditor, point, {shiftKey: shift}))
     }
 
     moveMouseTo(point: Point, shift = true) {
+        if (this.verbose)
+            console.log(`### MOVE MOUSE TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
         this.figureeditor.tool!.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
     moveMouseBy(translation: Point, shift = true): void {
         if (this.verbose)
-            console.log(`### MMOVE MOUSE BY ${translation}`)
+            console.log(`### MOVE MOUSE BY ${translation.x}, ${translation.y}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
         this.figureeditor.tool!.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
