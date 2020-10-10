@@ -15,7 +15,11 @@
     "compile-client": "webpack",
     "compile-server": "tsc -p tsconfig-server.json",
     "test-ui": "npm run compile-idl && webpack --config webpack-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
-    "test": "npm run compile-idl && karma start"
+    "test": "npm run compile-idl && karma start",
+
+    "test-visual": "npm run test-visual-tests && npm run test-visual-reporter",
+    "test-visual-tests": "rollup --config config/rollup-test-visual.config.js",
+    "test-visual-reporter": "tsc --lib dom test/visual/visual.ts test/visual/visual.ts"
   },
   "dependencies": {
     "assert": "^2.0.0",
@@ -27,6 +31,8 @@
   },
   "devDependencies": {
     "@atom/teletype-crdt": "^0.9.0",
+    "@rollup/plugin-multi-entry": "^4.0.0",
+    "@rollup/plugin-typescript": "^6.0.0",
     "@types/assert": "^1.5.2",
     "@types/bcrypt": "^3.0.0",
     "@types/chai": "^4.2.13",
@@ -51,6 +57,7 @@
     "mocha": "^6.2.3",
     "puppeteer": "^1.20.0",
     "requirejs": "^2.3.6",
+    "rollup": "^2.29.0",
     "sourcemapped-stacktrace": "^1.1.11",
     "toad.js": "0.0.11",
     "ts-loader": "^5.4.5",
