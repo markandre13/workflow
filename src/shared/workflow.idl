@@ -127,7 +127,7 @@ module figure {
     };
 
     valuetype Transform: Group {
-	    public Matrix matrix;
+	    // public Matrix matrix; hard to find: this should yield an IDL compiler error
     };
 };
 

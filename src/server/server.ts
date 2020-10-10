@@ -20,8 +20,8 @@ console.log('booting workflow server v0.1')
 
 import * as knex from 'knex'
 import * as crypto from 'crypto'
-import * as scrypt from 'scrypt'
-var scryptParameters = scrypt.paramsSync(0.1)
+import * as bcrypt from 'bcrypt'
+const bcryptRounds = 10
 
 import { ORB } from 'corba.js/lib/orb/orb-nodejs' // FIXME corba.js/nodejs corba.js/browser ?
 import * as skel from "../shared/workflow_skel"
@@ -81,8 +81,8 @@ async function main() {
     })
     
     await db("users").insert([
-        { logon: "mark" , password: scrypt.kdfSync("secret", scryptParameters), avatar: "img/avatars/pig.svg",   email: "mhopf@mark13.org", fullname: "Mark-André Hopf" },
-        { logon: "tiger", password: scrypt.kdfSync("lovely", scryptParameters), avatar: "img/avatars/tiger.svg", email: "tiger@mark13.org", fullname: "Emma Peel" }
+        { logon: "mark" , password: bcrypt.hashSync("secret", bcryptRounds), avatar: "img/avatars/pig.svg",   email: "mhopf@mark13.org", fullname: "Mark-André Hopf" },
+        { logon: "tiger", password: bcrypt.hashSync("lovely", bcryptRounds), avatar: "img/avatars/tiger.svg", email: "tiger@mark13.org", fullname: "Emma Peel" }
     ])
     
     await db.schema.createTable('projects', (table) => {
@@ -185,7 +185,7 @@ class Server_impl extends skel.Server {
     async logon(logon: string, password: string, remember: boolean) {
         console.log("Server_impl.logon()")
         let result = await db.select("uid", "password", "avatar", "email", "fullname").from("users").where("logon", logon)
-        if (result.length === 1 && scrypt.verifyKdfSync(result[0].password, password)) {
+        if (result.length === 1 && bcrypt.compareSync(password, result[0].password)) {
             const user = result[0]
             const sessionKey = crypto.randomBytes(64)
             await db("users").where("uid", user.uid).update("sessionkey", sessionKey)

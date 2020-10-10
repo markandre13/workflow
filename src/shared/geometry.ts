@@ -16,38 +16,44 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as valueinf  from "./workflow_value"
-import * as valueimpl from "./workflow_valueimpl"
+import * as value  from "./workflow_value"
 import * as valuetype from "./workflow_valuetype"
 
-export class Point extends valueimpl.Point {
+export class Point implements value.Point {
+    x!: number
+    y!: number
+
     constructor()
     constructor(point: Partial<Point>)
     constructor(x: number, y: number)
     constructor(xOrPoint?: number|Partial<Point>, y?: number) {
+        // valueinf.initPoint(this, point)
         if (xOrPoint === undefined) {
-            super()
+            value.initPoint(this)
         } else
         if (typeof xOrPoint === "object") {
-            super(xOrPoint)
+            value.initPoint(this, xOrPoint)
         } else {
-            super({x: xOrPoint, y: y!})
+            value.initPoint({x: xOrPoint, y: y!})
         }
     }
 }
 
-export class Size extends valueimpl.Size {
+export class Size implements value.Size {
+    width!: number
+    height!: number
+
     constructor()
     constructor(size: Partial<Size>)
     constructor(width: number, height: number)
     constructor(widthOrSize?: number|Partial<Size>, height?: number) {
         if (widthOrSize === undefined) {
-            super()
+            value.initSize(this)
         } else
         if (typeof widthOrSize === "object") {
-            super(widthOrSize)
+            value.initSize(this, widthOrSize)
         } else {
-            super({width: widthOrSize, height: height!})
+            value.initSize(this, {width: widthOrSize, height: height!})
         }
     }
 }
@@ -172,15 +178,17 @@ export function distancePointToLine(q: Point, p0: Point, p1: Point): number {
 }
 
 
-export class Rectangle extends valueimpl.Rectangle {
+export class Rectangle implements value.Rectangle {
+    origin!: Point
+    size!: Size
   
     constructor()
-    constructor(rectangle: Partial<valueimpl.Rectangle>)
+    constructor(rectangle: Partial<value.Rectangle>)
     constructor(origin: Point, size: Size)
     constructor(x: number, y: number, width: number, height: number)
-    constructor(xOrOriginOrRectangle?: number|Point|Partial<valueimpl.Rectangle>, yOrSize?: number|Size, width?: number, height?: number) {
+    constructor(xOrOriginOrRectangle?: number|Point|Partial<value.Rectangle>, yOrSize?: number|Size, width?: number, height?: number) {
         if (xOrOriginOrRectangle === undefined) {
-            super()
+            value.initRectangle(this)
         } else
         if (yOrSize === undefined) {
             if ( !xOrOriginOrRectangle.hasOwnProperty("origin") ||
@@ -188,7 +196,7 @@ export class Rectangle extends valueimpl.Rectangle {
             {
                 throw Error("fuck")
             }
-            super(xOrOriginOrRectangle as Rectangle)
+            value.initRectangle(this, xOrOriginOrRectangle as Rectangle)
         } else
         if (width === undefined) {
             if ( !xOrOriginOrRectangle.hasOwnProperty("x") || // FIXME:
@@ -198,14 +206,14 @@ export class Rectangle extends valueimpl.Rectangle {
             {
                  throw Error("fuck")
             }
-            super({origin: xOrOriginOrRectangle as Point, size: yOrSize as Size})
+            value.initRectangle(this, {origin: xOrOriginOrRectangle as Point, size: yOrSize as Size})
         } else {
             if ( typeof xOrOriginOrRectangle !== "number" ||
                  typeof yOrSize !== "number" )
             {
                 throw Error("fuck")
             }
-            super({ origin: {x: xOrOriginOrRectangle, y: yOrSize},
+            value.initRectangle(this, { origin: {x: xOrOriginOrRectangle, y: yOrSize},
                      size:  {width: width, height: height! } })
         }
     }
@@ -506,9 +514,16 @@ export function intersectsRectLine(rect: Rectangle, line: Array<Point>): boolean
 }
 
 // FIXME: DO A HUGE OVERHAUL: ADOPT FUNCTIONAL STYLE, DON'T LET METHODS RETURNING A MATRIX MODIFY THE MATRIX, RETURN A NEW ONE
-export class Matrix extends valueimpl.Matrix {
-    constructor(matrix?: Partial<valueinf.Matrix>) {
-        super(matrix)
+export class Matrix implements value.Matrix {
+    a!: number
+    b!: number
+    c!: number
+    d!: number
+    e!: number
+    f!: number
+
+    constructor(matrix?: Partial<value.Matrix>) {
+        value.initMatrix(this, matrix)
         if (matrix === undefined) {
             this.a = 1.0
             this.d = 1.0
