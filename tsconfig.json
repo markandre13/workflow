@@ -6,15 +6,14 @@
         "moduleResolution": "node",
         "traceResolution": false,
         "lib": ["es6", "es2017.object", "dom"],
-        "baseUrl": ".",
-          "paths": {
-        },
+        "baseUrl": "./src/",
         "strict": true,
         "allowJs": false,
         "noImplicitAny": true,
         "sourceMap": true,
     },
     "include": [
+        "src/**/*.ts",
         "test/**/*.ts"
     ],
     "exclude": [

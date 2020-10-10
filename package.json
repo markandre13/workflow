@@ -16,7 +16,6 @@
     "compile-server": "tsc -p tsconfig-server.json",
     "test-ui": "npm run compile-idl && webpack --config webpack-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
     "test": "npm run compile-idl && karma start",
-
     "test-visual": "npm run test-visual-tests && npm run test-visual-reporter",
     "test-visual-tests": "rollup --config config/rollup-test-visual.config.js",
     "test-visual-reporter": "tsc --lib dom test/visual/visual.ts test/visual/visual.ts"
@@ -31,7 +30,9 @@
   },
   "devDependencies": {
     "@atom/teletype-crdt": "^0.9.0",
+    "@rollup/plugin-commonjs": "^15.1.0",
     "@rollup/plugin-multi-entry": "^4.0.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
     "@rollup/plugin-typescript": "^6.0.0",
     "@types/assert": "^1.5.2",
     "@types/bcrypt": "^3.0.0",
