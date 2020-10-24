@@ -1,15 +1,7 @@
 {
+    "extends": "./tsconfig.json",
     "compilerOptions": {
-        "outDir": "./js/",
-        "target": "es6",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "traceResolution": false,
-        "lib": ["es6", "es2017.object", "dom"],
-        "strict": true,
-        "allowJs": false,
-        "noImplicitAny": true,
-        "sourceMap": true
+        "outDir": "js",
     },
     "include": [
         "src/server",

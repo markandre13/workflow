@@ -16,10 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as value  from "../../shared/workflow_value"
-import * as valuetype from "../../shared/workflow_valuetype"
+import * as value  from "shared/workflow_value"
+import * as valuetype from "shared/workflow_valuetype"
 import { Path, AbstractPath } from "../paths"
-import { Point, Rectangle, Matrix } from "../../shared/geometry"
+import { Point, Rectangle, Matrix } from "shared/geometry"
 
 export abstract class Figure implements valuetype.Figure
 {

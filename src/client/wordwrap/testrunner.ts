@@ -16,12 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as value from "../../shared/workflow_value"
+import * as value from "shared/workflow_value"
 import {
     Point, Size, Rectangle, Matrix,
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
     pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine
-} from "../../shared/geometry"
+} from "shared/geometry"
 import { Path } from "../paths/Path"
 import { WordWrap, Slice } from "./wordwrap"
 

@@ -44,11 +44,11 @@ index 70658e7..90a6a7b 100644
 */
 
 import { expect } from "chai"
-import { Point, Size, Rectangle, pointEqualsPoint, rectangleEqualsRectangle, lineCrossesRect2, lineCrossesLine } from "../../src/shared/geometry"
-import { Path } from "../../src/client/paths"
-import { WordWrap, WordSource, Slice, SweepEvent, withinSlices, appendEventAsNewSlice, printSlices, validateSlices } from "../../src/client/wordwrap/wordwrap"
-import { OrderedArray } from "../../src/client/OrderedArray"
-import { WordBox } from "../../src/client/wordwrap/WordBox"
+import { Point, Size, Rectangle, pointEqualsPoint, rectangleEqualsRectangle, lineCrossesRect2, lineCrossesLine } from "shared/geometry"
+import { Path } from "client/paths"
+import { WordWrap, WordSource, Slice, SweepEvent, withinSlices, appendEventAsNewSlice, printSlices, validateSlices } from "client/wordwrap/wordwrap"
+import { OrderedArray } from "client/OrderedArray"
+import { WordBox } from "client/wordwrap/WordBox"
 
 class BoxSource implements WordSource {
     remaining: number

@@ -24,13 +24,13 @@ import * as bcrypt from 'bcrypt'
 const bcryptRounds = 10
 
 import { ORB } from 'corba.js/lib/orb/orb-nodejs' // FIXME corba.js/nodejs corba.js/browser ?
-import * as skel from "../shared/workflow_skel"
-import * as stub from "../shared/workflow_stub"
+import * as skel from "shared/workflow_skel"
+import * as stub from "shared/workflow_stub"
 
 import { Point, Size, Rectangle, Matrix } from "../shared/geometry"
 
-import * as value     from "../shared/workflow_value"
-import * as valuetype from "../shared/workflow_valuetype"
+import * as value     from "shared/workflow_value"
+import * as valuetype from "shared/workflow_valuetype"
 
 let testing = true
 

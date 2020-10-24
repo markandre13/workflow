@@ -17,14 +17,14 @@
  */
 
 import { Signal } from "toad.js"
-import { Matrix } from "../shared/geometry"
+import { Matrix } from "shared/geometry"
 import { Figure } from "./figures/Figure"
 import { Layer } from "./figureeditor/Layer"
 import { LayerModel } from "./figureeditor/LayerModel"
 
-import * as inf from "../shared/workflow"
-import * as value from "../shared/workflow_value"
-import * as valuetype from "../shared/workflow_valuetype"
+import * as inf from "shared/workflow"
+import * as value from "shared/workflow_value"
+import * as valuetype from "shared/workflow_valuetype"
 
 // FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
 export class BoardModel implements valuetype.BoardModel, LayerModel {

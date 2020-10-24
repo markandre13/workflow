@@ -20,8 +20,8 @@
 import { Path } from "../paths"
 import { Shape } from "./Shape"
 
-import * as valuetype from "../../shared/workflow_valuetype"
-import * as value     from "../../shared/workflow_value"
+import * as valuetype from "shared/workflow_valuetype"
+import * as value     from "shared/workflow_value"
 
 export class Circle extends Shape implements valuetype.figure.Circle {
     constructor(init?: Partial<Circle>) {

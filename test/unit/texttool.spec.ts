@@ -20,12 +20,12 @@ import { expect, use } from "chai"
 import chaiAlmost = require('chai-almost')
 use(chaiAlmost())
 
-import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "../../src/shared/geometry"
+import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "shared/geometry"
 
-import { Path } from "../../src/client/paths"
-import * as figure from "../../src/client/figures"
-import { Tool, SelectToolState } from "../../src/client/figuretools"
-import { FigureEditorUser } from "../../src/client/figureeditor/FigureEditorUser"
+import { Path } from "client/paths"
+import * as figure from "client/figures"
+import { Tool, SelectToolState } from "client/figuretools"
+import { FigureEditorUser } from "client/figureeditor/FigureEditorUser"
 
 declare global {
     interface SVGPathElement {
@@ -35,7 +35,7 @@ declare global {
     }
 }
 
-describe.only("FigureEditor", ()=> {
+describe("FigureEditor", ()=> {
     describe("TextTool", ()=> {
         describe("Area", ()=> {
             it("create", ()=> {

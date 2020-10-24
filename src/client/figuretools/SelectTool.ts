@@ -28,7 +28,7 @@
 import {
     Point, Rectangle, Matrix,
     pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual
-} from "../../shared/geometry"
+} from "shared/geometry"
 import { Path } from "../paths/Path"
 import { Figure } from "../figures/Figure"
 import { AttributedFigure } from "../figures/AttributedFigure"

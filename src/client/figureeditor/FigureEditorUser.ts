@@ -23,7 +23,7 @@ import * as figure from "../figures"
 import { FigureEditor } from "./FigureEditor"
 import { Path } from "../paths"
 
-import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointPlusSize, pointMinusPoint, pointMinus } from "../../shared/geometry"
+import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointPlusSize, pointMinusPoint, pointMinus } from "shared/geometry"
 import { LocalLayer } from "./LocalLayer"
 import { EditorEvent } from "./EditorEvent"
 

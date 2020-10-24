@@ -16,12 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Point } from "../../shared/geometry"
+import { Point } from "shared/geometry"
 import { AbstractPath, Path } from "../paths"
 import { Figure } from "../figures"
 import { Shape } from "./Shape"
-import * as valuetype from "../../shared/workflow_valuetype"
-import * as value     from "../../shared/workflow_value"
+import * as valuetype from "shared/workflow_valuetype"
+import * as value     from "shared/workflow_value"
 
 import { WordWrap, Slice, WordSource } from "../wordwrap/wordwrap"
 import { TextSource } from "../wordwrap/TextSource"

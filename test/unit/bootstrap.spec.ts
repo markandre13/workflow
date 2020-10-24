@@ -19,7 +19,7 @@
 
 import { ORB } from "corba.js"
 import { Point, Size, Rectangle, Matrix } from "shared/geometry"
-import { FigureEditor } from "../../src/client/figureeditor/FigureEditor"
+import { FigureEditor } from "client/figureeditor/FigureEditor"
 
 before(function() {
     ORB.registerValueType("Point", Point)

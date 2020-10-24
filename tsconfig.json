@@ -1,13 +1,18 @@
+// this typescript configuration is shared by all builds and visual studio code
 {
     "compilerOptions": {
-        "outDir": ".",
         "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
         "traceResolution": false,
         "lib": ["es6", "es2017.object", "dom"],
-        "baseUrl": "./src/",
+        "baseUrl": "src",
+        "paths": {
+            "shared/*": ["shared/*"],
+            "client/*": ["client/*"]
+        },
         "strict": true,
+        "downlevelIteration": true,
         "allowJs": false,
         "noImplicitAny": true,
         "sourceMap": true,
@@ -17,8 +22,6 @@
         "test/**/*.ts"
     ],
     "exclude": [
-        "test/**/*.spec.ts",
-        "test/bootstrap.ts",
         "node_modules"
     ]
 }

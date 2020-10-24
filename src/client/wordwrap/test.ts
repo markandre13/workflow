@@ -16,10 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as value from "../../shared/workflow_value"
+import * as value from "shared/workflow_value"
 import {
     Point, Size, Rectangle
-} from "../../shared/geometry"
+} from "shared/geometry"
 import { Path } from "../paths/Path"
 
 import { WordWrapTestRunner, Placer } from "./testrunner"

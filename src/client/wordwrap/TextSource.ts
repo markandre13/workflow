@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Point, Size } from "../../shared/geometry"
+import { Point, Size } from "shared/geometry"
 import { WordSource } from "./wordwrap"
 import { WordBox } from "./WordBox"
 import { runInThisContext } from "vm"

@@ -17,12 +17,12 @@
  */
 
 import { ORB } from "corba.js"
-import { Matrix } from "../shared/geometry"
+import { Matrix } from "shared/geometry"
 import { Figure } from "./figures"
 import { BoardModel } from "./BoardModel"
 import { Operation } from "./figureeditor/FigureEditor"
 
-import * as skel from "../shared/workflow_skel"
+import * as skel from "shared/workflow_skel"
 
 // FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
 export class BoardListener_impl extends skel.BoardListener {

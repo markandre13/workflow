@@ -16,9 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as value from "../../shared/workflow_value"
-import * as valuetype from "../../shared/workflow_valuetype"
-import { Point, Matrix } from "../../shared/geometry"
+import * as value from "shared/workflow_value"
+import * as valuetype from "shared/workflow_valuetype"
+import { Point, Matrix } from "shared/geometry"
 import { Figure } from "../figures"
 
 export class Layer implements valuetype.Layer {

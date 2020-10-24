@@ -17,9 +17,9 @@
  */
 
 import { GenericView, Model } from "toad.js"
-import { Rectangle, Matrix } from "../../shared/geometry"
+import { Rectangle, Matrix } from "shared/geometry"
 import { AbstractPath, Path } from "../paths"
-import { Figure } from "../../shared/workflow_valuetype"
+import { Figure } from "shared/workflow_valuetype"
 import { Tool } from "../figuretools"
 import { StrokeAndFillModel } from "../widgets/strokeandfill"
 import { ToolModel } from "../figuretools/ToolModel"

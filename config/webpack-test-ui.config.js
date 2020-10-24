@@ -1,8 +1,8 @@
 var glob = require("glob")
 const path = require("path")
 
-let files = glob.sync("./test/ui/**/script.ts")
-files.push("./test/ui/main.ts")
+let files = glob.sync("../test/ui/**/script.ts")
+files.push("../test/ui/main.ts")
 
 module.exports = {
   mode: "development",
@@ -28,7 +28,7 @@ module.exports = {
   },
   resolve: {
     extensions: [ ".ts", ".js" ],
-    modules: [ "./src", "./node_modules", "." ]
+    modules: [ "../src", "../node_modules", "." ]
   },
   optimization: {
     minimize: false

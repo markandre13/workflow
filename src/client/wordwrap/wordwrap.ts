@@ -21,7 +21,7 @@ import {
     pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
     pointMinus, pointEqualsPoint, signedArea, isZero, isLessEqual, distancePointToLine,
     intersectsRectLine, lineCrossesRect2
-} from "../../shared/geometry"
+} from "shared/geometry"
 import { Path } from "../paths"
 import { OrderedArray } from "../OrderedArray"
 import { TextSource} from "./TextSource"

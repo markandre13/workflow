@@ -12,10 +12,10 @@
   "scripts": {
     "build": "npm run compile-idl && npm run compile-server && npm run compile-client",
     "compile-idl": "corba-idl -d --ts-all src/shared/workflow.idl",
-    "compile-client": "webpack",
+    "compile-client": "rollup --config rollup-client.config.js",
     "compile-server": "tsc -p tsconfig-server.json",
-    "test-ui": "npm run compile-idl && webpack --config webpack-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
-    "test": "npm run compile-idl && karma start",
+    "test-ui": "npm run compile-idl && rollup --config config/rollup-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
+    "test": "npm run compile-idl && karma start config/karma.conf.js",
     "test-visual": "npm run test-visual-tests && npm run test-visual-reporter",
     "test-visual-tests": "rollup --config config/rollup-test-visual.config.js",
     "test-visual-reporter": "tsc --lib dom test/visual/visual.ts test/visual/visual.ts"
@@ -64,8 +64,6 @@
     "ts-loader": "^5.4.5",
     "ts-mocha": "^6.0.0",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.7",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12"
+    "typescript": "^3.9.7"
   }
 }

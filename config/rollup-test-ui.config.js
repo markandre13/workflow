@@ -14,18 +14,22 @@ import commonjs from '@rollup/plugin-commonjs';
 // import builtins from 'rollup-plugin-node-builtins';
 
 export default {
-    input: './test/visual/**/*.spec.ts',
+    input: [
+        '../test/ui/**/script.ts',
+        '../test/ui/main.ts'
+    ],
     output: {
-      file: './test/visual/test.js',
+      file: './js/unittest.js',
+      name: 'unittest',
       format: 'iife', // umd, es, 
       sourcemap: true
     },
     plugins: [
         typescript({
             tsconfig: false,
-            include: [ // not a typescript option
-                "src/**/*.ts",
-                "test/visual/**/*.spec.ts"
+            include: [
+                "src/client/**/*.ts",
+                "src/shared/**/*.ts",
             ],
             baseUrl: "./src",
             lib: ["es6", "es2017.object", "dom"],
@@ -35,8 +39,8 @@ export default {
             noImplicitAny: true,
             sourceMap: true 
         }),
-        multi(),
         nodeResolve(),
-        commonjs()
+        commonjs(),
+        multi()
     ]
 }

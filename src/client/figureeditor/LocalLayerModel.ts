@@ -21,7 +21,7 @@ import { Signal } from 'toad.js'
 import { LayerModel } from "./LayerModel"
 import { LocalLayer } from "./LocalLayer"
 import * as figure from "../figures"
-import { Matrix } from "../../shared/geometry"
+import { Matrix } from "shared/geometry"
 import { Operation } from "./FigureEditor"
 // import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "../../shared/geometry"
 

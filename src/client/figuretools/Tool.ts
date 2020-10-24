@@ -22,7 +22,7 @@ import { Figure } from "../figures/Figure"
 import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureSelectionModel } from "../figureeditor/FigureSelectionModel"
 import { FigureEditor } from "../figureeditor/FigureEditor"
-import { Point, Rectangle, Matrix, pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual } from "../../shared/geometry"
+import { Point, Rectangle, Matrix, pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual } from "shared/geometry"
 
 export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()

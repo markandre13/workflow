@@ -17,10 +17,10 @@
  */
 
 import { ORB } from 'corba.js'
-import * as stub from "../shared/workflow_stub"
+import * as stub from "shared/workflow_stub"
 import {
     Point, Size, Rectangle, Matrix, pointMinus, rotatePointAroundPointBy,
-} from "../shared/geometry"
+} from "shared/geometry"
 
 import * as figure from "./figures"
 import { Layer } from "./figureeditor/Layer"

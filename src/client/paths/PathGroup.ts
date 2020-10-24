@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Matrix } from "../../shared/geometry"
+import { Matrix } from "shared/geometry"
 import { AbstractPath } from "./AbstractPath"
 
 // PathGroup represents a group of paths

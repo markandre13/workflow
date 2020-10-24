@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Point, Rectangle, Matrix } from "../../shared/geometry"
+import { Point, Rectangle, Matrix } from "shared/geometry"
 import { AbstractPath } from "./AbstractPath"
 
 declare global {

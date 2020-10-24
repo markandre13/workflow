@@ -25,8 +25,8 @@ import {
 import { AccountPreferences } from "./AccountPreferences"
 
 import { ORB } from "corba.js"
-import * as inf from "../shared/workflow"
-import * as skel from "../shared/workflow_skel"
+import * as inf from "shared/workflow"
+import * as skel from "shared/workflow_skel"
 
 import * as Rectangle from "./figures/Rectangle"
 import * as Circle from "./figures/Circle"

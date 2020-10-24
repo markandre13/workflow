@@ -17,7 +17,7 @@
  */
 
 import { Figure } from "./Figure"
-import * as valuetype from "../../shared/workflow_valuetype"
+import * as valuetype from "shared/workflow_valuetype"
 
 export abstract class AttributedFigure extends Figure implements valuetype.figure.AttributedFigure {
     stroke!: string

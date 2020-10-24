@@ -16,11 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Point, Size, Rectangle, Matrix } from "../../shared/geometry"
+import { Point, Size, Rectangle, Matrix } from "shared/geometry"
 import { AttributedFigure } from "./AttributedFigure"
 
-import * as valuetype from "../../shared/workflow_valuetype"
-import * as value     from "../../shared/workflow_value"
+import * as valuetype from "shared/workflow_valuetype"
+import * as value     from "shared/workflow_value"
 
 export abstract class Shape extends AttributedFigure implements valuetype.figure.Shape {
     origin!: Point

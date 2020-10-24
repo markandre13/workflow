@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Rectangle } from "../../shared/geometry"
+import { Rectangle } from "shared/geometry"
 
 export class WordBox extends Rectangle {
     word: string

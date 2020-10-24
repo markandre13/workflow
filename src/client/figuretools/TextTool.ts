@@ -28,7 +28,7 @@
 import {
     Point, Rectangle, Matrix,
     pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual
-} from "../../shared/geometry"
+} from "shared/geometry"
 import { Path } from "../paths/Path"
 import { Figure } from "../figures/Figure"
 import { AttributedFigure } from "../figures/AttributedFigure"
@@ -36,7 +36,7 @@ import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
 import * as figures from "../figures"
-import { figure } from "../../shared/workflow_value"
+import { figure } from "shared/workflow_value"
 
 enum TextCursor {
     NONE,
