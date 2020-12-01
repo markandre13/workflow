@@ -138,3 +138,6 @@ tweak index.html like this
 and restart Apache
 
     apachectl -k graceful
+
+## Architecture
+

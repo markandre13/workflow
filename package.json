@@ -14,11 +14,9 @@
     "compile-idl": "corba-idl -d --ts-all src/shared/workflow.idl",
     "compile-client": "rollup --config rollup-client.config.js",
     "compile-server": "tsc -p tsconfig-server.json",
-    "test-ui": "npm run compile-idl && rollup --config config/rollup-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
     "test": "npm run compile-idl && karma start config/karma.conf.js",
-    "test-visual": "npm run test-visual-tests && npm run test-visual-reporter",
-    "test-visual-tests": "rollup --config config/rollup-test-visual.config.js",
-    "test-visual-reporter": "tsc --lib dom test/visual/visual.ts test/visual/visual.ts"
+    "test-visual": "karma start config/karma-visual.conf.ts",
+    "test-ui": "npm run compile-idl && rollup --config config/rollup-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'"
   },
   "dependencies": {
     "assert": "^2.0.0",
@@ -52,6 +50,7 @@
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-mocha": "^2.0.1",
+    "karma-mocha-html-annotations-reporter": "0.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-source-map-support": "^1.4.0",
     "karma-typescript": "^5.2.0",
