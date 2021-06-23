@@ -25,29 +25,18 @@ module.exports = (config) => {
     // ui: 'bdd-lazy-var/global',
 
     karmaTypescriptConfig: {
-      bundlerOptions: {
-        entrypoints: /\.spec\.ts$/
-      },
       tsconfig: "tsconfig.json",
-      // compilerOptions: {
-      //   target: "es6",
-      //   module: "commonjs",
-      //   moduleResolution: "node",
-      //   traceResolution: false,
-      //   lib: ["es6", "es2017.object", "dom"],
-      //   baseUrl: "src",
-      //   paths: {
-      //     // this config get's up through compiling via typescript, but
-      //     // fails at node_modules/karma-typescript/dist/client/commonjs.js
-      //     "shared/*": ["shared/*"],
-      //     "client/*": ["client/*"]
-      //   },
-      //   strict: true,
-      //   downlevelIteration: true,
-      //   allowJs: false,
-      //   noImplicitAny: true,
-      //   sourceMap: true
-      // },
+      bundlerOptions: {
+        entrypoints: /\.spec\.ts$/,
+        sourceMap: true
+      },
+      // we don't need coverage and it breaks sourcemap
+      coverageOptions: {
+        instrumentation: false,
+      },
+      compilerOptions: {
+        "sourceMap": true
+      },    
       include: [
         "src/shared/**/*.ts",
         "src/client/**/*.ts",

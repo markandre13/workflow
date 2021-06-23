@@ -162,6 +162,7 @@ export function squaredLength(a: Point): number {
     return a.x * a.x + a.y * a.y
 }
 
+// angle between a b = arccos( dot(x, y) / len(x) * len(y) )
 export function dot(a: Point, b: Point): number {
     return a.x * b.x + a.y * b.y
 }

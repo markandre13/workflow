@@ -18,7 +18,7 @@
 
 console.log('booting workflow server v0.1')
 
-import * as knex from 'knex'
+import { knex } from 'knex'
 import * as crypto from 'crypto'
 import * as bcrypt from 'bcrypt'
 const bcryptRounds = 10
@@ -45,8 +45,6 @@ let disclaimer=`Welcome to WorkFlow
           management.<br />
           Use is subject to audit at any time by MARK-13 management.
         </p>`
-
-
 
 console.log('database...');
 
