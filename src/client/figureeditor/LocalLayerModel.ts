@@ -25,11 +25,11 @@ import { Matrix } from "shared/geometry"
 import { Operation } from "./FigureEditor"
 // import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "../../shared/geometry"
 
-import { Tool } from "../figuretools"
+import { LayerEvent } from './LayerEvent'
 
 export class LocalLayerModel implements LayerModel {
     idCounter: number
-    modified: Signal
+    modified: Signal<LayerEvent>
     layers: Array<LocalLayer>
     
     constructor() {
@@ -55,7 +55,7 @@ export class LocalLayerModel implements LayerModel {
         figure.id = this.idCounter
         ++this.idCounter
         layer.data.push(figure)
-        this.modified.trigger()
+        this.modified.trigger({operation: Operation.ADD_FIGURES, figures: [figure.id]})
     }
 
     // layerId: layer containing figures to be transformed

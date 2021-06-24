@@ -144,7 +144,7 @@ export class FigureEditor extends GenericView<LayerModel> {
         if (this.tool)
             this.tool.activate(this.createEditorEvent())
     }
-    setModel(model?: Model): void {
+    setModel(model?: LayerModel): void {
         if (model === undefined) {
             if (this.toolModel) {
                 this.toolModel.modified.remove(this)

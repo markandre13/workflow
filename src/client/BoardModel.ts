@@ -25,6 +25,7 @@ import { LayerModel } from "./figureeditor/LayerModel"
 import * as inf from "shared/workflow"
 import * as value from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
+import { LayerEvent } from "./figureeditor/LayerEvent"
 
 // FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
 export class BoardModel implements valuetype.BoardModel, LayerModel {
@@ -35,7 +36,7 @@ export class BoardModel implements valuetype.BoardModel, LayerModel {
     layers!: Array<Layer>
 
     // LayerModel
-    modified: Signal
+    modified: Signal<LayerEvent>
 
     board?: inf.Board
 

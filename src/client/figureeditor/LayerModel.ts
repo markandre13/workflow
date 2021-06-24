@@ -20,9 +20,10 @@ import { Signal } from "toad.js"
 import { Matrix } from "shared/geometry"
 import { Figure } from "shared/workflow_valuetype"
 import { Layer } from "./Layer"
+import { LayerEvent } from "./LayerEvent"
 
 export interface LayerModel {
-    modified: Signal
+    modified: Signal<LayerEvent>
     layers: Array<Layer>
     add(layerID: number, figure: Figure): void
     transform(layerID: number, indices: Array<number>, matrix: Matrix): void

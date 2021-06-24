@@ -16,7 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as dom from "toad.js/lib/dom"
 import {
     Template, TextModel, HtmlModel,
     bind, action
@@ -39,6 +38,27 @@ import { BoardModel } from "./BoardModel"
 import { BoardListener_impl } from "./BoardListener_impl"
 import { LocalLayer } from "./figureeditor/LocalLayer"
 import { LocalLayerModel } from "./figureeditor/LocalLayerModel"
+
+namespace dom {
+    export function erase(n: Element): void { 
+          while(n.firstChild) n.removeChild(n.firstChild);
+    }
+    export function add(n0: Node, n1: Node): void { n0.appendChild(n1); }
+    export function instantiateTemplate(name: string): DocumentFragment {
+        return tmpl(name);
+      }
+      
+      export function tmpl(name: string): DocumentFragment {
+        let t = document.querySelector('template[id="'+name+'"]');
+        if (!t) {
+          throw new Error("failed to find template '"+name+"'");
+        }
+        let x = t as HTMLTemplateElement;
+        let z: DocumentFragment = x.content;
+        let y = document.importNode(z, true);
+        return y;
+      }
+}
 
 // import { testWrap } from "./wordwrap/test"
 
