@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ActionView, Model } from "toad.js"
+import { Action, ActionView, Model } from "toad.js"
 import { Point, Rectangle } from "shared/geometry"
 
 let strokeandfillStyle = document.createElement("style")
@@ -78,10 +78,11 @@ export class ColorSwatchModel extends Model
 
 export class ColorSwatch extends ActionView {
 
-    constructor() {
+    constructor(props?: {model: ColorSwatchModel, action: Action}) {
         super()
         
-        let model = new ColorSwatchModel()
+        let model = props?.model ? props.model : new ColorSwatchModel()
+        this.action = props?.action
 
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         

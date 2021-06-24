@@ -68,18 +68,18 @@ export class TextTool extends Tool {
         this.currentCursor = TextCursor.NONE
     }
     
-    activate(event: EditorEvent) {
+    override activate(event: EditorEvent) {
         this.state = TextToolState.NONE
     }
     
-    deactivate(event: EditorEvent) {
+    override deactivate(event: EditorEvent) {
         this.setCursor(TextCursor.NONE, event.editor.svgView)
         event.editor.svgView.style.cursor = "default"
         this.removeOutlines(event.editor)
         this.removeDecoration(event.editor)
     }
 
-    mousedown(event: EditorEvent) {
+    override mousedown(event: EditorEvent) {
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         if (figure === undefined) {
             this.state = TextToolState.AREA
@@ -115,7 +115,7 @@ export class TextTool extends Tool {
         // event.editor.addFigure(text)
     }
 
-    mousemove(event: EditorEvent) {
+    override mousemove(event: EditorEvent) {
         switch(this.state) {
             case TextToolState.NONE:
             case TextToolState.EDIT:
@@ -143,7 +143,7 @@ export class TextTool extends Tool {
         }
     }
 
-    mouseup(event: EditorEvent) {
+    override mouseup(event: EditorEvent) {
         switch(this.state) {
             case TextToolState.AREA:
                 this.state = TextToolState.EDIT
@@ -164,7 +164,7 @@ export class TextTool extends Tool {
         }
     }
 
-    keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
+    override keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
         if (this.state == TextToolState.EDIT) {
             this.text.cursor.keydown(keyboardEvent)
         }

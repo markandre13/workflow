@@ -72,7 +72,7 @@ export class SelectTool extends Tool {
         this.rotationStartDirection = 0
     }
     
-    activate(event: EditorEvent) {
+    override activate(event: EditorEvent) {
         event.editor.svgView.style.cursor = "default"
         Tool.selection.modified.add( () => {
             this.updateOutlineAndDecorationOfSelection(event.editor)
@@ -92,7 +92,7 @@ export class SelectTool extends Tool {
         Tool.selection.modified.trigger()
     }
     
-    deactivate(event: EditorEvent) {
+    override deactivate(event: EditorEvent) {
         Tool.selection.modified.remove(this)
         if (event.editor.strokeAndFillModel) {
             event.editor.strokeAndFillModel!.modified.remove(this)
@@ -101,7 +101,7 @@ export class SelectTool extends Tool {
         this.removeDecoration(event.editor)
     }
 
-    mousedown(event: EditorEvent) {
+    override mousedown(event: EditorEvent) {
         this.mouseDownAt = event
         this.mouseLastAt = event
 
@@ -136,7 +136,7 @@ export class SelectTool extends Tool {
         Tool.selection.modified.unlock()
     }
 
-    mousemove(event: EditorEvent) {
+    override mousemove(event: EditorEvent) {
         if (!event.mouseDown)
             return
         switch(this.state) {
@@ -152,7 +152,7 @@ export class SelectTool extends Tool {
         }
     }
 
-    mouseup(event: EditorEvent) {
+    override mouseup(event: EditorEvent) {
         switch(this.state) {
             case SelectToolState.DRAG_MARQUEE:
                 this.stopMarquee(event)
@@ -173,7 +173,7 @@ export class SelectTool extends Tool {
         this.updateBoundary()
     }
 
-    keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
+    override keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
         if (keyboardEvent.key === "Backspace" || keyboardEvent.key === "Delete") {
             editor.deleteSelection()
             Tool.selection.modified.lock()

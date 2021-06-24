@@ -55,7 +55,7 @@ export class Text extends Shape implements valuetype.figure.Text {
         path.appendRect(this)
         return path
     }
-    updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
+    override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg) {
             svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
             svg.style.cursor = "inherit"

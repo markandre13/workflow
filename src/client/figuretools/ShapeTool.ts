@@ -31,14 +31,14 @@ export class ShapeTool extends Tool {
         this.creator = creator
     }
     
-    activate(event: EditorEvent) {
+    override activate(event: EditorEvent) {
         Tool.selection.clear()
     }
     
-    deactivate(event: EditorEvent) {
+    override deactivate(event: EditorEvent) {
     }
 
-    mousedown(event: EditorEvent) {
+    override mousedown(event: EditorEvent) {
         this.shape = this.creator() as Shape
         this.shape.setHandlePosition(0, event)
         this.shape.setHandlePosition(2, event)
@@ -53,7 +53,7 @@ export class ShapeTool extends Tool {
         event.editor.decorationOverlay.appendChild(this.svg)
     }
 
-    mousemove(event: EditorEvent) {
+    override mousemove(event: EditorEvent) {
         if (!event.mouseDown)
             return
         let shape = this.shape!
@@ -62,7 +62,7 @@ export class ShapeTool extends Tool {
         shape.updateSVG(path, event.editor.decorationOverlay, this.svg)
     }
 
-    mouseup(event: EditorEvent) {
+    override mouseup(event: EditorEvent) {
         let shape = this.shape!
     
         shape.setHandlePosition(2, event)

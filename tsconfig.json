@@ -11,15 +11,22 @@
             "shared/*": ["shared/*"],
             "client/*": ["client/*"]
         },
-        "strict": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "toad.js",
+        "experimentalDecorators": true,
         "downlevelIteration": true,
+        "strict": true,
+        "strictNullChecks": true,
         "allowJs": false,
         "noImplicitAny": true,
+        "noImplicitOverride": true,
         "sourceMap": true,
     },
     "include": [
         "src/**/*.ts",
-        "test/**/*.ts"
+        "src/**/*.tsx",
+        "test/**/*.ts",
+        "test/**/*.tsx",
     ],
     "exclude": [
         "node_modules"

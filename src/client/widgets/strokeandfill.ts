@@ -127,8 +127,9 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
     stroke: string
     fill: string
 
-    constructor() {
+    constructor(props?: { model?: StrokeAndFillModel } ) {
         super()
+        
         this.stroke = "#000"
         this.fill = "#fff"
 
@@ -492,6 +493,10 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
         this.attachShadow({mode: 'open'})
         this.shadowRoot!.appendChild(document.importNode(strokeandfillStyle, true))
         this.shadowRoot!.appendChild(svg)
+
+        if (props && props.model)
+            this.setModel(props.model)
+
     }
     
     updateModel() {

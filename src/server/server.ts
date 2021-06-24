@@ -491,9 +491,7 @@ namespace figure {
 
     export class Circle extends Shape implements valuetype.figure.Circle
     {
-        stroke: string
-        fill: string
-        
+       
         constructor(init?: Partial<Rectangle>) {
             super(init)
             value.figure.initCircle(this, init)
@@ -526,23 +524,23 @@ namespace figure {
 
 
     export class Transform extends Group implements valuetype.figure.Transform {
-        matrix!: Matrix
+        override matrix!: Matrix
 
         constructor(init?: Partial<Transform>) {
             super(init)
             value.figure.initTransform(this, init)
         }
 
-        transform(transform: Matrix): boolean {
+        override transform(transform: Matrix): boolean {
             this.matrix.append(transform)
             return true
         }
         
-        getHandlePosition(i: number): Point | undefined {
+        override getHandlePosition(i: number): Point | undefined {
             return undefined
         }
 
-        setHandlePosition(handle: number, pt: Point): void {
+        override setHandlePosition(handle: number, pt: Point): void {
         }
     }
 

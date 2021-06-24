@@ -41,7 +41,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
         path.appendRect(this)
         return path
     }
-    updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
+    override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
             svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
         let svgPath = svg as SVGPathElement

@@ -1,12 +1,12 @@
 
-                         FigureEditor Archtitecture
+                         FigureEditor Architecture
 
  The figure editor attempts to provide the framework for full featured 2d
 vector graphic applications like Inkscape, CorelDraw or Adobe Illustrator.
 
  Center is the FigureEditor class which can be extended by a number of tools:
 
- ShapeTool:  A shape is a figure providing only a limited set of operations,
+ShapeTool:   A shape is a figure providing only a limited set of operations,
              like translation, rotation. Examples are Rectangle, Circles,
              Images.
              Each instance of the shape tool takes a shape in it's

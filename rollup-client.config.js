@@ -19,7 +19,9 @@ export default {
             },
             include: [
                 "src/client/**/*.ts",
-                "src/shared/**/*.ts"
+                "src/client/**/*.tsx",
+                "src/shared/**/*.ts",
+                "src/shared/**/*.tsx",
             ]
         }),
         nodeResolve(),

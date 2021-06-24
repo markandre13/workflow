@@ -26,15 +26,15 @@ import { PathGroup } from "../paths/PathGroup"
 import { Path } from "../paths/Path"
 
 export class Transform extends Group implements valuetype.figure.Transform {
-    matrix!: Matrix // FIXME?: why store a matrix here when there's also one in ext.Group?
+    override matrix!: Matrix // FIXME?: why store a matrix here when there's also one in ext.Group?
     constructor(init?: Partial<Transform>) {
         super(init)
         value.figure.initTransform(this, init)
     }
-    add(figure: Figure) {
+    override add(figure: Figure) {
         this.childFigures.push(figure)
     }
-    transform(matrix: Matrix): boolean {
+    override transform(matrix: Matrix): boolean {
         this.matrix.prepend(matrix)
         return true
     }
@@ -46,24 +46,24 @@ export class Transform extends Group implements valuetype.figure.Transform {
         this.matrix.prepend(matrix)
         return true
     }
-    distance(pt: Point): number {
+    override distance(pt: Point): number {
         let m = new Matrix(this.matrix)
         m.invert()
         pt = m.transformPoint(pt)
         return this.childFigures[0].distance(pt)
     }
-    bounds(): Rectangle {
+    override bounds(): Rectangle {
         let path = new Path()
         path.appendRect(this.childFigures[0].bounds())
         path.transform(this.matrix)
         return path.bounds()
     }
-    getHandlePosition(i: number): Point | undefined {
+    override getHandlePosition(i: number): Point | undefined {
         return undefined
     }
-    setHandlePosition(handle: number, pt: Point): void {
+    override setHandlePosition(handle: number, pt: Point): void {
     }
-    getPath(): Path {
+    override getPath(): Path {
         let path = super.getPath()
         path.transform(this.matrix)
         return path
