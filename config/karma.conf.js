@@ -13,7 +13,7 @@ module.exports = (config) => {
       { pattern: "img/**/*.svg", watched: false, included: false, served: true }
     ],
     preprocessors: {
-      "**/*.ts": ["karma-typescript"]
+      "**/*.ts": ["karma-typescript", "sourcemap"]
     },
     // change Karma's debug.html to the mocha web reporter
     reporters: ["mocha", "karma-typescript"],
@@ -35,18 +35,30 @@ module.exports = (config) => {
         instrumentation: false,
       },
       compilerOptions: {
-        "sourceMap": true
-      },    
+        "sourceMap": true,
+        "inlineSourceMap": false
+      },
       include: [
         "src/shared/**/*.ts",
         "src/client/**/*.ts",
         "test/unit/**/*.spec.ts"
       ],
-      exclude: ["node_modules", "test/ui", "test/visual"]
+      exclude: [
+        "node_modules",
+        "test/ui",
+        "test/visual",
+      ]
     },
     port: 9876,
     colors: true,
-    browsers: ['ChromeHeadless'],
+    // browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadlessDebug'],
+    customLaunchers: {
+      ChromeHeadlessDebug: {
+        base: 'Chrome',
+        flags: ['--remote-debugging-port=9333'],
+      },
+    },
     autoWatch: false,
     singleRun: true
 

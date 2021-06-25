@@ -11,8 +11,8 @@
             "shared/*": ["shared/*"],
             "client/*": ["client/*"]
         },
-        "jsx": "react-jsx",
-        "jsxImportSource": "toad.js",
+        // "jsx": "react-jsx",
+        // "jsxImportSource": "toad.js",
         "experimentalDecorators": true,
         "downlevelIteration": true,
         "strict": true,

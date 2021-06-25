@@ -1,7 +1,7 @@
 {
   "name": "workflow",
   "version": "0.0.1",
-  "description": "A collaborative real-time white- and kanban board",
+  "description": "a collaborative real-time white- and kanban board",
   "author": "Mark-André Hopf <mhopf@mark13.org>",
   "license": "GPL-3.0",
   "main": "index.html",
@@ -10,13 +10,15 @@
     "url": "git+https://github.com/markandre13/workflow.git"
   },
   "scripts": {
-    "build": "npm run compile-idl && npm run compile-server && npm run compile-client",
-    "compile-idl": "corba-idl -d --ts-all src/shared/workflow.idl",
-    "compile-client": "rollup --config rollup-client.config.js",
-    "compile-server": "rollup --config rollup-server.config.js",
-    "test": "npm run compile-idl && karma start config/karma.conf.js",
+    "build": "npm run build:idl && npm run build:server && npm run build:client",
+    "build:idl": "corba-idl -d --ts-all src/shared/workflow.idl",
+    "build:client": "rollup --config rollup-client.config.js",
+    "build:server": "rollup --config rollup-server.config.js",
+    "test": "npm run build:idl && karma start config/karma.conf.js",
+    "test:watch": "npm run build:idl && karma start --singleRun=false --autoWatch=true config/karma.conf.js | grep -v '^Chrome Headless .* LOG:'",
+    "test:watch:verbose": "npm run build:idl && karma start --singleRun=false --autoWatch=true config/karma.conf.js",
     "test-visual": "karma start config/karma-visual.conf.ts",
-    "test-ui": "npm run compile-idl && rollup --config config/rollup-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
+    "test-ui": "npm run build:idl && rollup --config config/rollup-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
     "update": "npx npm-check-updates -u && npm install"
   },
   "dependencies": {
@@ -53,6 +55,7 @@
     "karma-mocha-html-annotations-reporter": "0.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-source-map-support": "^1.4.0",
+    "karma-sourcemap-loader": "^0.3.8",
     "karma-typescript": "^5.5.1",
     "mocha": "^9.0.1",
     "puppeteer": "^10.0.0",

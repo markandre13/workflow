@@ -27,14 +27,13 @@ export class Point implements value.Point {
     constructor(point: Partial<Point>)
     constructor(x: number, y: number)
     constructor(xOrPoint?: number|Partial<Point>, y?: number) {
-        // valueinf.initPoint(this, point)
         if (xOrPoint === undefined) {
             value.initPoint(this)
         } else
         if (typeof xOrPoint === "object") {
             value.initPoint(this, xOrPoint)
         } else {
-            value.initPoint({x: xOrPoint, y: y!})
+            value.initPoint(this, {x: xOrPoint, y: y!})
         }
     }
 }
