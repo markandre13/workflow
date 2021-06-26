@@ -27,7 +27,7 @@ function less(a:number, b: number): boolean {
 }
 
 describe("OrderedArray", function() {
-    it("twoElementsInOrder", function() {
+    it("two elements in order", function() {
         let array = new OrderedArray<number>( (a:number, b: number) => { return less(a, b) } )
         array.insert(1)
         array.insert(2)
@@ -37,7 +37,7 @@ describe("OrderedArray", function() {
         expect(array.at(1)).to.equal(2)
     })
 
-    it("twoElementsInReverse", function() {
+    it("two elements in reverse", function() {
         let array = new OrderedArray<number>( (a:number, b: number) => { return less(a, b) } )
         array.insert(2)
         array.insert(1)
@@ -47,7 +47,7 @@ describe("OrderedArray", function() {
         expect(array.at(1)).to.equal(2)
     })
 
-    it("threeElementsInOrder", function() {
+    it("three elements in order", function() {
         let array = new OrderedArray<number>( (a:number, b: number) => { return less(a, b) } )
         array.insert(1)
         array.insert(2)
@@ -59,7 +59,7 @@ describe("OrderedArray", function() {
         expect(array.at(2)).to.equal(3)
     })
 
-    it("threeElementsInReverse", function() {
+    it("three elements in reverse", function() {
         let array = new OrderedArray<number>( (a:number, b: number) => { return less(a, b) } )
         array.insert(3)
         array.insert(2)
@@ -71,7 +71,7 @@ describe("OrderedArray", function() {
         expect(array.at(2)).to.equal(3)
     })
 
-    it("threeElementsInsertMiddle", function() {
+    it("three elements, last inserted into middle", function() {
         let array = new OrderedArray<number>( (a:number, b: number) => { return less(a, b) } )
         array.insert(1)
         array.insert(3)
