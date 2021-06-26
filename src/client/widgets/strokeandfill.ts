@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { GenericView, Model } from "toad.js"
+import { ModelView, Model } from "toad.js"
 import { Path } from "../paths/Path";
 
 let strokeandfillStyle = document.createElement("style")
@@ -116,7 +116,7 @@ export class StrokeAndFillModel extends Model
     }
 }
 
-export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
+export class StrokeAndFill extends ModelView<StrokeAndFillModel> {
     strokeElement: SVGRectElement
     strokeNoneElement: SVGLineElement
     fillElement: SVGRectElement
@@ -499,13 +499,13 @@ export class StrokeAndFill extends GenericView<StrokeAndFillModel> {
 
     }
     
-    updateModel() {
+    override updateModel() {
         if (this.model) {
             console.log("strokeandfill update model")
         }
     }
     
-    updateView() {
+    override updateView() {
         if (!this.model)
             return
         if (this.model.stroke !== "none")

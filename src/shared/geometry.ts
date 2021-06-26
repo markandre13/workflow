@@ -675,4 +675,8 @@ export class Matrix implements value.Matrix {
             height: size.width * this.b + size.height * this.d
         })
     }
+
+    toString(): string {
+        return `{rotate: [${this.a}, ${this.b}, ${this.c}, ${this.d}], translate: [${this.e}, ${this.f}})`
+    }
 }

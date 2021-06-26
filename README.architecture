@@ -1,0 +1,41 @@
+What the workflow client is doing
+o on start a Client_impl instance is created to receive either feedback from
+  server, or when there is none, 
+
+new Client_impl // strip the _impl, it's a CORBA convention but inside the app's code we don't care
+    constructor(orb: ORB, server?: inf.Server)
+       server.setClient(this)
+  
+    async logonScreen(lifetime: number, disclaimer: string, inRemember: boolean, errorMessage: string)
+
+    async homeScreen(cookie: string, avatar: string, email: string, fullname: string)
+        board = server.getProject(1).getBoard(1)
+        model = board.getModel()
+        model.board = board
+        const listener = new BoardListener_impl(orb, boardmodel)
+        board.addListener(boardListener)
+        bind("board", model)
+      
+    async offline()
+        let model = new LocalLayerModel()
+        let layer = new LocalLayer()
+        model.layers.push(new LocalLayer())
+        bind("board", model)
+
+flow when working with a server:
+                      |                          |
+  FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
+                      |                          |
+      client                   server                          client
+  transform()    transform()               transform()
+                                            modified.trigger(...)
+FigureEditor
+    transformSelection(matrix: Matrix)
+        this.model.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
+
+
+       operation: Operation.TRANSFORM_FIGURES,
+            figures: figureIdArray,
+            matrix: matrix
+            
+            

@@ -300,7 +300,6 @@ describe("FigureEditor", () => {
                 it("moves figure without matrix when mouse is released", () => {
                     // GIVEN
                     let test = new FigureEditorUser()
-                    test.verbose = true
                     let r0 = new Rectangle(50.5, 50.5, 20, 30)
                     let translation = new Point(10, -10)
                     test.addRectangle(r0)

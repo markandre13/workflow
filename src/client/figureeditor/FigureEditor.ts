@@ -16,9 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { GenericView, Model } from "toad.js"
+import { ModelView } from "toad.js"
 import { Rectangle, Matrix } from "shared/geometry"
-import { AbstractPath, Path } from "../paths"
+import { AbstractPath } from "../paths"
 import { Figure } from "shared/workflow_valuetype"
 import { Tool } from "../figuretools"
 import { StrokeAndFillModel } from "../widgets/strokeandfill"
@@ -27,11 +27,12 @@ import { Layer } from "./Layer"
 import { LayerModel } from "./LayerModel"
 import { EditorEvent } from "./EditorEvent"
 import { Group } from "../figures/Group"
+import { LayerEvent } from "./LayerEvent"
 
 import * as figure from "../figures"
 
 let style = document.createElement("style")
-style.textContent =`
+style.textContent = `
     .cursor-blink {
       animation: cursor-blink 1s steps(1, start) infinite;
     }
@@ -57,7 +58,7 @@ class CacheEntry {
     parent?: CacheEntry
     path?: AbstractPath
     svg?: SVGElement
-    constructor(figure: figure.Figure, parent: CacheEntry|undefined = undefined) {
+    constructor(figure: figure.Figure, parent: CacheEntry | undefined = undefined) {
         this.figure = figure
         this.parent = parent
         this.path = undefined
@@ -65,7 +66,7 @@ class CacheEntry {
     }
 }
 
-export class FigureEditor extends GenericView<LayerModel> {
+export class FigureEditor extends ModelView<LayerModel> {
     scrollView: HTMLDivElement
     bounds: Rectangle
     zoom: number
@@ -83,14 +84,14 @@ export class FigureEditor extends GenericView<LayerModel> {
 
     constructor() {
         super()
-       
+
         this.cache = new Map<number, CacheEntry>()
         this.mouseButtonIsDown = false
         this.bounds = new Rectangle()
         this.zoom = 1.0
 
         this.scrollView = document.createElement("div")
-        this.id="scrollView"
+        this.id = "scrollView"
         this.scrollView.style.overflow = "scroll"
         this.scrollView.style.background = "#aaa"
         this.scrollView.style.width = "100%"
@@ -134,6 +135,7 @@ export class FigureEditor extends GenericView<LayerModel> {
         this.shadowRoot!.appendChild(document.importNode(style, true))
         this.shadowRoot!.appendChild(this.scrollView)
     }
+
     setTool(tool?: Tool) {
         if (tool == this.tool)
             return
@@ -144,6 +146,7 @@ export class FigureEditor extends GenericView<LayerModel> {
         if (this.tool)
             this.tool.activate(this.createEditorEvent())
     }
+
     override setModel(model?: LayerModel): void {
         if (model === undefined) {
             if (this.toolModel) {
@@ -176,11 +179,10 @@ export class FigureEditor extends GenericView<LayerModel> {
             super.setModel(model as LayerModel)
         }
     }
-    updateModel() {
-    }
-    updateView(data? :any) {
-        // called whenever the model is modified
-        // console.log(`FigureEditor.updateView(${JSON.stringify(data)})`)
+
+    // called whenever the model is modified
+    override updateView(event?: LayerEvent) {
+        // console.log(`FigureEditor.updateView(${JSON.stringify(event)})`)
         if (this.model === undefined || this.model.layers.length === 0) {
             return
         }
@@ -193,33 +195,36 @@ export class FigureEditor extends GenericView<LayerModel> {
         }
         let layer = this.layer
 
-        if (data === undefined) {
-            // FIXME: notInCache should be always true
-            // FIXME: a new model would mean to clear the cache... how 
-            // console.log(`### FigureEditor.updateView(): NEW MODEL, FAKE ADD_FIGURES MESSAGE`)
-            let operation = Operation.ADD_FIGURES
-            let figures = this.model.layers[0].data
-                .filter((figure)=>{ 
-                    let notInCache = !this.cache.has(figure.id)
-                    if (notInCache) {
-                        // console.log(`### FigureEditor.updateView(): ADD FIGURE WITH ID ${figure.id} TO THE CACHE`)
-                        this.cache.set(figure.id, new CacheEntry(figure))
-                    }
-                    return notInCache
-                })
-                .map((figure)=>{ return figure.id })
-            data = {
-                operation: Operation.ADD_FIGURES,
-                figures: figures
+        // event is undefined when a model is added or removed
+        if (event === undefined) {
+            if (this.model) {
+                // console.log(`### FigureEditor.updateView(): NEW MODEL, FAKE ADD_FIGURES MESSAGE`)
+                let figures = this.model.layers[0].data
+                    .filter(figure => !this.cache.has(figure.id))
+                    .map( figure => figure.id )
+                event = {
+                    operation: Operation.ADD_FIGURES,
+                    figures: figures
+                }
+            } else {
+                throw Error(`FigureEditor.updateView(): handling of removing a model hasn't been implemented yet`)
             }
         }
 
-        switch(data.operation) {
+        switch (event.operation) {
             case Operation.ADD_FIGURES:
-                for(let id of data.figures) {
+                // add new figures to cache
+                this.model.layers[0].data.forEach((figure) => {
+                    let notInCache = !this.cache.has(figure.id)
+                    if (notInCache) {
+                        this.cache.set(figure.id, new CacheEntry(figure))
+                    }
+                })
+
+                for (let id of event.figures) {
                     let cached = this.cache.get(id)
                     if (!cached)
-                        throw Error(`FigureEditor error: cache lacks id $id`)
+                        throw Error(`FigureEditor.updateView(): ADD_FIGURES cache lacks id ${id}`)
                     if (cached.figure instanceof Group) {
                         throw Error("FigureEditor.updateView(): ADD_FIGURES for groups not implemented yet")
                     }
@@ -236,7 +241,7 @@ export class FigureEditor extends GenericView<LayerModel> {
                 }
                 break
             case Operation.TRANSFORM_FIGURES:
-                for(let id of data.figures) {
+                for (let id of event.figures) {
                     let cached = this.cache.get(id)
                     if (!cached)
                         throw Error(`FigureEditor error: cache lacks id $id`)
@@ -256,45 +261,45 @@ export class FigureEditor extends GenericView<LayerModel> {
                     // console.log(`FigureEditor.updateView(): got transform figures`)
                     let path = cached.path!!
                     // console.log(`  before transform ${JSON.stringify(path)}`)
-                    let m = data.matrix
+                    let m = event.matrix
                     // console.log(`FigureEditor.updateView(): transform path of figure ${id} by rotate ${m.getRotation()}, translate=${m.e}, ${m.f}`)
-                    cached.path.transform(data.matrix)
+                    cached.path.transform(event.matrix!)
                     // console.log(`  after transform ${JSON.stringify(path)}`)
                     cached.svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
 
                     // variant iii: add transform to SVGElement
                 } break
-                case Operation.UPDATE_FIGURES:
-                    for(let id of data.figures) {
-                        let cached = this.cache.get(id)
-                        if (!cached)
-                            throw Error(`FigureEditor error: cache lacks id $id`)
-                        if (cached.figure instanceof Group) {
-                            throw Error("FigureEditor.updateView(): UPDATE_FIGURES for groups not implemented yet")
-                        }
-                        if (!cached.path)
-                            throw Error("FigureEditor.updateView(): expected path in cache")
-                        if (!cached.svg)
-                            throw Error("FigureEditor.updateView(): expected svg in cache")
-    
-                        cached.path = cached.figure.getPath()
-                        if (cached.figure.matrix)
-                            cached.path.transform(cached.figure.matrix)
-                        cached.svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
+            case Operation.UPDATE_FIGURES:
+                for (let id of event.figures) {
+                    let cached = this.cache.get(id)
+                    if (!cached)
+                        throw Error(`FigureEditor error: cache lacks id $id`)
+                    if (cached.figure instanceof Group) {
+                        throw Error("FigureEditor.updateView(): UPDATE_FIGURES for groups not implemented yet")
                     }
-                    break
-                case Operation.DELETE_FIGURES:
-                    for(let id of data.figures) {
-                        let cached = this.cache.get(id)
-                        if (!cached)
-                            throw Error(`FigureEditor error: cache lacks id $id`)
-                        if (cached.svg !== undefined)
-                            layer.removeChild(cached.svg)
-                        this.cache.delete(id)
-                    }
-                    break
+                    if (!cached.path)
+                        throw Error("FigureEditor.updateView(): expected path in cache")
+                    if (!cached.svg)
+                        throw Error("FigureEditor.updateView(): expected svg in cache")
+
+                    cached.path = cached.figure.getPath()
+                    if (cached.figure.matrix)
+                        cached.path.transform(cached.figure.matrix)
+                    cached.svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
+                }
+                break
+            case Operation.DELETE_FIGURES:
+                for (let id of event.figures) {
+                    let cached = this.cache.get(id)
+                    if (!cached)
+                        throw Error(`FigureEditor error: cache lacks id $id`)
+                    if (cached.svg !== undefined)
+                        layer.removeChild(cached.svg)
+                    this.cache.delete(id)
+                }
+                break
         }
-        
+
         // update scrollbars
         // FIXME: replace setTimeout(..., 0) with something like, afterRendering(...)
         setTimeout(() => {

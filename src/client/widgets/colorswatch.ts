@@ -135,14 +135,4 @@ export class ColorSwatch extends ActionView {
         this.shadowRoot!.appendChild(document.importNode(strokeandfillStyle, true))
         this.shadowRoot!.appendChild(svg)
     }
-    
-    updateModel() {
-        if (this.model) {
-        }
-    }
-    
-    updateView() {
-        if (this.model) {
-        }
-    }
 }

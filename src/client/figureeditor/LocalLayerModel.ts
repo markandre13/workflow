@@ -17,15 +17,14 @@
  */
 
 import { Signal } from 'toad.js'
-
-import { LayerModel } from "./LayerModel"
-import { LocalLayer } from "./LocalLayer"
-import * as figure from "../figures"
 import { Matrix } from "shared/geometry"
-import { Operation } from "./FigureEditor"
-// import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "../../shared/geometry"
+
+import { Figure } from "../figures/Figure"
 
 import { LayerEvent } from './LayerEvent'
+import { LayerModel } from "./LayerModel"
+import { LocalLayer } from "./LocalLayer"
+import { Operation } from "./FigureEditor"
 
 export class LocalLayerModel implements LayerModel {
     idCounter: number
@@ -35,9 +34,9 @@ export class LocalLayerModel implements LayerModel {
     constructor() {
         this.idCounter = 0
         this.modified = new Signal()
-        this.modified.add(()=>{
-            // console.log("LocalLayerModel.modified()")
-        })
+        // this.modified.add((data: LayerEvent)=>{
+        //     console.log(`LocalLayerModel.modified(), need to do something: ${JSON.stringify(data)}`)
+        // })
         this.layers = new Array<LocalLayer>()
     }
 
@@ -49,8 +48,8 @@ export class LocalLayerModel implements LayerModel {
         throw Error("LocalLayerModel.layerById(): unknown layer id " + layerID)
     }
 
-    add(layerId: number, figure: figure.Figure) {
-        // console.log(`LocalLayerModel.add(${layerId})`)
+    add(layerId: number, figure: Figure) {
+        // console.log(`LocalLayerModel.add(${layerId}, ${(figure as Object).constructor.name})`)
         let layer = this.layerById(layerId)
         figure.id = this.idCounter
         ++this.idCounter
@@ -60,9 +59,8 @@ export class LocalLayerModel implements LayerModel {
 
     // layerId: layer containing figures to be transformed
     // figureIds: figures to be transformed
-
     transform(layerID: number, figureIds: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
-        // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${JSON.stringify(matrix)})`)
+        // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${matrix})`)
         let fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         let layer = this.layerById(layerID)
         for (let index in layer.data) {
@@ -71,6 +69,7 @@ export class LocalLayerModel implements LayerModel {
                 continue
                 
             if (fig.matrix === undefined && fig.transform(matrix)) {
+                // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${matrix}) -> trigger with UPDATE_FIGURES`)
                 this.modified.trigger({operation: Operation.UPDATE_FIGURES, figures: [fig.id]})
                 continue
             }
@@ -78,11 +77,13 @@ export class LocalLayerModel implements LayerModel {
             if (fig.matrix === undefined)
                 fig.matrix = new Matrix()
             fig.matrix.prepend(matrix)
+            // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${matrix}) -> trigger with TRANSFORM_FIGURES`)
             this.modified.trigger({operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: [fig.id]})
         }
     }
 
     delete(layerID: number, figureIds: Array<number>): void {
+        // console.log(`LocalLayerModel.delete(${layerID}, ${figureIds})`)
         let fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         let layer = this.layerById(layerID)
         for(let i=layer.data.length-1; i>=0; --i) {
@@ -94,6 +95,7 @@ export class LocalLayerModel implements LayerModel {
     }
 
     figureIdsAsSet(figureIds: Array<number>): Set<number> {
+        // console.log(`LocalLayerModel.figureIdsAsSet(${figureIds})`)
         let figureIdSet = new Set<number>()
         for(let id of figureIds)
             figureIdSet.add(id)

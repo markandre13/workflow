@@ -40,7 +40,7 @@ describe("FigureEditor", ()=> {
         describe("Area", ()=> {
             it("create", ()=> {
                 // GIVEN
-                let test = new FigureEditorUser(true)
+                let test = new FigureEditorUser()
                 test.selectTextTool()
            
                 // WHEN
