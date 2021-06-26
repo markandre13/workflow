@@ -14,11 +14,15 @@
     "build:idl": "corba-idl -d --ts-all src/shared/workflow.idl",
     "build:client": "rollup --config rollup-client.config.js",
     "build:server": "rollup --config rollup-server.config.js",
+
     "test": "npm run build:idl && karma start --browsers ChromeHeadless config/karma.conf.js",
     "test:watch": "npm run build:idl && karma start --browsers ChromeHeadless --singleRun=false --autoWatch=true config/karma.conf.js | grep -v '^Chrome Headless .* LOG:'",
     "test:watch:verbose": "npm run build:idl && karma start --browsers ChromeHeadless --singleRun=false --autoWatch=true config/karma.conf.js",
-    "test-visual": "karma start config/karma-visual.conf.ts",
+    
+    "test:visual": "karma start config/karma-visual.conf.ts",
+
     "test-ui": "npm run build:idl && rollup --config config/rollup-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
+
     "update": "npx npm-check-updates -u && npm install"
   },
   "dependencies": {

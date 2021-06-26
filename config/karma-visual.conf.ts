@@ -1,34 +1,52 @@
 module.exports = (config: any) => {
     config.set({
-//        basePath: ".",
-//        baseURL: "src",
-        frameworks: ["mocha", "chai", "karma-typescript", "source-map-support"],
+        frameworks: ["mocha", "chai", "karma-typescript"],
+        singleRun: false,
+
+        colors: true,
         reporters: [
             "karma-mocha-html-annotations-reporter",
             "karma-typescript"
         ],
-        preprocessors: { 
-            "../test/**/*.ts": ["karma-typescript"]
-        },
-        files: [ 
-            { pattern: "../test/visual/**/*.spec.ts" }
+
+        browsers: ['Chrome'],
+        port: 9876,
+
+        basePath: "..",
+        baseURL: "/base/",
+
+        autoWatch: true,
+        files: [
+            { pattern: "test/visual/**/*.spec.ts" }
         ],
+
+        preprocessors: {
+            "**/*.ts": ["karma-typescript"]
+        },
         karmaTypescriptConfig: {
-            tsconfig: "../tsconfig.json",
+            tsconfig: "tsconfig.json",
+            compilerOptions: {
+                module: "commonjs",
+                sourceMap: true,
+            },
+            bundlerOptions: {
+                entrypoints: /\.spec\.ts$/,
+                sourceMap: true
+            },
+            coverageOptions: {
+                instrumentation: false,
+                sourceMap: true,
+            },
+            include: [
+                "test/visual/**/*.ts",
+                "src/client/**/*.ts",
+                "src/shared/**/*.ts",
+            ],
             exclude: [
-                "src/**/*.ts",
                 "test/unit/**/*.ts",
                 "test/ui/**/*.ts",
                 "node_modules"
             ],
-            include: [
-                "test/visual/**/*.ts"
-            ]
         },
-        port: 9876,
-        colors: true,
-        browsers: ['Chrome'],
-        autoWatch: true,
-        singleRun: false
     })
 }
