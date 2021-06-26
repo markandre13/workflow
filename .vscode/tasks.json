@@ -1,15 +1,52 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558 
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
+	"version": "2.0.0",
+	"tasks": [
         {
-            "type": "npm",
-            "script": "compile-client",
-            "group": {
-                "kind": "build",
-                "isDefault": true
+          "label": "karma:start",
+          "type": "shell",
+          "isBackground": true,
+          "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+          },
+          "command": "./node_modules/.bin/karma start --singleRun=false --autoWatch=true config/karma.conf.js",
+    
+          // This task is run before some debug tasks.
+          // Problem is, it's a watch script, and since it never exits, VSCode
+          // complains. All this is needed so VSCode just lets it run.
+          "problemMatcher": [
+            {
+              "pattern": [
+                {
+                  "regexp": ".",
+                  "file": 1,
+                  "location": 2,
+                  "message": 3
+                }
+              ],
+              "background": {
+                "activeOnStart": true,
+                "beginsPattern": "Generating bundle for",
+                "endsPattern": "No captured browser",
+              }
             }
-        }
-    ]
+          ]
+        },
+		{
+			"label": "tasks:terminate",
+			"command": "echo ${input:terminate}",
+			"type": "shell",
+			"problemMatcher": []
+		}
+	],
+	"inputs": [
+		{
+			"id": "terminate",
+			"type": "command",
+			"command": "workbench.action.tasks.terminate",
+			"args": "terminateAll"
+		}
+	]  
 }

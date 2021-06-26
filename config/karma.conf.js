@@ -1,42 +1,55 @@
-process.env.CHROME_BIN = require('puppeteer').executablePath()
-
 module.exports = (config) => {
   config.set({
-    basePath: '..',
-    baseURL: '/base/',
-    frameworks: ["mocha", "chai", "karma-typescript", "source-map-support"],
-    files: [
-      "polyfill/path-data-polyfill.js",
-      { pattern: "src/shared/**/*.ts" },
-      { pattern: "src/client/**/*.ts" },
-      { pattern: "test/unit/**/*.spec.ts" },
-      { pattern: "img/**/*.svg", watched: false, included: false, served: true }
-    ],
-    preprocessors: {
-      "**/*.ts": ["karma-typescript", "sourcemap"]
-    },
-    // change Karma's debug.html to the mocha web reporter
+    debug: true,
+
+    frameworks: ["mocha", "chai", "karma-typescript"],
+    singleRun: true,
+
+    // report
     reporters: ["mocha", "karma-typescript"],
+    colors: true,
 
-    // require specific files after Mocha is initialized
-    // require: [require.resolve('bdd-lazy-var/bdd_lazy_var_global')],
+    // debugging with vscode will spawn it's own browser and connect it to
+    // karma's http server at: http://localhost:9876/debug.html, hence it
+    // works best with an empty browser list.
+    // as an empty browser list can not be specified on the command line,
+    // it needs to be empty here. the npm script will then to specifiy a
+    // browser to work
+    browsers: [],
+    port: 9876,
 
-    // // custom ui, defined in required file above
-    // ui: 'bdd-lazy-var/global',
+    // karma http server home directory
+    basePath: "..",
+    baseURL: "/base/",
 
+    // files to serve
+    autoWatch: false, // karma-typescript does it's own watching (is this okay or do we need 'watch: false' ?)
+    files: [
+      { pattern: "test/unit/**/*.spec.ts" },
+      { pattern: "src/client/**/*.ts" },
+      { pattern: "src/shared/**/*.ts" },
+      { pattern: "polyfill/path-data-polyfill.js"},
+      { pattern: "img/**/*.svg", included: false, served: true },
+      { pattern: 'node_modules/**/*.js.map', included: false, served: true, nocache: true }
+    ],
+
+    // compile
+    preprocessors: {
+      "**/*.ts": ["karma-typescript"]
+    },
     karmaTypescriptConfig: {
       tsconfig: "tsconfig.json",
+      compilerOptions: {
+        module: "commonjs",
+        sourceMap: true,
+      },
       bundlerOptions: {
         entrypoints: /\.spec\.ts$/,
         sourceMap: true
       },
-      // we don't need coverage and it breaks sourcemap
       coverageOptions: {
         instrumentation: false,
-      },
-      compilerOptions: {
-        "sourceMap": true,
-        "inlineSourceMap": false
+        sourceMap: true,
       },
       include: [
         "src/shared/**/*.ts",
@@ -49,19 +62,5 @@ module.exports = (config) => {
         "test/visual",
       ]
     },
-    port: 9876,
-    colors: true,
-    // browsers: ['ChromeHeadless'],
-    browsers: ['ChromeHeadlessDebug'],
-    customLaunchers: {
-      ChromeHeadlessDebug: {
-        base: 'Chrome',
-        flags: ['--remote-debugging-port=9333'],
-      },
-    },
-    autoWatch: false,
-    singleRun: true
-
-    // browserNoActivityTimeout: 0
   })
 }

@@ -297,7 +297,7 @@ describe("FigureEditor", () => {
                     test.selectionHasRectangle(r1)
                     test.outlineHasRectangle(r1)
                 })
-                it.only("moves figure without matrix when mouse is released", () => {
+                it("moves figure without matrix when mouse is released", () => {
                     // GIVEN
                     let test = new FigureEditorUser()
                     test.verbose = true
