@@ -39,6 +39,8 @@ export class WordWrapTestRunner {
 
     placer: Placer
 
+    svg?: SVGElement
+
     constructor(title: string, path: Path, boxes: Array<Size>|undefined, box: value.Rectangle, trace: boolean, placer: Placer) {
         this.placer = placer
     
@@ -59,7 +61,10 @@ export class WordWrapTestRunner {
             event.preventDefault()
             return false
         }
-        document.body.appendChild(svg)
+        if (title !== "VISUAL-UNIT-TEST") // hack
+            document.body.appendChild(svg)
+        else
+            this.svg = svg
         
         // path.setAttributes({stroke: "#000", fill: "none"})
         // path.updateSVG()
@@ -70,7 +75,7 @@ export class WordWrapTestRunner {
         svg.onmousemove = (event: MouseEvent) => { this.mouseMove(event, svg, path) }
         svg.onmouseup   = (event: MouseEvent) => { this.mouseUp(event, svg, path) }
     
-        this.doWrap(svg, path, boxes, box, trace)
+        // this.doWrap(svg, path, boxes, box, trace)
     }
 
     doWrap(svg: SVGElement, path: Path, boxes?:Array<Size>, expectedLastBox?: value.Rectangle, trace?: boolean) {

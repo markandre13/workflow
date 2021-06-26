@@ -9,15 +9,28 @@ module.exports = (config: any) => {
             "karma-typescript"
         ],
 
-        browsers: ['Chrome'],
         port: 9876,
+        browsers: ['ChromeDevTools'],
+        customLaunchers: {
+            ChromeDevTools: {
+                base: 'Chrome',
+                flags: [
+                    '--auto-open-devtools-for-tabs'
+                ],
+            },
+        },
 
         basePath: "..",
         baseURL: "/base/",
 
         autoWatch: true,
         files: [
-            { pattern: "test/visual/**/*.spec.ts" }
+            { pattern: "test/visual/**/*.spec.ts" },
+            { pattern: "src/client/**/*.ts" },
+            { pattern: "src/shared/**/*.ts" },
+            { pattern: "polyfill/path-data-polyfill.js"},
+            { pattern: "img/**/*.svg", included: false, served: true },
+            { pattern: 'node_modules/**/*.js.map', included: false, served: true, nocache: true }
         ],
 
         preprocessors: {
