@@ -1,1 +1,5 @@
+*~
 node_modules
+coverage/
+js/
+src/shared/workflow*.ts
