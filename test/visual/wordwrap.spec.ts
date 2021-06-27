@@ -290,10 +290,11 @@ describe("wordwrap", function () {
     })
     describe("placeWordBoxes()", function () {
         const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): Point | undefined => {
-            wordwrap.trace = false
+            wordwrap.trace = true
             let boxSource = new IteratingBoxSource()
             wordwrap.placeWordBoxes(boxSource)
 
+            // add result to SVG
             for (let r of boxSource.wordBoxes) {
                 let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
                 rect.setAttributeNS("", "stroke", "#aaa")
@@ -309,8 +310,10 @@ describe("wordwrap", function () {
                 return undefined
             return boxSource.wordBoxes[boxSource.wordBoxes.length - 1].origin
         }
+        
         it("wordwrap 001", function () {
             runTest(this, strategy, {
+                trace: true,
                 polygon: [
                     { x: 110, y: 20 },
                     { x: 310, y: 100 },
@@ -473,6 +476,7 @@ class BoxSource implements WordSource {
     endOfWrap(): void { }
 }
 
+// provide a sequence of boxes iterating between (20, 20) and (40, 20)
 class IteratingBoxSource implements WordSource {
     remaining: number
     style: boolean

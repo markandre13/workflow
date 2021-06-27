@@ -95,7 +95,7 @@ export class WordWrapTestRunner {
             text.setAttributeNS("", "y", "16")
             text.textContent = "EXCEPTION"
             svg.appendChild(text)
-            console.log(e)          
+            console.log(e)
             pt = undefined
             expectedLastBox = new Rectangle(0,0,320,200)
         }
