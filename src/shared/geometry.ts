@@ -55,6 +55,9 @@ export class Size implements value.Size {
             value.initSize(this, {width: widthOrSize, height: height!})
         }
     }
+    toString() {
+        return `(${this.width}, ${this.height})`
+    }
 }
 
 export function pointPlusSize(point: Point, size: Size): Point {

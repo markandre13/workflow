@@ -46,21 +46,21 @@ export class WordWrapTestRunner {
         svg.setAttributeNS("", "height", "200")
         svg.setAttributeNS("", "viewBox", "0 0 320 200")
 
-        let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
-        text.setAttributeNS("", "fill", "#000")
-        text.setAttributeNS("", "x", "2")
-        text.setAttributeNS("", "y", "194")
-        text.appendChild(document.createTextNode(title))
-        svg.appendChild(text)
-
         document.body.oncontextmenu = (event: Event): boolean => {
             event.preventDefault()
             return false
         }
-        if (title !== "VISUAL-UNIT-TEST") // hack
+        if (title !== "VISUAL-UNIT-TEST") {
+            let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
+            text.setAttributeNS("", "fill", "#000")
+            text.setAttributeNS("", "x", "2")
+            text.setAttributeNS("", "y", "194")
+            text.appendChild(document.createTextNode(title))
+            svg.appendChild(text)   
             document.body.appendChild(svg)
-        else
+        } else {
             this.svg = svg
+        }
         
         // path.setAttributes({stroke: "#000", fill: "none"})
         // path.updateSVG()

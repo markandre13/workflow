@@ -109,7 +109,7 @@ export class TextSource implements WordSource {
                 r.size.width = 0
                 r.size.height = height
             }
-            console.log(`r.word.length=${r.word.length}, r.size.height=${r.size.height}, height=${height}`)
+            // console.log(`r.word.length=${r.word.length}, r.size.height=${r.size.height}, height=${height}`)
             // console.log(`TextSource initialized word '${r.word}' box with ${r.size.width}, ${r.size.height} words.`)
             //console.log(r.size)
             r.svg = text
@@ -157,7 +157,7 @@ export class TextSource implements WordSource {
     }
 
     pullBox(): Size | undefined {
-        console.log(`TextSource.pullBox(): currrent=${this.current}, rectangles=${this.wordBoxes.length}`)
+        // console.log(`TextSource.pullBox(): currrent=${this.current}, rectangles=${this.wordBoxes.length}`)
         if (this.current >= this.wordBoxes.length)
             return undefined
         return this.wordBoxes[this.current].size
