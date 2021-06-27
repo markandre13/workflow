@@ -17,13 +17,9 @@
  */
 
 import * as value from "shared/workflow_value"
-import {
-    Point, Size, Rectangle, Matrix,
-    pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
-    pointMinus, pointEqualsPoint, signedArea, isZero, distancePointToLine
-} from "shared/geometry"
+import { Point, Size, Rectangle, pointEqualsPoint } from "shared/geometry"
 import { Path } from "../paths/Path"
-import { WordWrap, Slice } from "./wordwrap"
+import { WordWrap } from "./wordwrap"
 
 export type Placer = (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement) => Point|undefined
 
@@ -75,7 +71,7 @@ export class WordWrapTestRunner {
         svg.onmousemove = (event: MouseEvent) => { this.mouseMove(event, svg, path) }
         svg.onmouseup   = (event: MouseEvent) => { this.mouseUp(event, svg, path) }
     
-        // this.doWrap(svg, path, boxes, box, trace)
+        this.doWrap(svg, path, boxes, box, trace)
     }
 
     doWrap(svg: SVGElement, path: Path, boxes?:Array<Size>, expectedLastBox?: value.Rectangle, trace?: boolean) {
