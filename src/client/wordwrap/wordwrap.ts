@@ -582,8 +582,6 @@ export class WordWrap {
             console.log("WordWrap.placeWordBoxes(): ENTER")
         let slices = new Array<Slice>()
 
-        let horizontalSpace = 0
-
         // if ((wordsource as TextSource).current != 0) {
         //     throw Error(`wordwrap placeWordBoxes start with box ${(wordsource as TextSource).current}`)
         // }
@@ -594,6 +592,7 @@ export class WordWrap {
             return
         }
 
+        // FIND THE POSITION OF THE FIRST BOX
         let [sliceIndex, cursor] = this.pointForBoxInSlices(box, slices)
         cursor = new Point(cursor)
         if (sliceIndex === -1) {
@@ -604,39 +603,41 @@ export class WordWrap {
 
         let cornerEvents = this.findCornersAtCursorForBoxAtSlice(cursor, box, slices[sliceIndex])
         let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
-        horizontalSpace = right - left
+        let availableHorizontalSpace = right - left
 
         if (this.trace) {
-            console.log(`WordWrap.placeWordBoxes(): ENTER LOOP, HORIZONTAL SPACE IS ${horizontalSpace}`)
+            console.log(`WordWrap.placeWordBoxes(): ENTER LOOP, HORIZONTAL SPACE IS ${availableHorizontalSpace}`)
             this.printSlices(slices)
         }
         while (box) {
-            // place in horizontal space
-            if (isLessEqual(box.width, horizontalSpace)) {
+            // when we have enough horizontal space, place the box
+            // FIXME: this does not check the vertical space
+            if (isLessEqual(box.width, availableHorizontalSpace)) {
                 wordsource.placeBox(cursor)
                 cursor.x += box.width
-                horizontalSpace -= box.width
+                availableHorizontalSpace -= box.width
                 box = wordsource.pullBox()
                 if (this.trace) {
-                    console.log(`WordWrap.placeWordBoxes(): PLACED BOX, REDUCED HORIZONTAL SPACE TO ${horizontalSpace}`)
+                    console.log(`WordWrap.placeWordBoxes(): PLACED BOX, REDUCED HORIZONTAL SPACE TO ${availableHorizontalSpace}`)
                     this.printSlices(slices)
                 }
                 continue
             }
             wordsource.endOfSlice()
 
-            // move to next slice
-
+            // there wasn't enough horizontal space in this slice. if there's another slice, continue the line there
             ++sliceIndex
             if (sliceIndex < slices.length) {
                 if (this.trace)
                     console.log(`WordWrap.placeWordBoxes(): NOT ENOUGH HORIZONTAL SPACE FOR ${box.width}, MOVE TO SLICE ${sliceIndex}`)
                 let cornerEvents = this.findCornersAtCursorForBoxAtSlice(cursor, box, slices[sliceIndex])
                 let [left, right] = this.leftAndRightForAtCursorForBox(cursor, box, slices, sliceIndex, cornerEvents)
-                horizontalSpace = right - left
+                availableHorizontalSpace = right - left
                 cursor.x = left
                 continue
             }
+
+            // we've reached the last slice in the line, move to another line
             if (this.trace) {
                 console.log(`WordWrap.placeWordBoxes(): NOT ENOUGH HORIZONTAL SPACE FOR ${box.width}, LAST SLICE, NEW LINE`)
                 this.printSlices(slices)
@@ -645,8 +646,8 @@ export class WordWrap {
 
             // move to new row
             sliceIndex = -1
-            horizontalSpace = 0
-            cursor.y += box.height // FIXME: boxes may have different heights and ascents
+            availableHorizontalSpace = 0
+            cursor.y += box.height // FIXME: this is already the next box to be placed AND boxes/lines may have different heights and ascents
             // console.log("WordWrap.placeWordBoxes(): before extendSlices()")
             // this.printSlices(slices)
             this.extendSlices(cursor, box, slices)
@@ -655,7 +656,7 @@ export class WordWrap {
             // this.validateSlices(slices)
 
             // abort when below bounding box
-            if (cursor.y > this.bounds.origin.y + this.bounds.size.height)
+            if (cursor.y + box.height > this.bounds.origin.y + this.bounds.size.height)
                 break
         }
         wordsource.endOfWrap()
