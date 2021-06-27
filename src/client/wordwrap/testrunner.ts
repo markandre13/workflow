@@ -40,6 +40,7 @@ export class WordWrapTestRunner {
     constructor(title: string, path: Path, boxes: Array<Size>|undefined, box: value.Rectangle, trace: boolean, placer: Placer) {
         this.placer = placer
     
+        // text measuring might not work when this isn't connected to document.body???
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         svg.style.border = "1px solid #ddd"
         svg.setAttributeNS("", "width", "320")
@@ -95,7 +96,7 @@ export class WordWrapTestRunner {
             text.setAttributeNS("", "y", "16")
             text.textContent = "EXCEPTION"
             svg.appendChild(text)
-            console.log(e)          
+            console.log(e)
             pt = undefined
             expectedLastBox = new Rectangle(0,0,320,200)
         }

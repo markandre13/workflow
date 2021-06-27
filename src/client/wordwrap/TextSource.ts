@@ -26,7 +26,7 @@ export class TextSource implements WordSource {
     current: number
 
     space: number // hack
-    
+
     constructor(text?: string) {
         this.wordBoxes = new Array<WordBox>()
         this.current = 0
@@ -74,12 +74,24 @@ export class TextSource implements WordSource {
     }
 
     initializeWordBoxes(parentSVG: SVGElement) {
+        // Chrome has an OffscreenCanvas, Safari has it coming (https://bugs.webkit.org/show_bug.cgi?id=183720)
+        // we could also squeeze in a regular canvas element and use that just for measuring
+        // BUT: the bounding box seems to relate to the measured text and not the font
+        // const canvas = new OffscreenCanvas(2, 2)
+        // const ctx = canvas.getContext("2d")!
+        // ctx.font = "12px sans-serif"
+
         // no whitespace handling yet, hence we just fake it by adding a space to
         // every words box and then center the text in the middle
+
+        // this.space = ctx.measureText("x x").width - ctx.measureText("xx").width
+
         let spacer = document.createElementNS("http://www.w3.org/2000/svg", "text")
+        spacer.setAttributeNS("", "font-family", "sans-serif")
+        spacer.setAttributeNS("", "font-size", "12px")
         spacer.innerHTML = "&nbsp;"
         parentSVG.appendChild(spacer)
-        this.space = spacer.getComputedTextLength()
+        this.space = spacer.getComputedTextLength() / 2
         parentSVG.removeChild(spacer)
 
         let a = document.createElementNS("http://www.w3.org/2000/svg", "text")
@@ -90,19 +102,30 @@ export class TextSource implements WordSource {
 
         console.log(`initializeWordBoxes: ${this.wordBoxes.length}`)
 
-        for(let r of this.wordBoxes) {
+        for (let r of this.wordBoxes) {
             let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
             text.style.cursor = "inherit"
+            text.setAttributeNS("", "font-family", "sans-serif")
+            text.setAttributeNS("", "font-size", "12px")
             text.setAttributeNS("", "stroke", "none")
             text.setAttributeNS("", "fill", "none")
             text.setAttributeNS("", "x", "0")
-            //text.setAttributeNS("", "width", String(r.size.width))
             text.setAttributeNS("", "y", "0")
-            //text.setAttributeNS("", "height", String(r.size.height))
             text.textContent = r.word
+            r.svg = text
             parentSVG.appendChild(text)
-            if (r.word.length === 0) {
-                r.size.width = text.getComputedTextLength()+this.space // do it later so all children can be added to the dom at once?
+
+            // variant I: measure text size with OffscreenCanvas (todo: setup font style)
+            // const measure = ctx.measureText(r.word)
+            // console.log(`measured '${r.word}' with width=${measure.width}, ascent=${measure.actualBoundingBoxAscent}, descent=${measure.actualBoundingBoxDescent}`)
+            // r.size.width = measure.width + this.space
+            // r.size.height = 12 // measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent + 2
+            // r.ascent = measure.actualBoundingBoxAscent
+            // r.ascent = 2
+
+            // variant II: measure text size by already adding it to the parent (doesn't work anymore as we now might need to wait for the DOM to render)
+            if (r.word.length !== 0) {
+                r.size.width = text.getComputedTextLength() + this.space // do it later so all children can be added to the dom at once?
                 let bbox = text.getBBox()
                 r.size.height = bbox.height
             } else {
@@ -110,27 +133,26 @@ export class TextSource implements WordSource {
                 r.size.height = height
             }
             // console.log(`r.word.length=${r.word.length}, r.size.height=${r.size.height}, height=${height}`)
-            // console.log(`TextSource initialized word '${r.word}' box with ${r.size.width}, ${r.size.height} words.`)
+            // console.log(`TextSource initialized word '${r.word}' with size (${r.size.width}, ${r.size.height})`)
             //console.log(r.size)
-            r.svg = text
         }
     }
 
     displayWordBoxes() {
-        for(let r of this.wordBoxes) {
+        for (let r of this.wordBoxes) {
             if (r.endOfWrap) // these have not been placed
                 break
 
             let text = r.svg!
-            r.origin.x += this.space/2
-            r.size.width -= this.space
+            r.origin.x += this.space / 2
+            // r.size.width -= this.space
             text.setAttributeNS("", "x", String(r.origin.x))
-            
+
             // text was placed at (0, 0), hence bbox.y is the negative ascent
             let bbox = text.getBBox()
             r.ascent = -bbox.y
 
-            text.setAttributeNS("", "y", String(r.origin.y+r.ascent))
+            text.setAttributeNS("", "y", String(r.origin.y + r.ascent))
 
             // console.log(`display word '${r.word}' at ${r.origin.x},${r.origin.y+r.ascent}`)
 
@@ -140,15 +162,15 @@ export class TextSource implements WordSource {
 
     updateSVG() {
         let visible = true
-        for(let r of this.wordBoxes) {
+        for (let r of this.wordBoxes) {
             if (r.endOfWrap)
                 visible = false
             let text = r.svg!
             if (visible) {
-                r.origin.x += this.space/2
-                r.size.width -= this.space
+                r.origin.x += this.space / 2
+                // r.size.width -= this.space
                 text.setAttributeNS("", "x", String(r.origin.x))
-                text.setAttributeNS("", "y", String(r.origin.y+r.ascent))
+                text.setAttributeNS("", "y", String(r.origin.y + r.ascent))
                 text.setAttributeNS("", "fill", "#000")
             } else {
                 text.setAttributeNS("", "fill", "none")
@@ -170,14 +192,14 @@ export class TextSource implements WordSource {
     }
 
     endOfSlice(): void {
-        this.wordBoxes[this.current-1].endOfSlice = true
+        this.wordBoxes[this.current - 1].endOfSlice = true
     }
 
     endOfLine(): void {
-        this.wordBoxes[this.current-1].endOfLine = true
+        this.wordBoxes[this.current - 1].endOfLine = true
     }
 
     endOfWrap(): void {
-        this.wordBoxes[this.current-1].endOfWrap = true
+        this.wordBoxes[this.current - 1].endOfWrap = true
     }
 }
