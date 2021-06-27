@@ -267,10 +267,12 @@ export class Cursor {
     updateCursor() {
         let r = this.boxes[this.offsetWord]!
         let x
-        if (r.word.length === 0)
+        if (r.word.length === 0) {
             x = 0
-        else
-            x = r.svg!.getSubStringLength(0, this.offsetChar)
+        } else {
+            console.log(`word='${r.word}', word.length=${r.word.length}, call getSubStringLength(0, offsetChar=${this.offsetChar})`)
+            x = this.offsetChar === 0 ? 0 : r.svg!.getSubStringLength(0, this.offsetChar)
+        }
         // set position
         this.position.x = r.origin.x + x
         this.position.y = r.origin.y

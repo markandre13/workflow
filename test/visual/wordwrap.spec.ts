@@ -396,7 +396,7 @@ describe("wordwrap", function () {
     })
     describe("render real text", function () {
         const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): Point | undefined => {
-            // wordwrap.trace = false
+            wordwrap.trace = false
             let textSource = new TextSource()
 
             textSource.initializeWordBoxes(svg)
@@ -413,7 +413,7 @@ describe("wordwrap", function () {
             //     return undefined
             // return boxes.rectangles[boxes.rectangles.length-1].origin
         }
-        it("real text", function () {
+        it("real text (work in progress)", function () {
             runTest(this, strategy, {
                 polygon: [
                     { x: 20, y: 10 },
