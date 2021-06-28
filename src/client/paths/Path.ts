@@ -140,7 +140,7 @@ export class Path extends AbstractPath {
         {
             this.data.push({ type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1, X2, Y2] })
         } else {
-            throw Error("fuck")
+            throw Error("yikes")
         }
         return this
     }

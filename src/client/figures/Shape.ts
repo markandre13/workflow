@@ -50,7 +50,7 @@ export abstract class Shape extends AttributedFigure implements valuetype.figure
     }
     setHandlePosition(handle: number, pt: Point): void {
         if (handle < 0 || handle > 3)
-            throw Error("fuck")
+            throw Error("yikes")
         if (handle == 0 || handle == 3) {
             this.size.width += this.origin.x - pt.x
             this.origin.x = pt.x

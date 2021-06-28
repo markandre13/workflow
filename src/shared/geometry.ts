@@ -197,7 +197,7 @@ export class Rectangle implements value.Rectangle {
             if ( !xOrOriginOrRectangle.hasOwnProperty("origin") ||
                  !xOrOriginOrRectangle.hasOwnProperty("size") )
             {
-                throw Error("fuck")
+                throw Error("yikes")
             }
             value.initRectangle(this, xOrOriginOrRectangle as Rectangle)
         } else
@@ -207,14 +207,14 @@ export class Rectangle implements value.Rectangle {
                  !yOrSize.hasOwnProperty("width") ||
                  !yOrSize.hasOwnProperty("height") )
             {
-                 throw Error("fuck")
+                 throw Error("yikes")
             }
             value.initRectangle(this, {origin: xOrOriginOrRectangle as Point, size: yOrSize as Size})
         } else {
             if ( typeof xOrOriginOrRectangle !== "number" ||
                  typeof yOrSize !== "number" )
             {
-                throw Error("fuck")
+                throw Error("yikes")
             }
             value.initRectangle(this, { origin: {x: xOrOriginOrRectangle, y: yOrSize},
                      size:  {width: width, height: height! } })

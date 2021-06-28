@@ -427,7 +427,7 @@ export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent,
             let newSlice = new Slice()
             newSlice.left.push(segment)
             if (sweepBuffer.length === 0)
-                throw Error("fuck")
+                throw Error("yikes")
             newSlice.right.push(sweepBuffer.shift())
             slices.splice(sliceIndex, 0, newSlice)
             appendNewSliceAtRight = false
@@ -1028,7 +1028,7 @@ export class WordWrap {
                     if (pt === undefined) {
                         console.log(slice.right[index].p[1].y)
                         console.log(slice.left[index].p)
-                        throw Error("fuck")
+                        throw Error("yikes")
                     }
                     if (!pointEqualsPoint(slice.left[index].p[0], pt)) {
                         let event = new SweepEvent(slice.left[index].p[0], pt)
@@ -1103,7 +1103,7 @@ export class WordWrap {
             let intersections = new Array<Intersection>()
             intersectLineLine(intersections, slices[sliceIndex].left[cornerEvents.topLeftEvent].p, horizontalTopLine)
             if (intersections.length !== 1)
-                throw Error("fuck")
+                throw Error("yikes")
             topLeft = intersections[0].seg0.pt.x
         }
 
@@ -1111,7 +1111,7 @@ export class WordWrap {
             let intersections = new Array<Intersection>()
             intersectLineLine(intersections, slices[sliceIndex].right[cornerEvents.topRightEvent].p, horizontalTopLine)
             if (intersections.length !== 1)
-                throw Error("fuck")
+                throw Error("yikes")
             topRight = intersections[0].seg0.pt.x
         }
 
@@ -1119,7 +1119,7 @@ export class WordWrap {
             let intersections = new Array<Intersection>()
             intersectLineLine(intersections, slices[sliceIndex].left[cornerEvents.bottomLeftEvent].p, horizontalBottomLine)
             if (intersections.length !== 1)
-                throw Error("fuck")
+                throw Error("yikes")
             bottomLeft = intersections[0].seg0.pt.x
         }
 
@@ -1127,7 +1127,7 @@ export class WordWrap {
             let intersections = new Array<Intersection>()
             intersectLineLine(intersections, slices[sliceIndex].right[cornerEvents.bottomRightEvent].p, horizontalBottomLine)
             if (intersections.length !== 1)
-                throw Error("fuck")
+                throw Error("yikes")
             bottomRight = intersections[0].seg0.pt.x
         }
 
