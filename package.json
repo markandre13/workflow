@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "a collaborative real-time white- and kanban board",
   "author": "Mark-André Hopf <mhopf@mark13.org>",
-  "license": "GPL-3.0",
+  "license": "AGPL-3.0",
   "main": "index.html",
   "repository": {
     "type": "git",
