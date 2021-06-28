@@ -22,7 +22,7 @@ import { Shape } from "./Shape"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value     from "shared/workflow_value"
 
-import { WordWrap, Slice, WordSource } from "../wordwrap/wordwrap"
+import { WordWrap } from "../wordwrap/wordwrap"
 import { TextSource } from "../wordwrap/TextSource"
 import { Cursor } from "../wordwrap/Cursor"
 
@@ -73,6 +73,7 @@ export class Text extends Shape implements valuetype.figure.Text {
             let wordwrap = new WordWrap(path as Path)
             wordwrap.placeWordBoxes(this.textSource)
             this.textSource.updateSVG()
+            this.cursor.updateCursor()
         }
         return svg
     }
