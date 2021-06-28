@@ -130,41 +130,29 @@ export class TextSource implements WordSource {
     }
 
     displayWordBoxes() {
-        for (let r of this.wordBoxes) {
-            if (r.endOfWrap) // these have not been placed
+        for (let word of this.wordBoxes) {
+            if (word.endOfWrap || word.svg === undefined) // these have not been placed
                 break
 
-            let text = r.svg!
-            // r.origin.x += this.space / 2
-            // r.size.width -= this.space
-            text.setAttributeNS("", "x", String(r.origin.x))
-
-            // text was placed at (0, 0), hence bbox.y is the negative ascent
-            let bbox = text.getBBox()
-            // r.ascent = -bbox.y
-
-            text.setAttributeNS("", "y", String(r.origin.y + r.ascent - bbox.y))
-
-            // console.log(`display word '${r.word}' at ${r.origin.x},${r.origin.y+r.ascent}`)
-
-            text.setAttributeNS("", "fill", "#000")
+            word.svg.setAttributeNS("", "x", `${word.origin.x}`)
+            word.svg.setAttributeNS("", "y", `${word.origin.y + word.size.height}`)
+            word.svg.setAttributeNS("", "fill", "#000")
         }
     }
 
     updateSVG() {
         let visible = true
-        for (let r of this.wordBoxes) {
-            if (r.endOfWrap)
+        for (let word of this.wordBoxes) {
+            if (word.endOfWrap)
                 visible = false
-            let text = r.svg!
+            if (word.svg === undefined)
+                break
             if (visible) {
-                // r.origin.x += this.space / 2
-                // r.size.width -= this.space
-                text.setAttributeNS("", "x", String(r.origin.x))
-                text.setAttributeNS("", "y", String(r.origin.y + r.ascent))
-                text.setAttributeNS("", "fill", "#000")
+                word.svg.setAttributeNS("", "x", `${word.origin.x}`)
+                word.svg.setAttributeNS("", "y", `${word.origin.y + word.size.height}`)
+                word.svg.setAttributeNS("", "fill", "#000")
             } else {
-                text.setAttributeNS("", "fill", "none")
+                word.svg.setAttributeNS("", "fill", "#f80")
             }
         }
     }

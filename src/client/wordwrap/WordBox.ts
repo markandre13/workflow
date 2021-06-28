@@ -20,7 +20,6 @@ import { Rectangle } from "shared/geometry"
 
 export class WordBox extends Rectangle {
     word: string
-    ascent: number
     endOfLine: boolean  // to discover line breaks
     endOfSlice: boolean // to discover when to stop drawing selection
     endOfWrap: boolean  // to discover end of visible words
@@ -28,7 +27,6 @@ export class WordBox extends Rectangle {
     constructor(w: number, h: number, word: string) {
         super(0, 0, w, h)
         this.word = word
-        this.ascent = 0
         this.endOfLine = false
         this.endOfSlice = false
         this.endOfWrap = false
