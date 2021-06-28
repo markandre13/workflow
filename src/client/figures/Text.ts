@@ -18,7 +18,6 @@
 
 import { Point } from "shared/geometry"
 import { AbstractPath, Path } from "../paths"
-import { Figure } from "../figures"
 import { Shape } from "./Shape"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value     from "shared/workflow_value"
@@ -37,11 +36,10 @@ export class Text extends Shape implements valuetype.figure.Text {
         this.fill = "#000"
         // this.strokeWidth = 0.0
         value.figure.initText(this, init)
-
         this.text ="Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-
         this.textSource = new TextSource(this.text)
     }
+
     distance(pt: Point): number {
         // FIXME: not final: RANGE and fill="none" need to be considered
         if (this.origin.x <= pt.x && pt.x < this.origin.x + this.size.width &&
@@ -50,31 +48,31 @@ export class Text extends Shape implements valuetype.figure.Text {
         }
         return Number.MAX_VALUE
     }
+
     getPath(): Path {
         let path = new Path()
         path.appendRect(this)
         return path
     }
+
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg) {
             svg = document.createElementNS("http://www.w3.org/2000/svg", "g")
             svg.style.cursor = "inherit"
-            parentSVG.appendChild(svg)
+            parentSVG.appendChild(svg) // add to parent to that the calculation works
     
             this.textSource.initializeWordBoxes(svg)
             let wordwrap = new WordWrap(path as Path)
             wordwrap.placeWordBoxes(this.textSource)
-            this.textSource.displayWordBoxes()
-
+            this.textSource.updateSVG()
             this.cursor = new Cursor(svg, wordwrap, this.textSource)
             parentSVG.removeChild(svg) // FIXME: change API so that figures add themselves to the parent
         } else {
-            svg.innerHTML=""
             this.textSource.reset()
-            // this.textSource.initializeWordBoxes(svg)
+            this.textSource.initializeWordBoxes(svg)
             let wordwrap = new WordWrap(path as Path)
             wordwrap.placeWordBoxes(this.textSource)
-            this.textSource.displayWordBoxes()
+            this.textSource.updateSVG()
         }
         return svg
     }

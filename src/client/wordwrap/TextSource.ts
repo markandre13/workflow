@@ -37,7 +37,6 @@ export class TextSource implements WordSource {
         if (text == undefined)
             text = "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
         this.splitTextIntoWordBoxes(text)
-        console.log(`TextSource initialized with ${this.wordBoxes.length} words.`)
     }
 
     protected splitTextIntoWordBoxes(text: string): void {
@@ -71,7 +70,6 @@ export class TextSource implements WordSource {
         this.current = 0
         for (let w of this.wordBoxes) {
             w.reset()
-            // w.size.width += this.space
         }
     }
 
@@ -93,8 +91,6 @@ export class TextSource implements WordSource {
         parentSVG.appendChild(a)
         this.height = a.getBBox().height
         parentSVG.removeChild(a)
-
-        console.log(`initializeWordBoxes: ${this.wordBoxes.length}`)
     }
 
     pullBox(): Size | undefined {
@@ -133,14 +129,7 @@ export class TextSource implements WordSource {
     }
 
     displayWordBoxes() {
-        for (let word of this.wordBoxes) {
-            if (word.endOfWrap || word.svg === undefined) // these have not been placed
-                break
-
-            word.svg.setAttributeNS("", "x", `${word.origin.x}`)
-            word.svg.setAttributeNS("", "y", `${word.origin.y + word.ascent}`)
-            word.svg.setAttributeNS("", "fill", "#000")
-        }
+        this.updateSVG()
     }
 
     updateSVG() {
@@ -148,21 +137,25 @@ export class TextSource implements WordSource {
         for (let word of this.wordBoxes) {
             if (word.endOfWrap)
                 visible = false
-            if (word.svg === undefined)
-                break
             if (visible) {
-                word.svg.setAttributeNS("", "x", `${word.origin.x}`)
-                word.svg.setAttributeNS("", "y", `${word.origin.y + word.ascent}`)
-                word.svg.setAttributeNS("", "fill", "#000")
+                if (word.svg === undefined) {
+                    console.log(`TextSource: word within visible area as no SVG element`)
+                } else {
+                    word.svg.setAttributeNS("", "x", `${word.origin.x}`)
+                    word.svg.setAttributeNS("", "y", `${word.origin.y + word.ascent}`)
+                    word.svg.setAttributeNS("", "fill", "#000")
+                }
             } else {
-                word.svg.setAttributeNS("", "fill", "#f80")
+                if (word.svg) {
+                    word.svg.parentElement?.removeChild(word.svg)
+                    word.svg = undefined
+                }
             }
         }
     }
 
     placeBox(origin: Point): void {
-        this.wordBoxes[this.current].origin.x = origin.x
-        this.wordBoxes[this.current].origin.y = origin.y
+        Object.assign(this.wordBoxes[this.current].origin, origin)
         ++this.current
     }
 
