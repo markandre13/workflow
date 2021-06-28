@@ -70,8 +70,8 @@ export class Text extends Shape implements valuetype.figure.Text {
             parentSVG.removeChild(svg) // FIXME: change API so that figures add themselves to the parent
         } else {
             svg.innerHTML=""
-
-            this.textSource.initializeWordBoxes(svg)
+            this.textSource.reset()
+            // this.textSource.initializeWordBoxes(svg)
             let wordwrap = new WordWrap(path as Path)
             wordwrap.placeWordBoxes(this.textSource)
             this.textSource.displayWordBoxes()

@@ -580,7 +580,7 @@ export class WordWrap {
     placeWordBoxes(wordsource: WordSource) {
         if (this.trace)
             console.log("WordWrap.placeWordBoxes(): ENTER")
-        let slices = new Array<Slice>()
+        let slices: Slice[] = []
 
         // if ((wordsource as TextSource).current != 0) {
         //     throw Error(`wordwrap placeWordBoxes start with box ${(wordsource as TextSource).current}`)

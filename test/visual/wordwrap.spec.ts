@@ -310,7 +310,7 @@ describe("wordwrap", function () {
                 return undefined
             return boxSource.wordBoxes[boxSource.wordBoxes.length - 1].origin
         }
-        
+
         it("wordwrap 001", function () {
             runTest(this, strategy, {
                 trace: true,
@@ -398,21 +398,17 @@ describe("wordwrap", function () {
         const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): Point | undefined => {
             wordwrap.trace = false
             let textSource = new TextSource()
+
             textSource.initializeWordBoxes(svg)
-            // let s = ""
-            // for (let x of textSource.rectangles)
-            // s=`${s}, {width: ${x.size.width}, height: ${x.size.height}}`
-            // console.log(s)
             wordwrap.placeWordBoxes(textSource)
             textSource.displayWordBoxes()
             new Cursor(svg, wordwrap, textSource)
 
-            return new Point(0, 0)
-            // if (boxes.rectangles.length === 0)
-            //     return undefined
-            // return boxes.rectangles[boxes.rectangles.length-1].origin
+            if (textSource.wordBoxes.length === 0)
+                return undefined
+            return textSource.wordBoxes[textSource.wordBoxes.length - 1].origin
         }
-        it("real text (work in progress)", function () {
+        it.only("real text (work in progress)", function () {
             runTest(this, strategy, {
                 polygon: [
                     { x: 20, y: 10 },

@@ -19,26 +19,28 @@
 import { Point, Size } from "shared/geometry"
 import { WordSource } from "./wordwrap"
 import { WordBox } from "./WordBox"
-import { runInThisContext } from "vm"
 
 export class TextSource implements WordSource {
     wordBoxes: Array<WordBox>
     current: number
 
+    parentSVG!: SVGElement
     space: number // hack
+    height: number // hack
 
     constructor(text?: string) {
         this.wordBoxes = new Array<WordBox>()
         this.current = 0
         this.space = 0
+        this.height = 0
 
         if (text == undefined)
             text = "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        this.createWordBoxes(text)
+        this.splitTextIntoWordBoxes(text)
         console.log(`TextSource initialized with ${this.wordBoxes.length} words.`)
     }
 
-    createWordBoxes(text: string): void {
+    protected splitTextIntoWordBoxes(text: string): void {
         let word = ''
         for (let char of text) {
             switch (char) {
@@ -69,40 +71,39 @@ export class TextSource implements WordSource {
         this.current = 0
         for (let w of this.wordBoxes) {
             w.reset()
-            w.size.width += this.space
+            // w.size.width += this.space
         }
     }
 
     initializeWordBoxes(parentSVG: SVGElement) {
-        // Chrome has an OffscreenCanvas, Safari has it coming (https://bugs.webkit.org/show_bug.cgi?id=183720)
-        // we could also squeeze in a regular canvas element and use that just for measuring
-        // BUT: the bounding box seems to relate to the measured text and not the font
-        // const canvas = new OffscreenCanvas(2, 2)
-        // const ctx = canvas.getContext("2d")!
-        // ctx.font = "12px sans-serif"
+        this.parentSVG = parentSVG
 
-        // no whitespace handling yet, hence we just fake it by adding a space to
-        // every words box and then center the text in the middle
-
-        // this.space = ctx.measureText("x x").width - ctx.measureText("xx").width
-
+        // set this.space
         let spacer = document.createElementNS("http://www.w3.org/2000/svg", "text")
         spacer.setAttributeNS("", "font-family", "sans-serif")
         spacer.setAttributeNS("", "font-size", "12px")
         spacer.innerHTML = "&nbsp;"
         parentSVG.appendChild(spacer)
-        this.space = spacer.getComputedTextLength() / 2
+        this.space = spacer.getComputedTextLength()
         parentSVG.removeChild(spacer)
 
+        // set height
         let a = document.createElementNS("http://www.w3.org/2000/svg", "text")
         a.innerHTML = "X"
         parentSVG.appendChild(a)
-        let height = a.getBBox().height
+        this.height = a.getBBox().height
         parentSVG.removeChild(a)
 
         console.log(`initializeWordBoxes: ${this.wordBoxes.length}`)
+    }
 
-        for (let r of this.wordBoxes) {
+    pullBox(): Size | undefined {
+        // console.log(`TextSource.pullBox(): currrent=${this.current}, rectangles=${this.wordBoxes.length}`)
+        if (this.current >= this.wordBoxes.length)
+            return undefined
+
+        const word = this.wordBoxes[this.current]
+        if (word.svg === undefined) {
             let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
             text.style.cursor = "inherit"
             text.setAttributeNS("", "font-family", "sans-serif")
@@ -111,31 +112,21 @@ export class TextSource implements WordSource {
             text.setAttributeNS("", "fill", "none")
             text.setAttributeNS("", "x", "0")
             text.setAttributeNS("", "y", "0")
-            text.textContent = r.word
-            r.svg = text
-            parentSVG.appendChild(text)
-
-            // variant I: measure text size with OffscreenCanvas (todo: setup font style)
-            // const measure = ctx.measureText(r.word)
-            // console.log(`measured '${r.word}' with width=${measure.width}, ascent=${measure.actualBoundingBoxAscent}, descent=${measure.actualBoundingBoxDescent}`)
-            // r.size.width = measure.width + this.space
-            // r.size.height = 12 // measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent + 2
-            // r.ascent = measure.actualBoundingBoxAscent
-            // r.ascent = 2
-
-            // variant II: measure text size by already adding it to the parent (doesn't work anymore as we now might need to wait for the DOM to render)
-            if (r.word.length !== 0) {
-                r.size.width = text.getComputedTextLength() + this.space // do it later so all children can be added to the dom at once?
-                let bbox = text.getBBox()
-                r.size.height = bbox.height
-            } else {
-                r.size.width = 0
-                r.size.height = height
-            }
-            // console.log(`r.word.length=${r.word.length}, r.size.height=${r.size.height}, height=${height}`)
-            // console.log(`TextSource initialized word '${r.word}' with size (${r.size.width}, ${r.size.height})`)
-            //console.log(r.size)
+            text.textContent = word.word
+            word.svg = text
+            this.parentSVG.appendChild(text)
         }
+
+        if (word.word.length !== 0) {
+            word.size.width = word.svg.getComputedTextLength()
+            let bbox = word.svg.getBBox()
+            word.size.height = bbox.height
+        } else {
+            word.size.width = 0
+            word.size.height = this.height
+        }
+
+        return word.size
     }
 
     displayWordBoxes() {
@@ -144,15 +135,15 @@ export class TextSource implements WordSource {
                 break
 
             let text = r.svg!
-            r.origin.x += this.space / 2
+            // r.origin.x += this.space / 2
             // r.size.width -= this.space
             text.setAttributeNS("", "x", String(r.origin.x))
 
             // text was placed at (0, 0), hence bbox.y is the negative ascent
             let bbox = text.getBBox()
-            r.ascent = -bbox.y
+            // r.ascent = -bbox.y
 
-            text.setAttributeNS("", "y", String(r.origin.y + r.ascent))
+            text.setAttributeNS("", "y", String(r.origin.y + r.ascent - bbox.y))
 
             // console.log(`display word '${r.word}' at ${r.origin.x},${r.origin.y+r.ascent}`)
 
@@ -167,7 +158,7 @@ export class TextSource implements WordSource {
                 visible = false
             let text = r.svg!
             if (visible) {
-                r.origin.x += this.space / 2
+                // r.origin.x += this.space / 2
                 // r.size.width -= this.space
                 text.setAttributeNS("", "x", String(r.origin.x))
                 text.setAttributeNS("", "y", String(r.origin.y + r.ascent))
@@ -176,13 +167,6 @@ export class TextSource implements WordSource {
                 text.setAttributeNS("", "fill", "none")
             }
         }
-    }
-
-    pullBox(): Size | undefined {
-        // console.log(`TextSource.pullBox(): currrent=${this.current}, rectangles=${this.wordBoxes.length}`)
-        if (this.current >= this.wordBoxes.length)
-            return undefined
-        return this.wordBoxes[this.current].size
     }
 
     placeBox(origin: Point): void {
