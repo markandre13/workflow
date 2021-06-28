@@ -26,6 +26,7 @@ module.exports = (config: any) => {
         autoWatch: true,
         files: [
             { pattern: "test/visual/**/*.spec.ts" },
+            { pattern: "test/setup.ts" },
             { pattern: "src/client/**/*.ts" },
             { pattern: "src/shared/**/*.ts" },
             { pattern: "polyfill/path-data-polyfill.js"},
@@ -43,7 +44,6 @@ module.exports = (config: any) => {
                 sourceMap: true,
             },
             bundlerOptions: {
-                entrypoints: /\.spec\.ts$/,
                 sourceMap: true
             },
             coverageOptions: {
@@ -52,6 +52,7 @@ module.exports = (config: any) => {
             },
             include: [
                 "test/visual/**/*.ts",
+                "test/setup.ts",
                 "src/client/**/*.ts",
                 "src/shared/**/*.ts",
             ],

@@ -413,7 +413,7 @@ describe("wordwrap", function () {
             //     return undefined
             // return boxes.rectangles[boxes.rectangles.length-1].origin
         }
-        it.only("real text (work in progress)", function () {
+        it("real text (work in progress)", function () {
             runTest(this, strategy, {
                 polygon: [
                     { x: 20, y: 10 },

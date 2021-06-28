@@ -15,9 +15,9 @@
     "build:client": "rollup --config rollup-client.config.js",
     "build:server": "rollup --config rollup-server.config.js",
 
-    "test": "npm run build:idl && karma start --browsers ChromeHeadless config/karma.conf.js",
-    "test:watch": "npm run build:idl && karma start --browsers ChromeHeadless --singleRun=false --autoWatch=true config/karma.conf.js | grep -v '^Chrome Headless .* LOG:'",
-    "test:watch:browser": "npm run build:idl && karma start --browsers Chrome --singleRun=false --autoWatch=true config/karma.conf.js | grep -v '^Chrome .* LOG:'",
+    "test": "npm run build:idl && karma start --browsers ChromeHeadless config/karma-unit.conf.js",
+    "test:watch": "npm run build:idl && karma start --browsers ChromeHeadless --singleRun=false --autoWatch=true config/karma-unit.conf.js | grep -v '^Chrome Headless .* LOG:'",
+    "test:watch:browser": "npm run build:idl && karma start --browsers Chrome --singleRun=false --autoWatch=true config/karma-unit.conf.js | grep -v '^Chrome .* LOG:'",
     
     "test:visual": "karma start config/karma-visual.conf.ts",
 

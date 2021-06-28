@@ -26,6 +26,7 @@ module.exports = (config) => {
     autoWatch: false, // karma-typescript does it's own watching (is this okay or do we need 'watch: false' ?)
     files: [
       { pattern: "test/unit/**/*.spec.ts" },
+      { pattern: "test/setup.ts" },
       { pattern: "src/client/**/*.ts" },
       { pattern: "src/shared/**/*.ts" },
       { pattern: "polyfill/path-data-polyfill.js"},
@@ -44,7 +45,6 @@ module.exports = (config) => {
         sourceMap: true,
       },
       bundlerOptions: {
-        entrypoints: /\.spec\.ts$/,
         sourceMap: true
       },
       coverageOptions: {
@@ -52,9 +52,10 @@ module.exports = (config) => {
         sourceMap: true,
       },
       include: [
+        "test/unit/**/*.spec.ts",
+        "test/setup.ts",
         "src/shared/**/*.ts",
         "src/client/**/*.ts",
-        "test/unit/**/*.spec.ts"
       ],
       exclude: [
         "node_modules",
