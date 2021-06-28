@@ -1,5 +1,5 @@
 import { expect } from "chai"
-import { Point } from "../../src/shared/geometry"
+import { Point } from "shared/geometry"
 
 describe("Point", ()=> {
     describe("constructor", ()=> {
