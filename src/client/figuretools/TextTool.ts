@@ -25,18 +25,12 @@
  *               is applied to the model/send to the server
  ******************************************************************/
 
-import {
-    Point, Rectangle, Matrix,
-    pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual
-} from "shared/geometry"
-import { Path } from "../paths/Path"
-import { Figure } from "../figures/Figure"
-import { AttributedFigure } from "../figures/AttributedFigure"
+import { Point, Rectangle } from "shared/geometry"
 import { EditorEvent } from "../figureeditor/EditorEvent"
 import { FigureEditor } from "../figureeditor/FigureEditor"
 import { Tool } from "./Tool"
 import * as figures from "../figures"
-import { figure } from "shared/workflow_value"
+import { StrictKeyboardEvent } from "../wordwrap/Cursor"
 
 enum TextCursor {
     NONE,
@@ -166,7 +160,7 @@ export class TextTool extends Tool {
 
     override keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
         if (this.state == TextToolState.EDIT) {
-            this.text.cursor.keydown(keyboardEvent)
+            this.text.cursor.keydown(keyboardEvent as StrictKeyboardEvent)
         }
     }
     

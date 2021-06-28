@@ -22,6 +22,15 @@ import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
 import { EditorEvent } from "../figureeditor"
 
+export type WhitespaceKeys = "Enter" | "Tab" | " "
+ export type NavigationKeys = "ArrowDown" | "ArrowLeft" | "ArrowRight" | "ArrowUp" | "End" | "Home" | "PageDown" | "PageUp"
+ export type EditingKeys = "Backspace" | "Clear" | "Copy" | "CrSel" | "Cut" | "Delete" | "EraseEof" | "ExSel" | "Insert" | "Paste" | "Redo" | "Undo"
+ export type UIKeys = "Accept" | "Again" | "Attn" | "Cancel" | "ContextMenu" | "Escape" | "Execute" | "Find" | "Finish" | "Help" | "Pause" | "Play" | "Props" | "Select" | "ZoomIn" | "ZoomOut"
+ 
+ export interface StrictKeyboardEvent extends KeyboardEvent {
+     readonly key: WhitespaceKeys | NavigationKeys | EditingKeys | UIKeys
+ }
+
 export class Cursor {
     svg: SVGElement
     wordwrap: WordWrap
@@ -30,9 +39,10 @@ export class Cursor {
     position: Point
     xDuringVerticalMovement: undefined | number
     cursor: SVGLineElement
-    boxes: Array<WordBox>
-    offsetWord: number
-    offsetChar: number
+
+    boxes: Array<WordBox>   // textSource.wordBoxes
+    offsetWord: number      // index within wordBoxes
+    offsetChar: number      // index within wordBox
 
     constructor(svg: SVGElement, wordwrap: WordWrap, textSource: TextSource) {
         this.svg = svg
@@ -63,13 +73,11 @@ export class Cursor {
         }
     }
         
-    keydown(e: KeyboardEvent) {
+    keydown(e: StrictKeyboardEvent) {
         e.preventDefault()
-        let KEY_LEFT = 37, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40
         let r = this.boxes[this.offsetWord]!
-        // console.log(`keydown ${e.key} ${e.code} ${e.charCode} ${e.key} ${e.keyCode}`)
-        switch (e.keyCode) { // FIXME: keyCode is marked as deprecated in TypeScript definition
-            case KEY_RIGHT:
+        switch (e.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
+            case "ArrowRight":
                 ++this.offsetChar
                 if (this.offsetChar > r.word.length) {
                     if (this.offsetWord >= this.boxes.length || this.boxes[this.offsetWord].endOfWrap) {
@@ -81,7 +89,7 @@ export class Cursor {
                 }
                 this.updateCursor()
                 break
-            case KEY_LEFT:
+            case "ArrowLeft":
                 if (this.offsetWord === 0 && this.offsetChar === 0)
                     break
                 --this.offsetChar
@@ -112,8 +120,8 @@ export class Cursor {
                 }
         }
 
-        switch (e.keyCode) { // FIXME: keyCode is marked as deprecated in TypeScript definition
-            case KEY_DOWN:
+        switch (e.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
+            case "ArrowDown":
                 // console.log("keyDown: start")
                 if (this.xDuringVerticalMovement === undefined)
                     this.xDuringVerticalMovement = this.position.x
@@ -125,7 +133,7 @@ export class Cursor {
                 }
                 // console.log("keyDown: done")
                 break
-            case KEY_UP:
+            case "ArrowUp":
                 // console.log("keyDown: start")
                 if (this.xDuringVerticalMovement === undefined)
                     this.xDuringVerticalMovement = this.position.x
