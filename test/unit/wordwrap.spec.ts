@@ -38,6 +38,7 @@ class BoxSource implements WordSource {
     style: boolean
     box?: Size
     wordBoxes: Array<WordBox>
+    space = 0
 
     constructor(remaining = 4096) {
         this.remaining = remaining

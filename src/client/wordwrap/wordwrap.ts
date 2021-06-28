@@ -512,6 +512,7 @@ export function appendEventAsNewSlice(slices: Array<Slice>, segment: SweepEvent,
 // FIXME: find another name for WordSource as it gather to many wordwrap result related functionality
 export interface WordSource {
     wordBoxes: Array<Rectangle>
+    space: number
     reset(): void
     pullBox(): Size | undefined
     placeBox(origin: Point): void
@@ -614,8 +615,8 @@ export class WordWrap {
             // FIXME: this does not check the vertical space
             if (isLessEqual(box.width, availableHorizontalSpace)) {
                 wordsource.placeBox(cursor)
-                cursor.x += box.width
-                availableHorizontalSpace -= box.width
+                cursor.x += box.width + wordsource.space
+                availableHorizontalSpace -= box.width + wordsource.space
                 box = wordsource.pullBox()
                 if (this.trace) {
                     console.log(`WordWrap.placeWordBoxes(): PLACED BOX, REDUCED HORIZONTAL SPACE TO ${availableHorizontalSpace}`)

@@ -441,6 +441,7 @@ class BoxSource implements WordSource {
     current: number
     boxes: Array<Size>
     wordBoxes: Array<WordBox>
+    space = 0
 
     constructor(boxes: Array<Size>) {
         this.boxes = boxes
@@ -477,6 +478,7 @@ class IteratingBoxSource implements WordSource {
     style: boolean
     box?: Size
     wordBoxes: Array<Rectangle>
+    space = 0
 
     constructor(remaining = 4096) {
         this.remaining = remaining
