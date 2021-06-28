@@ -398,7 +398,6 @@ describe("wordwrap", function () {
         const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): Point | undefined => {
             wordwrap.trace = false
             let textSource = new TextSource()
-
             textSource.initializeWordBoxes(svg)
             // let s = ""
             // for (let x of textSource.rectangles)

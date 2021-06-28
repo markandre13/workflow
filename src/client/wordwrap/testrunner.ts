@@ -46,7 +46,8 @@ export class WordWrapTestRunner {
         svg.setAttributeNS("", "width", "320")
         svg.setAttributeNS("", "height", "200")
         svg.setAttributeNS("", "viewBox", "0 0 320 200")
-
+        // attach svg to the document so that measuring text dimensions works
+        document.body.appendChild(svg)
         document.body.oncontextmenu = (event: Event): boolean => {
             event.preventDefault()
             return false
