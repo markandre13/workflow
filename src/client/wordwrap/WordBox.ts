@@ -24,6 +24,7 @@ export class WordBox extends Rectangle {
     endOfSlice: boolean // to discover when to stop drawing selection
     endOfWrap: boolean  // to discover end of visible words
     svg: SVGTextElement | undefined
+    ascent = 0
     constructor(w: number, h: number, word: string) {
         super(0, 0, w, h)
         this.word = word

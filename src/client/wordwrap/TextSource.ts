@@ -115,6 +115,9 @@ export class TextSource implements WordSource {
             text.textContent = word.word
             word.svg = text
             this.parentSVG.appendChild(text)
+            // baseline was set to y = 0, hence the bounding box now reveals ascent & descent
+            let bbox = word.svg.getBBox()
+            word.ascent = -bbox.y
         }
 
         if (word.word.length !== 0) {
@@ -135,7 +138,7 @@ export class TextSource implements WordSource {
                 break
 
             word.svg.setAttributeNS("", "x", `${word.origin.x}`)
-            word.svg.setAttributeNS("", "y", `${word.origin.y + word.size.height}`)
+            word.svg.setAttributeNS("", "y", `${word.origin.y + word.ascent}`)
             word.svg.setAttributeNS("", "fill", "#000")
         }
     }
@@ -149,7 +152,7 @@ export class TextSource implements WordSource {
                 break
             if (visible) {
                 word.svg.setAttributeNS("", "x", `${word.origin.x}`)
-                word.svg.setAttributeNS("", "y", `${word.origin.y + word.size.height}`)
+                word.svg.setAttributeNS("", "y", `${word.origin.y + word.ascent}`)
                 word.svg.setAttributeNS("", "fill", "#000")
             } else {
                 word.svg.setAttributeNS("", "fill", "#f80")
