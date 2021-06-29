@@ -163,14 +163,6 @@ export class TextTool extends Tool {
     override keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
         if (this.state == TextToolState.EDIT) {
             this.text.cursor.keydown(keyboardEvent as StrictKeyboardEvent)
-            // this.text.updateSVG()
-
-            // this.text.textSource.reset()
-            // this.text.textSource.initializeWordBoxes(this.text.)
-            // let wordwrap = new WordWrap(this.path as Path)
-            // wordwrap.placeWordBoxes(this.textSource)
-            // this.textSource.updateSVG()
-            // this.updateCursor()
         }
     }
 

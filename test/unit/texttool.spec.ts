@@ -77,6 +77,35 @@ describe("FigureEditor", function() {
                 expect(word.word).to.equal("AB")
                 expect(word.svg?.textContent).to.equal("AB")
             })
+            it("type a blank letter", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+
+                scene.keydown("A")
+                scene.keydown(" ")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(2)
+                expect(wordBoxes[0].word).to.equal("A")
+                expect(wordBoxes[1].word).to.equal("")
+            })
+            it("type two lettesrs separated by a blank letter", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+
+                scene.keydown("A")
+                scene.keydown(" ")
+                scene.keydown("B")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(2)
+                expect(wordBoxes[0].word).to.equal("A")
+                expect(wordBoxes[1].word).to.equal("B")
+            })
         })
         describe("cursor", function() {
             it("is visible in a newly created text area", function() {

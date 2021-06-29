@@ -102,26 +102,23 @@ export class Cursor {
                 break
             default:
                 if (e.key.length == 1) {
-                    r.word = r.word.slice(0, this.offsetChar) + e.key + r.word.slice(this.offsetChar)
-                    if (r.svg !== undefined) {
-                        r.svg.textContent = r.word
-                        // r.size.width = r.svg.getComputedTextLength() // FIXME: move into TextSource
+                    if (e.key === " ") {
+                        if (this.offsetChar === 0) {
+                            console.log(`Cursor.keyDown(): ignoring ' ' at beginning of word`)
+                            return
+                        }
+                        this.textSource.wordBoxes.splice(this.offsetWord+1, 0, new WordBox(0, 0, ""))
+                        this.offsetChar = 0
+                        this.offsetWord++
+                    } else {
+                        r.word = r.word.slice(0, this.offsetChar) + e.key + r.word.slice(this.offsetChar)
+                        if (r.svg !== undefined) {
+                            r.svg.textContent = r.word
+                            // r.size.width = r.svg.getComputedTextLength() // FIXME: move into TextSource
+                        }
+                        this.offsetChar++
                     }
-                    this.offsetChar++
-                    // this.updateCursor()
-                    
-                    // console.log(`update wrap: old box width = ${r.size.width}`)
-                    // console.log(`update wrap: new box width = ${r.size.width}`)
-
-                    // this.textSource.reset()
-                    // this.textSource.initializeWordBoxes(svg)
-                    // let wordwrap = new WordWrap(this.path as Path)
-                    // wordwrap.placeWordBoxes(this.textSource)
-                    // this.textSource.updateSVG()
-                    // this.updateCursor()
-
                     this.textSource.reset()
-                    // this.wordwrap.trace = true
                     this.wordwrap.initializeSweepBufferFrom(this.wordwrap.path)
                     this.wordwrap.placeWordBoxes(this.textSource)
                     this.textSource.updateSVG()
