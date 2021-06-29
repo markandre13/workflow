@@ -31,6 +31,7 @@ export type WhitespaceKeys = "Enter" | "Tab" | " "
      readonly key: WhitespaceKeys | NavigationKeys | EditingKeys | UIKeys
  }
 
+// Cursor navigates and edits the TextSource
 export class Cursor {
     svg: SVGElement
     wordwrap: WordWrap
@@ -107,14 +108,17 @@ export class Cursor {
                             console.log(`Cursor.keyDown(): ignoring ' ' at beginning of word`)
                             return
                         }
-                        this.textSource.wordBoxes.splice(this.offsetWord+1, 0, new WordBox(0, 0, ""))
+                        const word = this.textSource.wordBoxes[this.offsetWord]
+                        this.textSource.wordBoxes.splice(this.offsetWord+1, 0, new WordBox(0, 0, word.word.substring(this.offsetChar)))
+                        word.word = word.word.substring(0, this.offsetChar)
+                        if (word.svg)
+                            word.svg.textContent = word.word
                         this.offsetChar = 0
                         this.offsetWord++
                     } else {
                         r.word = r.word.slice(0, this.offsetChar) + e.key + r.word.slice(this.offsetChar)
                         if (r.svg !== undefined) {
                             r.svg.textContent = r.word
-                            // r.size.width = r.svg.getComputedTextLength() // FIXME: move into TextSource
                         }
                         this.offsetChar++
                     }
@@ -278,6 +282,7 @@ export class Cursor {
         // console.log(`gotoCursorHorizontally: offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
     }
     
+    // use offsetWord and offsetChar to place the cursor
     updateCursor() {
         let r = this.boxes[this.offsetWord]!
         let x

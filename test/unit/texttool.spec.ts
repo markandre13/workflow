@@ -91,7 +91,7 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[0].word).to.equal("A")
                 expect(wordBoxes[1].word).to.equal("")
             })
-            it("type two lettesrs separated by a blank letter", function() {
+            it("type two letters separated by a space", function() {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
 
@@ -104,7 +104,26 @@ describe("FigureEditor", function() {
                 const wordBoxes = textSource.wordBoxes
                 expect(wordBoxes.length).to.equal(2)
                 expect(wordBoxes[0].word).to.equal("A")
+                expect(wordBoxes[0].svg?.textContent).to.equal("A")
                 expect(wordBoxes[1].word).to.equal("B")
+                expect(wordBoxes[1].svg?.textContent).to.equal("B")
+            })
+            it("split two letters by inserting a space", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.keydown("B")
+                scene.sendArrowLeft()
+                scene.keydown(" ")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(2)
+                expect(wordBoxes[0].word).to.equal("A")
+                expect(wordBoxes[0].svg?.textContent).to.equal("A")
+                expect(wordBoxes[1].word).to.equal("B")
+                expect(wordBoxes[1].svg?.textContent).to.equal("B")
             })
         })
         describe("cursor", function() {
