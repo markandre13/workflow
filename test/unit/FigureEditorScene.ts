@@ -16,20 +16,20 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { SelectTool, TextTool, Tool } from "../figuretools"
-import { LocalLayerModel } from "./LocalLayerModel"
-import { Figure } from "../figures"
-import * as figure from "../figures"
-import { FigureEditor } from "./FigureEditor"
-import { Path } from "../paths"
+import { SelectTool, TextTool, Tool } from "../../src/client/figuretools"
+import { LocalLayerModel } from "../../src/client/figureeditor/LocalLayerModel"
+import { Figure } from "../../src/client/figures"
+import * as figure from "../../src/client/figures"
+import { FigureEditor } from "../../src/client/figureeditor/FigureEditor"
+import { Path } from "../../src/client/paths"
 
 import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointPlusSize, pointMinusPoint, pointMinus } from "shared/geometry"
-import { LocalLayer } from "./LocalLayer"
-import { EditorEvent } from "./EditorEvent"
+import { LocalLayer } from "../../src/client/figureeditor/LocalLayer"
+import { EditorEvent } from "../../src/client/figureeditor/EditorEvent"
 
 // PageObject style API for testing FigureEditor
 // https://martinfowler.com/bliki/PageObject.html
-export class FigureEditorUser {
+export class FigureEditorScene {
     figureeditor: FigureEditor
     selectTool: SelectTool
     textTool: TextTool
@@ -282,5 +282,28 @@ export class FigureEditorUser {
         // return this.figures[index].getHandlePosition(0)
         let handleRange = figure.Figure.HANDLE_RANGE
         return pointMinusPoint(this.figures[index].bounds().origin, {x: handleRange, y: handleRange})
+    }
+
+    createTextArea() {
+        this.selectTextTool()
+        this.mouseDownAt(new Point(10, 15))
+        this.moveMouseBy(new Point(110, 50))
+        this.mouseUp()
+    }
+
+    sendArrowLeft() {
+        const e = new KeyboardEvent("keydown", {
+            bubbles: true,
+            key: "ArrowLeft"
+        })
+        this.figureeditor.tool!.keydown(this.figureeditor, e)
+    }
+
+    sendArrowRight() {
+        const e = new KeyboardEvent("keydown", {
+            bubbles: true,
+            key: "ArrowRight"
+        })
+        this.figureeditor.tool!.keydown(this.figureeditor, e)
     }
 }

@@ -14,15 +14,12 @@
     "build:idl": "corba-idl -d --ts-all src/shared/workflow.idl",
     "build:client": "rollup --config rollup-client.config.js",
     "build:server": "rollup --config rollup-server.config.js",
-
     "test": "npm run build:idl && karma start --browsers ChromeHeadless config/karma-unit.conf.js",
     "test:watch": "npm run build:idl && karma start --browsers ChromeHeadless --singleRun=false --autoWatch=true config/karma-unit.conf.js | grep -v '^Chrome Headless .* LOG:'",
+    "test:watch:none": "npm run build:idl && karma start --singleRun=false --autoWatch=true config/karma-unit.conf.js",
     "test:watch:browser": "npm run build:idl && karma start --browsers Chrome --singleRun=false --autoWatch=true config/karma-unit.conf.js | grep -v '^Chrome .* LOG:'",
-    
     "test:visual": "karma start config/karma-visual.conf.ts",
-
     "test-ui": "npm run build:idl && rollup --config config/rollup-test-ui.config.js && mocha --require ts-node/register 'test/ui/**/*.spec.ts'",
-
     "update": "npx npm-check-updates -u && npm install"
   },
   "dependencies": {
@@ -39,12 +36,14 @@
     "@types/bcrypt": "^5.0.0",
     "@types/chai": "^4.2.19",
     "@types/chai-almost": "^1.0.1",
+    "@types/chai-subset": "^1.3.3",
     "@types/mocha": "^8.2.2",
     "@types/node": "^15.12.4",
     "@types/sqlite3": "^3.1.7",
     "@types/ws": "^7.4.5",
     "chai": "^4.3.4",
     "chai-almost": "^1.0.1",
+    "chai-subset": "^1.6.0",
     "corba.js": "0.0.12",
     "karma": "^6.3.4",
     "karma-chai": "^0.1.0",

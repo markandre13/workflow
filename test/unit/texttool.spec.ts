@@ -1,57 +1,166 @@
-/*
- *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2020 Mark-André Hopf <mhopf@mark13.org>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 import { expect, use } from "chai"
 import chaiAlmost = require('chai-almost')
 use(chaiAlmost())
+import chaiSubset = require("chai-subset")
+use(chaiSubset)
 
-import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "shared/geometry"
+import { Point, Rectangle } from "shared/geometry"
+import { FigureEditorScene } from "./FigureEditorScene"
+import { Text } from "client/figures/Text"
+import { Tool } from "client/figuretools"
 
-import { Path } from "client/paths"
-import * as figure from "client/figures"
-import { Tool, SelectToolState } from "client/figuretools"
-import { FigureEditorUser } from "client/figureeditor/FigureEditorUser"
+describe("FigureEditor", function() {
+    describe("TextTool", function() {
+        describe("Area", function() {
+            it("create", function() {
+                // GIVEN an empty figure editor with TextTool being active
+                const scene = new FigureEditorScene()
+                scene.selectTextTool()
+                expect(scene.model.layers[0].data.length).equals(0)
 
-declare global {
-    interface SVGPathElement {
-        d: string
-        setPathData(data: any): void
-        getPathData(): any
-    }
-}
+                // WHEN when we drag a rectangle
+                scene.mouseDownAt(new Point(10, 15))
+                scene.moveMouseBy(new Point(110, 50))
+                scene.mouseUp()
 
-describe("FigureEditor", ()=> {
-    describe("TextTool", ()=> {
-        describe("Area", ()=> {
-            it("create", ()=> {
-                // GIVEN
-                let test = new FigureEditorUser()
-                test.selectTextTool()
-           
-                // WHEN
-                test.mouseDownAt(new Point(10, 15))
-                test.moveMouseBy(new Point(110, 50))
-                test.mouseUp()
-        
-                // THEN
-                test.selectionHasRectangle(new Rectangle(10, 15, 110, 50))
+                // THEN we will have a Text figure within this rectangle...
+                expect(scene.model.layers[0].data.length).equals(1)
+                expect(scene.model.layers[0].data[0]).instanceOf(Text)
+                const text = scene.model.layers[0].data[0] as Text
+                expect(text).to.containSubset({origin: {x: 10, y: 15}, size: {width: 110, height: 50}})
 
-                // test.keydown("A")
+                // ...and it's selected
+                scene.selectionHasRectangle(new Rectangle(10, 15, 110, 50))
+                expect(Tool.selection.selection.size).to.equal(1)
+                expect(Tool.selection.has(text))
+            })
+        })
+        describe("type text", function() {
+            it("type a letter", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+
+                // Text's constructor creates the text source using the initial text. "" in this case
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                // TextSource's constructor breaks down the initial text into word boxes
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(1)
+                const word = wordBoxes[0]
+                expect(word.word).to.equal("")
+
+                // FigureEditor.updateView() will have called Text's updateSVG() method
+                expect(word.svg).instanceOf(SVGTextElement)
+                expect(word.svg?.textContent).to.equal("")
+                expect(word.ascent).to.almost.equal(0) // not a requirement; our current algorithm can not calculate the ascent of an empty string
+
+                // WHEN we type the letter 'A'
+                scene.keydown("A")
+
+                // THEN we should be able to see it in the rectangles upper, left corner
+                // NOTE: we haven't checked if the SVG is actually placed correctly within the DOM
+                expect(word.ascent).to.not.almost.equal(0) // we now have an ascent
+                expect(word.svg?.getAttributeNS("", "x")).to.equal(`${10}`)
+                expect(word.svg?.getAttributeNS("", "y")).to.equal(`${15 + word.ascent}`)
+                expect(word.word).to.equal("A")
+                expect(word.svg?.textContent).to.equal("A")
+            })
+            it("type two letters", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+
+                scene.keydown("A")
+                scene.keydown("B")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const word = text.textSource.wordBoxes[0]
+                expect(word.word).to.equal("AB")
+                expect(word.svg?.textContent).to.equal("AB")
+            })
+        })
+        describe("cursor", function() {
+            it("is visible in a newly created text area", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
+                const word = text.textSource.wordBoxes[0]
+
+                expect(cursor.offsetWord).equal(0)
+                expect(cursor.offsetChar).equal(0)
+                const line = cursor.cursor
+
+                // THEN it's visible
+                // FIXME: currently it seems to be hidden behind the selection marker
+                expect(line.getAttributeNS("", "x1")).to.equal(`${10.5}`)
+                expect(line.getAttributeNS("", "y1")).to.equal(`${15.5}`)
+                expect(line.getAttributeNS("", "x2")).to.equal(`${10.5}`)
+                expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
+            })
+            // TODO: check also that this works for not the 1st line?
+            it("it's behind the last typed letter", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
+                const word = text.textSource.wordBoxes[0]
+
+                expect(cursor.offsetWord).equal(0)
+                expect(cursor.offsetChar).equal(1)
+                const line = cursor.cursor
+
+                // THEN it's visible
+                // FIXME: currently it seems to be hidden behind the selection marker
+                expect(line.getAttributeNS("", "x1")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
+                expect(line.getAttributeNS("", "y1")).to.equal(`${15.5}`)
+                expect(line.getAttributeNS("", "x2")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
+                expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
+            })
+            it("move left", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.sendArrowLeft()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
+                const word = text.textSource.wordBoxes[0]
+
+                expect(cursor.offsetWord).equal(0)
+                expect(cursor.offsetChar).equal(0)
+                const line = cursor.cursor
+
+                // THEN it's visible
+                // FIXME: currently it seems to be hidden behind the selection marker
+                expect(line.getAttributeNS("", "x1")).to.equal(`${10.5}`)
+                expect(line.getAttributeNS("", "y1")).to.equal(`${15.5}`)
+                expect(line.getAttributeNS("", "x2")).to.equal(`${10.5}`)
+                expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
+            })
+            it("move right", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.sendArrowLeft()
+                scene.sendArrowRight()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
+                const word = text.textSource.wordBoxes[0]
+
+                expect(cursor.offsetWord).equal(0)
+                expect(cursor.offsetChar).equal(1)
+                const line = cursor.cursor
+
+                // THEN it's visible
+                // FIXME: currently it seems to be hidden behind the selection marker
+                expect(line.getAttributeNS("", "x1")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
+                expect(line.getAttributeNS("", "y1")).to.equal(`${15.5}`)
+                expect(line.getAttributeNS("", "x2")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
+                expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
             })
         })
     })

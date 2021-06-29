@@ -94,11 +94,14 @@ export class TextSource implements WordSource {
     }
 
     pullBox(): Size | undefined {
-        // console.log(`TextSource.pullBox(): currrent=${this.current}, rectangles=${this.wordBoxes.length}`)
-        if (this.current >= this.wordBoxes.length)
+        // console.log(`TextSource.pullBox(): current=${this.current}, wordBoxes.length=${this.wordBoxes.length}`)
+        if (this.current >= this.wordBoxes.length) {
+            // console.log(`  return undefined`)
             return undefined
+        }
 
         const word = this.wordBoxes[this.current]
+        
         if (word.svg === undefined) {
             let text = document.createElementNS("http://www.w3.org/2000/svg", "text")
             text.style.cursor = "inherit"
@@ -111,10 +114,14 @@ export class TextSource implements WordSource {
             text.textContent = word.word
             word.svg = text
             this.parentSVG.appendChild(text)
-            // baseline was set to y = 0, hence the bounding box now reveals ascent & descent
-            let bbox = word.svg.getBBox()
-            word.ascent = -bbox.y
         }
+
+        // with the baseline at y, the bounding box provides information on ascent & descent
+        const y = Number.parseFloat(word.svg.getAttributeNS("", "y") as string)
+        let bbox = word.svg.getBBox()
+        word.ascent = y - bbox.y
+        word.ascent = y - bbox.y
+        // console.log(word)
 
         if (word.word.length !== 0) {
             word.size.width = word.svg.getComputedTextLength()
@@ -124,6 +131,8 @@ export class TextSource implements WordSource {
             word.size.width = 0
             word.size.height = this.height
         }
+
+        // console.log(`  return word '${word.word}' with svg ${word.svg === undefined ? "no" : "yes"}`)
 
         return word.size
     }
@@ -135,8 +144,6 @@ export class TextSource implements WordSource {
     updateSVG() {
         let visible = true
         for (let word of this.wordBoxes) {
-            if (word.endOfWrap)
-                visible = false
             if (visible) {
                 if (word.svg === undefined) {
                     console.log(`TextSource: word within visible area as no SVG element`)
@@ -151,6 +158,8 @@ export class TextSource implements WordSource {
                     word.svg = undefined
                 }
             }
+            if (word.endOfWrap)
+                visible = false
         }
     }
 

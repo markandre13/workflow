@@ -20,12 +20,11 @@ import { expect, use } from "chai"
 import chaiAlmost = require('chai-almost')
 use(chaiAlmost())
 
-import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "../../src/shared/geometry"
+import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "shared/geometry"
 
-import { Path } from "../../src/client/paths"
-import * as figure from "../../src/client/figures"
-import { Tool, SelectToolState } from "../../src/client/figuretools"
-import { FigureEditorUser } from "../../src/client/figureeditor/FigureEditorUser"
+import * as figure from "client/figures"
+import { Tool, SelectToolState } from "client/figuretools"
+import { FigureEditorScene } from "./FigureEditorScene"
 
 declare global {
     interface SVGPathElement {
@@ -43,7 +42,7 @@ describe("FigureEditor", () => {
             describe("single figure", () => {
                 it("no transformation", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle0 = new Rectangle(50.5, 50.5, 20, 30)
                     test.addRectangle(rectangle0)
 
@@ -55,7 +54,7 @@ describe("FigureEditor", () => {
                     test.selectionHasRectangle(rectangle0)
                 })
                 it("translated", () => {
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle0 = new Rectangle(50, 50, 20, 30)
                     test.addRectangle(rectangle0, new Point(100, 0))
 
@@ -69,7 +68,7 @@ describe("FigureEditor", () => {
                 it("scaled")
                 it("rotated", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle0 = new Rectangle(50, 50, 20, 30)
                     let radiants = Math.PI / 8
                     test.addRectangle(rectangle0, rectangle0.center(), radiants)
@@ -86,7 +85,7 @@ describe("FigureEditor", () => {
             describe("group of figures", () => {
                 it("no transformation", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
                     test.addRectangle(rectangle0)
@@ -102,7 +101,7 @@ describe("FigureEditor", () => {
                 })
                 it("same rotation", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let radiants = Math.PI / 8
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
@@ -130,7 +129,7 @@ describe("FigureEditor", () => {
                 })
                 it("rotated orthogonal to each other", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let radiants = Math.PI / 8
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
@@ -170,7 +169,7 @@ describe("FigureEditor", () => {
                 })
                 it("different rotation", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let radiants = Math.PI / 8
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
@@ -218,7 +217,7 @@ describe("FigureEditor", () => {
         describe("marquee", () => {
             it("single figure", () => {
                 // GIVEN
-                let test = new FigureEditorUser()
+                let test = new FigureEditorScene()
                 let rectangle0 = new Rectangle(50, 50, 20, 30)
                 test.addRectangle(rectangle0)
 
@@ -232,7 +231,7 @@ describe("FigureEditor", () => {
             })
             it("subset of group of figures", () => {
                 // GIVEN
-                let test = new FigureEditorUser()
+                let test = new FigureEditorScene()
                 let innerRect0 = new Rectangle(50, 50, 10, 10)
                 test.addRectangle(innerRect0)
                 let innerRect1 = new Rectangle(70, 70, 10, 10)
@@ -258,7 +257,7 @@ describe("FigureEditor", () => {
             })
             it("translated figure", () => {
                 // GIVEN
-                let test = new FigureEditorUser()
+                let test = new FigureEditorScene()
                 let rectangle0 = new Rectangle(50, 50, 20, 30)
                 test.addRectangle(rectangle0, { x: 100, y: 0 })
 
@@ -277,7 +276,7 @@ describe("FigureEditor", () => {
             describe("single figure", () => {
                 it("moves figure's outline before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
 
                     let r0 = new Rectangle(50, 50, 20, 30)
                     let translation = new Point(10, -10)
@@ -299,7 +298,7 @@ describe("FigureEditor", () => {
                 })
                 it("moves figure without matrix when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let r0 = new Rectangle(50.5, 50.5, 20, 30)
                     let translation = new Point(10, -10)
                     test.addRectangle(r0)
@@ -321,7 +320,7 @@ describe("FigureEditor", () => {
                 })
                 it("moves figure with matrix when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let r0 = new Rectangle(50, 50, 20, 30)
                     let translation = new Point(10, -10)
                     test.addRectangle(r0, new Point(), 0)
@@ -344,7 +343,7 @@ describe("FigureEditor", () => {
                 it("moves a translated figure")
                 it("moves a rotated figure", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let r0 = new Rectangle(50, 50, 20, 30)
                     test.addRectangle(r0, r0.center(), Math.PI / 8)
                     test.selectFigure(0)
@@ -371,7 +370,7 @@ describe("FigureEditor", () => {
             describe("single figure", () => {
                 it("scales figure's outline before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle = new Rectangle(50, 50, 20, 30)
                     test.addRectangle(rectangle)
                     test.selectFigure()
@@ -389,7 +388,7 @@ describe("FigureEditor", () => {
                 })
                 it("scales figure when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle = new Rectangle(50, 50, 20, 30)
                     test.addRectangle(rectangle)
                     test.selectFigure()
@@ -412,7 +411,7 @@ describe("FigureEditor", () => {
                 it("scales a translated figure")
                 it("scales a rotated figure", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle = new Rectangle(50, 50, 20, 30)
                     let scaled = new Rectangle(40, 65, 30, 15)
                     test.addRectangle(rectangle, rectangle.center(), Math.PI / 8)
@@ -434,7 +433,7 @@ describe("FigureEditor", () => {
             describe("group of figures", () => {
                 it("scales outline of two figure before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rect0 = new Rectangle(50, 50, 20, 30)
                     let rect1 = new Rectangle(100, 100, 40, 50)
                     test.addRectangle(rect0)
@@ -462,7 +461,7 @@ describe("FigureEditor", () => {
                 })
                 it("scales two figures when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rect0 = new Rectangle(50, 50, 20, 30)
                     let rect1 = new Rectangle(100, 100, 40, 50)
                     test.addRectangle(rect0)
@@ -497,7 +496,7 @@ describe("FigureEditor", () => {
             describe("single figure", () => {
                 it("rotates figure's outline before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle = new Rectangle({ origin: { x: 50.5, y: 50.5 }, size: { width: 20, height: 30 } })
                     let fig = new figure.Rectangle(rectangle)
                     fig.stroke = "#000"
@@ -521,7 +520,7 @@ describe("FigureEditor", () => {
 
                 it("rotates figure when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle = new Rectangle({ origin: { x: 50.5, y: 50.5 }, size: { width: 20, height: 30 } })
                     let fig = new figure.Rectangle(rectangle)
                     fig.stroke = "#000"
@@ -547,7 +546,7 @@ describe("FigureEditor", () => {
 
                 it("rotates already rotated figure's outline before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle = new Rectangle({ origin: { x: 50, y: 50 }, size: { width: 20, height: 30 } })
                     let fig = new figure.Rectangle(rectangle)
                     fig.stroke = "#000"
@@ -585,7 +584,7 @@ describe("FigureEditor", () => {
 
                 it("rotates already rotated figure when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle = new Rectangle({ origin: { x: 50.5, y: 50.5 }, size: { width: 20, height: 30 } })
                     let fig = new figure.Rectangle(rectangle)
                     fig.stroke = "#000"
@@ -626,7 +625,7 @@ describe("FigureEditor", () => {
                 })
                 it("rotates a translated figure", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
                     let rectangle0 = new Rectangle(50, 50, 20, 30)
                     let translate = new Point(100, 0)
                     test.addRectangle(rectangle0, translate)
@@ -652,7 +651,7 @@ describe("FigureEditor", () => {
             describe("group of figures", () => {
                 it("rotate outline of two figures using nw handle before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
                     test.addRectangle(rectangle0)
@@ -680,7 +679,7 @@ describe("FigureEditor", () => {
                 })
                 it("rotate two figures using nw handle", () => {
                     // GIVEN
-                    let test = new FigureEditorUser()
+                    let test = new FigureEditorScene()
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
                     test.addRectangle(rectangle0)
@@ -715,7 +714,7 @@ describe("FigureEditor", () => {
         describe("delete", () => {
             it("single figure", () => {
                 // GIVEN
-                let test = new FigureEditorUser()
+                let test = new FigureEditorScene()
                 let rectangle0 = new Rectangle(50, 50, 20, 30)
                 test.addRectangle(rectangle0)
 
@@ -733,7 +732,7 @@ describe("FigureEditor", () => {
             })
             it("subset of group of figures", () => {
                 // GIVEN
-                let test = new FigureEditorUser()
+                let test = new FigureEditorScene()
                 let innerRect0 = new Rectangle(50, 50, 10, 10)
                 test.addRectangle(innerRect0)
                 let innerRect1 = new Rectangle(70, 70, 10, 10)
@@ -766,7 +765,7 @@ describe("FigureEditor", () => {
         describe("lifecycle", () => {
             it("switch between operations (scale, move, scale)", () => {
                 // GIVEN
-                let test = new FigureEditorUser()
+                let test = new FigureEditorScene()
                 let rect0 = new Rectangle(50, 50, 20, 30)
                 test.addRectangle(rect0)
                 test.selectFigure(0)
@@ -809,7 +808,7 @@ describe("FigureEditor", () => {
 
     describe("figureeditor's path and svg cache", () => {
         it("adding one figure creates one path and one svg", () => {
-            let test = new FigureEditorUser()
+            let test = new FigureEditorScene()
             let fig1 = new figure.Rectangle({ origin: { x: 50, y: 50 }, size: { width: 20, height: 30 } })
             test.addFigure(fig1)
 
@@ -826,7 +825,7 @@ describe("FigureEditor", () => {
         })
 
         it("adding two figures creates two paths and two svgs", () => {
-            let test = new FigureEditorUser()
+            let test = new FigureEditorScene()
             let fig1 = new figure.Rectangle({ origin: { x: 50, y: 10 }, size: { width: 20, height: 30 } })
             test.addFigure(fig1)
 

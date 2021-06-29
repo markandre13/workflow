@@ -11,7 +11,7 @@
           "focus": false,
           "panel": "new"
           },
-          "command": "./node_modules/.bin/karma start --singleRun=false --autoWatch=true config/karma.conf.js",
+          "command": "./node_modules/.bin/karma start --singleRun=false --autoWatch=true config/karma-unit.conf.js",
     
           // This task is run before some debug tasks.
           // Problem is, it's a watch script, and since it never exits, VSCode

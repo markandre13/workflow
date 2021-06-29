@@ -103,13 +103,22 @@ export class Cursor {
             default:
                 if (e.key.length == 1) {
                     r.word = r.word.slice(0, this.offsetChar) + e.key + r.word.slice(this.offsetChar)
-                    r.svg!.textContent = r.word
+                    if (r.svg !== undefined) {
+                        r.svg.textContent = r.word
+                        // r.size.width = r.svg.getComputedTextLength() // FIXME: move into TextSource
+                    }
                     this.offsetChar++
                     // this.updateCursor()
                     
                     // console.log(`update wrap: old box width = ${r.size.width}`)
-                    r.size.width = r.svg!.getComputedTextLength() // FIXME: move into TextSource
                     // console.log(`update wrap: new box width = ${r.size.width}`)
+
+                    // this.textSource.reset()
+                    // this.textSource.initializeWordBoxes(svg)
+                    // let wordwrap = new WordWrap(this.path as Path)
+                    // wordwrap.placeWordBoxes(this.textSource)
+                    // this.textSource.updateSVG()
+                    // this.updateCursor()
 
                     this.textSource.reset()
                     // this.wordwrap.trace = true
@@ -278,19 +287,24 @@ export class Cursor {
         if (r.word.length === 0) {
             x = 0
         } else {
-            console.log(`word='${r.word}', word.length=${r.word.length}, call getSubStringLength(0, offsetChar=${this.offsetChar})`)
+            // console.log(`word='${r.word}', word.length=${r.word.length}, call getSubStringLength(0, offsetChar=${this.offsetChar})`)
             x = this.offsetChar === 0 ? 0 : r.svg!.getSubStringLength(0, this.offsetChar)
         }
         // set position
         this.position.x = r.origin.x + x
         this.position.y = r.origin.y
 
-        console.log(`updateCursor(): offsetWord=${this.offsetWord}, offsetChar=${this.offsetChar}, x=${this.position.x}, y=${this.position.y}, height=${r.size.height}`)
+        // console.log(`updateCursor(): offsetWord=${this.offsetWord}, offsetChar=${this.offsetChar}, x=${this.position.x}, y=${this.position.y}, height=${r.size.height}`)
 
-        this.cursor.setAttributeNS("", "x1", String(r.origin.x + x))
-        this.cursor.setAttributeNS("", "y1", String(r.origin.y))
-        this.cursor.setAttributeNS("", "x2", String(r.origin.x + x))
-        this.cursor.setAttributeNS("", "y2", String(r.origin.y + r.size.height))
+        const xs = `${Math.round(r.origin.x + x) + 0.5}`
+        const y1 = `${Math.round(r.origin.y) + 0.5}`
+        const y2 = `${Math.round(r.origin.y + r.size.height) + 0.5}`
+
+        this.cursor.setAttributeNS("", "x1", xs)
+        this.cursor.setAttributeNS("", "y1", y1)
+        this.cursor.setAttributeNS("", "x2", xs)
+        this.cursor.setAttributeNS("", "y2", y2)
+
         // disable blinking for 0.5s while moving
         if (this.timer) {
             window.clearTimeout(this.timer)
@@ -301,5 +315,13 @@ export class Cursor {
             this.cursor.classList.add("cursor-blink")
             this.timer = undefined
         }, 500)
+    }
+
+    stop() {
+        if (this.timer) {
+            window.clearTimeout(this.timer)
+            this.timer = undefined
+            this.cursor.classList.remove("cursor-blink")
+        }
     }
 }

@@ -61,11 +61,11 @@ export class TextTool extends Tool {
         this.state = TextToolState.NONE
         this.currentCursor = TextCursor.NONE
     }
-    
+
     override activate(event: EditorEvent) {
         this.state = TextToolState.NONE
     }
-    
+
     override deactivate(event: EditorEvent) {
         this.setCursor(TextCursor.NONE, event.editor.svgView)
         event.editor.svgView.style.cursor = "default"
@@ -80,8 +80,8 @@ export class TextTool extends Tool {
             this.mouseDownAt = event
             // create text area
             this.defs = document.createElementNS("http://www.w3.org/2000/svg", "defs")
-            this.defs.innerHTML = 
-            `<pattern id="textToolPattern"
+            this.defs.innerHTML =
+                `<pattern id="textToolPattern"
                 x="0" y="0" width="100" height="4"
                 patternUnits="userSpaceOnUse"
                 patternTransform="rotate(45)">
@@ -110,7 +110,7 @@ export class TextTool extends Tool {
     }
 
     override mousemove(event: EditorEvent) {
-        switch(this.state) {
+        switch (this.state) {
             case TextToolState.NONE:
             case TextToolState.EDIT:
                 let figure = event.editor.selectedLayer!.findFigureAt(event)
@@ -126,28 +126,30 @@ export class TextTool extends Tool {
                 }
                 break
             case TextToolState.AREA:
-                let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
-                if (x1<x0) [x0,x1] = [x1,x0]
-                if (y1<y0) [y0,y1] = [y1,y0]
-                this.svgRect!.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
-                this.svgRect!.setAttributeNS("", "y", String(Math.round(y0)+0.5))
-                this.svgRect!.setAttributeNS("", "width", String(Math.round(x1-x0)))
-                this.svgRect!.setAttributeNS("", "height", String(Math.round(y1-y0)))
+                let x0 = this.mouseDownAt!.x, y0 = this.mouseDownAt!.y, x1 = event.x, y1 = event.y
+                if (x1 < x0) [x0, x1] = [x1, x0]
+                if (y1 < y0) [y0, y1] = [y1, y0]
+                this.svgRect!.setAttributeNS("", "x", String(Math.round(x0) + 0.5)) // FIXME: just a hunch for nice rendering
+                this.svgRect!.setAttributeNS("", "y", String(Math.round(y0) + 0.5))
+                this.svgRect!.setAttributeNS("", "width", String(Math.round(x1 - x0)))
+                this.svgRect!.setAttributeNS("", "height", String(Math.round(y1 - y0)))
                 break
         }
     }
 
     override mouseup(event: EditorEvent) {
-        switch(this.state) {
+        switch (this.state) {
             case TextToolState.AREA:
                 this.state = TextToolState.EDIT
                 event.editor.decorationOverlay.removeChild(this.svgRect)
                 event.editor.svgView.removeChild(this.defs)
 
-                let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
-                if (x1<x0) [x0,x1] = [x1,x0]
-                if (y1<y0) [y0,y1] = [y1,y0]
-                let rect = new Rectangle({origin: { x: x0, y: y0 }, size: { width: x1-x0, height: y1-y0 }})
+                let x0 = this.mouseDownAt!.x, y0 = this.mouseDownAt!.y, x1 = event.x, y1 = event.y
+                if (x1 < x0) [x0, x1] = [x1, x0]
+                if (y1 < y0) [y0, y1] = [y1, y0]
+
+                // we add the figure here
+                let rect = new Rectangle({ origin: { x: x0, y: y0 }, size: { width: x1 - x0, height: y1 - y0 } })
                 this.text = new figures.Text(rect)
                 event.editor.addFigure(this.text)
 
@@ -161,15 +163,23 @@ export class TextTool extends Tool {
     override keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
         if (this.state == TextToolState.EDIT) {
             this.text.cursor.keydown(keyboardEvent as StrictKeyboardEvent)
+            // this.text.updateSVG()
+
+            // this.text.textSource.reset()
+            // this.text.textSource.initializeWordBoxes(this.text.)
+            // let wordwrap = new WordWrap(this.path as Path)
+            // wordwrap.placeWordBoxes(this.textSource)
+            // this.textSource.updateSVG()
+            // this.updateCursor()
         }
     }
-    
+
     private setCursor(type: TextCursor, svg: SVGElement) {
         if (this.currentCursor === type)
             return
         this.currentCursor = type
         svg.style.cursor = ""
-        switch(type) {
+        switch (type) {
             case TextCursor.NONE:
                 svg.style.cursor = "default"
                 break
@@ -184,7 +194,7 @@ export class TextTool extends Tool {
                 break
             case TextCursor.PATH:
                 svg.style.cursor = `url(${Tool.cursorPath}text-path.svg) 9 12, move`
-                break                        
+                break
         }
     }
 }
