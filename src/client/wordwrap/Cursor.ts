@@ -16,16 +16,18 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Text } from "../figures/Text"
+import { Path } from "../paths"
 import { WordBox } from "./WordBox"
 import { Point } from "shared/geometry"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
-import { EditorEvent } from "../figureeditor"
+import { EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
 
 export type WhitespaceKeys = "Enter" | "Tab" | " "
- export type NavigationKeys = "ArrowDown" | "ArrowLeft" | "ArrowRight" | "ArrowUp" | "End" | "Home" | "PageDown" | "PageUp"
- export type EditingKeys = "Backspace" | "Clear" | "Copy" | "CrSel" | "Cut" | "Delete" | "EraseEof" | "ExSel" | "Insert" | "Paste" | "Redo" | "Undo"
- export type UIKeys = "Accept" | "Again" | "Attn" | "Cancel" | "ContextMenu" | "Escape" | "Execute" | "Find" | "Finish" | "Help" | "Pause" | "Play" | "Props" | "Select" | "ZoomIn" | "ZoomOut"
+export type NavigationKeys = "ArrowDown" | "ArrowLeft" | "ArrowRight" | "ArrowUp" | "End" | "Home" | "PageDown" | "PageUp"
+export type EditingKeys = "Backspace" | "Clear" | "Copy" | "CrSel" | "Cut" | "Delete" | "EraseEof" | "ExSel" | "Insert" | "Paste" | "Redo" | "Undo"
+export type UIKeys = "Accept" | "Again" | "Attn" | "Cancel" | "ContextMenu" | "Escape" | "Execute" | "Find" | "Finish" | "Help" | "Pause" | "Play" | "Props" | "Select" | "ZoomIn" | "ZoomOut"
  
  export interface StrictKeyboardEvent extends KeyboardEvent {
      readonly key: WhitespaceKeys | NavigationKeys | EditingKeys | UIKeys
@@ -33,6 +35,7 @@ export type WhitespaceKeys = "Enter" | "Tab" | " "
 
 // Cursor navigates and edits the TextSource
 export class Cursor {
+    text: Text
     svg: SVGElement
     wordwrap: WordWrap
     textSource: TextSource
@@ -45,7 +48,8 @@ export class Cursor {
     offsetWord: number      // index within wordBoxes
     offsetChar: number      // index within wordBox
 
-    constructor(svg: SVGElement, wordwrap: WordWrap, textSource: TextSource) {
+    constructor(text: Text, svg: SVGElement, wordwrap: WordWrap, textSource: TextSource) {
+        this.text = text
         this.svg = svg
         this.wordwrap = wordwrap
         this.textSource = textSource
@@ -65,7 +69,7 @@ export class Cursor {
         return cursor
     }
 
-    mousedown(e: EditorEvent) {
+    mousedown(e: EditorMouseEvent) {
         this.offsetWord = 0
         this.offsetChar = 0
         if (this.goNearY(e.y)) {
@@ -74,10 +78,10 @@ export class Cursor {
         }
     }
         
-    keydown(e: StrictKeyboardEvent) {
-        e.preventDefault()
+    keydown(e: EditorKeyboardEvent) {
+        e.event.preventDefault()
         let r = this.boxes[this.offsetWord]!
-        switch (e.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
+        switch (e.event.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
             case "ArrowRight":
                 ++this.offsetChar
                 if (this.offsetChar > r.word.length) {
@@ -102,8 +106,8 @@ export class Cursor {
                 this.updateCursor()
                 break
             default:
-                if (e.key.length == 1) {
-                    if (e.key === " ") {
+                if (e.event.key.length == 1) {
+                    if (e.event.key === " ") {
                         if (this.offsetChar === 0) {
                             console.log(`Cursor.keyDown(): ignoring ' ' at beginning of word`)
                             return
@@ -116,21 +120,24 @@ export class Cursor {
                         this.offsetChar = 0
                         this.offsetWord++
                     } else {
-                        r.word = r.word.slice(0, this.offsetChar) + e.key + r.word.slice(this.offsetChar)
+                        r.word = r.word.slice(0, this.offsetChar) + e.event.key + r.word.slice(this.offsetChar)
                         if (r.svg !== undefined) {
                             r.svg.textContent = r.word
                         }
                         this.offsetChar++
                     }
+
+                    // redo word wrap
                     this.textSource.reset()
-                    this.wordwrap.initializeSweepBufferFrom(this.wordwrap.path)
+                    const path = e.editor.getPath(this.text) as Path
+                    this.wordwrap.initializeSweepBufferFrom(path)
                     this.wordwrap.placeWordBoxes(this.textSource)
                     this.textSource.updateSVG()
                     this.updateCursor()
                 }
         }
 
-        switch (e.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
+        switch (e.event.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
             case "ArrowDown":
                 // console.log("keyDown: start")
                 if (this.xDuringVerticalMovement === undefined)

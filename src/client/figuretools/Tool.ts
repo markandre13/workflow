@@ -19,10 +19,11 @@
 import { AbstractPath } from "../paths/AbstractPath"
 import { Path } from "../paths/Path"
 import { Figure } from "../figures/Figure"
-import { EditorEvent } from "../figureeditor/EditorEvent"
+import { EditorMouseEvent } from "../figureeditor/EditorMouseEvent"
+import { EditorKeyboardEvent } from "../figureeditor/EditorKeyboardEvent"
 import { FigureSelectionModel } from "../figureeditor/FigureSelectionModel"
 import { FigureEditor } from "../figureeditor/FigureEditor"
-import { Point, Rectangle, Matrix, pointPlusPoint, pointMinusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual } from "shared/geometry"
+import { Rectangle, Matrix, pointPlusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual } from "shared/geometry"
 
 export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()
@@ -36,12 +37,12 @@ export class Tool {
     outline: SVGGElement | undefined
     decoration: SVGGElement | undefined
 
-    activate(e: EditorEvent) {}
-    deactivate(e: EditorEvent) {}
-    mousedown(e: EditorEvent) {}
-    mousemove(e: EditorEvent) {}
-    mouseup(e: EditorEvent) {}
-    keydown(ed: FigureEditor, e: KeyboardEvent) {}
+    activate(event: EditorMouseEvent) {}
+    deactivate(event: EditorMouseEvent) {}
+    mousedown(event: EditorMouseEvent) {}
+    mousemove(event: EditorMouseEvent) {}
+    mouseup(event: EditorMouseEvent) {}
+    keydown(event: EditorKeyboardEvent) {}
     
     constructor() {
         if (Tool.selection === undefined) Tool.selection = new FigureSelectionModel() // FIXME: initialization via static doesn't work

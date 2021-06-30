@@ -17,7 +17,7 @@
  */
 
 import { expect } from "chai"
-import { OrderedArray } from "../../src/client/OrderedArray"
+import { OrderedArray } from "client/OrderedArray"
 
 function less(a:number, b: number): boolean {
     if (a === undefined || b === undefined) {

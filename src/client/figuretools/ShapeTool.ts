@@ -16,10 +16,9 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AbstractPath } from "../paths/AbstractPath"
-import { Shape } from "../figures/Shape"
-import { EditorEvent } from "../figureeditor/EditorEvent"
 import { Tool } from "./Tool"
+import { Shape } from "../figures/Shape"
+import { EditorMouseEvent } from "../figureeditor"
 
 export class ShapeTool extends Tool {
     creator: Function
@@ -31,14 +30,14 @@ export class ShapeTool extends Tool {
         this.creator = creator
     }
     
-    override activate(event: EditorEvent) {
+    override activate(event: EditorMouseEvent) {
         Tool.selection.clear()
     }
     
-    override deactivate(event: EditorEvent) {
+    override deactivate(event: EditorMouseEvent) {
     }
 
-    override mousedown(event: EditorEvent) {
+    override mousedown(event: EditorMouseEvent) {
         this.shape = this.creator() as Shape
         this.shape.setHandlePosition(0, event)
         this.shape.setHandlePosition(2, event)
@@ -53,7 +52,7 @@ export class ShapeTool extends Tool {
         event.editor.decorationOverlay.appendChild(this.svg)
     }
 
-    override mousemove(event: EditorEvent) {
+    override mousemove(event: EditorMouseEvent) {
         if (!event.mouseDown)
             return
         let shape = this.shape!
@@ -62,7 +61,7 @@ export class ShapeTool extends Tool {
         shape.updateSVG(path, event.editor.decorationOverlay, this.svg)
     }
 
-    override mouseup(event: EditorEvent) {
+    override mouseup(event: EditorMouseEvent) {
         let shape = this.shape!
     
         shape.setHandlePosition(2, event)

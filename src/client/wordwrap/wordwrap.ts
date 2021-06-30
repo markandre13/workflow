@@ -544,6 +544,8 @@ export class WordWrap {
     }
 
     initializeSweepBufferFrom(path: Path) {
+        console.trace(this)
+
         this.sweepBuffer.length = 0
         let first: Point | undefined, previous: Point | undefined, current: Point | undefined
         for (let segment of path.data) {

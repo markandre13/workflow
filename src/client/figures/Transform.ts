@@ -17,16 +17,14 @@
  */
 
 import { Point, Rectangle, Matrix } from "shared/geometry"
+import { Path } from "client/paths/Path"
 import { Figure } from "./Figure"
 import { Group } from "./Group"
 import * as valuetype from "shared/workflow_valuetype"
-import * as value     from "shared/workflow_value"
-// import { AbstractPath } from "../paths/AbstractPath"
-import { PathGroup } from "../paths/PathGroup"
-import { Path } from "../paths/Path"
+import * as value from "shared/workflow_value"
 
+// TODO: get rid of this class and move the functionality into Group
 export class Transform extends Group implements valuetype.figure.Transform {
-    override matrix!: Matrix // FIXME?: why store a matrix here when there's also one in ext.Group?
     constructor(init?: Partial<Transform>) {
         super(init)
         value.figure.initTransform(this, init)

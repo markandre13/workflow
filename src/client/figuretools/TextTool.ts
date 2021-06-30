@@ -26,11 +26,9 @@
  ******************************************************************/
 
 import { Point, Rectangle } from "shared/geometry"
-import { EditorEvent } from "../figureeditor/EditorEvent"
-import { FigureEditor } from "../figureeditor/FigureEditor"
+import { EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
 import { Tool } from "./Tool"
 import * as figures from "../figures"
-import { StrictKeyboardEvent } from "../wordwrap/Cursor"
 
 enum TextCursor {
     NONE,
@@ -62,18 +60,18 @@ export class TextTool extends Tool {
         this.currentCursor = TextCursor.NONE
     }
 
-    override activate(event: EditorEvent) {
+    override activate(event: EditorMouseEvent) {
         this.state = TextToolState.NONE
     }
 
-    override deactivate(event: EditorEvent) {
+    override deactivate(event: EditorMouseEvent) {
         this.setCursor(TextCursor.NONE, event.editor.svgView)
         event.editor.svgView.style.cursor = "default"
         this.removeOutlines(event.editor)
         this.removeDecoration(event.editor)
     }
 
-    override mousedown(event: EditorEvent) {
+    override mousedown(event: EditorMouseEvent) {
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         if (figure === undefined) {
             this.state = TextToolState.AREA
@@ -109,7 +107,7 @@ export class TextTool extends Tool {
         // event.editor.addFigure(text)
     }
 
-    override mousemove(event: EditorEvent) {
+    override mousemove(event: EditorMouseEvent) {
         switch (this.state) {
             case TextToolState.NONE:
             case TextToolState.EDIT:
@@ -137,7 +135,7 @@ export class TextTool extends Tool {
         }
     }
 
-    override mouseup(event: EditorEvent) {
+    override mouseup(event: EditorMouseEvent) {
         switch (this.state) {
             case TextToolState.AREA:
                 this.state = TextToolState.EDIT
@@ -160,9 +158,9 @@ export class TextTool extends Tool {
         }
     }
 
-    override keydown(editor: FigureEditor, keyboardEvent: KeyboardEvent) {
+    override keydown(event: EditorKeyboardEvent) {
         if (this.state == TextToolState.EDIT) {
-            this.text.cursor.keydown(keyboardEvent as StrictKeyboardEvent)
+            this.text.cursor.keydown(event)
         }
     }
 

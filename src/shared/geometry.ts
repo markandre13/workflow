@@ -36,6 +36,9 @@ export class Point implements value.Point {
             value.initPoint(this, {x: xOrPoint, y: y!})
         }
     }
+    toString() {
+        return `Point(${this.x}, ${this.y})`
+    }
 }
 
 export class Size implements value.Size {
@@ -56,7 +59,7 @@ export class Size implements value.Size {
         }
     }
     toString() {
-        return `(${this.width}, ${this.height})`
+        return `Size(${this.width}, ${this.height})`
     }
 }
 
@@ -353,6 +356,10 @@ export class Rectangle implements value.Rectangle {
         this.size.width += expansion
         this.size.height += expansion
         return this
+    }
+
+    toString() {
+        return `Rectangle(${this.origin.x}, ${this.origin.y}, ${this.size.width}, ${this.size.height})`
     }
 }
 

@@ -19,7 +19,7 @@
 import { Point } from "../../shared/geometry"
 import { FigureEditor } from "./FigureEditor"
 
-export class EditorEvent extends Point {
+export class EditorMouseEvent extends Point {
     editor: FigureEditor
     mouseDown: boolean
     shiftKey: boolean

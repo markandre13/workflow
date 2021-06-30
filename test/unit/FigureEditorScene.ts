@@ -16,16 +16,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { SelectTool, TextTool, Tool } from "../../src/client/figuretools"
-import { LocalLayerModel } from "../../src/client/figureeditor/LocalLayerModel"
-import { Figure } from "../../src/client/figures"
-import * as figure from "../../src/client/figures"
-import { FigureEditor } from "../../src/client/figureeditor/FigureEditor"
-import { Path } from "../../src/client/paths"
+import { SelectTool, TextTool, Tool } from "client/figuretools"
+import { LocalLayerModel } from "client/figureeditor/LocalLayerModel"
+import { Figure } from "client/figures"
+import * as figure from "client/figures"
+import { FigureEditor, EditorKeyboardEvent } from "client/figureeditor"
+import { Path } from "client/paths"
 
 import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointPlusSize, pointMinusPoint, pointMinus } from "shared/geometry"
-import { LocalLayer } from "../../src/client/figureeditor/LocalLayer"
-import { EditorEvent } from "../../src/client/figureeditor/EditorEvent"
+import { LocalLayer } from "client/figureeditor/LocalLayer"
+import { EditorMouseEvent } from "client/figureeditor/EditorMouseEvent"
 
 // PageObject style API for testing FigureEditor
 // https://martinfowler.com/bliki/PageObject.html
@@ -38,6 +38,7 @@ export class FigureEditorScene {
     figures: Array<Figure>
     mousePosition: Point
     verbose: boolean
+
     constructor(verbose=false) {
         this.verbose = verbose
         this.id = 0
@@ -64,6 +65,14 @@ export class FigureEditorScene {
         this.model = model
         this.mousePosition = new Point()
         this.figures = []
+    }
+
+    sleep(milliseconds: number = 500) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve('success')
+            }, milliseconds)
+        })
     }
 
     // semantic operations
@@ -219,34 +228,34 @@ export class FigureEditorScene {
         if (this.verbose)
             console.log(`### KEY DOWN ${key}`)
         let k = new KeyboardEvent("keydown", {key: key})
-        this.figureeditor.tool!.keydown(this.figureeditor, k)
+        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, k))
     }
 
     mouseDownAt(point: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE DOWN AT ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
-        this.figureeditor.tool!.mousedown(new EditorEvent(this.figureeditor, point, {shiftKey: shift}))
+        this.figureeditor.tool!.mousedown(new EditorMouseEvent(this.figureeditor, point, {shiftKey: shift}))
     }
 
     moveMouseTo(point: Point, shift = true) {
         if (this.verbose)
             console.log(`### MOVE MOUSE TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
-        this.figureeditor.tool!.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
+        this.figureeditor.tool!.mousemove(new EditorMouseEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
     moveMouseBy(translation: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MOVE MOUSE BY ${translation.x}, ${translation.y}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
-        this.figureeditor.tool!.mousemove(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
+        this.figureeditor.tool!.mousemove(new EditorMouseEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
     mouseUp(shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE UP`)
-        this.figureeditor.tool!.mouseup(new EditorEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
+        this.figureeditor.tool!.mouseup(new EditorMouseEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
     }
 
     mouseClickAt(point: Point, shift=false): void {
@@ -296,7 +305,7 @@ export class FigureEditorScene {
             bubbles: true,
             key: "ArrowLeft"
         })
-        this.figureeditor.tool!.keydown(this.figureeditor, e)
+        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, e))
     }
 
     sendArrowRight() {
@@ -304,6 +313,6 @@ export class FigureEditorScene {
             bubbles: true,
             key: "ArrowRight"
         })
-        this.figureeditor.tool!.keydown(this.figureeditor, e)
+        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, e))
     }
 }

@@ -16,23 +16,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Figure } from "./Figure"
-import * as valuetype from "shared/workflow_valuetype"
+import { FigureEditor } from "./FigureEditor"
 
-/**
- * The base class for all figures which have a stroke and/or fill.
- * 
- * These include rectangle, circle, bezier curve, text, etc.
- * but not images, which bring their own color definition.
- */
-export abstract class AttributedFigure extends Figure implements valuetype.figure.AttributedFigure {
-    stroke!: string
-    strokeWidth!: number
-    fill!: string
-    constructor(init?: Partial<AttributedFigure>) {
-        super(init)
-        this.stroke = "#000"
-        this.strokeWidth = 1.0
-        this.fill = "#fff"
+export class EditorKeyboardEvent {
+    editor: FigureEditor
+    event: KeyboardEvent
+    constructor(editor: FigureEditor, event: KeyboardEvent) {
+        this.editor = editor
+        this.event = event
     }
 }

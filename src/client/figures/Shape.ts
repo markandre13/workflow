@@ -22,13 +22,19 @@ import { AttributedFigure } from "./AttributedFigure"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value     from "shared/workflow_value"
 
+/**
+ * The base class for all figures which fit into a rectangular shape with four handles to
+ * scale them like rectangle, circle, text, star, ...
+ */
 export abstract class Shape extends AttributedFigure implements valuetype.figure.Shape {
     origin!: Point
     size!: Size
+    
     constructor(init?: Partial<Shape>) {
         super(init)
         value.figure.initShape(this, init)
     }
+
     transform(transform: Matrix): boolean {
         if (!transform.isOnlyTranslateAndScale())
             return false
@@ -36,9 +42,11 @@ export abstract class Shape extends AttributedFigure implements valuetype.figure
         this.size = transform.transformSize(this.size)
         return true
     }
+
     bounds(): Rectangle {
         return new Rectangle(this)
     }
+
     getHandlePosition(i: number): Point | undefined {
         switch (i) {
             case 0: return { x: this.origin.x, y: this.origin.y }
@@ -48,6 +56,7 @@ export abstract class Shape extends AttributedFigure implements valuetype.figure
         }
         return undefined
     }
+
     setHandlePosition(handle: number, pt: Point): void {
         if (handle < 0 || handle > 3)
             throw Error("yikes")

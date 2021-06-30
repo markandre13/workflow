@@ -37,8 +37,7 @@ export class Text extends Shape implements valuetype.figure.Text {
         // this.strokeWidth = 0.0
         value.figure.initText(this, init)
         // this.text ="Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        this.textSource = new TextSource(this.text)
-        
+        this.textSource = new TextSource(this.text)     
     }
 
     distance(pt: Point): number {
@@ -68,10 +67,9 @@ export class Text extends Shape implements valuetype.figure.Text {
             let wordwrap = new WordWrap(path as Path)
             wordwrap.placeWordBoxes(this.textSource)
             this.textSource.updateSVG()
-            this.cursor = new Cursor(svg, wordwrap, this.textSource)
+            this.cursor = new Cursor(this, svg, wordwrap, this.textSource)
             parentSVG.removeChild(svg) // FIXME: change API so that figures add themselves to the parent
         } else {
-            // console.log(`Text.updateSVG(): update existing SVG`)
             this.textSource.reset()
             this.textSource.initializeWordBoxes(svg)
             let wordwrap = new WordWrap(path as Path)

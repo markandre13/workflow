@@ -25,7 +25,8 @@ import { StrokeAndFillModel } from "../widgets/strokeandfill"
 import { ToolModel } from "../figuretools/ToolModel"
 import { Layer } from "./Layer"
 import { LayerModel } from "./LayerModel"
-import { EditorEvent } from "./EditorEvent"
+import { EditorMouseEvent } from "./EditorMouseEvent"
+import { EditorKeyboardEvent } from "./EditorKeyboardEvent"
 import { Group } from "../figures/Group"
 import { LayerEvent } from "./LayerEvent"
 
@@ -53,6 +54,23 @@ export enum Operation {
     MOVE_HANDLE
 }
 
+// The FigureEditor's Cache
+// ------------------------
+// the cache maps figure.id to a CacheEntry. this is used to
+// * locate figures by id
+// * store the figure's path (figures create the path with getPath(), then it undergoes
+//   various transformations (move, scale, deform, perspective, boolean operations, ...),
+//   and is then stored here. this transformed path is then provided to the figure
+//   in the updateSVG() call
+// * stores the figure's SVGElement (figures create the SVGElement with updateSVG() but do
+//   not store it. this SVG is then also provided so updateSVG() to update an existing SVG
+//
+// this pattern was choosen to be able to transform bitmap images:
+// * the bitmap image will provide a path with Figure.getPath()
+// * the figureeditor will apply all other transformations to to path
+// * the figureeditor will provide the path during Figure.updateSVG(), where the
+//   figure will then squezze the bitmap into the provided path
+type Cache = Map<number, CacheEntry>
 class CacheEntry {
     figure: figure.Figure
     parent?: CacheEntry
@@ -79,8 +97,7 @@ export class FigureEditor extends ModelView<LayerModel> {
     decorationOverlay: SVGElement
     layer?: SVGElement
 
-    // cache used by updateView()
-    cache: Map<number, CacheEntry>
+    cache: Cache
 
     constructor() {
         super()
@@ -102,24 +119,24 @@ export class FigureEditor extends ModelView<LayerModel> {
             window.onkeydown = (keyboardEvent: KeyboardEvent) => {
                 keyboardEvent.preventDefault()
                 if (this.tool && this.selectedLayer)
-                    this.tool.keydown(this, keyboardEvent)
+                    this.tool.keydown(new EditorKeyboardEvent(this, keyboardEvent))
             }
 
             mouseEvent.preventDefault()
             this.mouseButtonIsDown = true
             if (this.tool && this.selectedLayer)
-                this.tool.mousedown(this.createEditorEvent(mouseEvent))
+                this.tool.mousedown(this.createEditorMouseEvent(mouseEvent))
         }
         this.scrollView.onmousemove = (mouseEvent: MouseEvent) => {
             mouseEvent.preventDefault()
             if (this.tool && this.selectedLayer)
-                this.tool.mousemove(this.createEditorEvent(mouseEvent))
+                this.tool.mousemove(this.createEditorMouseEvent(mouseEvent))
         }
         this.scrollView.onmouseup = (mouseEvent: MouseEvent) => {
             mouseEvent.preventDefault()
             this.mouseButtonIsDown = false
             if (this.tool && this.selectedLayer)
-                this.tool.mouseup(this.createEditorEvent(mouseEvent))
+                this.tool.mouseup(this.createEditorMouseEvent(mouseEvent))
         }
 
         this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg")
@@ -140,11 +157,11 @@ export class FigureEditor extends ModelView<LayerModel> {
         if (tool == this.tool)
             return
         if (this.tool) {
-            this.tool.deactivate(this.createEditorEvent())
+            this.tool.deactivate(this.createEditorMouseEvent())
         }
         this.tool = tool
         if (this.tool)
-            this.tool.activate(this.createEditorEvent())
+            this.tool.activate(this.createEditorMouseEvent())
     }
 
     override setModel(model?: LayerModel): void {
@@ -168,11 +185,11 @@ export class FigureEditor extends ModelView<LayerModel> {
             if (this.strokeAndFillModel === model)
                 return
             if (this.tool) {
-                this.tool.deactivate(this.createEditorEvent())
+                this.tool.deactivate(this.createEditorMouseEvent())
             }
             this.strokeAndFillModel = model
             if (this.tool) {
-                this.tool.activate(this.createEditorEvent())
+                this.tool.activate(this.createEditorMouseEvent())
             }
         }
         else {
@@ -200,7 +217,7 @@ export class FigureEditor extends ModelView<LayerModel> {
             if (this.model) {
                 // console.log(`### FigureEditor.updateView(): NEW MODEL, FAKE ADD_FIGURES MESSAGE`)
                 let figures = this.model.layers[0].data
-                    .filter(figure => !this.cache.has(figure.id))
+                    .filter(figure => !this.cache.has(figure.id)) // FIXME: cache should be empty
                     .map( figure => figure.id )
                 event = {
                     operation: Operation.ADD_FIGURES,
@@ -208,6 +225,7 @@ export class FigureEditor extends ModelView<LayerModel> {
                 }
             } else {
                 throw Error(`FigureEditor.updateView(): handling of removing a model hasn't been implemented yet`)
+                // TODO: clear cache, etc.
             }
         }
 
@@ -259,7 +277,7 @@ export class FigureEditor extends ModelView<LayerModel> {
 
                     // variant ii: update the existing path
                     // console.log(`FigureEditor.updateView(): got transform figures`)
-                    let path = cached.path!!
+                    let path = cached.path!
                     // console.log(`  before transform ${JSON.stringify(path)}`)
                     let m = event.matrix
                     // console.log(`FigureEditor.updateView(): transform path of figure ${id} by rotate ${m.getRotation()}, translate=${m.e}, ${m.f}`)
@@ -311,6 +329,7 @@ export class FigureEditor extends ModelView<LayerModel> {
             this.scrollView.scrollTop = -this.bounds.origin.y
         }, 0)
     }
+
     adjustBounds(): void {
         if (!this.model)
             return
@@ -353,7 +372,8 @@ export class FigureEditor extends ModelView<LayerModel> {
         this.scrollView.scrollTop = y
         this.bounds = bounds
     }
-    createEditorEvent(mouseEvent?: MouseEvent): EditorEvent {
+
+    createEditorMouseEvent(mouseEvent?: MouseEvent): EditorMouseEvent {
         if (mouseEvent === undefined) {
             return { editor: this, x: 0, y: 0, shiftKey: false, mouseDown: false }
         }
@@ -364,14 +384,21 @@ export class FigureEditor extends ModelView<LayerModel> {
         let y = (mouseEvent.clientY + 0.5 - r.top + this.scrollView.scrollTop + this.bounds.origin.y) / this.zoom
         return { editor: this, x: x, y: y, shiftKey: mouseEvent.shiftKey, mouseDown: this.mouseButtonIsDown }
     }
+
     transformSelection(matrix: Matrix): void {
         // console.log("FigureEditor.transformSelection()")
         this.model!.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
     }
+
     deleteSelection(): void {
         this.model!.delete(this.selectedLayer!.id, Tool.selection.figureIds())
     }
+
     addFigure(figure: Figure): void {
         this.model!.add(this.selectedLayer!.id, figure)
+    }
+
+    getPath(figure: Figure): Path | undefined {
+        return this.cache.get(figure.id)?.path
     }
 }

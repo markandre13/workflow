@@ -42,42 +42,42 @@ describe("FigureEditor", () => {
             describe("single figure", () => {
                 it("no transformation", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle0 = new Rectangle(50.5, 50.5, 20, 30)
-                    test.addRectangle(rectangle0)
+                    scene.addRectangle(rectangle0)
 
                     // WHEN
-                    test.mouseDownAt(new Point(60, 65))
-                    test.mouseUp()
+                    scene.mouseDownAt(new Point(60, 65))
+                    scene.mouseUp()
 
                     // THEN
-                    test.selectionHasRectangle(rectangle0)
+                    scene.selectionHasRectangle(rectangle0)
                 })
                 it("translated", () => {
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle0 = new Rectangle(50, 50, 20, 30)
-                    test.addRectangle(rectangle0, new Point(100, 0))
+                    scene.addRectangle(rectangle0, new Point(100, 0))
 
                     // WHEN
-                    test.mouseDownAt(new Point(60 + 100, 65))
-                    test.mouseUp()
+                    scene.mouseDownAt(new Point(60 + 100, 65))
+                    scene.mouseUp()
 
                     // THEN
-                    test.selectionHasRectangle(new Rectangle(50 + 100, 50, 20, 30))
+                    scene.selectionHasRectangle(new Rectangle(50 + 100, 50, 20, 30))
                 })
                 it("scaled")
                 it("rotated", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle0 = new Rectangle(50, 50, 20, 30)
                     let radiants = Math.PI / 8
-                    test.addRectangle(rectangle0, rectangle0.center(), radiants)
+                    scene.addRectangle(rectangle0, rectangle0.center(), radiants)
 
                     // WHEN
-                    test.selectFigure()
+                    scene.selectFigure()
 
                     // THEN
-                    test.selectionHasRectangle(rectangle0, rectangle0.center(), radiants)
+                    scene.selectionHasRectangle(rectangle0, rectangle0.center(), radiants)
                 })
                 it("translated, scaled and rotated")
             })
@@ -85,105 +85,105 @@ describe("FigureEditor", () => {
             describe("group of figures", () => {
                 it("no transformation", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
-                    test.addRectangle(rectangle0)
+                    scene.addRectangle(rectangle0)
 
                     let rectangle1 = new Rectangle(70, 110, 30, 40)
-                    test.addRectangle(rectangle1)
+                    scene.addRectangle(rectangle1)
 
-                    test.selectFigure(0)
-                    test.selectFigure(1)
+                    scene.selectFigure(0)
+                    scene.selectFigure(1)
 
                     let r2 = new Rectangle(50, 50, 50, 100)
-                    test.selectionHasRectangle(r2)
+                    scene.selectionHasRectangle(r2)
                 })
                 it("same rotation", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let radiants = Math.PI / 8
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
-                    test.addRectangle(rectangle0, rectangle0.center(), radiants)
+                    scene.addRectangle(rectangle0, rectangle0.center(), radiants)
 
                     let rectangle1 = new Rectangle(70, 110, 30, 40)
-                    test.addRectangle(rectangle1, rectangle1.center(), radiants)
+                    scene.addRectangle(rectangle1, rectangle1.center(), radiants)
 
-                    test.selectFigure(0)
-                    test.selectFigure(1)
+                    scene.selectFigure(0)
+                    scene.selectFigure(1)
 
                     let transform = new Matrix()
                     transform.translate(pointMinus(rectangle0.center()))
                     transform.rotate(radiants)
                     transform.translate(rectangle0.center())
                     let p = transform.transformPoint(rectangle0.origin)
-                    test.selectionHasPoint(p)
+                    scene.selectionHasPoint(p)
 
                     transform = new Matrix()
                     transform.translate(pointMinus(rectangle1.center()))
                     transform.rotate(radiants)
                     transform.translate(rectangle1.center())
                     p = transform.transformPoint(pointPlusSize(rectangle1.origin, rectangle1.size))
-                    test.selectionHasPoint(p)
+                    scene.selectionHasPoint(p)
                 })
                 it("rotated orthogonal to each other", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let radiants = Math.PI / 8
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
-                    test.addRectangle(rectangle0, rectangle0.center(), radiants)
+                    scene.addRectangle(rectangle0, rectangle0.center(), radiants)
 
                     let rectangle1 = new Rectangle(70, 110, 30, 40)
-                    test.addRectangle(rectangle1, rectangle1.center(), radiants)
+                    scene.addRectangle(rectangle1, rectangle1.center(), radiants)
 
                     let rectangle2 = new Rectangle(60, 80, 5, 10)
-                    test.addRectangle(rectangle2, rectangle2.center(), radiants + Math.PI / 2)
+                    scene.addRectangle(rectangle2, rectangle2.center(), radiants + Math.PI / 2)
 
                     let rectangle3 = new Rectangle(75, 80, 5, 10)
-                    test.addRectangle(rectangle3, rectangle3.center(), radiants + Math.PI)
+                    scene.addRectangle(rectangle3, rectangle3.center(), radiants + Math.PI)
 
                     let rectangle4 = new Rectangle(90, 80, 5, 10)
-                    test.addRectangle(rectangle4, rectangle4.center(), radiants + Math.PI * 3 / 2)
+                    scene.addRectangle(rectangle4, rectangle4.center(), radiants + Math.PI * 3 / 2)
 
-                    test.selectFigure(0)
-                    test.selectFigure(1)
-                    test.selectFigure(2)
-                    test.selectFigure(3)
-                    test.selectFigure(4)
+                    scene.selectFigure(0)
+                    scene.selectFigure(1)
+                    scene.selectFigure(2)
+                    scene.selectFigure(3)
+                    scene.selectFigure(4)
 
                     let transform = new Matrix()
                     transform.translate(pointMinus(rectangle0.center()))
                     transform.rotate(radiants)
                     transform.translate(rectangle0.center())
                     let p = transform.transformPoint(rectangle0.origin)
-                    test.selectionHasPoint(p)
+                    scene.selectionHasPoint(p)
 
                     transform = new Matrix()
                     transform.translate(pointMinus(rectangle1.center()))
                     transform.rotate(radiants)
                     transform.translate(rectangle1.center())
                     p = transform.transformPoint(pointPlusSize(rectangle1.origin, rectangle1.size))
-                    test.selectionHasPoint(p)
+                    scene.selectionHasPoint(p)
                 })
                 it("different rotation", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let radiants = Math.PI / 8
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
-                    test.addRectangle(rectangle0, rectangle0.center(), radiants)
+                    scene.addRectangle(rectangle0, rectangle0.center(), radiants)
 
                     let rectangle1 = new Rectangle(70, 110, 30, 40)
-                    test.addRectangle(rectangle1, rectangle1.center(), radiants)
+                    scene.addRectangle(rectangle1, rectangle1.center(), radiants)
 
                     let rectangle2 = new Rectangle(60, 80, 5, 10)
-                    test.addRectangle(rectangle2, rectangle2.center(), Math.PI / 16)
+                    scene.addRectangle(rectangle2, rectangle2.center(), Math.PI / 16)
 
-                    test.selectFigure(0)
-                    test.selectFigure(1)
-                    test.selectFigure(2)
+                    scene.selectFigure(0)
+                    scene.selectFigure(1)
+                    scene.selectFigure(2)
 
                     let transform = new Matrix()
                     transform.translate(pointMinus(rectangle0.center()))
@@ -193,7 +193,7 @@ describe("FigureEditor", () => {
                         x: transform.transformPoint({ x: rectangle0.origin.x, y: rectangle0.origin.y + rectangle0.size.height }).x,
                         y: transform.transformPoint(rectangle0.origin).y
                     }
-                    test.selectionHasPoint(p)
+                    scene.selectionHasPoint(p)
 
                     transform = new Matrix()
                     transform.translate(pointMinus(rectangle1.center()))
@@ -209,7 +209,7 @@ describe("FigureEditor", () => {
                             y: rectangle1.origin.y + rectangle1.size.height
                         }).y
                     }
-                    test.selectionHasPoint(p)
+                    scene.selectionHasPoint(p)
                 })
             })
         })
@@ -217,43 +217,43 @@ describe("FigureEditor", () => {
         describe("marquee", () => {
             it("single figure", () => {
                 // GIVEN
-                let test = new FigureEditorScene()
+                let scene = new FigureEditorScene()
                 let rectangle0 = new Rectangle(50, 50, 20, 30)
-                test.addRectangle(rectangle0)
+                scene.addRectangle(rectangle0)
 
                 // WHEN
-                test.mouseDownAt({ x: 45, y: 45 })
-                test.moveMouseTo({ x: 75, y: 85 })
-                test.mouseUp()
+                scene.mouseDownAt({ x: 45, y: 45 })
+                scene.moveMouseTo({ x: 75, y: 85 })
+                scene.mouseUp()
 
                 // THEN
-                test.selectionHasRectangle(rectangle0)
+                scene.selectionHasRectangle(rectangle0)
             })
             it("subset of group of figures", () => {
                 // GIVEN
-                let test = new FigureEditorScene()
+                let scene = new FigureEditorScene()
                 let innerRect0 = new Rectangle(50, 50, 10, 10)
-                test.addRectangle(innerRect0)
+                scene.addRectangle(innerRect0)
                 let innerRect1 = new Rectangle(70, 70, 10, 10)
-                test.addRectangle(innerRect1)
+                scene.addRectangle(innerRect1)
 
                 let leftRect = new Rectangle(30, 60, 10, 10)
-                test.addRectangle(leftRect)
+                scene.addRectangle(leftRect)
                 let topRect = new Rectangle(60, 30, 10, 10)
-                test.addRectangle(topRect)
+                scene.addRectangle(topRect)
                 let rightRect = new Rectangle(90, 60, 10, 10)
-                test.addRectangle(rightRect)
+                scene.addRectangle(rightRect)
                 let bottomRect = new Rectangle(60, 90, 10, 10)
-                test.addRectangle(bottomRect)
+                scene.addRectangle(bottomRect)
 
                 // WHEN
-                test.mouseDownAt({ x: 45, y: 45 })
-                test.moveMouseTo({ x: 85, y: 85 })
-                test.mouseUp()
+                scene.mouseDownAt({ x: 45, y: 45 })
+                scene.moveMouseTo({ x: 85, y: 85 })
+                scene.mouseUp()
 
                 // THEN
-                test.selectionHasPoint(innerRect0.origin)
-                test.selectionHasPoint(pointPlusSize(innerRect1.origin, innerRect1.size))
+                scene.selectionHasPoint(innerRect0.origin)
+                scene.selectionHasPoint(pointPlusSize(innerRect1.origin, innerRect1.size))
             })
             it("translated figure", () => {
                 // GIVEN
@@ -276,25 +276,25 @@ describe("FigureEditor", () => {
             describe("single figure", () => {
                 it("moves figure's outline before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
 
                     let r0 = new Rectangle(50, 50, 20, 30)
                     let translation = new Point(10, -10)
                     let r1 = new Rectangle(r0)
                     r1.origin = pointPlusPoint(r1.origin, translation)
-                    test.addRectangle(r0)
+                    scene.addRectangle(r0)
 
-                    test.selectFigure(0)
-                    test.selectionHasRectangle(r0)
+                    scene.selectFigure(0)
+                    scene.selectionHasRectangle(r0)
 
                     // WHEN
-                    let oldCenter = test.centerOfFigure()
-                    test.mouseDownAt(oldCenter)
-                    test.moveMouseBy(translation)
+                    let oldCenter = scene.centerOfFigure()
+                    scene.mouseDownAt(oldCenter)
+                    scene.moveMouseBy(translation)
 
                     // THEN
-                    test.selectionHasRectangle(r1)
-                    test.outlineHasRectangle(r1)
+                    scene.selectionHasRectangle(r1)
+                    scene.outlineHasRectangle(r1)
                 })
                 it("moves figure without matrix when mouse is released", () => {
                     // GIVEN
@@ -320,47 +320,47 @@ describe("FigureEditor", () => {
                 })
                 it("moves figure with matrix when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let r0 = new Rectangle(50, 50, 20, 30)
                     let translation = new Point(10, -10)
-                    test.addRectangle(r0, new Point(), 0)
-                    test.selectFigure(0)
-                    test.selectionHasRectangle(r0)
+                    scene.addRectangle(r0, new Point(), 0)
+                    scene.selectFigure(0)
+                    scene.selectionHasRectangle(r0)
 
                     // WHEN
-                    let oldCenter = test.centerOfFigure()
-                    test.mouseDownAt(oldCenter)
-                    test.moveMouseBy(translation)
-                    test.mouseUp()
+                    let oldCenter = scene.centerOfFigure()
+                    scene.mouseDownAt(oldCenter)
+                    scene.moveMouseBy(translation)
+                    scene.mouseUp()
 
                     // THEN
                     let r1 = new Rectangle(r0)
                     r1.origin = pointPlusPoint(r1.origin, translation)
-                    test.selectionHasRectangle(r1)
-                    test.outlineHasRectangle(r1)
-                    test.renderHasRectangle(r1)
+                    scene.selectionHasRectangle(r1)
+                    scene.outlineHasRectangle(r1)
+                    scene.renderHasRectangle(r1)
                 })
                 it("moves a translated figure")
                 it("moves a rotated figure", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let r0 = new Rectangle(50, 50, 20, 30)
-                    test.addRectangle(r0, r0.center(), Math.PI / 8)
-                    test.selectFigure(0)
+                    scene.addRectangle(r0, r0.center(), Math.PI / 8)
+                    scene.selectFigure(0)
 
                     // WHEN
-                    test.mouseDownAt(r0.center())
+                    scene.mouseDownAt(r0.center())
                     let translation = new Point(100, 0)
-                    test.moveMouseBy(translation)
-                    test.mouseUp()
+                    scene.moveMouseBy(translation)
+                    scene.mouseUp()
 
                     // THEN
                     let r1 = new Rectangle(r0)
                     r1.origin = pointPlusPoint(r1.origin, translation)
 
-                    test.selectionHasRectangle(r1, r1.center(), Math.PI / 8)
-                    test.outlineHasRectangle(r1, r1.center(), Math.PI / 8)
-                    test.renderHasRectangle(r1, r1.center(), Math.PI / 8)
+                    scene.selectionHasRectangle(r1, r1.center(), Math.PI / 8)
+                    scene.outlineHasRectangle(r1, r1.center(), Math.PI / 8)
+                    scene.renderHasRectangle(r1, r1.center(), Math.PI / 8)
                 })
                 it("moves a scaled figure")
             })
@@ -370,123 +370,123 @@ describe("FigureEditor", () => {
             describe("single figure", () => {
                 it("scales figure's outline before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle = new Rectangle(50, 50, 20, 30)
-                    test.addRectangle(rectangle)
-                    test.selectFigure()
+                    scene.addRectangle(rectangle)
+                    scene.selectFigure()
                     let down = new Point(rectangle.origin)
                     let up = new Point(40, 65)
 
                     // WHEN
-                    test.mouseDownAt(down)
-                    test.moveMouseTo(up)
+                    scene.mouseDownAt(down)
+                    scene.moveMouseTo(up)
 
                     // THEN
                     let scaled = new Rectangle(40, 65, 30, 15)
-                    test.selectionHasRectangle(scaled)
-                    test.outlineHasRectangle(scaled)
+                    scene.selectionHasRectangle(scaled)
+                    scene.outlineHasRectangle(scaled)
                 })
                 it("scales figure when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle = new Rectangle(50, 50, 20, 30)
-                    test.addRectangle(rectangle)
-                    test.selectFigure()
+                    scene.addRectangle(rectangle)
+                    scene.selectFigure()
                     let down = new Point(rectangle.origin)
                     let up = new Point(40, 65)
 
                     // WHEN
-                    test.mouseDownAt(down)
-                    test.moveMouseTo(up)
-                    test.mouseUp()
+                    scene.mouseDownAt(down)
+                    scene.moveMouseTo(up)
+                    scene.mouseUp()
 
                     // THEN
                     let scaled = new Rectangle(40, 65, 30, 15)
-                    test.selectionHasRectangle(scaled)
-                    test.outlineHasRectangle(scaled)
-                    test.renderHasRectangle(scaled)
+                    scene.selectionHasRectangle(scaled)
+                    scene.outlineHasRectangle(scaled)
+                    scene.renderHasRectangle(scaled)
                 })
                 it("scales already scaled figure's outline before mouse is released")
                 it("scales already scaled figure when mouse is released")
                 it("scales a translated figure")
                 it("scales a rotated figure", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle = new Rectangle(50, 50, 20, 30)
                     let scaled = new Rectangle(40, 65, 30, 15)
-                    test.addRectangle(rectangle, rectangle.center(), Math.PI / 8)
-                    test.selectFigure()
+                    scene.addRectangle(rectangle, rectangle.center(), Math.PI / 8)
+                    scene.selectFigure()
 
                     // WHEN
                     let down = rotatePointAroundPointBy(rectangle.origin, rectangle.center(), Math.PI / 8)
                     let up = rotatePointAroundPointBy(scaled.origin, rectangle.center(), Math.PI / 8)
-                    test.mouseDownAt(down)
-                    test.moveMouseTo(up)
-                    test.mouseUp()
+                    scene.mouseDownAt(down)
+                    scene.moveMouseTo(up)
+                    scene.mouseUp()
 
                     // THEN
-                    test.selectionHasRectangle(scaled, rectangle.center(), Math.PI / 8)
-                    test.outlineHasRectangle(scaled, rectangle.center(), Math.PI / 8)
-                    test.renderHasRectangle(scaled, rectangle.center(), Math.PI / 8)
+                    scene.selectionHasRectangle(scaled, rectangle.center(), Math.PI / 8)
+                    scene.outlineHasRectangle(scaled, rectangle.center(), Math.PI / 8)
+                    scene.renderHasRectangle(scaled, rectangle.center(), Math.PI / 8)
                 })
             })
             describe("group of figures", () => {
                 it("scales outline of two figure before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rect0 = new Rectangle(50, 50, 20, 30)
                     let rect1 = new Rectangle(100, 100, 40, 50)
-                    test.addRectangle(rect0)
-                    test.addRectangle(rect1)
-                    test.selectFigure(0)
-                    test.selectFigure(1)
+                    scene.addRectangle(rect0)
+                    scene.addRectangle(rect1)
+                    scene.selectFigure(0)
+                    scene.selectFigure(1)
 
                     let selection = new Rectangle(50, 50, 90, 100)
-                    test.selectionHasRectangle(selection)
+                    scene.selectionHasRectangle(selection)
 
                     let down = new Point(rect0.origin)
                     let up = new Point(40, 60)
 
                     // WHEN
-                    test.mouseDownAt(down)
-                    test.moveMouseTo(up)
+                    scene.mouseDownAt(down)
+                    scene.moveMouseTo(up)
                     // test.mouseUp()
 
                     // THEN
                     let scaled = new Rectangle(40, 60, 100, 90)
-                    test.selectionHasRectangle(scaled)
-                    test.outlineHasPoint(scaled.origin)
-                    test.outlineHasPoint(pointPlusSize(scaled.origin, scaled.size))
+                    scene.selectionHasRectangle(scaled)
+                    scene.outlineHasPoint(scaled.origin)
+                    scene.outlineHasPoint(pointPlusSize(scaled.origin, scaled.size))
                     // test.renderHasRectangle(scaled)
                 })
                 it("scales two figures when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rect0 = new Rectangle(50, 50, 20, 30)
                     let rect1 = new Rectangle(100, 100, 40, 50)
-                    test.addRectangle(rect0)
-                    test.addRectangle(rect1)
-                    test.selectFigure(0)
-                    test.selectFigure(1)
+                    scene.addRectangle(rect0)
+                    scene.addRectangle(rect1)
+                    scene.selectFigure(0)
+                    scene.selectFigure(1)
 
                     let selection = new Rectangle(50, 50, 90, 100)
-                    test.selectionHasRectangle(selection)
+                    scene.selectionHasRectangle(selection)
 
                     let down = new Point(rect0.origin)
                     let up = new Point(40, 60)
 
                     // WHEN
-                    test.mouseDownAt(down)
-                    test.moveMouseTo(up)
-                    test.mouseUp()
+                    scene.mouseDownAt(down)
+                    scene.moveMouseTo(up)
+                    scene.mouseUp()
 
                     // THEN
                     let scaled = new Rectangle(40, 60, 100, 90)
-                    test.selectionHasRectangle(scaled)
-                    test.outlineHasPoint(scaled.origin)
-                    test.outlineHasPoint(pointPlusSize(scaled.origin, scaled.size))
-                    test.renderHasPoint(scaled.origin)
-                    test.renderHasPoint(pointPlusSize(scaled.origin, scaled.size))
+                    scene.selectionHasRectangle(scaled)
+                    scene.outlineHasPoint(scaled.origin)
+                    scene.outlineHasPoint(pointPlusSize(scaled.origin, scaled.size))
+                    scene.renderHasPoint(scaled.origin)
+                    scene.renderHasPoint(pointPlusSize(scaled.origin, scaled.size))
 
                     // followd by move & scale does not work, and other combinations also. might need to recalculate boundary!!! write some tests 1st!!!
                 })
@@ -496,140 +496,140 @@ describe("FigureEditor", () => {
             describe("single figure", () => {
                 it("rotates figure's outline before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle = new Rectangle({ origin: { x: 50.5, y: 50.5 }, size: { width: 20, height: 30 } })
                     let fig = new figure.Rectangle(rectangle)
                     fig.stroke = "#000"
                     fig.fill = "rgba(255,0,0,0.2)"
 
-                    test.addFigure(fig)
-                    test.selectFigure()
+                    scene.addFigure(fig)
+                    scene.selectFigure()
 
                     // WHEN
-                    let oldMouseRotate = test.centerOfNWRotateHandle()
-                    let center = test.centerOfFigure()
+                    let oldMouseRotate = scene.centerOfNWRotateHandle()
+                    let center = scene.centerOfFigure()
                     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI / 8)
 
-                    test.mouseDownAt(oldMouseRotate)
-                    test.moveMouseTo(newMouseRotate)
+                    scene.mouseDownAt(oldMouseRotate)
+                    scene.moveMouseTo(newMouseRotate)
 
                     // THEN
-                    test.selectionHasRectangle(rectangle, rectangle.center(), Math.PI / 8)
-                    test.outlineHasRectangle(rectangle, rectangle.center(), Math.PI / 8)
+                    scene.selectionHasRectangle(rectangle, rectangle.center(), Math.PI / 8)
+                    scene.outlineHasRectangle(rectangle, rectangle.center(), Math.PI / 8)
                 })
 
                 it("rotates figure when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle = new Rectangle({ origin: { x: 50.5, y: 50.5 }, size: { width: 20, height: 30 } })
                     let fig = new figure.Rectangle(rectangle)
                     fig.stroke = "#000"
                     fig.fill = "rgba(255,0,0,0.2)"
 
-                    test.addFigure(fig)
-                    test.selectFigure()
+                    scene.addFigure(fig)
+                    scene.selectFigure()
 
                     // WHEN
-                    let center = test.centerOfFigure()
-                    let position0 = test.centerOfNWRotateHandle()
+                    let center = scene.centerOfFigure()
+                    let position0 = scene.centerOfNWRotateHandle()
                     let position1 = rotatePointAroundPointBy(position0, center, Math.PI / 8)
 
-                    test.mouseDownAt(position0)
-                    test.moveMouseTo(position1)
-                    test.mouseUp()
+                    scene.mouseDownAt(position0)
+                    scene.moveMouseTo(position1)
+                    scene.mouseUp()
 
                     // THEN
-                    test.selectionHasRectangle(rectangle, center, Math.PI / 8)
-                    test.outlineHasRectangle(rectangle, center, Math.PI / 8)
-                    test.renderHasRectangle(rectangle, center, Math.PI / 8)
+                    scene.selectionHasRectangle(rectangle, center, Math.PI / 8)
+                    scene.outlineHasRectangle(rectangle, center, Math.PI / 8)
+                    scene.renderHasRectangle(rectangle, center, Math.PI / 8)
                 })
 
                 it("rotates already rotated figure's outline before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle = new Rectangle({ origin: { x: 50, y: 50 }, size: { width: 20, height: 30 } })
                     let fig = new figure.Rectangle(rectangle)
                     fig.stroke = "#000"
                     fig.fill = "rgba(255,0,0,0.2)"
 
-                    test.addFigure(fig)
-                    test.selectFigure()
+                    scene.addFigure(fig)
+                    scene.selectFigure()
 
                     // WHEN
-                    let center = test.centerOfFigure()
+                    let center = scene.centerOfFigure()
                     // 45, 45
-                    let position0 = test.centerOfNWRotateHandle()
+                    let position0 = scene.centerOfNWRotateHandle()
                     let position1 = rotatePointAroundPointBy(position0, center, Math.PI / 8)
                     let position2 = rotatePointAroundPointBy(position0, center, Math.PI / 4)
 
-                    test.mouseDownAt(position0)
-                    expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
-                    expect(test.selectTool.selectedHandle).is.equal(8)
-                    test.moveMouseTo(position1)
-                    test.mouseUp()
+                    scene.mouseDownAt(position0)
+                    expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(scene.selectTool.selectedHandle).is.equal(8)
+                    scene.moveMouseTo(position1)
+                    scene.mouseUp()
 
                     // 2nd rotation
                     let p1 = { x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0 }
                     position2 = rotatePointAroundPointBy(p1, center, Math.PI / 8)
 
-                    test.mouseDownAt(p1)
-                    expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
-                    expect(test.selectTool.selectedHandle).is.equal(8)
-                    test.moveMouseTo(position2)
+                    scene.mouseDownAt(p1)
+                    expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(scene.selectTool.selectedHandle).is.equal(8)
+                    scene.moveMouseTo(position2)
 
                     // THEN
-                    test.selectionHasRectangle(rectangle, center, Math.PI / 4)
-                    test.outlineHasRectangle(rectangle, center, Math.PI / 4)
+                    scene.selectionHasRectangle(rectangle, center, Math.PI / 4)
+                    scene.outlineHasRectangle(rectangle, center, Math.PI / 4)
                 })
 
                 it("rotates already rotated figure when mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle = new Rectangle({ origin: { x: 50.5, y: 50.5 }, size: { width: 20, height: 30 } })
                     let fig = new figure.Rectangle(rectangle)
                     fig.stroke = "#000"
                     fig.fill = "rgba(255,0,0,0.2)"
 
-                    test.addFigure(fig)
-                    test.selectFigure()
+                    scene.addFigure(fig)
+                    scene.selectFigure()
 
                     // WHEN
                     let center = rectangle.center()
-                    let position0 = test.centerOfNWRotateHandle()
+                    let position0 = scene.centerOfNWRotateHandle()
                     let position1 = rotatePointAroundPointBy(position0, center, Math.PI / 8)
                     let position2 = rotatePointAroundPointBy(position0, center, Math.PI / 4)
 
                     // 1st rotation
-                    test.mouseDownAt(position0)
-                    expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
-                    expect(test.selectTool.selectedHandle).is.equal(8)
-                    test.moveMouseTo(position1)
-                    test.mouseUp()
-                    test.selectionHasRectangle(rectangle, center, Math.PI / 8)
-                    test.renderHasRectangle(rectangle, center, Math.PI / 8)
+                    scene.mouseDownAt(position0)
+                    expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(scene.selectTool.selectedHandle).is.equal(8)
+                    scene.moveMouseTo(position1)
+                    scene.mouseUp()
+                    scene.selectionHasRectangle(rectangle, center, Math.PI / 8)
+                    scene.renderHasRectangle(rectangle, center, Math.PI / 8)
 
                     // 2nd rotation
                     let p1 = { x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0 }
                     position2 = rotatePointAroundPointBy(p1, center, Math.PI / 8)
 
-                    test.mouseDownAt(p1)
-                    expect(test.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
-                    expect(test.selectTool.selectedHandle).is.equal(8)
-                    test.moveMouseTo(position2)
-                    test.mouseUp()
+                    scene.mouseDownAt(p1)
+                    expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(scene.selectTool.selectedHandle).is.equal(8)
+                    scene.moveMouseTo(position2)
+                    scene.mouseUp()
 
                     // THEN            
-                    test.selectionHasRectangle(rectangle, center, Math.PI / 4)
-                    test.renderHasRectangle(rectangle, center, Math.PI / 4)
-                    test.outlineHasRectangle(rectangle, center, Math.PI / 4)
+                    scene.selectionHasRectangle(rectangle, center, Math.PI / 4)
+                    scene.renderHasRectangle(rectangle, center, Math.PI / 4)
+                    scene.outlineHasRectangle(rectangle, center, Math.PI / 4)
                 })
                 it("rotates a translated figure", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
                     let rectangle0 = new Rectangle(50, 50, 20, 30)
                     let translate = new Point(100, 0)
-                    test.addRectangle(rectangle0, translate)
-                    test.selectFigure()
+                    scene.addRectangle(rectangle0, translate)
+                    scene.selectFigure()
 
                     // WHEN
                     let handleRange = figure.Figure.HANDLE_RANGE
@@ -638,12 +638,12 @@ describe("FigureEditor", () => {
                         pointPlusPoint(rectangle0.origin, translate), { x: handleRange, y: handleRange })
                     let up = rotatePointAroundPointBy(down, center, Math.PI / 8)
 
-                    test.mouseDownAt(down)
-                    test.moveMouseTo(up)
-                    test.mouseUp()
+                    scene.mouseDownAt(down)
+                    scene.moveMouseTo(up)
+                    scene.mouseUp()
 
                     // THEN
-                    test.selectionHasRectangle(new Rectangle(50 + 100, 50, 20, 30), center, Math.PI / 8)
+                    scene.selectionHasRectangle(new Rectangle(50 + 100, 50, 20, 30), center, Math.PI / 8)
                 })
                 it("rotates a scaled figure")
             })
@@ -651,113 +651,113 @@ describe("FigureEditor", () => {
             describe("group of figures", () => {
                 it("rotate outline of two figures using nw handle before mouse is released", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
-                    test.addRectangle(rectangle0)
+                    scene.addRectangle(rectangle0)
 
                     let rectangle1 = new Rectangle(70, 110, 30, 40)
-                    test.addRectangle(rectangle1)
+                    scene.addRectangle(rectangle1)
 
-                    test.selectFigure(0)
-                    test.selectFigure(1)
+                    scene.selectFigure(0)
+                    scene.selectFigure(1)
 
                     let r2 = new Rectangle(50, 50, 50, 100)
-                    test.selectionHasRectangle(r2)
+                    scene.selectionHasRectangle(r2)
                     // WHEN
-                    let oldMouseRotate = test.centerOfNWRotateHandle()
-                    let center = test.selectTool.boundary.center()
+                    let oldMouseRotate = scene.centerOfNWRotateHandle()
+                    let center = scene.selectTool.boundary.center()
                     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI / 4)
 
-                    test.mouseDownAt(oldMouseRotate)
-                    test.moveMouseTo(newMouseRotate)
+                    scene.mouseDownAt(oldMouseRotate)
+                    scene.moveMouseTo(newMouseRotate)
 
                     // THEN
-                    test.selectionHasRectangle(r2, center, Math.PI / 4)
-                    test.outlineHasRectangle(rectangle0, center, Math.PI / 4)
-                    test.outlineHasRectangle(rectangle1, center, Math.PI / 4)
+                    scene.selectionHasRectangle(r2, center, Math.PI / 4)
+                    scene.outlineHasRectangle(rectangle0, center, Math.PI / 4)
+                    scene.outlineHasRectangle(rectangle1, center, Math.PI / 4)
                 })
                 it("rotate two figures using nw handle", () => {
                     // GIVEN
-                    let test = new FigureEditorScene()
+                    let scene = new FigureEditorScene()
 
                     let rectangle0 = new Rectangle(50, 50, 10, 20)
-                    test.addRectangle(rectangle0)
+                    scene.addRectangle(rectangle0)
 
                     let rectangle1 = new Rectangle(70, 110, 30, 40)
-                    test.addRectangle(rectangle1)
+                    scene.addRectangle(rectangle1)
 
-                    test.selectFigure(0)
-                    test.selectFigure(1)
+                    scene.selectFigure(0)
+                    scene.selectFigure(1)
 
                     let r2 = new Rectangle(50, 50, 50, 100)
-                    test.selectionHasRectangle(r2)
+                    scene.selectionHasRectangle(r2)
 
                     // WHEN
-                    let oldMouseRotate = test.centerOfNWRotateHandle()
-                    let center = test.selectTool.boundary.center()
+                    let oldMouseRotate = scene.centerOfNWRotateHandle()
+                    let center = scene.selectTool.boundary.center()
                     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI / 4)
 
-                    test.mouseDownAt(oldMouseRotate)
-                    test.moveMouseTo(newMouseRotate)
-                    test.mouseUp()
+                    scene.mouseDownAt(oldMouseRotate)
+                    scene.moveMouseTo(newMouseRotate)
+                    scene.mouseUp()
 
                     // THEN
-                    test.selectionHasRectangle(r2, center, Math.PI / 4)
-                    test.outlineHasRectangle(rectangle0, center, Math.PI / 4)
-                    test.outlineHasRectangle(rectangle1, center, Math.PI / 4)
-                    test.renderHasRectangle(rectangle0, center, Math.PI / 4)
-                    test.renderHasRectangle(rectangle1, center, Math.PI / 4)
+                    scene.selectionHasRectangle(r2, center, Math.PI / 4)
+                    scene.outlineHasRectangle(rectangle0, center, Math.PI / 4)
+                    scene.outlineHasRectangle(rectangle1, center, Math.PI / 4)
+                    scene.renderHasRectangle(rectangle0, center, Math.PI / 4)
+                    scene.renderHasRectangle(rectangle1, center, Math.PI / 4)
                 })
             })
         })
         describe("delete", () => {
             it("single figure", () => {
                 // GIVEN
-                let test = new FigureEditorScene()
+                let scene = new FigureEditorScene()
                 let rectangle0 = new Rectangle(50, 50, 20, 30)
-                test.addRectangle(rectangle0)
+                scene.addRectangle(rectangle0)
 
                 // WHEN
-                test.mouseDownAt({ x: 45, y: 45 })
-                test.moveMouseTo({ x: 75, y: 85 })
-                test.mouseUp()
+                scene.mouseDownAt({ x: 45, y: 45 })
+                scene.moveMouseTo({ x: 75, y: 85 })
+                scene.mouseUp()
 
-                expect(test.model.layers[0].data.length).to.equal(1)
-                test.keydown("Delete")
+                expect(scene.model.layers[0].data.length).to.equal(1)
+                scene.keydown("Delete")
 
                 // THEN
                 expect(Tool.selection.empty()).to.be.true
-                expect(test.model.layers[0].data.length).to.equal(0)
+                expect(scene.model.layers[0].data.length).to.equal(0)
             })
             it("subset of group of figures", () => {
                 // GIVEN
-                let test = new FigureEditorScene()
+                let scene = new FigureEditorScene()
                 let innerRect0 = new Rectangle(50, 50, 10, 10)
-                test.addRectangle(innerRect0)
+                scene.addRectangle(innerRect0)
                 let innerRect1 = new Rectangle(70, 70, 10, 10)
-                test.addRectangle(innerRect1)
+                scene.addRectangle(innerRect1)
 
                 let leftRect = new Rectangle(30, 60, 10, 10)
-                test.addRectangle(leftRect)
+                scene.addRectangle(leftRect)
                 let topRect = new Rectangle(60, 30, 10, 10)
-                test.addRectangle(topRect)
+                scene.addRectangle(topRect)
                 let rightRect = new Rectangle(90, 60, 10, 10)
-                test.addRectangle(rightRect)
+                scene.addRectangle(rightRect)
                 let bottomRect = new Rectangle(60, 90, 10, 10)
-                test.addRectangle(bottomRect)
+                scene.addRectangle(bottomRect)
 
                 // WHEN
-                test.mouseDownAt({ x: 45, y: 45 })
-                test.moveMouseTo({ x: 85, y: 85 })
-                test.mouseUp()
+                scene.mouseDownAt({ x: 45, y: 45 })
+                scene.moveMouseTo({ x: 85, y: 85 })
+                scene.mouseUp()
 
-                expect(test.model.layers[0].data.length).to.equal(6)
-                test.keydown("Delete")
+                expect(scene.model.layers[0].data.length).to.equal(6)
+                scene.keydown("Delete")
 
                 // THEN
                 expect(Tool.selection.empty()).to.be.true
-                expect(test.model.layers[0].data.length).to.equal(4)
+                expect(scene.model.layers[0].data.length).to.equal(4)
             })
 
 
@@ -765,43 +765,43 @@ describe("FigureEditor", () => {
         describe("lifecycle", () => {
             it("switch between operations (scale, move, scale)", () => {
                 // GIVEN
-                let test = new FigureEditorScene()
+                let scene = new FigureEditorScene()
                 let rect0 = new Rectangle(50, 50, 20, 30)
-                test.addRectangle(rect0)
-                test.selectFigure(0)
+                scene.addRectangle(rect0)
+                scene.selectFigure(0)
 
                 // scale
                 let rect1 = new Rectangle(40, 60, 30, 20)
                 let down0 = new Point(rect0.origin)
                 let up0 = new Point(rect1.origin)
-                test.mouseDownAt(down0)
-                test.moveMouseTo(up0)
-                test.mouseUp()
-                test.selectionHasRectangle(rect1)
-                test.outlineHasRectangle(rect1)
-                test.renderHasRectangle(rect1)
+                scene.mouseDownAt(down0)
+                scene.moveMouseTo(up0)
+                scene.mouseUp()
+                scene.selectionHasRectangle(rect1)
+                scene.outlineHasRectangle(rect1)
+                scene.renderHasRectangle(rect1)
 
                 // move
                 let rect2 = new Rectangle(140, 60, 30, 20)
                 let down1 = new Point(65, 65)
                 let up1 = new Point(165, 65)
-                test.mouseDownAt(down1)
-                test.moveMouseTo(up1)
-                test.mouseUp()
-                test.selectionHasRectangle(rect2)
-                test.outlineHasRectangle(rect2)
-                test.renderHasRectangle(rect2)
+                scene.mouseDownAt(down1)
+                scene.moveMouseTo(up1)
+                scene.mouseUp()
+                scene.selectionHasRectangle(rect2)
+                scene.outlineHasRectangle(rect2)
+                scene.renderHasRectangle(rect2)
 
                 // scale
                 let rect3 = new Rectangle(130, 70, 40, 10)
                 let down2 = new Point(rect2.origin)
                 let up2 = new Point(rect3.origin)
-                test.mouseDownAt(down2)
-                test.moveMouseTo(up2)
-                test.mouseUp()
-                test.selectionHasRectangle(rect3)
-                test.outlineHasRectangle(rect3)
-                test.renderHasRectangle(rect3)
+                scene.mouseDownAt(down2)
+                scene.moveMouseTo(up2)
+                scene.mouseUp()
+                scene.selectionHasRectangle(rect3)
+                scene.outlineHasRectangle(rect3)
+                scene.renderHasRectangle(rect3)
             })
         })
     })
@@ -825,15 +825,15 @@ describe("FigureEditor", () => {
         })
 
         it("adding two figures creates two paths and two svgs", () => {
-            let test = new FigureEditorScene()
+            let scene = new FigureEditorScene()
             let fig1 = new figure.Rectangle({ origin: { x: 50, y: 10 }, size: { width: 20, height: 30 } })
-            test.addFigure(fig1)
+            scene.addFigure(fig1)
 
             let fig2 = new figure.Rectangle({ origin: { x: 50, y: 50 }, size: { width: 10, height: 40 } })
-            test.addFigure(fig2)
+            scene.addFigure(fig2)
 
             // cache should contain figure, path & svg
-            let cache = test.figureeditor.cache
+            let cache = scene.figureeditor.cache
             expect(cache.size).to.equal(2)
             let ce1 = cache.get(0)!
             expect(ce1.figure).to.equal(fig1)
@@ -846,8 +846,8 @@ describe("FigureEditor", () => {
             expect(ce2.svg).to.not.undefined
 
             // screen should contain svg
-            expect(test.figureeditor.layer!!.childNodes[0]).to.equal(ce1.svg)
-            expect(test.figureeditor.layer!!.childNodes[1]).to.equal(ce2.svg)
+            expect(scene.figureeditor.layer!!.childNodes[0]).to.equal(ce1.svg)
+            expect(scene.figureeditor.layer!!.childNodes[1]).to.equal(ce2.svg)
         })
 
         // the above tests should cover the current initial test data
