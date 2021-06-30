@@ -37,7 +37,6 @@ export type UIKeys = "Accept" | "Again" | "Attn" | "Cancel" | "ContextMenu" | "E
 export class Cursor {
     text: Text
     svg: SVGElement
-    wordwrap: WordWrap
     textSource: TextSource
     timer: undefined | number
     position: Point
@@ -48,10 +47,9 @@ export class Cursor {
     offsetWord: number      // index within wordBoxes
     offsetChar: number      // index within wordBox
 
-    constructor(text: Text, svg: SVGElement, wordwrap: WordWrap, textSource: TextSource) {
+    constructor(text: Text, svg: SVGElement, textSource: TextSource) {
         this.text = text
         this.svg = svg
-        this.wordwrap = wordwrap
         this.textSource = textSource
         this.boxes = textSource.wordBoxes
         this.position = new Point()
@@ -129,9 +127,7 @@ export class Cursor {
 
                     // redo word wrap
                     this.textSource.reset()
-                    const path = e.editor.getPath(this.text) as Path
-                    this.wordwrap.initializeSweepBufferFrom(path)
-                    this.wordwrap.placeWordBoxes(this.textSource)
+                    const wordwrap = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
                     this.textSource.updateSVG()
                     this.updateCursor()
                 }

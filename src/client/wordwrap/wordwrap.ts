@@ -523,8 +523,7 @@ export interface WordSource {
 
 export class WordWrap {
     trace: boolean
-    path: Path
-    bounds: Rectangle
+    bounds!: Rectangle
     sweepBuffer: OrderedArray<SweepEvent>
 
     /**
@@ -532,20 +531,19 @@ export class WordWrap {
      */
     constructor(path: Path, wordsource?: WordSource, trace?: boolean) {
         this.trace = trace == true
-        this.path = path
-        this.bounds = path.bounds()
 
         this.sweepBuffer = new OrderedArray<SweepEvent>((a, b) => { return SweepEvent.less(a, b) })
         this.initializeSweepBufferFrom(path)
 
+        // do not place the word boxes yet
         if (wordsource === undefined)
             return
+
         this.placeWordBoxes(wordsource)
     }
 
     initializeSweepBufferFrom(path: Path) {
-        console.trace(this)
-
+        this.bounds = path.bounds()
         this.sweepBuffer.length = 0
         let first: Point | undefined, previous: Point | undefined, current: Point | undefined
         for (let segment of path.data) {
