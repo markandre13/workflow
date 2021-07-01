@@ -418,6 +418,10 @@ export class FigureEditor extends ModelView<LayerModel> {
         return this.cache.get(figure.id)?.path
     }
 
+    override focus(options?: FocusOptions) {
+        this.inputCatcher.focus(options)
+    }
+
     //
     // MOUSE
     //

@@ -65,6 +65,8 @@ export class FigureEditorScene {
         this.model = model
         this.mousePosition = new Point()
         this.figures = []
+
+        this.figureeditor.focus()
     }
 
     sleep(milliseconds: number = 500) {
@@ -224,13 +226,6 @@ export class FigureEditorScene {
         }, transform)
     }
 
-    keydown(key: string): void {
-        if (this.verbose)
-            console.log(`### KEY DOWN ${key}`)
-        let k = new KeyboardEvent("keydown", {key: key})
-        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, k))
-    }
-
     mouseDownAt(point: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE DOWN AT ${point.x}, ${point.y}`)
@@ -300,40 +295,38 @@ export class FigureEditorScene {
         this.mouseUp()
     }
 
-    sendArrowLeft() {
-        const e = new KeyboardEvent("keydown", {
+    keydown(key: string): void {
+        if (this.verbose)
+            console.log(`### KEY DOWN ${key}`)
+
+        let active = document.activeElement
+        while(active?.shadowRoot?.activeElement) {
+            active = active.shadowRoot.activeElement
+        }
+
+        let event = new KeyboardEvent("keydown", {
+            key: key,
+            composed: true,
+            cancelable: true,
             bubbles: true,
-            key: "ArrowLeft"
         })
-        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, e))
+        active?.dispatchEvent(event)
+    }
+
+    sendArrowLeft() {
+        this.keydown("ArrowLeft")
     }
 
     sendArrowRight() {
-        const e = new KeyboardEvent("keydown", {
-            bubbles: true,
-            key: "ArrowRight"
-        })
-        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, e))
+        this.keydown("ArrowRight")
     }
 
     sendBackspace() {
-        const e = new KeyboardEvent("keydown", {
-            bubbles: true,
-            key: "Backspace"
-        })
-        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, e))
-
-        const x: number[] = []
-        x.filter( x => true).shift
-
+        this.keydown("Backspace")
     }
 
     sendDelete() {
-        const e = new KeyboardEvent("keydown", {
-            bubbles: true,
-            key: "Delete"
-        })
-        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, e))
+        this.keydown("Delete")
     }
 
 }

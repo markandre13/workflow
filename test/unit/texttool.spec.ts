@@ -128,10 +128,11 @@ describe("FigureEditor", function() {
         })
         describe("delete text", function() {
             xit("delete", function() {
-                const scene = new FigureEditorScene()
+                const scene = new FigureEditorScene(true)
                 scene.createTextArea()
                 scene.keydown("A")
-                scene.sendDelete()
+                scene.sendArrowLeft()
+                // scene.sendDelete()
             })
             // backspace & delete
         })
