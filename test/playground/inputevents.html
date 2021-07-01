@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <title>Workflow</title>
+    <style>
+      div {
+        background: cornflowerblue;
+        height: 200px;
+      }
+    </style>
+    <!--
+      https://www.w3.org/TR/input-events-2/
+
+      Input events are sent before (beforeinput event) and after (input event) a user attempts to edit the markup. This includes insertion and deletion of content, and formatting changes.
+
+      Input events are dispatched [UI-EVENTS] on elements that act as editing hosts, including elements with the contenteditable attribute set, textarea elements, and input elements that permit text input.
+
+      Cursor keys, etc. will still need keydown events
+
+      All browsers have this InputEvent:
+        enter      : inputType = insertParagraph
+      Chrome, Firefox, Edge's also have this InputEvent:
+        shift+enter: inputType = insertLineBreak
+    -->
+    <script>
+      let counter = 0
+
+      function main() {
+        var button = document.createElement("button")
+        button.appendChild(document.createTextNode("ToolButton"))
+        button.onfocus = (e) => {
+          console.log("=== button.onfocus")
+          console.log(e)
+        }
+        button.onblur = (e) => {
+          console.log("=== button.onblur")
+          console.log(e)
+        }
+
+        document.body.appendChild(button)
+
+        var input0 = document.createElement("input")
+        document.body.appendChild(input0)
+
+        var editor = document.createElement("div")
+        editor.attachShadow({ mode: 'open' })
+
+        // editor has position relative/absolute so that the children can be placed using absolute
+        editor.style.position = "relative"
+        // editor.style.position = "absolute"
+        // editor.style.left = "50px"
+        // editor.style.top = "50px"
+        // editor.style.right = "50px"
+        // editor.style.bottom = "50px"
+
+        // inputCatcher
+        // * to be able to handle dead-keys, we need to receive InputEvent, for this to work we need
+        //   a DIV with contentEditable = true and no children.
+        // * we stretch this DIV to the size of the host so that it's focus frame looks like it's used
+        //   on the host
+        // * the inputCatcher itself will be hidden behind the other elements
+        // * once the inputCatches is able to handle dead-keys, inputCatcher's keyDown also get's
+        //   composed keys
+        var inputCatcher = document.createElement("div")
+        inputCatcher.contentEditable = true
+        inputCatcher.style.position = "absolute"
+        inputCatcher.style.overflow = "hidden"
+        inputCatcher.style.background = "#f80"
+        inputCatcher.style.left = "0"
+        inputCatcher.style.top = "0"
+        inputCatcher.style.right = "0"
+        inputCatcher.style.bottom = "0"
+       
+        inputCatcher.addEventListener('compositionend', (e) => {
+          // console.log(e)
+          console.log(e.data)
+          inputCatcher.textContent = ""
+        })
+        inputCatcher.addEventListener('input', (e) => {
+          // console.log(e)
+          switch(e.inputType) {
+            case "insertText":
+            // case "insertFromComposition":
+              // Chrome, Edge, Firefox
+              if (e.isComposing === false) {
+                console.log(e.data)
+                inputCatcher.textContent = ""
+              } else
+              // Safari (isComposing seems to be part of the standard...)
+              if (e.isComposing === undefined) {
+                console.log(e.data)
+                inputCatcher.textContent = ""
+              }
+              break
+            // https://www.w3.org/TR/input-events-1/
+            // https://rawgit.com/w3c/input-events/v1/index.html#interface-InputEvent-Attributes
+            case "insertCompositionText":
+              // replace the current composition text
+              break
+            case "insertFromPaste":
+              if (e.data !== undefined && e.data !== null) {
+                console.log("data: " + e.data)
+              } else
+              if (e.dataTransfer !== undefined && e.dataTransfer !== null) {
+                // https://html.spec.whatwg.org/multipage/#datatransfer
+                const item = Array.from(e.dataTransfer.items).filter( e => e.kind === "string" && e.type === "text/plain").shift()
+                item.getAsString(clipText => console.log("dataTransfer: " + clipText))
+              } else {
+                // inside the shadow DOM Chrome does give us a dataTransfer object
+                console.log("textContent: " + inputCatcher.textContent)
+              }
+              inputCatcher.textContent = ""
+              break
+            case "insertFromDrop":
+              break
+            case "deleteByCut":
+              break
+            default:
+              console.log(e.inputType)
+          }
+        });
+
+        // WHAT ABOUT: https://developer.mozilla.org/en-US/docs/Web/API/Window/getSelection
+
+        var scrollView = document.createElement("div")
+        scrollView.style.position = "absolute"
+        scrollView.style.overflow = "scroll"
+        scrollView.style.background = "#0f0"
+        scrollView.style.left = "0"
+        scrollView.style.top = "0"
+        scrollView.style.right = "0"
+        scrollView.style.bottom = "0"
+        scrollView.addEventListener('mousedown', (e) => {
+          console.log("scrollView.mousedown")
+          // redirect focus to the inputCatcher
+          inputCatcher.focus({preventScroll: true})
+          // prevent default or inputCatcher will loose the focus again
+          e.preventDefault()
+        })
+
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        svg.style.background = "#00f"
+        svg.setAttributeNS(null, "width", "1920")
+        svg.setAttributeNS(null, "height", "1080")
+
+        editor.shadowRoot.appendChild(inputCatcher)
+        scrollView.appendChild(svg)
+        editor.shadowRoot.appendChild(scrollView)
+        document.body.appendChild(editor)
+
+        var input1 = document.createElement("input")
+        document.body.appendChild(input1)
+
+        input1.addEventListener('input', (e) => {
+          console.log(e)
+        })
+        input1.addEventListener('keydown', (e) => {
+          console.log(e)
+        })
+
+        function foo() {
+          console.log(document.activeElement)
+          if (document.activeElement && document.activeElement.shadowRoot)
+            console.log(document.activeElement.shadowRoot.activeElement)
+          setTimeout(foo, 1000)
+        }
+        // foo()
+
+        // editor.focus()
+      }
+    </script>
+  </head>
+  <body onload="main()"></body>
+</html>

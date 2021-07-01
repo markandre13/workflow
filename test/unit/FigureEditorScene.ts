@@ -315,4 +315,25 @@ export class FigureEditorScene {
         })
         this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, e))
     }
+
+    sendBackspace() {
+        const e = new KeyboardEvent("keydown", {
+            bubbles: true,
+            key: "Backspace"
+        })
+        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, e))
+
+        const x: number[] = []
+        x.filter( x => true).shift
+
+    }
+
+    sendDelete() {
+        const e = new KeyboardEvent("keydown", {
+            bubbles: true,
+            key: "Delete"
+        })
+        this.figureeditor.tool!.keydown(new EditorKeyboardEvent(this.figureeditor, e))
+    }
+
 }

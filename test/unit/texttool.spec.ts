@@ -125,7 +125,15 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[1].word).to.equal("B")
                 expect(wordBoxes[1].svg?.textContent).to.equal("B")
             })
-            // TODO: handle deadkeys, ie. to type german umlaute on an english keyboard
+        })
+        describe("delete text", function() {
+            xit("delete", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.sendDelete()
+            })
+            // backspace & delete
         })
         describe("cursor", function() {
             it("is visible in a newly created text area", function() {

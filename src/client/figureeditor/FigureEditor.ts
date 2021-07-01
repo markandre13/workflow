@@ -16,7 +16,9 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { bind } from "bind-decorator"
 import { ModelView } from "toad.js"
+
 import { Rectangle, Matrix } from "shared/geometry"
 import { AbstractPath } from "../paths"
 import { Figure } from "shared/workflow_valuetype"
@@ -32,8 +34,53 @@ import { LayerEvent } from "./LayerEvent"
 
 import * as figure from "../figures"
 
+interface InputEventInit extends UIEventInit {
+    inputType: string
+    data?: string | null
+    dataTransfer: DataTransfer | null
+    isComposing?: boolean
+}
+
+interface InputEvent extends UIEvent {
+    readonly inputType: string
+    readonly data: string | null
+    readonly dataTransfer: DataTransfer | null
+    readonly isComposing?: boolean // not on Safari
+}
+declare var InputEvent: {
+    prototype: InputEvent
+    new(type: string, eventInitDict?: InputEventInit): InputEvent
+}
+
 let style = document.createElement("style")
 style.textContent = `
+    :host: {
+        position: relative;
+    }
+
+    .stretch {
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    .inputCatcher {
+        overflow: hidden;
+    }
+
+    .inputCatcher:focus {
+        /* the selected figure will have the outline */
+        outline: none;
+    }
+
+    .scrollView {
+        overflow: scroll;
+        /* use background color to hide the inputCatcher */
+        background: #fff;
+    }
+
     .cursor-blink {
       animation: cursor-blink 1s steps(1, start) infinite;
     }
@@ -85,6 +132,7 @@ class CacheEntry {
 }
 
 export class FigureEditor extends ModelView<LayerModel> {
+    inputCatcher: HTMLDivElement
     scrollView: HTMLDivElement
     bounds: Rectangle
     zoom: number
@@ -107,49 +155,29 @@ export class FigureEditor extends ModelView<LayerModel> {
         this.bounds = new Rectangle()
         this.zoom = 1.0
 
+        this.inputCatcher = document.createElement("div")
+        this.inputCatcher.classList.add("stretch")
+        this.inputCatcher.classList.add("inputCatcher")
+        this.inputCatcher.contentEditable = "true"
+        this.inputCatcher.addEventListener('keydown', this.inputCatcherKeyDown)
+
         this.scrollView = document.createElement("div")
-        this.id = "scrollView"
-        this.scrollView.style.overflow = "scroll"
-        this.scrollView.style.background = "#aaa"
-        this.scrollView.style.width = "100%"
-        this.scrollView.style.height = "100%"
-        this.scrollView.onmousedown = (mouseEvent: MouseEvent) => {
-            //this.scrollView.focus({preventScroll: false})
+        this.scrollView.classList.add("stretch")
+        this.scrollView.classList.add("scrollView")
 
-            window.onkeydown = (keyboardEvent: KeyboardEvent) => {
-                keyboardEvent.preventDefault()
-                if (this.tool && this.selectedLayer)
-                    this.tool.keydown(new EditorKeyboardEvent(this, keyboardEvent))
-            }
-
-            mouseEvent.preventDefault()
-            this.mouseButtonIsDown = true
-            if (this.tool && this.selectedLayer)
-                this.tool.mousedown(this.createEditorMouseEvent(mouseEvent))
-        }
-        this.scrollView.onmousemove = (mouseEvent: MouseEvent) => {
-            mouseEvent.preventDefault()
-            if (this.tool && this.selectedLayer)
-                this.tool.mousemove(this.createEditorMouseEvent(mouseEvent))
-        }
-        this.scrollView.onmouseup = (mouseEvent: MouseEvent) => {
-            mouseEvent.preventDefault()
-            this.mouseButtonIsDown = false
-            if (this.tool && this.selectedLayer)
-                this.tool.mouseup(this.createEditorMouseEvent(mouseEvent))
-        }
+        this.scrollView.addEventListener('mousedown', this.mouseDown)
+        this.scrollView.addEventListener('mousemove', this.mouseMove)
+        this.scrollView.addEventListener('mouseup', this.mouseUp)
 
         this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-        this.svgView.id = "svgView"
-        this.svgView.style.position = "relative"
-        this.svgView.style.backgroundColor = "rgb(255,255,255)"
-        this.scrollView.appendChild(this.svgView)
 
         this.decorationOverlay = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.svgView.appendChild(this.decorationOverlay)
+        this.scrollView.appendChild(this.svgView)
 
         this.attachShadow({ mode: 'open' })
         this.shadowRoot!.appendChild(document.importNode(style, true))
+        this.shadowRoot!.appendChild(this.inputCatcher)
         this.shadowRoot!.appendChild(this.scrollView)
     }
 
@@ -218,7 +246,7 @@ export class FigureEditor extends ModelView<LayerModel> {
                 // console.log(`### FigureEditor.updateView(): NEW MODEL, FAKE ADD_FIGURES MESSAGE`)
                 let figures = this.model.layers[0].data
                     .filter(figure => !this.cache.has(figure.id)) // FIXME: cache should be empty
-                    .map( figure => figure.id )
+                    .map(figure => figure.id)
                 event = {
                     operation: Operation.ADD_FIGURES,
                     figures: figures
@@ -373,18 +401,6 @@ export class FigureEditor extends ModelView<LayerModel> {
         this.bounds = bounds
     }
 
-    createEditorMouseEvent(mouseEvent?: MouseEvent): EditorMouseEvent {
-        if (mouseEvent === undefined) {
-            return { editor: this, x: 0, y: 0, shiftKey: false, mouseDown: false }
-        }
-        // (e.clientX-r.left, e.clientY-r.top) begins at the upper left corner of the editor window
-        //                                     scrolling and origin are ignored
-        let r = this.scrollView.getBoundingClientRect()
-        let x = (mouseEvent.clientX + 0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x) / this.zoom
-        let y = (mouseEvent.clientY + 0.5 - r.top + this.scrollView.scrollTop + this.bounds.origin.y) / this.zoom
-        return { editor: this, x: x, y: y, shiftKey: mouseEvent.shiftKey, mouseDown: this.mouseButtonIsDown }
-    }
-
     transformSelection(matrix: Matrix): void {
         // console.log("FigureEditor.transformSelection()")
         this.model!.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
@@ -400,5 +416,57 @@ export class FigureEditor extends ModelView<LayerModel> {
 
     getPath(figure: Figure): Path | undefined {
         return this.cache.get(figure.id)?.path
+    }
+
+    //
+    // MOUSE
+    //
+
+    @bind mouseDown(mouseEvent: MouseEvent) {
+        this.inputCatcher.focus({ preventScroll: true })
+        mouseEvent.preventDefault()
+
+        this.mouseButtonIsDown = true
+        if (this.tool && this.selectedLayer)
+            this.tool.mousedown(this.createEditorMouseEvent(mouseEvent))
+    }
+
+    @bind mouseMove(mouseEvent: MouseEvent) {
+        mouseEvent.preventDefault()
+        if (this.tool && this.selectedLayer)
+            this.tool.mousemove(this.createEditorMouseEvent(mouseEvent))
+    }
+
+    @bind mouseUp(mouseEvent: MouseEvent) {
+        mouseEvent.preventDefault()
+        this.mouseButtonIsDown = false
+        if (this.tool && this.selectedLayer)
+            this.tool.mouseup(this.createEditorMouseEvent(mouseEvent))
+    }
+
+    protected createEditorMouseEvent(mouseEvent?: MouseEvent): EditorMouseEvent {
+        if (mouseEvent === undefined) {
+            return { editor: this, x: 0, y: 0, shiftKey: false, mouseDown: false }
+        }
+        // (e.clientX-r.left, e.clientY-r.top) begins at the upper left corner of the editor window
+        //                                     scrolling and origin are ignored
+        let r = this.scrollView.getBoundingClientRect()
+        let x = (mouseEvent.clientX + 0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x) / this.zoom
+        let y = (mouseEvent.clientY + 0.5 - r.top + this.scrollView.scrollTop + this.bounds.origin.y) / this.zoom
+        return { editor: this, x: x, y: y, shiftKey: mouseEvent.shiftKey, mouseDown: this.mouseButtonIsDown }
+    }
+
+    //
+    // KEYBOARD
+    //
+
+    @bind inputCatcherKeyDown(e: KeyboardEvent) {
+        if (e.metaKey !== true && e.key !== "Dead" && this.tool && this.selectedLayer) {
+            this.tool.keydown(new EditorKeyboardEvent(this, e))
+            // clear the input catcher so we do not accumulate data we do not need.
+            // NOTE: do not clear it when e.key === "Dead" because the input method
+            // uses the content to compose the character.
+            this.inputCatcher.textContent = ""
+        }
     }
 }
