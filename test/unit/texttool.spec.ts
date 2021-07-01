@@ -9,10 +9,10 @@ import { FigureEditorScene } from "./FigureEditorScene"
 import { Text } from "client/figures/Text"
 import { Tool } from "client/figuretools"
 
-describe("FigureEditor", function() {
-    describe("TextTool", function() {
-        describe("Area", function() {
-            it("create", function() {
+describe("FigureEditor", function () {
+    describe("TextTool", function () {
+        describe("Area", function () {
+            it("create", function () {
                 // GIVEN an empty figure editor with TextTool being active
                 const scene = new FigureEditorScene()
                 scene.selectTextTool()
@@ -27,7 +27,7 @@ describe("FigureEditor", function() {
                 expect(scene.model.layers[0].data.length).equals(1)
                 expect(scene.model.layers[0].data[0]).instanceOf(Text)
                 const text = scene.model.layers[0].data[0] as Text
-                expect(text).to.containSubset({origin: {x: 10, y: 15}, size: {width: 110, height: 50}})
+                expect(text).to.containSubset({ origin: { x: 10, y: 15 }, size: { width: 110, height: 50 } })
 
                 // ...and it's selected
                 scene.selectionHasRectangle(new Rectangle(10, 15, 110, 50))
@@ -35,8 +35,8 @@ describe("FigureEditor", function() {
                 expect(Tool.selection.has(text))
             })
         })
-        describe("type text", function() {
-            it("type a letter", function() {
+        describe("type text", function () {
+            it("type a letter", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
 
@@ -65,7 +65,7 @@ describe("FigureEditor", function() {
                 expect(word.word).to.equal("A")
                 expect(word.svg?.textContent).to.equal("A")
             })
-            it("type two letters", function() {
+            it("type two letters", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
 
@@ -77,7 +77,7 @@ describe("FigureEditor", function() {
                 expect(word.word).to.equal("AB")
                 expect(word.svg?.textContent).to.equal("AB")
             })
-            it("type a blank letter", function() {
+            it("type a blank letter", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
 
@@ -91,7 +91,7 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[0].word).to.equal("A")
                 expect(wordBoxes[1].word).to.equal("")
             })
-            it("type two letters separated by a space", function() {
+            it("type two letters separated by a space", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
 
@@ -108,7 +108,7 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[1].word).to.equal("B")
                 expect(wordBoxes[1].svg?.textContent).to.equal("B")
             })
-            it("split two letters by inserting a space", function() {
+            it("split two letters by inserting a space", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -126,8 +126,8 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[1].svg?.textContent).to.equal("B")
             })
         })
-        describe("delete text", function() {
-            it("delete first character", function() {
+        describe("delete text", function () {
+            it("delete first character", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -145,7 +145,7 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[0].word).to.equal("BC")
                 expect(wordBoxes[0].svg?.textContent).to.equal("BC")
             })
-            it("delete middle character", function() {
+            it("delete middle character", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -162,7 +162,7 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[0].word).to.equal("AC")
                 expect(wordBoxes[0].svg?.textContent).to.equal("AC")
             })
-            it("delete last character", function() {
+            it("delete last character", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -178,7 +178,7 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[0].word).to.equal("AB")
                 expect(wordBoxes[0].svg?.textContent).to.equal("AB")
             })
-            it("delete behind last character of last word", function() {
+            it("delete behind last character of last word", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -191,7 +191,7 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[0].word).to.equal("A")
                 expect(wordBoxes[0].svg?.textContent).to.equal("A")
             })
-            it("delete behind last character of word (aka delete space between two words)", function() {
+            it("delete behind last character of word (aka delete space between two words)", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -213,7 +213,7 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[0].word).to.equal("ABCD")
                 expect(wordBoxes[0].svg?.textContent).to.equal("ABCD")
             })
-            it("delete two characters (two check that deleting the 1st leaves us in correct position to delete the 2nd)", function() {
+            it("delete two characters (two check that deleting the 1st leaves us in correct position to delete the 2nd)", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -235,7 +235,7 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[0].word).to.equal("AD")
                 expect(wordBoxes[0].svg?.textContent).to.equal("AD")
             })
-            it("backspace (only once test as it shares the implementation with delete)", function() {
+            it("backspace (only once test as it shares the implementation with delete)", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -249,8 +249,8 @@ describe("FigureEditor", function() {
                 expect(wordBoxes[0].svg?.textContent).to.equal("")
             })
         })
-        describe("cursor", function() {
-            it("is visible in a newly created text area", function() {
+        describe("cursor", function () {
+            it("is visible in a newly created text area", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
 
@@ -260,7 +260,7 @@ describe("FigureEditor", function() {
 
                 expect(cursor.offsetWord).equal(0)
                 expect(cursor.offsetChar).equal(0)
-                const line = cursor.cursor
+                const line = cursor.svgCursor
 
                 // THEN it's visible
                 // FIXME: currently it seems to be hidden behind the selection marker
@@ -270,7 +270,7 @@ describe("FigureEditor", function() {
                 expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
             })
             // TODO: check also that this works for not the 1st line?
-            it("it's behind the last typed letter", function() {
+            it("it's behind the last typed letter", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -281,7 +281,7 @@ describe("FigureEditor", function() {
 
                 expect(cursor.offsetWord).equal(0)
                 expect(cursor.offsetChar).equal(1)
-                const line = cursor.cursor
+                const line = cursor.svgCursor
 
                 // THEN it's visible
                 // FIXME: currently it seems to be hidden behind the selection marker
@@ -290,7 +290,7 @@ describe("FigureEditor", function() {
                 expect(line.getAttributeNS("", "x2")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
                 expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
             })
-            it("move left", function() {
+            it("move left", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -302,7 +302,7 @@ describe("FigureEditor", function() {
 
                 expect(cursor.offsetWord).equal(0)
                 expect(cursor.offsetChar).equal(0)
-                const line = cursor.cursor
+                const line = cursor.svgCursor
 
                 // THEN it's visible
                 // FIXME: currently it seems to be hidden behind the selection marker
@@ -311,7 +311,7 @@ describe("FigureEditor", function() {
                 expect(line.getAttributeNS("", "x2")).to.equal(`${10.5}`)
                 expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
             })
-            it("move right", function() {
+            it("move right", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -324,7 +324,7 @@ describe("FigureEditor", function() {
 
                 expect(cursor.offsetWord).equal(0)
                 expect(cursor.offsetChar).equal(1)
-                const line = cursor.cursor
+                const line = cursor.svgCursor
 
                 // THEN it's visible
                 // FIXME: currently it seems to be hidden behind the selection marker
@@ -333,6 +333,82 @@ describe("FigureEditor", function() {
                 expect(line.getAttributeNS("", "x2")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
                 expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
             })
+        })
+        // control characters: #2e88eb
+        // blue    #b3d7ff
+        // purple  #dfc5df
+        // pink    #fccae2
+        // red     #f5c3c5
+        // orange  #fcd9bb
+        // yellow  #ffeebe
+        // green   #d0eac7
+        // graphit #e0e0e0
+        describe("select text", function () {
+            xit("select one character", function () {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.sendArrowLeft()
+                scene.sendArrowRight({ shift: true })
+
+                const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
+                // console.log(cursor)
+                // TODO: TEST
+            })
+            xit("select two words", function () {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.keydown(" ")
+                scene.keydown("B")
+
+                scene.sendArrowLeft({ shift: true })
+                scene.sendArrowLeft({ shift: true })
+                scene.sendArrowLeft({ shift: true })
+
+                const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
+                // console.log(cursor)
+                // TODO: TEST
+            })
+            it.only("SHIFT+A does not mean to select A", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A", { shift: true })
+                const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
+                expect(cursor.selectionOffsetWord).to.equal(-1)
+            })
+
+            // within a single line
+            //  A [B] C
+            // it.only("select one character", function() {
+            //     const scene = new FigureEditorScene()
+            //     scene.createTextArea()
+            //     for(let i=0; i<9; ++i) {
+            //         scene.keydown("A")
+            //         scene.keydown("B")
+            //         scene.keydown("C")
+            //         scene.keydown("D")
+            //         scene.keydown(" ")
+            //     }
+            //     scene.sendArrowLeft()
+            //     scene.sendArrowLeft()
+            //     scene.sendArrowRight({shift: true})
+            // })
+            // end of line to head of next line, no overlap
+            //  A B [C]
+            // [D] E F
+
+            // end of line, head of next line, overlap
+            // A [B C]
+            // [D E] F
+
+            // end of line, head of next, next line
+            // A B [C]
+            // [D E F]
+            // [G] H I
 
             // type something, switch to select tool and move, back to text editing: text doesn't update?
             // it does! but it does not take the transformation into consideration!!!
@@ -342,13 +418,11 @@ describe("FigureEditor", function() {
             // TEST: when the cursor leaves the region were words are rendered...
 
             // next steps:
-            // delete & backspace
             // line break/paragraph break
             // unicode line break rules (conditional word separator? CTRL+SPACE was it in MS Word?)
             //   "There are two ways to specify a conditional (allowed) line break: the <wbr> tag, which
             //   is being standardized in HTML5, and the zero width space character (U+200B, &#x200b;)"
             //   &shy; https://en.wikipedia.org/wiki/Soft_hyphen
-            // mark region
             // cut/copy/paste
             // text, text area
             // fix the scrollarea's scrollbars

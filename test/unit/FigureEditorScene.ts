@@ -20,12 +20,16 @@ import { SelectTool, TextTool, Tool } from "client/figuretools"
 import { LocalLayerModel } from "client/figureeditor/LocalLayerModel"
 import { Figure } from "client/figures"
 import * as figure from "client/figures"
-import { FigureEditor, EditorKeyboardEvent } from "client/figureeditor"
+import { FigureEditor } from "client/figureeditor"
 import { Path } from "client/paths"
 
 import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointPlusSize, pointMinusPoint, pointMinus } from "shared/geometry"
 import { LocalLayer } from "client/figureeditor/LocalLayer"
 import { EditorMouseEvent } from "client/figureeditor/EditorMouseEvent"
+
+interface KeyboardOption {
+    shift?: boolean
+}
 
 // PageObject style API for testing FigureEditor
 // https://martinfowler.com/bliki/PageObject.html
@@ -295,7 +299,7 @@ export class FigureEditorScene {
         this.mouseUp()
     }
 
-    keydown(key: string): void {
+    keydown(key: string, option?: KeyboardOption): void {
         if (this.verbose)
             console.log(`### KEY DOWN ${key}`)
 
@@ -303,9 +307,9 @@ export class FigureEditorScene {
         while(active?.shadowRoot?.activeElement) {
             active = active.shadowRoot.activeElement
         }
-
         let event = new KeyboardEvent("keydown", {
             key: key,
+            shiftKey: option?.shift,
             composed: true,
             cancelable: true,
             bubbles: true,
@@ -313,20 +317,20 @@ export class FigureEditorScene {
         active?.dispatchEvent(event)
     }
 
-    sendArrowLeft() {
-        this.keydown("ArrowLeft")
+    sendArrowLeft(option?: KeyboardOption) {
+        this.keydown("ArrowLeft", option)
     }
 
-    sendArrowRight() {
-        this.keydown("ArrowRight")
+    sendArrowRight(option?: KeyboardOption) {
+        this.keydown("ArrowRight", option)
     }
 
-    sendBackspace() {
-        this.keydown("Backspace")
+    sendBackspace(option?: KeyboardOption) {
+        this.keydown("Backspace", option)
     }
 
-    sendDelete() {
-        this.keydown("Delete")
+    sendDelete(option?: KeyboardOption) {
+        this.keydown("Delete", option)
     }
 
 }

@@ -28,37 +28,46 @@ export type WhitespaceKeys = "Enter" | "Tab" | " "
 export type NavigationKeys = "ArrowDown" | "ArrowLeft" | "ArrowRight" | "ArrowUp" | "End" | "Home" | "PageDown" | "PageUp"
 export type EditingKeys = "Backspace" | "Clear" | "Copy" | "CrSel" | "Cut" | "Delete" | "EraseEof" | "ExSel" | "Insert" | "Paste" | "Redo" | "Undo"
 export type UIKeys = "Accept" | "Again" | "Attn" | "Cancel" | "ContextMenu" | "Escape" | "Execute" | "Find" | "Finish" | "Help" | "Pause" | "Play" | "Props" | "Select" | "ZoomIn" | "ZoomOut"
- 
- export interface StrictKeyboardEvent extends KeyboardEvent {
-     readonly key: WhitespaceKeys | NavigationKeys | EditingKeys | UIKeys
- }
+
+export interface StrictKeyboardEvent extends KeyboardEvent {
+    readonly key: WhitespaceKeys | NavigationKeys | EditingKeys | UIKeys
+}
 
 // Cursor navigates and edits the TextSource
 export class Cursor {
     text: Text
-    svg: SVGElement
-    textSource: TextSource
-    timer: undefined | number
-    position: Point
-    xDuringVerticalMovement: undefined | number
-    cursor: SVGLineElement
+    svgParent: SVGElement
+    svgCursor: SVGLineElement
+    svgSelection?: SVGElement
 
-    boxes: Array<WordBox>   // textSource.wordBoxes
+    textSource: TextSource // use the one in text
+    boxes: Array<WordBox>   // use the one in text textSource.wordBoxes
+
+    timer: undefined | number
+
+    position: Point // x is used when going up/down
+    xDuringVerticalMovement: undefined | number
+
+    // cursor location
     offsetWord: number      // index within wordBoxes
     offsetChar: number      // index within wordBox
 
+    // cursor location when selection began
+    selectionOffsetWord: number = -1
+    selectionOffsetChar: number = 0
+
     constructor(text: Text, svg: SVGElement, textSource: TextSource) {
         this.text = text
-        this.svg = svg
+        this.svgParent = svg
         this.textSource = textSource
         this.boxes = textSource.wordBoxes
         this.position = new Point()
         this.xDuringVerticalMovement = undefined
         this.offsetWord = 0
         this.offsetChar = 0
-        this.cursor = this.createCursor()
+        this.svgCursor = this.createCursor()
         this.updateCursor()
-        this.svg.appendChild(this.cursor)
+        this.svgParent.appendChild(this.svgCursor)
     }
 
     createCursor(): SVGLineElement {
@@ -75,9 +84,19 @@ export class Cursor {
             this.updateCursor()
         }
     }
-        
+
     keydown(e: EditorKeyboardEvent) {
         e.event.preventDefault()
+
+        if (e.event.shiftKey && ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(e.event.key)) {
+            if (this.selectionOffsetWord < 0) {
+                this.selectionOffsetWord = this.offsetWord
+                this.selectionOffsetChar = this.offsetChar
+            }
+        } else {
+            this.selectionOffsetWord = -1
+        }
+
         let r = this.boxes[this.offsetWord]
         switch (e.event.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
             case "ArrowRight":
@@ -124,7 +143,7 @@ export class Cursor {
                         r.svg.textContent = r.word
                     }
 
-                    this.textSource.wordBoxes.splice(this.offsetWord+1, 1)
+                    this.textSource.wordBoxes.splice(this.offsetWord + 1, 1)
                     if (nextWord.svg) {
                         nextWord.svg.parentElement?.removeChild(nextWord.svg)
                     }
@@ -145,7 +164,7 @@ export class Cursor {
                             return
                         }
                         // const word = this.textSource.wordBoxes[this.offsetWord]
-                        this.textSource.wordBoxes.splice(this.offsetWord+1, 0, new WordBox(0, 0, r.word.substring(this.offsetChar)))
+                        this.textSource.wordBoxes.splice(this.offsetWord + 1, 0, new WordBox(0, 0, r.word.substring(this.offsetChar)))
                         r.word = r.word.substring(0, this.offsetChar)
                         if (r.svg)
                             r.svg.textContent = r.word
@@ -193,16 +212,16 @@ export class Cursor {
                 // console.log("keyDown: done")
                 break
             default:
-                this.xDuringVerticalMovement = undefined    
+                this.xDuringVerticalMovement = undefined
         }
     }
-    
+
 
     // FIXME: name does not indicate position is not changed
     gotoNextRow(): boolean {
         let offsetWord = this.offsetWord
-        while(offsetWord < this.boxes.length && !this.boxes[offsetWord++].endOfLine) {}
-        if (offsetWord >= this.boxes.length || this.boxes[offsetWord-1].endOfWrap)
+        while (offsetWord < this.boxes.length && !this.boxes[offsetWord++].endOfLine) { }
+        if (offsetWord >= this.boxes.length || this.boxes[offsetWord - 1].endOfWrap)
             return false
         this.offsetWord = offsetWord
         this.offsetChar = 0
@@ -214,7 +233,7 @@ export class Cursor {
         let offsetWord = this.offsetWord
 
         // console.log(`gotoPreviousRow: goto bol in current line`)
-        while(offsetWord > 0 && !this.boxes[offsetWord-1].endOfLine) {
+        while (offsetWord > 0 && !this.boxes[offsetWord - 1].endOfLine) {
             --offsetWord
         }
         // console.log(`gotoPreviousRow: bol offsetWord=${offsetWord}`)
@@ -225,7 +244,7 @@ export class Cursor {
         --offsetWord
 
         // console.log(`gotoPreviousRow: goto bol in previous line`)
-        while(offsetWord > 0 && !this.boxes[offsetWord-1].endOfLine) {
+        while (offsetWord > 0 && !this.boxes[offsetWord - 1].endOfLine) {
             --offsetWord
         }
         // console.log(`gotoPreviousRow: offsetWord=${offsetWord}`)
@@ -238,7 +257,7 @@ export class Cursor {
     goNearY(y: number): boolean {
         let rowWord = 0
         let maxY = Number.MIN_VALUE
-        for(let i=0; i<this.boxes.length; ++i) {
+        for (let i = 0; i < this.boxes.length; ++i) {
             let r = this.boxes[i]
             maxY = Math.max(maxY, r.origin.y + r.size.height)
             if (r.endOfLine) {
@@ -247,7 +266,7 @@ export class Cursor {
                     return true
                 }
                 maxY = Number.MIN_VALUE
-                if ( i+1 >= this.boxes.length || r.endOfWrap)
+                if (i + 1 >= this.boxes.length || r.endOfWrap)
                     break
                 rowWord = i + 1
             }
@@ -261,9 +280,9 @@ export class Cursor {
         let offsetWord = this.offsetWord
         let offsetChar = this.offsetChar
         // console.log(`gotoCursorHorizontally(): enter with x=${x}, offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
-        while(true) {
+        while (true) {
             let r = this.boxes[offsetWord]
-     
+
             // current position is right of r => next word
             if (x > r.origin.x + r.size.width) {
                 if (r.endOfLine) {
@@ -277,12 +296,12 @@ export class Cursor {
                 }
             }
 
-            if (offsetWord != this.offsetWord && x<r.origin.x) {
+            if (offsetWord != this.offsetWord && x < r.origin.x) {
                 let r0 = this.boxes[offsetWord - 1]
                 let x0 = r0.origin.x + r0.size.width
                 let x1 = r.origin.x
                 // console.log(`found character before word for x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
-                if (x1-x >= x-x0) {
+                if (x1 - x >= x - x0) {
                     offsetWord = offsetWord - 1
                     offsetChar = r0.word.length
                 } else {
@@ -293,14 +312,14 @@ export class Cursor {
 
             // console.log(`gotoCursorHorizontally: search within word ${offsetWord}`)
             offsetChar = -1
-            let x0=r.origin.x
-            for(let i=1; i<=r.word.length; ++i) {
+            let x0 = r.origin.x
+            for (let i = 1; i <= r.word.length; ++i) {
                 let x1 = r.origin.x + r.svg!.getSubStringLength(0, i)
                 // console.log(`  i=${i}, x0=${x0}, x1=${x1}`)
                 if (x < x1) {
                     // console.log(`found character after word for x=${x}, x0=${x0}, x1=${x1}, compare x1-x >= x-x0 (${x1-x} >= ${x-x0})`)
-                    if (x1-x >= x-x0) {
-                        offsetChar = i-1
+                    if (x1 - x >= x - x0) {
+                        offsetChar = i - 1
                     } else {
                         offsetChar = i
                     }
@@ -319,49 +338,106 @@ export class Cursor {
         this.offsetChar = offsetChar
         // console.log(`gotoCursorHorizontally: offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
     }
-    
+
     // use offsetWord and offsetChar to place the cursor
     updateCursor() {
-        let r = this.boxes[this.offsetWord]!
-        let x
-        if (r.word.length === 0) {
-            x = 0
+
+        const [x, y, h] = this.offsetToScreen(this.offsetWord, this.offsetChar)
+
+        if (this.selectionOffsetWord < 0) {
+            if (this.svgSelection) {
+                this.svgSelection.parentElement?.removeChild(this.svgSelection)
+                this.svgSelection = undefined
+            }
         } else {
-            // console.log(`word='${r.word}', word.length=${r.word.length}, call getSubStringLength(0, offsetChar=${this.offsetChar})`)
-            x = this.offsetChar === 0 ? 0 : r.svg!.getSubStringLength(0, this.offsetChar)
+
+            let [offsetWord0, offsetChar0] = [this.offsetWord, this.offsetChar]
+            let [offsetWord1, offsetChar1] = [this.selectionOffsetWord, this.selectionOffsetChar]
+
+            //  this.offsetToScreen(this.selectionOffsetWord, this.selectionOffsetChar)
+            if (offsetWord0 > offsetWord1 ||
+                (offsetWord0 === offsetWord1 &&
+                    offsetChar0 > offsetChar1)
+            ) {
+                [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = [offsetWord1, offsetChar1, offsetWord0, offsetChar0]
+            }
+
+            const path = new Path()
+
+            // console.log(` create selection between offsets (${offsetWord0}, ${offsetChar0}) and (${offsetWord1}, ${offsetChar1})`)
+
+            let offsetWord = offsetWord0
+            while (offsetWord <= offsetWord1) {
+                const word = this.boxes[offsetWord]
+                if (word.endOfLine || word.endOfSlice || offsetWord === offsetWord1) {
+                    // console.log(`  create rectangle" endof`)
+                    const [x0, y0, h0] = this.offsetToScreen(offsetWord0, offsetChar0)
+                    let x1, y1, h1
+                    if (offsetWord < offsetWord1)
+                        [x1, y1, h1] = this.offsetToScreen(offsetWord, word.word.length)
+                    else
+                        [x1, y1, h1] = this.offsetToScreen(offsetWord, offsetChar1)
+                    path.move(x0, y0 + h0)
+                        .line(x0, y0)
+                        .line(x1, y1)
+                        .line(x1, y1 + h1)
+                        .close();
+                    [offsetWord0, offsetChar0] = [offsetWord + 1, 0]
+                }
+                ++offsetWord
+            }
+
+            if (this.svgSelection === undefined) {
+                // console.log(`create selection to from ${x0} to ${x1}`)
+                this.svgSelection = path.createSVG("#b3d7ff", 1, "#b3d7ff")
+                this.svgParent.insertBefore(this.svgSelection, this.svgParent.children[0])
+            } else {
+                // console.log(`update selection to from ${x0} to ${x1}`)
+                path.updateSVG(this.svgParent, this.svgSelection)
+            }
         }
-        // set position
-        this.position.x = r.origin.x + x
-        this.position.y = r.origin.y
 
-        // console.log(`updateCursor(): offsetWord=${this.offsetWord}, offsetChar=${this.offsetChar}, x=${this.position.x}, y=${this.position.y}, height=${r.size.height}`)
+        this.position.x = x
+        this.position.y = y
 
-        const xs = `${Math.round(r.origin.x + x) + 0.5}`
-        const y1 = `${Math.round(r.origin.y) + 0.5}`
-        const y2 = `${Math.round(r.origin.y + r.size.height) + 0.5}`
+        const xs = `${Math.round(x) + 0.5}`
+        const y1 = `${Math.round(y) + 0.5}`
+        const y2 = `${Math.round(y + h) + 0.5}`
 
-        this.cursor.setAttributeNS("", "x1", xs)
-        this.cursor.setAttributeNS("", "y1", y1)
-        this.cursor.setAttributeNS("", "x2", xs)
-        this.cursor.setAttributeNS("", "y2", y2)
+        this.svgCursor.setAttributeNS("", "x1", xs)
+        this.svgCursor.setAttributeNS("", "y1", y1)
+        this.svgCursor.setAttributeNS("", "x2", xs)
+        this.svgCursor.setAttributeNS("", "y2", y2)
 
         // disable blinking for 0.5s while moving
         if (this.timer) {
             window.clearTimeout(this.timer)
             this.timer = undefined
         }
-        this.cursor.classList.remove("cursor-blink")
+        this.svgCursor.classList.remove("cursor-blink")
         this.timer = window.setTimeout(() => {
-            this.cursor.classList.add("cursor-blink")
+            this.svgCursor.classList.add("cursor-blink")
             this.timer = undefined
         }, 500)
+    }
+
+    offsetToScreen(offsetWord: number, offsetChar: number) {
+        let r = this.boxes[offsetWord]!
+        let x
+        if (r.word.length === 0) {
+            x = 0
+        } else {
+            // console.log(`word='${r.word}', word.length=${r.word.length}, call getSubStringLength(0, offsetChar=${this.offsetChar})`)
+            x = offsetChar === 0 ? 0 : r.svg!.getSubStringLength(0, offsetChar)
+        }
+        return [r.origin.x + x, r.origin.y, r.size.height]
     }
 
     stop() {
         if (this.timer) {
             window.clearTimeout(this.timer)
             this.timer = undefined
-            this.cursor.classList.remove("cursor-blink")
+            this.svgCursor.classList.remove("cursor-blink")
         }
     }
 }
