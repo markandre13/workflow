@@ -78,7 +78,7 @@ export class Cursor {
         
     keydown(e: EditorKeyboardEvent) {
         e.event.preventDefault()
-        let r = this.boxes[this.offsetWord]!
+        let r = this.boxes[this.offsetWord]
         switch (e.event.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
             case "ArrowRight":
                 ++this.offsetChar
@@ -92,6 +92,7 @@ export class Cursor {
                 }
                 this.updateCursor()
                 break
+            case "Backspace":
             case "ArrowLeft":
                 if (this.offsetWord === 0 && this.offsetChar === 0)
                     break
@@ -101,7 +102,40 @@ export class Cursor {
                     r = this.boxes[this.offsetWord]!
                     this.offsetChar = r.word.length
                 }
+                if (e.event.key === "ArrowLeft") {
+                    this.updateCursor()
+                    break
+                }
+            case "Delete":
+                if (this.offsetChar < r.word.length) {
+                    r.word = r.word.slice(0, this.offsetChar) + r.word.slice(this.offsetChar + 1)
+                    if (r.svg !== undefined) {
+                        r.svg.textContent = r.word
+                    }
+                } else {
+                    if (this.offsetWord + 1 >= this.textSource.wordBoxes.length) {
+                        console.log("END OF LAST WORD, NOTHING TO DELETE")
+                        return
+                    }
+
+                    const nextWord = this.textSource.wordBoxes[this.offsetWord + 1]
+                    r.word += nextWord.word
+                    if (r.svg) {
+                        r.svg.textContent = r.word
+                    }
+
+                    this.textSource.wordBoxes.splice(this.offsetWord+1, 1)
+                    if (nextWord.svg) {
+                        nextWord.svg.parentElement?.removeChild(nextWord.svg)
+                    }
+                }
+
+                // redo word wrap
+                this.textSource.reset()
+                const wordwrap = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
+                this.textSource.updateSVG()
                 this.updateCursor()
+
                 break
             default:
                 if (e.event.key.length == 1) {
@@ -110,11 +144,11 @@ export class Cursor {
                             console.log(`Cursor.keyDown(): ignoring ' ' at beginning of word`)
                             return
                         }
-                        const word = this.textSource.wordBoxes[this.offsetWord]
-                        this.textSource.wordBoxes.splice(this.offsetWord+1, 0, new WordBox(0, 0, word.word.substring(this.offsetChar)))
-                        word.word = word.word.substring(0, this.offsetChar)
-                        if (word.svg)
-                            word.svg.textContent = word.word
+                        // const word = this.textSource.wordBoxes[this.offsetWord]
+                        this.textSource.wordBoxes.splice(this.offsetWord+1, 0, new WordBox(0, 0, r.word.substring(this.offsetChar)))
+                        r.word = r.word.substring(0, this.offsetChar)
+                        if (r.svg)
+                            r.svg.textContent = r.word
                         this.offsetChar = 0
                         this.offsetWord++
                     } else {
@@ -133,6 +167,7 @@ export class Cursor {
                 }
         }
 
+        // 
         switch (e.event.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
             case "ArrowDown":
                 // console.log("keyDown: start")

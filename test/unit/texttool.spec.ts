@@ -127,14 +127,127 @@ describe("FigureEditor", function() {
             })
         })
         describe("delete text", function() {
-            xit("delete", function() {
-                const scene = new FigureEditorScene(true)
+            it("delete first character", function() {
+                const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
+                scene.keydown("B")
+                scene.keydown("C")
                 scene.sendArrowLeft()
-                // scene.sendDelete()
+                scene.sendArrowLeft()
+                scene.sendArrowLeft()
+                scene.sendDelete()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(1)
+                expect(wordBoxes[0].word).to.equal("BC")
+                expect(wordBoxes[0].svg?.textContent).to.equal("BC")
             })
-            // backspace & delete
+            it("delete middle character", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.keydown("B")
+                scene.keydown("C")
+                scene.sendArrowLeft()
+                scene.sendArrowLeft()
+                scene.sendDelete()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(1)
+                expect(wordBoxes[0].word).to.equal("AC")
+                expect(wordBoxes[0].svg?.textContent).to.equal("AC")
+            })
+            it("delete last character", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.keydown("B")
+                scene.keydown("C")
+                scene.sendArrowLeft()
+                scene.sendDelete()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(1)
+                expect(wordBoxes[0].word).to.equal("AB")
+                expect(wordBoxes[0].svg?.textContent).to.equal("AB")
+            })
+            it("delete behind last character of last word", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.sendDelete()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(1)
+                expect(wordBoxes[0].word).to.equal("A")
+                expect(wordBoxes[0].svg?.textContent).to.equal("A")
+            })
+            it("delete behind last character of word (aka delete space between two words)", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.keydown("B")
+                scene.keydown(" ")
+                scene.keydown("C")
+                scene.keydown("D")
+
+                scene.sendArrowLeft()
+                scene.sendArrowLeft()
+                scene.sendArrowLeft()
+
+                scene.sendDelete()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(1)
+                expect(wordBoxes[0].word).to.equal("ABCD")
+                expect(wordBoxes[0].svg?.textContent).to.equal("ABCD")
+            })
+            it("delete two characters (two check that deleting the 1st leaves us in correct position to delete the 2nd)", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.keydown("B")
+                scene.keydown("C")
+                scene.keydown("D")
+
+                scene.sendArrowLeft()
+                scene.sendArrowLeft()
+                scene.sendArrowLeft()
+
+                scene.sendDelete()
+                scene.sendDelete()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(1)
+                expect(wordBoxes[0].word).to.equal("AD")
+                expect(wordBoxes[0].svg?.textContent).to.equal("AD")
+            })
+            it("backspace (only once test as it shares the implementation with delete)", function() {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("A")
+                scene.sendBackspace()
+
+                const text = scene.model.layers[0].data[0] as Text
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(1)
+                expect(wordBoxes[0].word).to.equal("")
+                expect(wordBoxes[0].svg?.textContent).to.equal("")
+            })
         })
         describe("cursor", function() {
             it("is visible in a newly created text area", function() {
