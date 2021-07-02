@@ -466,7 +466,6 @@ export class FigureEditor extends ModelView<LayerModel> {
     //
 
     @bind inputCatcherKeyDown(e: KeyboardEvent) {
-        console.log(e)
         if (e.metaKey !== true && e.key !== "Dead" && this.tool && this.selectedLayer) {
             this.tool.keydown(new EditorKeyboardEvent(this, e))
             // clear the input catcher so we do not accumulate data we do not need.
@@ -477,6 +476,5 @@ export class FigureEditor extends ModelView<LayerModel> {
     }
 
     @bind inputCatcherInput(e: InputEvent) {
-        console.log(e)
     }
 }

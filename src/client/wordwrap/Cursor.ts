@@ -23,6 +23,7 @@ import { Point } from "shared/geometry"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
 import { EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
+import { toJS } from "mobx"
 
 // FIXME: this class quickly turned into an TextEditor, merge it into TextTool
 export class Cursor {
@@ -76,9 +77,12 @@ export class Cursor {
         }
     }
 
+    // TODO: break this method up!
     keydown(e: EditorKeyboardEvent) {
         e.preventDefault()
+        let r = this.boxes[this.offsetWord]
 
+        // NOTE: this might not be just the arrow keys but navigation keys in general
         if (e.shift && ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(e.code)) {
             if (this.selectionOffsetWord < 0) {
                 this.selectionOffsetWord = this.offsetWord
@@ -87,11 +91,22 @@ export class Cursor {
         } else {
             this.selectionOffsetWord = -1
         }
+        if (e.code === "Home" || (e.ctrl && e.code === "KeyA")) {
+            this.offsetChar = 0
+            let offsetWord = this.offsetWord
+            while (true) {
+                if ((offsetWord > 0 && this.boxes[offsetWord - 1].endOfLine) ||
+                    offsetWord === 0) {
+                    this.offsetWord = offsetWord
+                    break
+                }
+                --offsetWord
+            }
+            this.updateCursor()
+            return
+        }
 
-        let r = this.boxes[this.offsetWord]
         switch (e.code) {
-            case "Home":
-                break
             case "ArrowRight":
                 ++this.offsetChar
                 if (this.offsetChar > r.word.length) {
@@ -178,7 +193,6 @@ export class Cursor {
                 }
         }
 
-        // 
         switch (e.code) { // FIXME: keyCode is marked as deprecated in TypeScript definition
             case "ArrowDown":
                 // console.log("keyDown: start")

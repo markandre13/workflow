@@ -22,7 +22,7 @@ type WhitespaceKeyCode = "Enter" | "NumpadEnter" | "Tab" | "Space"
 type NavigationKeyCode = "ArrowDown" | "ArrowLeft" | "ArrowRight" | "ArrowUp" | "End" | "Home" | "PageDown" | "PageUp"
 type EditingKeys = "Backspace" | "Clear" | "Copy" | "CrSel" | "Cut" | "Delete" | "EraseEof" | "ExSel" | "Insert" | "Paste" | "Redo" | "Undo"
 type UIKeys = "Accept" | "Again" | "Attn" | "Cancel" | "ContextMenu" | "Escape" | "Execute" | "Find" | "Finish" | "Help" | "Pause" | "Play" | "Props" | "Select" | "ZoomIn" | "ZoomOut"
-type ModifierKeyCode = "ShiftLeft" | "ShiftRight" | "ControlLeft" | "ControlRight" | "AltLeft" | "AltRight" | "MetaLeft" | "MetaRight"
+type ModifierKeyCode = "Dead" | "ShiftLeft" | "ShiftRight" | "ControlLeft" | "ControlRight" | "AltLeft" | "AltRight" | "MetaLeft" | "MetaRight"
 type Alpha = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
 type AlphaKeyCode = `Key${Alpha}`
 type Numeric = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
@@ -38,7 +38,7 @@ export class EditorKeyboardEvent {
 
     shift: boolean
     ctrl: boolean
-    alt: boolean  // macOs: option key
+    alt: boolean  // macOS: option key
     meta: boolean // macOS: command key, Windows: windows key
 
     constructor(editor: FigureEditor, event: KeyboardEvent) {

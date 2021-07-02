@@ -333,20 +333,72 @@ describe("FigureEditor", function () {
                 expect(line.getAttributeNS("", "x2")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
                 expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
             })
-            xdescribe("beginning of line", function () {
+            describe("beginning of line", function () {
                 it("Home key", function () {
                     const scene = new FigureEditorScene()
                     scene.createTextArea()
                     scene.keydown("KeyA")
                     scene.keydown("KeyB")
                     scene.keydown("Home")
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const cursor = text.cursor
+                    expect(cursor.offsetWord).equal(0)
+                    expect(cursor.offsetChar).equal(0)
                 })
-                it("Ctrl+A", function() {
+                it("Ctrl+A", function () {
                     const scene = new FigureEditorScene()
                     scene.createTextArea()
                     scene.keydown("KeyA")
                     scene.keydown("KeyB")
-                    scene.keydown("KeyA", {ctrl: true})
+                    scene.keydown("KeyA", { ctrl: true })
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const cursor = text.cursor
+                    expect(cursor.offsetWord).equal(0)
+                    expect(cursor.offsetChar).equal(0)
+                })
+                describe.only("unit tests", function () {
+                    it("jump from 2nd word to 1st word", function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("Space")
+                        scene.keydown("KeyB")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+
+                        scene.keydown("Home")
+                        expect(cursor.offsetWord).equal(0)
+                        expect(cursor.offsetChar).equal(0)
+
+                        scene.keydown("Home")
+                        expect(cursor.offsetWord).equal(0)
+                        expect(cursor.offsetChar).equal(0)
+                    })
+                    it("jump to the head of the 2nd line", function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        for(let i=0; i<6; ++i) {
+                            scene.keydown("KeyA")
+                            scene.keydown("KeyB")
+                            scene.keydown("KeyC")
+                            scene.keydown("KeyD")
+                            scene.keydown("Space")
+                        }
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+
+                        scene.keydown("Home")
+                        expect(cursor.offsetWord).equal(3)
+                        expect(cursor.offsetChar).equal(0)
+
+                        scene.keydown("Home")
+                        expect(cursor.offsetWord).equal(3)
+                        expect(cursor.offsetChar).equal(0)
+                    })
                 })
             })
             xdescribe("end of line", function () {
