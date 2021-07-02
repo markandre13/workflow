@@ -109,8 +109,12 @@ export class TextTool extends Tool {
 
     override mousemove(event: EditorMouseEvent) {
         switch (this.state) {
-            case TextToolState.NONE:
             case TextToolState.EDIT:
+                if (event.editor.mouseButtonIsDown) {
+                    this.text.cursor.mousemove(event)
+                    return
+                }
+            case TextToolState.NONE:
                 let figure = event.editor.selectedLayer!.findFigureAt(event)
                 // console.log(`at ${event.x},${event.y} found ${figure}`)
                 if (figure === undefined) {

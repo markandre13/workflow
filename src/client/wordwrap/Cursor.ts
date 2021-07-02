@@ -73,6 +73,17 @@ export class Cursor {
         this.offsetChar = 0
         if (this.goNearY(e.y)) {
             this.goNearX(e.x)
+        }
+        this.selectionOffsetWord = this.offsetWord
+        this.selectionOffsetChar = this.offsetChar
+        this.updateCursor()
+    }
+
+    mousemove(e: EditorMouseEvent) {
+        this.offsetWord = 0
+        this.offsetChar = 0
+        if (this.goNearY(e.y)) {
+            this.goNearX(e.x)
             this.updateCursor()
         }
     }
@@ -321,6 +332,11 @@ export class Cursor {
                     break
                 } else {
                     ++offsetWord
+                    if (offsetWord === this.boxes.length) {
+                        offsetChar = r.word.length
+                        --offsetWord
+                        break
+                    }
                     // console.log(`gotoCursorHorizontally: current position ${x} is right of ${r.origin.x + r.size.width} => next word ${offsetWord}`)
                     continue
                 }
