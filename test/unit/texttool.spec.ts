@@ -399,7 +399,7 @@ describe("FigureEditor", function () {
                     })
                 })
             })
-            describe.only("go to end of line", function () {
+            describe("go to end of line", function () {
                 it("End key", function () {
                     const scene = new FigureEditorScene()
                     scene.createTextArea()
@@ -475,15 +475,6 @@ describe("FigureEditor", function () {
                 })
             })
         })
-        // control characters: #2e88eb
-        // blue    #b3d7ff
-        // purple  #dfc5df
-        // pink    #fccae2
-        // red     #f5c3c5
-        // orange  #fcd9bb
-        // yellow  #ffeebe
-        // green   #d0eac7
-        // graphit #e0e0e0
         describe("select text", function () {
             describe("with keyboard", function () {
                 it("select one character", function () {
@@ -536,6 +527,38 @@ describe("FigureEditor", function () {
                     expect(path.length).to.equal(5)
                     expect(path).to.containSubset([{ values: [10, 15] }])
                     expect(path).to.containSubset([{ values: [10 + word0.size.width + cursor.textSource.space + word1.size.width, 15 + word0.size.height] }])
+                })
+                it("select with Home + shift", function() {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+
+                    scene.keydown("Home", {shift: true})
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const cursor = text.cursor
+                    expect(cursor.selectionOffsetWord).to.equal(0)
+                    expect(cursor.selectionOffsetChar).to.equal(2)
+                    expect(cursor.offsetWord).to.equal(0)
+                    expect(cursor.offsetChar).to.equal(0)
+
+                })
+                it("select with End + shift", function() {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+                    scene.keydown("Home")
+
+                    scene.keydown("End", {shift: true})
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const cursor = text.cursor
+                    expect(cursor.selectionOffsetWord).to.equal(0)
+                    expect(cursor.selectionOffsetChar).to.equal(0)
+                    expect(cursor.offsetWord).to.equal(0)
+                    expect(cursor.offsetChar).to.equal(2)
                 })
 
                 // within a single line

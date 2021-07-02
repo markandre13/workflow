@@ -161,7 +161,9 @@ export class FigureEditor extends ModelView<LayerModel> {
         this.inputCatcher.contentEditable = "true"
         this.inputCatcher.addEventListener('keydown', this.inputCatcherKeyDown)
         this.inputCatcher.addEventListener('input', this.inputCatcherInput as (e: Event) => void)
-
+        // we have clipboard events for cut, copy and paste!
+        // https://developer.mozilla.org/en-US/docs/Web/API/ClipboardEvent
+        
         this.scrollView = document.createElement("div")
         this.scrollView.classList.add("stretch")
         this.scrollView.classList.add("scrollView")

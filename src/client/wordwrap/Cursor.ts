@@ -77,13 +77,8 @@ export class Cursor {
         }
     }
 
-    // TODO: break this method up!
-    keydown(e: EditorKeyboardEvent) {
-        e.preventDefault()
-        let r = this.boxes[this.offsetWord]
-
-        // NOTE: this might not be just the arrow keys but navigation keys in general
-        if (e.shift && ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(e.code)) {
+    updateSelection(e: EditorKeyboardEvent) {
+        if (e.shift) {
             if (this.selectionOffsetWord < 0) {
                 this.selectionOffsetWord = this.offsetWord
                 this.selectionOffsetChar = this.offsetChar
@@ -91,7 +86,15 @@ export class Cursor {
         } else {
             this.selectionOffsetWord = -1
         }
+    }
+
+    // TODO: break this method up!
+    keydown(e: EditorKeyboardEvent) {
+        e.preventDefault()
+        let r = this.boxes[this.offsetWord]
+
         if (e.code === "Home" || (e.ctrl && e.code === "KeyA")) {
+            this.updateSelection(e)
             let offsetWord = this.offsetWord
             while (true) {
                 if ((offsetWord > 0 && this.boxes[offsetWord - 1].endOfLine) ||
@@ -106,6 +109,7 @@ export class Cursor {
             return
         }
         if (e.code === "End" || (e.ctrl && e.code === "KeyE")) {
+            this.updateSelection(e)
             let offsetWord = this.offsetWord
             while (true) {
                 if (offsetWord === this.boxes.length - 1 ||
@@ -122,6 +126,8 @@ export class Cursor {
 
         switch (e.code) {
             case "ArrowRight":
+                this.updateSelection(e)
+                // WHEW! END OF TEXT???
                 ++this.offsetChar
                 if (this.offsetChar > r.word.length) {
                     if (this.offsetWord >= this.boxes.length || this.boxes[this.offsetWord].endOfWrap) {
@@ -137,6 +143,7 @@ export class Cursor {
             case "ArrowLeft":
                 if (this.offsetWord === 0 && this.offsetChar === 0)
                     break
+                this.updateSelection(e)
                 --this.offsetChar
                 if (this.offsetChar < 0) {
                     --this.offsetWord
@@ -147,6 +154,7 @@ export class Cursor {
                     this.updateCursor()
                     break
                 }
+                // WHEW! CLEAR SELECTION AGAIN???
             case "Delete":
                 if (this.offsetChar < r.word.length) {
                     r.word = r.word.slice(0, this.offsetChar) + r.word.slice(this.offsetChar + 1)
@@ -209,6 +217,7 @@ export class Cursor {
 
         switch (e.code) { // FIXME: keyCode is marked as deprecated in TypeScript definition
             case "ArrowDown":
+                this.updateSelection(e)
                 // console.log("keyDown: start")
                 if (this.xDuringVerticalMovement === undefined)
                     this.xDuringVerticalMovement = this.position.x
@@ -221,6 +230,7 @@ export class Cursor {
                 // console.log("keyDown: done")
                 break
             case "ArrowUp":
+                this.updateSelection(e)
                 // console.log("keyDown: start")
                 if (this.xDuringVerticalMovement === undefined)
                     this.xDuringVerticalMovement = this.position.x
