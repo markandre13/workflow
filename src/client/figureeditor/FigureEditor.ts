@@ -160,6 +160,7 @@ export class FigureEditor extends ModelView<LayerModel> {
         this.inputCatcher.classList.add("inputCatcher")
         this.inputCatcher.contentEditable = "true"
         this.inputCatcher.addEventListener('keydown', this.inputCatcherKeyDown)
+        this.inputCatcher.addEventListener('input', this.inputCatcherInput as (e: Event) => void)
 
         this.scrollView = document.createElement("div")
         this.scrollView.classList.add("stretch")
@@ -465,6 +466,7 @@ export class FigureEditor extends ModelView<LayerModel> {
     //
 
     @bind inputCatcherKeyDown(e: KeyboardEvent) {
+        console.log(e)
         if (e.metaKey !== true && e.key !== "Dead" && this.tool && this.selectedLayer) {
             this.tool.keydown(new EditorKeyboardEvent(this, e))
             // clear the input catcher so we do not accumulate data we do not need.
@@ -472,5 +474,9 @@ export class FigureEditor extends ModelView<LayerModel> {
             // uses the content to compose the character.
             this.inputCatcher.textContent = ""
         }
+    }
+
+    @bind inputCatcherInput(e: InputEvent) {
+        console.log(e)
     }
 }

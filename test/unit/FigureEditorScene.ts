@@ -20,15 +20,67 @@ import { SelectTool, TextTool, Tool } from "client/figuretools"
 import { LocalLayerModel } from "client/figureeditor/LocalLayerModel"
 import { Figure } from "client/figures"
 import * as figure from "client/figures"
-import { FigureEditor } from "client/figureeditor"
+import { FigureEditor, KeyCode } from "client/figureeditor"
 import { Path } from "client/paths"
 
-import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointPlusSize, pointMinusPoint, pointMinus } from "shared/geometry"
+import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointMinusPoint, pointMinus } from "shared/geometry"
 import { LocalLayer } from "client/figureeditor/LocalLayer"
 import { EditorMouseEvent } from "client/figureeditor/EditorMouseEvent"
 
+// NOTE: the translation in here is insufficient
+// we could also track the modifier keys and emulate keyup events, etc.
+//  key       code
+//  --------------------------
+//  ArrowDown ArrowDown
+//  a         KeyA
+//  A         KeyA + shift
+//  ö         Semicolon
+//  ä         Quote
+//  Shift     ShiftLeft
+//  Shift     ShiftRight
+//  CapsLock  CapsLock
+//  ' '       Space
+//  '!'       Digit1 + shift
+function keyCode2keyValue(code: KeyCode, option?: KeyboardOption): string {
+    if (code.substr(0, 3) === "Key") {
+        if (option?.shift === true)
+            return code.substr(3)
+        else
+        return code.substr(3).toLowerCase()
+    }
+    if (code.substr(0,5) === "Digit") {
+        return code.substr(5)
+    }
+    if (code.substr(0,6) === "Numeric") {
+        return code.substr(6)
+    }
+    switch (code) {
+        case "Space":
+            return " "
+        case "ShiftLeft":
+        case "ShiftRight":
+            return "Shift"
+        case "ControlLeft":
+        case "ControlRight":
+            return "Control"
+        case "AltLeft":
+        case "AltRight":
+            return "Alt"
+        case "MetaLeft":
+        case "MetaRight":
+            return "Meta"
+        case "Enter":
+        case "NumpadEnter":
+            return "Enter"
+    }
+    return code
+}
+
 interface KeyboardOption {
     shift?: boolean
+    ctrl?: boolean
+    alt?: boolean
+    meta?: boolean // macOS: command key, windows: windows key
 }
 
 // PageObject style API for testing FigureEditor
@@ -299,38 +351,25 @@ export class FigureEditorScene {
         this.mouseUp()
     }
 
-    keydown(key: string, option?: KeyboardOption): void {
+    keydown(keycode: KeyCode, option?: KeyboardOption): void {
         if (this.verbose)
-            console.log(`### KEY DOWN ${key}`)
+            console.log(`### KEY DOWN ${keycode}`)
 
         let active = document.activeElement
         while(active?.shadowRoot?.activeElement) {
             active = active.shadowRoot.activeElement
         }
         let event = new KeyboardEvent("keydown", {
-            key: key,
+            key: keyCode2keyValue(keycode, option),
+            code: keycode,
+            altKey: option?.alt,
             shiftKey: option?.shift,
+            ctrlKey: option?.ctrl,
+            metaKey: option?.meta,
             composed: true,
             cancelable: true,
             bubbles: true,
         })
         active?.dispatchEvent(event)
     }
-
-    sendArrowLeft(option?: KeyboardOption) {
-        this.keydown("ArrowLeft", option)
-    }
-
-    sendArrowRight(option?: KeyboardOption) {
-        this.keydown("ArrowRight", option)
-    }
-
-    sendBackspace(option?: KeyboardOption) {
-        this.keydown("Backspace", option)
-    }
-
-    sendDelete(option?: KeyboardOption) {
-        this.keydown("Delete", option)
-    }
-
 }

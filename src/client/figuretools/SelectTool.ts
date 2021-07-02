@@ -169,7 +169,7 @@ export class SelectTool extends Tool {
     }
 
     override keydown(event: EditorKeyboardEvent) {
-        if (event.event.key === "Backspace" || event.event.key === "Delete") {
+        if (event.code === "Backspace" || event.code === "Delete") {
             event.editor.deleteSelection()
             Tool.selection.modified.lock()
             Tool.selection.clear()

@@ -24,15 +24,6 @@ import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
 import { EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
 
-export type WhitespaceKeys = "Enter" | "Tab" | " "
-export type NavigationKeys = "ArrowDown" | "ArrowLeft" | "ArrowRight" | "ArrowUp" | "End" | "Home" | "PageDown" | "PageUp"
-export type EditingKeys = "Backspace" | "Clear" | "Copy" | "CrSel" | "Cut" | "Delete" | "EraseEof" | "ExSel" | "Insert" | "Paste" | "Redo" | "Undo"
-export type UIKeys = "Accept" | "Again" | "Attn" | "Cancel" | "ContextMenu" | "Escape" | "Execute" | "Find" | "Finish" | "Help" | "Pause" | "Play" | "Props" | "Select" | "ZoomIn" | "ZoomOut"
-
-export interface StrictKeyboardEvent extends KeyboardEvent {
-    readonly key: WhitespaceKeys | NavigationKeys | EditingKeys | UIKeys
-}
-
 // FIXME: this class quickly turned into an TextEditor, merge it into TextTool
 export class Cursor {
     text: Text
@@ -86,9 +77,9 @@ export class Cursor {
     }
 
     keydown(e: EditorKeyboardEvent) {
-        e.event.preventDefault()
+        e.preventDefault()
 
-        if (e.event.shiftKey && ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(e.event.key)) {
+        if (e.shift && ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(e.code)) {
             if (this.selectionOffsetWord < 0) {
                 this.selectionOffsetWord = this.offsetWord
                 this.selectionOffsetChar = this.offsetChar
@@ -98,7 +89,9 @@ export class Cursor {
         }
 
         let r = this.boxes[this.offsetWord]
-        switch (e.event.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
+        switch (e.code) {
+            case "Home":
+                break
             case "ArrowRight":
                 ++this.offsetChar
                 if (this.offsetChar > r.word.length) {
@@ -121,7 +114,7 @@ export class Cursor {
                     r = this.boxes[this.offsetWord]!
                     this.offsetChar = r.word.length
                 }
-                if (e.event.key === "ArrowLeft") {
+                if (e.code === "ArrowLeft") {
                     this.updateCursor()
                     break
                 }
@@ -154,11 +147,10 @@ export class Cursor {
                 const wordwrap = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
                 this.textSource.updateSVG()
                 this.updateCursor()
-
                 break
             default:
-                if (e.event.key.length == 1) {
-                    if (e.event.key === " ") {
+                if (e.value.length == 1) {
+                    if (e.value === " ") {
                         if (this.offsetChar === 0) {
                             console.log(`Cursor.keyDown(): ignoring ' ' at beginning of word`)
                             return
@@ -171,7 +163,7 @@ export class Cursor {
                         this.offsetChar = 0
                         this.offsetWord++
                     } else {
-                        r.word = r.word.slice(0, this.offsetChar) + e.event.key + r.word.slice(this.offsetChar)
+                        r.word = r.word.slice(0, this.offsetChar) + e.value + r.word.slice(this.offsetChar)
                         if (r.svg !== undefined) {
                             r.svg.textContent = r.word
                         }
@@ -187,7 +179,7 @@ export class Cursor {
         }
 
         // 
-        switch (e.event.key) { // FIXME: keyCode is marked as deprecated in TypeScript definition
+        switch (e.code) { // FIXME: keyCode is marked as deprecated in TypeScript definition
             case "ArrowDown":
                 // console.log("keyDown: start")
                 if (this.xDuringVerticalMovement === undefined)
