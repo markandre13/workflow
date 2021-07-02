@@ -326,14 +326,12 @@ describe("FigureEditor", function () {
                 expect(cursor.offsetChar).equal(1)
                 const line = cursor.svgCursor
 
-                // THEN it's visible
-                // FIXME: currently it seems to be hidden behind the selection marker
                 expect(line.getAttributeNS("", "x1")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
                 expect(line.getAttributeNS("", "y1")).to.equal(`${15.5}`)
                 expect(line.getAttributeNS("", "x2")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
                 expect(line.getAttributeNS("", "y2")).to.equal(`${Math.round(15 + word.size.height) + 0.5}`)
             })
-            describe("beginning of line", function () {
+            describe("go to beginning of line", function () {
                 it("Home key", function () {
                     const scene = new FigureEditorScene()
                     scene.createTextArea()
@@ -346,7 +344,7 @@ describe("FigureEditor", function () {
                     expect(cursor.offsetWord).equal(0)
                     expect(cursor.offsetChar).equal(0)
                 })
-                it("Ctrl+A", function () {
+                it("Ctrl + A", function () {
                     const scene = new FigureEditorScene()
                     scene.createTextArea()
                     scene.keydown("KeyA")
@@ -358,7 +356,7 @@ describe("FigureEditor", function () {
                     expect(cursor.offsetWord).equal(0)
                     expect(cursor.offsetChar).equal(0)
                 })
-                describe.only("unit tests", function () {
+                describe("unit tests", function () {
                     it("jump from 2nd word to 1st word", function () {
                         const scene = new FigureEditorScene()
                         scene.createTextArea()
@@ -401,9 +399,80 @@ describe("FigureEditor", function () {
                     })
                 })
             })
-            xdescribe("end of line", function () {
-                it("End key")
-                it("Ctrl+E")
+            describe.only("go to end of line", function () {
+                it("End key", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+                    scene.keydown("Home")
+
+                    scene.keydown("End")
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const cursor = text.cursor
+                    expect(cursor.offsetWord).equal(0)
+                    expect(cursor.offsetChar).equal(2)
+                })
+                it("Ctrl + E", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+                    scene.keydown("Home")
+
+                    scene.keydown("KeyE", { ctrl: true })
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const cursor = text.cursor
+                    expect(cursor.offsetWord).equal(0)
+                    expect(cursor.offsetChar).equal(2)
+                })
+                describe("unit tests", function () {
+                    it("jump from 1st word to the 2nd word", function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("Space")
+                        scene.keydown("KeyB")
+                        scene.keydown("Home")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+
+                        scene.keydown("End")
+                        expect(cursor.offsetWord).equal(1)
+                        expect(cursor.offsetChar).equal(1)
+
+                        scene.keydown("End")
+                        expect(cursor.offsetWord).equal(1)
+                        expect(cursor.offsetChar).equal(1)
+                    })
+                    it("jump to the end of the 2nd line", function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        for(let i=0; i<6; ++i) {
+                            scene.keydown("KeyA")
+                            scene.keydown("KeyB")
+                            scene.keydown("KeyC")
+                            scene.keydown("KeyD")
+                            if (i !== 5)
+                                scene.keydown("Space")
+                        }
+                        scene.keydown("Home")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+
+                        scene.keydown("End")
+                        expect(cursor.offsetWord).equal(5)
+                        expect(cursor.offsetChar).equal(4)
+
+                        scene.keydown("End")
+                        expect(cursor.offsetWord).equal(5)
+                        expect(cursor.offsetChar).equal(4)
+                    })
+                })
             })
         })
         // control characters: #2e88eb

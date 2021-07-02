@@ -92,15 +92,29 @@ export class Cursor {
             this.selectionOffsetWord = -1
         }
         if (e.code === "Home" || (e.ctrl && e.code === "KeyA")) {
-            this.offsetChar = 0
             let offsetWord = this.offsetWord
             while (true) {
                 if ((offsetWord > 0 && this.boxes[offsetWord - 1].endOfLine) ||
                     offsetWord === 0) {
                     this.offsetWord = offsetWord
+                    this.offsetChar = 0
                     break
                 }
                 --offsetWord
+            }
+            this.updateCursor()
+            return
+        }
+        if (e.code === "End" || (e.ctrl && e.code === "KeyE")) {
+            let offsetWord = this.offsetWord
+            while (true) {
+                if (offsetWord === this.boxes.length - 1 ||
+                    (this.boxes[offsetWord].endOfLine || this.boxes[offsetWord].endOfWrap)) {
+                    this.offsetWord = offsetWord
+                    this.offsetChar = this.boxes[offsetWord].word.length
+                    break
+                }
+                ++offsetWord
             }
             this.updateCursor()
             return
