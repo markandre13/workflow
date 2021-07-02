@@ -33,12 +33,12 @@ export interface StrictKeyboardEvent extends KeyboardEvent {
     readonly key: WhitespaceKeys | NavigationKeys | EditingKeys | UIKeys
 }
 
-// Cursor navigates and edits the TextSource
+// FIXME: this class quickly turned into an TextEditor, merge it into TextTool
 export class Cursor {
     text: Text
     svgParent: SVGElement
     svgCursor: SVGLineElement
-    svgSelection?: SVGElement
+    svgSelection?: SVGPathElement
 
     textSource: TextSource // use the one in text
     boxes: Array<WordBox>   // use the one in text textSource.wordBoxes

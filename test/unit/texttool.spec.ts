@@ -344,7 +344,7 @@ describe("FigureEditor", function () {
         // green   #d0eac7
         // graphit #e0e0e0
         describe("select text", function () {
-            xit("select one character", function () {
+            it("select one character", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -353,10 +353,21 @@ describe("FigureEditor", function () {
 
                 const text = scene.model.layers[0].data[0] as Text
                 const cursor = text.cursor
-                // console.log(cursor)
-                // TODO: TEST
+
+                expect(cursor.selectionOffsetWord).to.equal(0)
+                expect(cursor.selectionOffsetChar).to.equal(0)
+                expect(cursor.offsetWord).to.equal(0)
+                expect(cursor.offsetChar).to.equal(1)
+
+                const word = text.textSource.wordBoxes[0]
+                const selection = cursor.svgSelection!
+
+                const path = selection.getPathData()
+                expect(path.length).to.equal(5)
+                expect(path).to.containSubset([{ values: [10, 15] }])
+                expect(path).to.containSubset([{ values: [10 + word.size.width, 15 + word.size.height] }])
             })
-            xit("select two words", function () {
+            it("select two words", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
                 scene.keydown("A")
@@ -369,16 +380,20 @@ describe("FigureEditor", function () {
 
                 const text = scene.model.layers[0].data[0] as Text
                 const cursor = text.cursor
-                // console.log(cursor)
-                // TODO: TEST
-            })
-            it.only("SHIFT+A does not mean to select A", function() {
-                const scene = new FigureEditorScene()
-                scene.createTextArea()
-                scene.keydown("A", { shift: true })
-                const text = scene.model.layers[0].data[0] as Text
-                const cursor = text.cursor
-                expect(cursor.selectionOffsetWord).to.equal(-1)
+
+                expect(cursor.selectionOffsetWord).to.equal(1)
+                expect(cursor.selectionOffsetChar).to.equal(1)
+                expect(cursor.offsetWord).to.equal(0)
+                expect(cursor.offsetChar).to.equal(0)
+
+                const word0 = text.textSource.wordBoxes[0]
+                const word1 = text.textSource.wordBoxes[1]
+                const selection = cursor.svgSelection!
+
+                const path = selection.getPathData()
+                expect(path.length).to.equal(5)
+                expect(path).to.containSubset([{ values: [10, 15] }])
+                expect(path).to.containSubset([{ values: [10 + word0.size.width + cursor.textSource.space + word1.size.width, 15 + word0.size.height] }])
             })
 
             // within a single line
@@ -409,6 +424,17 @@ describe("FigureEditor", function () {
             // A B [C]
             // [D E F]
             // [G] H I
+
+            describe("regression", function () {
+                it("SHIFT+A does not mean to select A", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("A", { shift: true })
+                    const text = scene.model.layers[0].data[0] as Text
+                    const cursor = text.cursor
+                    expect(cursor.selectionOffsetWord).to.equal(-1)
+                })
+            })
 
             // type something, switch to select tool and move, back to text editing: text doesn't update?
             // it does! but it does not take the transformation into consideration!!!

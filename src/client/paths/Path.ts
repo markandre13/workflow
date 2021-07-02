@@ -19,18 +19,6 @@
 import { Point, Rectangle, Matrix } from "shared/geometry"
 import { AbstractPath } from "./AbstractPath"
 
-declare global {
-    interface SVGPathElement {
-        setPathData(data: any): void
-        getPathData(): any
-    }
-}
-
-// class PathSegment {
-//     type: string
-//     values: Array<number> = []
-// }
-
 export class Path extends AbstractPath {
     data: Array<any>
     constructor();
@@ -197,7 +185,7 @@ export class Path extends AbstractPath {
         return rectangle
     }
 
-    createSVG(stroke="#000", strokeWidth=1, fill="none"): SVGElement {
+    createSVG(stroke="#000", strokeWidth=1, fill="none"): SVGPathElement {
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
         svg.setPathData(this.data)
         svg.setAttributeNS("", "stroke-width", String(strokeWidth))
@@ -206,7 +194,7 @@ export class Path extends AbstractPath {
         return svg
     }
 
-    updateSVG(parentSVG: SVGElement, svg?: SVGElement): SVGElement {
+    updateSVG(parentSVG: SVGElement, svg?: SVGPathElement): SVGPathElement {
         if (!svg)
             svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
         let svgPath = svg as SVGPathElement
