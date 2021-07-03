@@ -351,14 +351,23 @@ export class FigureEditorScene {
         this.mouseUp()
     }
 
-    keydown(keycode: KeyCode, option?: KeyboardOption): void {
-        if (this.verbose)
-            console.log(`### KEY DOWN ${keycode}`)
-
+    private getActiveElement(): Element | null {
         let active = document.activeElement
         while(active?.shadowRoot?.activeElement) {
             active = active.shadowRoot.activeElement
         }
+        return active
+    }
+
+    private dispatchEvent(event: Event) {
+        let active = this.getActiveElement()
+        active?.dispatchEvent(event)
+    }
+
+    keydown(keycode: KeyCode, option?: KeyboardOption): void {
+        if (this.verbose)
+            console.log(`### KEY DOWN ${keycode}`)
+
         let event = new KeyboardEvent("keydown", {
             key: keyCode2keyValue(keycode, option),
             code: keycode,
@@ -370,6 +379,21 @@ export class FigureEditorScene {
             cancelable: true,
             bubbles: true,
         })
-        active?.dispatchEvent(event)
+        this.dispatchEvent(event)
+    }
+
+    async copy(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            const dataTransfer = new DataTransfer()
+            const event = new ClipboardEvent("copy", {
+                clipboardData: dataTransfer
+            })
+            this.dispatchEvent(event)
+            const item = Array.from(event.clipboardData!.items).filter(event => event.kind === "string" && event.type === "text/plain").shift()
+            if (item)
+                item.getAsString(resolve)
+            else
+                reject()
+        })
     }
 }

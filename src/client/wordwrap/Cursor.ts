@@ -23,7 +23,6 @@ import { Point } from "shared/geometry"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
 import { EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
-import { toJS } from "mobx"
 
 // FIXME: this class quickly turned into an TextEditor, merge it into TextTool
 export class Cursor {
@@ -385,6 +384,20 @@ export class Cursor {
         // console.log(`gotoCursorHorizontally: offsetWord=${offsetWord}, offsetChar=${offsetChar}`)
     }
 
+    getSelection() {
+        let [offsetWord0, offsetChar0] = [this.offsetWord, this.offsetChar]
+            let [offsetWord1, offsetChar1] = [this.selectionOffsetWord, this.selectionOffsetChar]
+
+            //  this.offsetToScreen(this.selectionOffsetWord, this.selectionOffsetChar)
+            if (offsetWord0 > offsetWord1 ||
+                (offsetWord0 === offsetWord1 &&
+                    offsetChar0 > offsetChar1)
+            ) {
+                return [offsetWord1, offsetChar1, offsetWord0, offsetChar0]
+            }
+            return [offsetWord0, offsetChar0, offsetWord1, offsetChar1]
+    }
+
     // use offsetWord and offsetChar to place the cursor
     updateCursor() {
 
@@ -396,18 +409,7 @@ export class Cursor {
                 this.svgSelection = undefined
             }
         } else {
-
-            let [offsetWord0, offsetChar0] = [this.offsetWord, this.offsetChar]
-            let [offsetWord1, offsetChar1] = [this.selectionOffsetWord, this.selectionOffsetChar]
-
-            //  this.offsetToScreen(this.selectionOffsetWord, this.selectionOffsetChar)
-            if (offsetWord0 > offsetWord1 ||
-                (offsetWord0 === offsetWord1 &&
-                    offsetChar0 > offsetChar1)
-            ) {
-                [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = [offsetWord1, offsetChar1, offsetWord0, offsetChar0]
-            }
-
+            let [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = this.getSelection()
             const path = new Path()
 
             // console.log(` create selection between offsets (${offsetWord0}, ${offsetChar0}) and (${offsetWord1}, ${offsetChar1})`)

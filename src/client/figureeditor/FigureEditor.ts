@@ -159,18 +159,18 @@ export class FigureEditor extends ModelView<LayerModel> {
         this.inputCatcher.classList.add("stretch")
         this.inputCatcher.classList.add("inputCatcher")
         this.inputCatcher.contentEditable = "true"
-        this.inputCatcher.addEventListener('keydown', this.inputCatcherKeyDown)
-        this.inputCatcher.addEventListener('input', this.inputCatcherInput as (e: Event) => void)
-        // we have clipboard events for cut, copy and paste!
-        // https://developer.mozilla.org/en-US/docs/Web/API/ClipboardEvent
+        this.inputCatcher.addEventListener("keydown", this.inputCatcherKeyDown)
+        this.inputCatcher.addEventListener("cut", this.clipboard)
+        this.inputCatcher.addEventListener("copy", this.clipboard)
+        this.inputCatcher.addEventListener("paste", this.clipboard)
         
         this.scrollView = document.createElement("div")
         this.scrollView.classList.add("stretch")
         this.scrollView.classList.add("scrollView")
 
-        this.scrollView.addEventListener('mousedown', this.mouseDown)
-        this.scrollView.addEventListener('mousemove', this.mouseMove)
-        this.scrollView.addEventListener('mouseup', this.mouseUp)
+        this.scrollView.addEventListener("mousedown", this.mouseDown)
+        this.scrollView.addEventListener("mousemove", this.mouseMove)
+        this.scrollView.addEventListener("mouseup", this.mouseUp)
 
         this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg")
 
@@ -473,10 +473,18 @@ export class FigureEditor extends ModelView<LayerModel> {
             // clear the input catcher so we do not accumulate data we do not need.
             // NOTE: do not clear it when e.key === "Dead" because the input method
             // uses the content to compose the character.
+            // NOTE: there are some situations where dead key suddenly stops working
+            //       the if statement might be wrong...?
             this.inputCatcher.textContent = ""
         }
     }
 
-    @bind inputCatcherInput(e: InputEvent) {
+    //
+    // CLIPBOARD
+    //
+
+    @bind clipboard(event: ClipboardEvent) {
+        if (this.tool && this.selectedLayer)
+            this.tool.clipboard(event)
     }
 }

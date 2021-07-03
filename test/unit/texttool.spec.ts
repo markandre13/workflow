@@ -378,7 +378,7 @@ describe("FigureEditor", function () {
                     it("jump to the head of the 2nd line", function () {
                         const scene = new FigureEditorScene()
                         scene.createTextArea()
-                        for(let i=0; i<6; ++i) {
+                        for (let i = 0; i < 6; ++i) {
                             scene.keydown("KeyA")
                             scene.keydown("KeyB")
                             scene.keydown("KeyC")
@@ -451,7 +451,7 @@ describe("FigureEditor", function () {
                     it("jump to the end of the 2nd line", function () {
                         const scene = new FigureEditorScene()
                         scene.createTextArea()
-                        for(let i=0; i<6; ++i) {
+                        for (let i = 0; i < 6; ++i) {
                             scene.keydown("KeyA")
                             scene.keydown("KeyB")
                             scene.keydown("KeyC")
@@ -528,13 +528,13 @@ describe("FigureEditor", function () {
                     expect(path).to.containSubset([{ values: [10, 15] }])
                     expect(path).to.containSubset([{ values: [10 + word0.size.width + cursor.textSource.space + word1.size.width, 15 + word0.size.height] }])
                 })
-                it("select with Home + shift", function() {
+                it("select with Home + shift", function () {
                     const scene = new FigureEditorScene()
                     scene.createTextArea()
                     scene.keydown("KeyA")
                     scene.keydown("KeyB")
 
-                    scene.keydown("Home", {shift: true})
+                    scene.keydown("Home", { shift: true })
 
                     const text = scene.model.layers[0].data[0] as Text
                     const cursor = text.cursor
@@ -544,14 +544,14 @@ describe("FigureEditor", function () {
                     expect(cursor.offsetChar).to.equal(0)
 
                 })
-                it("select with End + shift", function() {
+                it("select with End + shift", function () {
                     const scene = new FigureEditorScene()
                     scene.createTextArea()
                     scene.keydown("KeyA")
                     scene.keydown("KeyB")
                     scene.keydown("Home")
 
-                    scene.keydown("End", {shift: true})
+                    scene.keydown("End", { shift: true })
 
                     const text = scene.model.layers[0].data[0] as Text
                     const cursor = text.cursor
@@ -560,6 +560,8 @@ describe("FigureEditor", function () {
                     expect(cursor.offsetWord).to.equal(0)
                     expect(cursor.offsetChar).to.equal(2)
                 })
+
+                // double click to select word?
 
                 // within a single line
                 //  A [B] C
@@ -601,16 +603,57 @@ describe("FigureEditor", function () {
                     })
                 })
             })
-            describe("mouse", function () {
 
+            // we have no mouse tests at all!!!
+            describe("mouse", function () {
             })
 
-            // type something, switch to select tool and move, back to text editing: text doesn't update?
-            // it does! but it does not take the transformation into consideration!!!
+            describe("copy'n paste (aka. clipboard)", function () {
+                describe("copy", function () {
+                    it("nothing to copy")
+                    it("copy within one word", async function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyB")
+                        scene.keydown("KeyC")
+                        scene.keydown("ArrowLeft")
+                        scene.keydown("ArrowLeft", { shift: true })
 
-            // is there an HTML/SVG way to handle line distance, paragraph distance, letter spacing, etc.?
+                        const text = await scene.copy()
+                        expect(text).to.equal("b")
+                    })
+                    it("copy from two words", async function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("Space")
+                        scene.keydown("KeyB")
+                        scene.keydown("Home", { shift: true })
+
+                        const text = await scene.copy()
+                        expect(text).to.equal("a b")
+                    })
+                    it("copy from three words", async function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("Space")
+                        scene.keydown("KeyB")
+                        scene.keydown("Space")
+                        scene.keydown("KeyC")
+                        scene.keydown("Home", { shift: true })
+
+                        const text = await scene.copy()
+                        expect(text).to.equal("a b c")
+                    })
+
+                })
+            })
+
             // TEST: disable cursor when switching to another Text
             // TEST: when the cursor leaves the region were words are rendered...
+            // => this stuff will solve itself when Cursor get's merged into TextTool
 
             // next steps:
             // line break/paragraph break

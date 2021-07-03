@@ -168,6 +168,65 @@ export class TextTool extends Tool {
         }
     }
 
+    override clipboard(event: ClipboardEvent) {
+        switch (event.type) {
+            case "cut":
+                this.cut(event)
+                break
+            case "copy":
+                this.copy(event)
+                break
+            case "paste":
+                this.paste(event)
+                break
+        }
+    }
+
+    cut(event: ClipboardEvent) {
+        console.log(`CUT`)
+        console.log(event)
+        if (!event.clipboardData)
+            return
+        event.clipboardData.setData('text/plain', "Cut Hello")
+        event.preventDefault()
+    }
+
+    copy(event: ClipboardEvent) {
+    //     console.log(`COPY`)
+    //     console.log(event)
+        if (!event.clipboardData)
+            return
+
+        const cursor = this.text.cursor
+        if (cursor.selectionOffsetWord < 0)
+            return
+        
+        const [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = cursor.getSelection()
+
+        if (offsetWord0 === offsetWord1) {
+            const word = this.text.textSource.wordBoxes[offsetWord0].word
+            event.clipboardData.setData('text/plain', word.substr(offsetChar0, offsetChar1 - offsetChar0))
+        } else {
+            const words = this.text.textSource.wordBoxes
+            let text = words[offsetWord0].word.substr(offsetChar0) + " "
+            for(let i = offsetWord0+1; i < offsetWord1; ++i) {
+                text += words[i].word + " "
+            }
+            text += words[offsetWord1].word.substr(0, offsetChar1)
+            event.clipboardData.setData('text/plain', text)
+        }
+        event.preventDefault()
+    }
+
+    paste(e: ClipboardEvent) {
+        console.log(`PASTE`)
+        console.log(e)
+        const item = Array.from(e.clipboardData!.items).filter(e => e.kind === "string" && e.type === "text/plain").shift()
+        if (item) {
+            item.getAsString(clipText => console.log("dataTransfer: " + clipText))
+        }
+    }
+
     private setCursor(type: TextCursor, svg: SVGElement) {
         if (this.currentCursor === type)
             return
