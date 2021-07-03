@@ -124,15 +124,8 @@ export class Cursor {
                 break
             case "Backspace":
             case "ArrowLeft":
-                if (this.offsetWord === 0 && this.offsetChar === 0)
-                    break
                 this.updateSelection(e)
-                --this.offsetChar
-                if (this.offsetChar < 0) {
-                    --this.offsetWord
-                    r = this.boxes[this.offsetWord]!
-                    this.offsetChar = r.word.length
-                }
+                this.moveCursorLeft()
                 if (e.code === "ArrowLeft") {
                     this.updateCursor()
                     break
@@ -269,6 +262,17 @@ export class Cursor {
                 this.offsetChar = 0
                 ++this.offsetWord
             }
+        }
+    }
+
+    moveCursorLeft() {
+        if (this.offsetWord === 0 && this.offsetChar === 0)
+            return
+        --this.offsetChar
+        if (this.offsetChar < 0) {
+            --this.offsetWord
+            const r = this.boxes[this.offsetWord]
+            this.offsetChar = r.word.length
         }
     }
 
