@@ -133,35 +133,7 @@ export class Cursor {
             // WHEW! CLEAR SELECTION AGAIN???
             case "Delete":
                 if (this.selectionOffsetWord >= 0) {
-                    const [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = this.getSelection()
-                    if (offsetWord0 === offsetWord1) {
-                        const word = this.textSource.wordBoxes[offsetWord0]
-                        word.word = word.word.substring(0, offsetChar0) + word.word.substring(offsetChar1)
-                        if (word.svg !== undefined) {
-                            word.svg.textContent = word.word
-                        }
-                    } else {
-                        const word0 = this.textSource.wordBoxes[offsetWord0]
-                        const word1 = this.textSource.wordBoxes[offsetWord1]
-                        word0.word = word0.word.substring(0, offsetChar0) + word1.word.substring(offsetChar1)
-                        if (word0.svg !== undefined) {
-                            word0.svg.textContent = word0.word
-                        }
-
-                        for (let i = offsetWord0 + 1; i < offsetWord1; ++i) {
-                            const word = this.textSource.wordBoxes[i]
-                            if (word.svg) {
-                                word.svg.parentElement?.removeChild(word.svg)
-                                word.svg = undefined
-                            }
-                        }
-                        this.textSource.wordBoxes.splice(offsetWord0 + 1, offsetWord1 - offsetWord0)
-
-                        console.log(this.textSource.wordBoxes)
-                    }
-                    this.offsetWord = offsetWord0
-                    this.offsetChar = offsetChar0
-                    this.selectionOffsetWord = -1
+                    this.deleteSelectedText()
                 } else
                     if (this.offsetChar < r.word.length) {
                         r.word = r.word.slice(0, this.offsetChar) + r.word.slice(this.offsetChar + 1)
@@ -300,6 +272,36 @@ export class Cursor {
             }
             ++offsetWord
         }
+    }
+
+    deleteSelectedText() {
+        const [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = this.getSelection()
+        if (offsetWord0 === offsetWord1) {
+            const word = this.textSource.wordBoxes[offsetWord0]
+            word.word = word.word.substring(0, offsetChar0) + word.word.substring(offsetChar1)
+            if (word.svg !== undefined) {
+                word.svg.textContent = word.word
+            }
+        } else {
+            const word0 = this.textSource.wordBoxes[offsetWord0]
+            const word1 = this.textSource.wordBoxes[offsetWord1]
+            word0.word = word0.word.substring(0, offsetChar0) + word1.word.substring(offsetChar1)
+            if (word0.svg !== undefined) {
+                word0.svg.textContent = word0.word
+            }
+
+            for (let i = offsetWord0 + 1; i < offsetWord1; ++i) {
+                const word = this.textSource.wordBoxes[i]
+                if (word.svg) {
+                    word.svg.parentElement?.removeChild(word.svg)
+                    word.svg = undefined
+                }
+            }
+            this.textSource.wordBoxes.splice(offsetWord0 + 1, offsetWord1 - offsetWord0)
+        }
+        this.offsetWord = offsetWord0
+        this.offsetChar = offsetChar0
+        this.selectionOffsetWord = -1
     }
 
     // FIXME: name does not indicate position is not changed
