@@ -10,7 +10,7 @@ import { Text } from "client/figures/Text"
 import { Tool } from "client/figuretools"
 
 describe("FigureEditor", function () {
-    describe("TextTool", function () {
+    describe.only("TextTool", function () {
         describe("Area", function () {
             it("create", function () {
                 // GIVEN an empty figure editor with TextTool being active

@@ -105,31 +105,13 @@ export class Cursor {
 
         if (e.code === "Home" || (e.ctrl && e.code === "KeyA")) {
             this.updateSelection(e)
-            let offsetWord = this.offsetWord
-            while (true) {
-                if ((offsetWord > 0 && this.boxes[offsetWord - 1].endOfLine) ||
-                    offsetWord === 0) {
-                    this.offsetWord = offsetWord
-                    this.offsetChar = 0
-                    break
-                }
-                --offsetWord
-            }
+            this.moveCursorBOL()
             this.updateCursor()
             return
         }
         if (e.code === "End" || (e.ctrl && e.code === "KeyE")) {
             this.updateSelection(e)
-            let offsetWord = this.offsetWord
-            while (true) {
-                if (offsetWord === this.boxes.length - 1 ||
-                    (this.boxes[offsetWord].endOfLine || this.boxes[offsetWord].endOfWrap)) {
-                    this.offsetWord = offsetWord
-                    this.offsetChar = this.boxes[offsetWord].word.length
-                    break
-                }
-                ++offsetWord
-            }
+            this.moveCursorEOL()
             this.updateCursor()
             return
         }
@@ -189,7 +171,7 @@ export class Cursor {
                                 word.svg = undefined
                             }
                         }
-                        this.textSource.wordBoxes.splice(offsetWord0+1, offsetWord1 - offsetWord0)
+                        this.textSource.wordBoxes.splice(offsetWord0 + 1, offsetWord1 - offsetWord0)
 
                         console.log(this.textSource.wordBoxes)
                     }
@@ -287,6 +269,31 @@ export class Cursor {
         }
     }
 
+    moveCursorBOL() {
+        let offsetWord = this.offsetWord
+        while (true) {
+            if ((offsetWord > 0 && this.boxes[offsetWord - 1].endOfLine) ||
+                offsetWord === 0) {
+                this.offsetWord = offsetWord
+                this.offsetChar = 0
+                break
+            }
+            --offsetWord
+        }
+    }
+
+    moveCursorEOL() {
+        let offsetWord = this.offsetWord
+        while (true) {
+            if (offsetWord === this.boxes.length - 1 ||
+                (this.boxes[offsetWord].endOfLine || this.boxes[offsetWord].endOfWrap)) {
+                this.offsetWord = offsetWord
+                this.offsetChar = this.boxes[offsetWord].word.length
+                break
+            }
+            ++offsetWord
+        }
+    }
 
     // FIXME: name does not indicate position is not changed
     gotoNextRow(): boolean {
