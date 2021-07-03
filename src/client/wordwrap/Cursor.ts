@@ -101,7 +101,6 @@ export class Cursor {
     // TODO: break this method up!
     keydown(e: EditorKeyboardEvent) {
         e.preventDefault()
-        let r = this.boxes[this.offsetWord]
 
         if (e.code === "Home" || (e.ctrl && e.code === "KeyA")) {
             this.updateSelection(e)
@@ -122,14 +121,24 @@ export class Cursor {
                 this.moveCursorRight()
                 this.updateCursor()
                 break
-            case "Backspace":
             case "ArrowLeft":
                 this.updateSelection(e)
                 this.moveCursorLeft()
-                if (e.code === "ArrowLeft") {
-                    this.updateCursor()
-                    break
+                this.updateCursor()
+                break
+            case "Backspace":
+                if (this.selectionOffsetWord >= 0) {
+                    this.deleteSelectedText()
+                } else {
+                    this.updateSelection()
+                    this.moveCursorLeft()
+                    this.deleteSelectedText()
                 }
+                this.textSource.reset()
+                const wordwrap0 = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
+                this.textSource.updateSVG()
+                this.updateCursor()
+                break
             case "Delete":
                 if (this.selectionOffsetWord >= 0) {
                     this.deleteSelectedText()
@@ -140,33 +149,13 @@ export class Cursor {
                 }
                 // redo word wrap
                 this.textSource.reset()
-                const wordwrap = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
+                const wordwrap1 = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
                 this.textSource.updateSVG()
                 this.updateCursor()
                 break
             default:
                 if (e.value.length == 1) {
-                    if (e.value === " ") {
-                        if (this.offsetChar === 0) {
-                            console.log(`Cursor.keyDown(): ignoring ' ' at beginning of word`)
-                            return
-                        }
-                        // const word = this.textSource.wordBoxes[this.offsetWord]
-                        this.textSource.wordBoxes.splice(this.offsetWord + 1, 0, new WordBox(0, 0, r.word.substring(this.offsetChar)))
-                        r.word = r.word.substring(0, this.offsetChar)
-                        if (r.svg)
-                            r.svg.textContent = r.word
-                        this.offsetChar = 0
-                        this.offsetWord++
-                    } else {
-                        r.word = r.word.slice(0, this.offsetChar) + e.value + r.word.slice(this.offsetChar)
-                        if (r.svg !== undefined) {
-                            r.svg.textContent = r.word
-                        }
-                        this.offsetChar++
-                    }
-
-                    // redo word wrap
+                    this.insertCharacter(e.value)
                     this.textSource.reset()
                     const wordwrap = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
                     this.textSource.updateSVG()
@@ -174,34 +163,51 @@ export class Cursor {
                 }
         }
 
-        switch (e.code) { // FIXME: keyCode is marked as deprecated in TypeScript definition
+        switch (e.code) {
             case "ArrowDown":
                 this.updateSelection(e)
-                // console.log("keyDown: start")
                 if (this.xDuringVerticalMovement === undefined)
                     this.xDuringVerticalMovement = this.position.x
 
                 if (this.gotoNextRow()) {
-                    // console.log("keyDown: found next line")
                     this.goNearX(this.xDuringVerticalMovement)
                     this.updateCursor()
                 }
-                // console.log("keyDown: done")
                 break
             case "ArrowUp":
                 this.updateSelection(e)
-                // console.log("keyDown: start")
                 if (this.xDuringVerticalMovement === undefined)
                     this.xDuringVerticalMovement = this.position.x
                 if (this.gotoPreviousRow()) {
-                    // console.log("keyDown: found previous line")
                     this.goNearX(this.xDuringVerticalMovement)
                     this.updateCursor()
                 }
-                // console.log("keyDown: done")
                 break
             default:
                 this.xDuringVerticalMovement = undefined
+        }
+    }
+
+    insertCharacter(value: string) {
+        let r = this.boxes[this.offsetWord]
+        if (value === " ") {
+            if (this.offsetChar === 0) {
+                console.log(`Cursor.keyDown(): ignoring ' ' at beginning of word`)
+                return
+            }
+            // const word = this.textSource.wordBoxes[this.offsetWord]
+            this.textSource.wordBoxes.splice(this.offsetWord + 1, 0, new WordBox(0, 0, r.word.substring(this.offsetChar)))
+            r.word = r.word.substring(0, this.offsetChar)
+            if (r.svg)
+                r.svg.textContent = r.word
+            this.offsetChar = 0
+            this.offsetWord++
+        } else {
+            r.word = r.word.slice(0, this.offsetChar) + value + r.word.slice(this.offsetChar)
+            if (r.svg !== undefined) {
+                r.svg.textContent = r.word
+            }
+            this.offsetChar++
         }
     }
 

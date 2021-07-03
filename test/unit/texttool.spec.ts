@@ -375,7 +375,37 @@ describe("FigureEditor", function () {
                         expect(cursor.offsetChar).to.equal(2)
                     })
                 })
-                it("backspace deletes selected text")
+                it("backspace deletes selected text", function() {
+                    const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyB")
+                        scene.keydown("KeyC")
+                        scene.keydown("KeyD")
+
+                        scene.keydown("Home")
+                        scene.keydown("ArrowRight")
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+
+                        scene.keydown("Backspace")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+                        const textSource = text.textSource
+                        const wordBoxes = textSource.wordBoxes
+
+                        expect(wordBoxes.length).to.equal(1)
+                        expect(wordBoxes[0].word).to.equal("ad")
+                        expect(wordBoxes[0].svg?.textContent).to.equal("ad")
+
+                        // no selection
+                        expect(cursor.selectionOffsetWord).to.lessThan(0)
+
+                        // cursor at correct position
+                        expect(cursor.offsetWord).to.equal(0)
+                        expect(cursor.offsetChar).to.equal(1)
+                })
             })
         })
         describe("cursor", function () {
