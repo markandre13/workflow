@@ -73,9 +73,14 @@ describe("FigureEditor", function () {
                 scene.keydown("KeyB")
 
                 const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
                 const word = text.textSource.wordBoxes[0]
                 expect(word.word).to.equal("ab")
                 expect(word.svg?.textContent).to.equal("ab")
+
+                // cursor at correct position
+                expect(cursor.offsetWord).to.equal(0)
+                expect(cursor.offsetChar).to.equal(2)
             })
             it("type a blank letter", function () {
                 const scene = new FigureEditorScene()
@@ -100,6 +105,7 @@ describe("FigureEditor", function () {
                 scene.keydown("KeyB")
 
                 const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
                 const textSource = text.textSource
                 const wordBoxes = textSource.wordBoxes
                 expect(wordBoxes.length).to.equal(2)
@@ -107,6 +113,10 @@ describe("FigureEditor", function () {
                 expect(wordBoxes[0].svg?.textContent).to.equal("a")
                 expect(wordBoxes[1].word).to.equal("b")
                 expect(wordBoxes[1].svg?.textContent).to.equal("b")
+
+                // cursor at correct position
+                expect(cursor.offsetWord).to.equal(1)
+                expect(cursor.offsetChar).to.equal(1)
             })
             it("split two letters by inserting a space", function () {
                 const scene = new FigureEditorScene()
@@ -117,15 +127,53 @@ describe("FigureEditor", function () {
                 scene.keydown("Space")
 
                 const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
                 const textSource = text.textSource
                 const wordBoxes = textSource.wordBoxes
+
                 expect(wordBoxes.length).to.equal(2)
                 expect(wordBoxes[0].word).to.equal("a")
                 expect(wordBoxes[0].svg?.textContent).to.equal("a")
                 expect(wordBoxes[1].word).to.equal("b")
                 expect(wordBoxes[1].svg?.textContent).to.equal("b")
+
+                // cursor at correct position
+                expect(cursor.offsetWord).to.equal(1)
+                expect(cursor.offsetChar).to.equal(0)
             })
-            it("insert deletes selected text")
+            it("insert deletes selected text", function () {
+                const scene = new FigureEditorScene()
+                scene.createTextArea()
+                scene.keydown("KeyA")
+                scene.keydown("KeyB")
+                scene.keydown("KeyC")
+                scene.keydown("KeyD")
+
+                scene.keydown("Home")
+                scene.keydown("ArrowRight")
+                scene.keydown("ArrowRight", { shift: true })
+                scene.keydown("ArrowRight", { shift: true })
+
+                scene.keydown("KeyX")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const cursor = text.cursor
+                const textSource = text.textSource
+                const wordBoxes = textSource.wordBoxes
+
+                console.log(wordBoxes)
+
+                expect(wordBoxes.length).to.equal(1)
+                expect(wordBoxes[0].word).to.equal("axd")
+                expect(wordBoxes[0].svg?.textContent).to.equal("axd")
+
+                // no selection
+                expect(cursor.hasSelection()).to.be.false
+
+                // cursor at correct position
+                expect(cursor.offsetWord).to.equal(0)
+                expect(cursor.offsetChar).to.equal(2)
+            })
         })
         describe("delete text", function () {
             describe("no selection", function () {
@@ -263,8 +311,8 @@ describe("FigureEditor", function () {
 
                         scene.keydown("Home")
                         scene.keydown("ArrowRight")
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
 
                         scene.keydown("Delete")
 
@@ -300,11 +348,11 @@ describe("FigureEditor", function () {
                         scene.keydown("Home")
                         scene.keydown("ArrowRight")
                         scene.keydown("ArrowRight")
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
 
                         scene.keydown("Delete")
 
@@ -345,16 +393,16 @@ describe("FigureEditor", function () {
                         scene.keydown("Home")
                         scene.keydown("ArrowRight")
                         scene.keydown("ArrowRight")
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
 
                         scene.keydown("Delete")
 
@@ -375,36 +423,36 @@ describe("FigureEditor", function () {
                         expect(cursor.offsetChar).to.equal(2)
                     })
                 })
-                it("backspace deletes selected text", function() {
+                it("backspace deletes selected text", function () {
                     const scene = new FigureEditorScene()
-                        scene.createTextArea()
-                        scene.keydown("KeyA")
-                        scene.keydown("KeyB")
-                        scene.keydown("KeyC")
-                        scene.keydown("KeyD")
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+                    scene.keydown("KeyC")
+                    scene.keydown("KeyD")
 
-                        scene.keydown("Home")
-                        scene.keydown("ArrowRight")
-                        scene.keydown("ArrowRight", {shift: true})
-                        scene.keydown("ArrowRight", {shift: true})
+                    scene.keydown("Home")
+                    scene.keydown("ArrowRight")
+                    scene.keydown("ArrowRight", { shift: true })
+                    scene.keydown("ArrowRight", { shift: true })
 
-                        scene.keydown("Backspace")
+                    scene.keydown("Backspace")
 
-                        const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
-                        const textSource = text.textSource
-                        const wordBoxes = textSource.wordBoxes
+                    const text = scene.model.layers[0].data[0] as Text
+                    const cursor = text.cursor
+                    const textSource = text.textSource
+                    const wordBoxes = textSource.wordBoxes
 
-                        expect(wordBoxes.length).to.equal(1)
-                        expect(wordBoxes[0].word).to.equal("ad")
-                        expect(wordBoxes[0].svg?.textContent).to.equal("ad")
+                    expect(wordBoxes.length).to.equal(1)
+                    expect(wordBoxes[0].word).to.equal("ad")
+                    expect(wordBoxes[0].svg?.textContent).to.equal("ad")
 
-                        // no selection
-                        expect(cursor.hasSelection()).to.be.false
+                    // no selection
+                    expect(cursor.hasSelection()).to.be.false
 
-                        // cursor at correct position
-                        expect(cursor.offsetWord).to.equal(0)
-                        expect(cursor.offsetChar).to.equal(1)
+                    // cursor at correct position
+                    expect(cursor.offsetWord).to.equal(0)
+                    expect(cursor.offsetChar).to.equal(1)
                 })
             })
         })
@@ -769,7 +817,13 @@ describe("FigureEditor", function () {
 
             describe("copy'n paste (aka. clipboard)", function () {
                 describe("copy", function () {
-                    it("nothing to copy")
+                    it("nothing to copy", async function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        const text = await scene.copy()
+                        expect(text).to.be.undefined
+                    })
                     it("copy within one word", async function () {
                         const scene = new FigureEditorScene()
                         scene.createTextArea()
@@ -808,8 +862,45 @@ describe("FigureEditor", function () {
                     })
                 })
                 describe("paste", function () {
-                    // insert
-                    // replace selection
+                    it("insert", async function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyZ")
+                        scene.keydown("ArrowLeft")
+                        await scene.paste("DEADBEEF")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const textSource = text.textSource
+                        const wordBoxes = textSource.wordBoxes
+
+                        expect(wordBoxes.length).to.equal(1)
+                        expect(wordBoxes[0].word).to.equal("aDEADBEEFz")
+                        expect(wordBoxes[0].svg?.textContent).to.equal("aDEADBEEFz")
+                    })
+                    it("insert replaces selected text", async function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyB")
+                        scene.keydown("KeyY")
+                        scene.keydown("KeyZ")
+                        scene.keydown("Home")
+                        scene.keydown("ArrowRight")
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        await scene.paste("DEADBEEF")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const textSource = text.textSource
+                        const wordBoxes = textSource.wordBoxes
+
+                        expect(wordBoxes.length).to.equal(1)
+                        expect(wordBoxes[0].word).to.equal("aDEADBEEFz")
+                        expect(wordBoxes[0].svg?.textContent).to.equal("aDEADBEEFz")
+                    })
+                    // insert two words
+                    // insert three words?
                 })
             })
 

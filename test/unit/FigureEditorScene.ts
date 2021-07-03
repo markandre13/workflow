@@ -46,12 +46,12 @@ function keyCode2keyValue(code: KeyCode, option?: KeyboardOption): string {
         if (option?.shift === true)
             return code.substr(3)
         else
-        return code.substr(3).toLowerCase()
+            return code.substr(3).toLowerCase()
     }
-    if (code.substr(0,5) === "Digit") {
+    if (code.substr(0, 5) === "Digit") {
         return code.substr(5)
     }
-    if (code.substr(0,6) === "Numeric") {
+    if (code.substr(0, 6) === "Numeric") {
         return code.substr(6)
     }
     switch (code) {
@@ -95,7 +95,7 @@ export class FigureEditorScene {
     mousePosition: Point
     verbose: boolean
 
-    constructor(verbose=false) {
+    constructor(verbose = false) {
         this.verbose = verbose
         this.id = 0
         this.figureeditor = new FigureEditor()
@@ -114,7 +114,7 @@ export class FigureEditorScene {
 
         let model = new LocalLayerModel()
         let layer = new LocalLayer()
-        
+
         model.layers.push(layer)
         this.figureeditor.setModel(model)
 
@@ -135,8 +135,8 @@ export class FigureEditorScene {
 
     // semantic operations
 
-    selectSelectTool() { this.figureeditor.setTool(this.selectTool)}
-    selectTextTool() { this.figureeditor.setTool(this.textTool)}
+    selectSelectTool() { this.figureeditor.setTool(this.selectTool) }
+    selectTextTool() { this.figureeditor.setTool(this.textTool) }
 
     addFigure(figure: Figure): void {
         if (this.verbose)
@@ -161,11 +161,11 @@ export class FigureEditorScene {
             transform.translate(center)
             fig.matrix = transform
         } else
-        if (center !== undefined) {
-            let transform = new Matrix()
-            transform.translate(center)
-            fig.matrix = transform
-        }
+            if (center !== undefined) {
+                let transform = new Matrix()
+                transform.translate(center)
+                fig.matrix = transform
+            }
         this.model.add(0, fig)
         this.figures.push(fig)
     }
@@ -198,7 +198,7 @@ export class FigureEditorScene {
         // console.log("boundary", this.selectTool.boundary)
         // console.log("boundaryTransformation", this.selectTool.boundaryTransformation)
 
-        let transform: Matrix|undefined = undefined
+        let transform: Matrix | undefined = undefined
         if (center !== undefined && radiant !== undefined) {
             transform = new Matrix()
             transform.translate(pointMinus(center))
@@ -206,19 +206,19 @@ export class FigureEditorScene {
             transform.translate(center)
         }
 
-        rectangle.forAllEdges((edge)=>{
+        rectangle.forAllEdges((edge) => {
             this.selectionHasPoint(edge)
         }, transform)
     }
 
     renderHasPoint(point: Point): void {
         let msg = ""
-        for(let [id, ce] of this.figureeditor.cache) {
+        for (let [id, ce] of this.figureeditor.cache) {
             for (let segment of (ce.path as Path).data) {
                 switch (segment.type) {
                     case 'M':
                     case 'L':
-                        if (pointEqualsPoint(point, {x: segment.values[0], y: segment.values[1]}))
+                        if (pointEqualsPoint(point, { x: segment.values[0], y: segment.values[1] }))
                             return
                         msg = `${msg} (${segment.values[0]}, ${segment.values[1]})`
                         break
@@ -232,7 +232,7 @@ export class FigureEditorScene {
     }
 
     renderHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number): void {
-        let transform: Matrix|undefined = undefined
+        let transform: Matrix | undefined = undefined
         if (center !== undefined && radiant !== undefined) {
             transform = new Matrix()
             transform.translate(pointMinus(center))
@@ -240,7 +240,7 @@ export class FigureEditorScene {
             transform.translate(center)
         }
 
-        rectangle.forAllEdges((edge)=>{
+        rectangle.forAllEdges((edge) => {
             this.renderHasPoint(edge)
         }, transform)
     }
@@ -248,14 +248,14 @@ export class FigureEditorScene {
     outlineHasPoint(point: Point): void {
         let outline = this.selectTool.outline!!
         let msg = ""
-        for(let i=0; i<outline.childNodes.length; ++i) {
+        for (let i = 0; i < outline.childNodes.length; ++i) {
             let path = outline.childNodes[i] as SVGPathElement
             let data = path.getPathData()
             for (let segment of data) {
                 switch (segment.type) {
                     case 'M':
                     case 'L':
-                        if (pointEqualsPoint(point, {x: segment.values[0], y: segment.values[1]}))
+                        if (pointEqualsPoint(point, { x: segment.values[0], y: segment.values[1] }))
                             return
                         msg = `${msg} (${segment.values[0]}, ${segment.values[1]})`
                         break
@@ -269,7 +269,7 @@ export class FigureEditorScene {
     }
 
     outlineHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number): void {
-        let transform: Matrix|undefined = undefined
+        let transform: Matrix | undefined = undefined
         if (center !== undefined && radiant !== undefined) {
             transform = new Matrix()
             transform.translate(pointMinus(center))
@@ -277,7 +277,7 @@ export class FigureEditorScene {
             transform.translate(center)
         }
 
-        rectangle.forAllEdges((edge)=>{
+        rectangle.forAllEdges((edge) => {
             this.outlineHasPoint(edge)
         }, transform)
     }
@@ -286,30 +286,30 @@ export class FigureEditorScene {
         if (this.verbose)
             console.log(`### MOUSE DOWN AT ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
-        this.figureeditor.tool!.mousedown(new EditorMouseEvent(this.figureeditor, point, {shiftKey: shift}))
+        this.figureeditor.tool!.mousedown(new EditorMouseEvent(this.figureeditor, point, { shiftKey: shift }))
     }
 
     moveMouseTo(point: Point, shift = true) {
         if (this.verbose)
             console.log(`### MOVE MOUSE TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
-        this.figureeditor.tool!.mousemove(new EditorMouseEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
+        this.figureeditor.tool!.mousemove(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }))
     }
 
     moveMouseBy(translation: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MOVE MOUSE BY ${translation.x}, ${translation.y}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
-        this.figureeditor.tool!.mousemove(new EditorMouseEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
+        this.figureeditor.tool!.mousemove(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }))
     }
 
     mouseUp(shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE UP`)
-        this.figureeditor.tool!.mouseup(new EditorMouseEvent(this.figureeditor, this.mousePosition, {shiftKey: shift}))
+        this.figureeditor.tool!.mouseup(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }))
     }
 
-    mouseClickAt(point: Point, shift=false): void {
+    mouseClickAt(point: Point, shift = false): void {
         if (this.verbose)
             console.log(`### MOUSE CLICK AT ${point}`)
         this.mouseDownAt(point, shift)
@@ -341,7 +341,7 @@ export class FigureEditorScene {
     centerOfNWRotateHandle(index = 0): Point {
         // return this.figures[index].getHandlePosition(0)
         let handleRange = figure.Figure.HANDLE_RANGE
-        return pointMinusPoint(this.figures[index].bounds().origin, {x: handleRange, y: handleRange})
+        return pointMinusPoint(this.figures[index].bounds().origin, { x: handleRange, y: handleRange })
     }
 
     createTextArea() {
@@ -353,7 +353,7 @@ export class FigureEditorScene {
 
     private getActiveElement(): Element | null {
         let active = document.activeElement
-        while(active?.shadowRoot?.activeElement) {
+        while (active?.shadowRoot?.activeElement) {
             active = active.shadowRoot.activeElement
         }
         return active
@@ -382,18 +382,32 @@ export class FigureEditorScene {
         this.dispatchEvent(event)
     }
 
-    async copy(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    async copy(): Promise<string | undefined> {
+        return new Promise<string | undefined>((resolve, reject) => {
             const dataTransfer = new DataTransfer()
             const event = new ClipboardEvent("copy", {
                 clipboardData: dataTransfer
             })
             this.dispatchEvent(event)
-            const item = Array.from(event.clipboardData!.items).filter(event => event.kind === "string" && event.type === "text/plain").shift()
-            if (item)
-                item.getAsString(resolve)
-            else
-                reject()
+            if (event.clipboardData!.items.length === 0) {
+                resolve(undefined)
+            } else {
+                const item = Array.from(event.clipboardData!.items).filter(event => event.kind === "string" && event.type === "text/plain").shift()
+                if (item)
+                    item.getAsString(resolve)
+                else
+                    reject("Got clipboard data without text/plain.")
+            }
         })
+    }
+
+    paste(text: string) {
+        const dataTransfer = new DataTransfer()
+        dataTransfer.setData('text/plain', text)
+        const event = new ClipboardEvent("paste", {
+            clipboardData: dataTransfer
+        })
+        this.dispatchEvent(event)
+        return this.sleep(0)
     }
 }

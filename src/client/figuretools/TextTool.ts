@@ -223,7 +223,9 @@ export class TextTool extends Tool {
         console.log(e)
         const item = Array.from(e.clipboardData!.items).filter(e => e.kind === "string" && e.type === "text/plain").shift()
         if (item) {
-            item.getAsString(clipText => console.log("dataTransfer: " + clipText))
+            item.getAsString(clipText => {
+                this.text.cursor.insertCharacter(clipText)
+            })
         }
     }
 

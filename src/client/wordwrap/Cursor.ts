@@ -161,7 +161,7 @@ export class Cursor {
                 if (e.value.length == 1) {
                     this.insertCharacter(e.value)
                     this.textSource.reset()
-                    const wordwrap = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
+                    const wordwrap2 = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
                     this.textSource.updateSVG()
                     this.updateCursor()
                 }
@@ -193,6 +193,9 @@ export class Cursor {
     }
 
     insertCharacter(value: string) {
+        if (this.selectionOffsetWord !== null) {
+            this.deleteSelectedText()
+        }
         let r = this.boxes[this.offsetWord]
         if (value === " ") {
             if (this.offsetChar === 0) {
