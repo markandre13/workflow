@@ -382,10 +382,18 @@ export class FigureEditorScene {
         this.dispatchEvent(event)
     }
 
+    async cut(): Promise<string | undefined> {
+        return this.cutNCopy("cut")
+    }
+
     async copy(): Promise<string | undefined> {
+        return this.cutNCopy("copy")
+    }
+
+    protected async cutNCopy(type: "cut" | "copy"): Promise<string | undefined> {
         return new Promise<string | undefined>((resolve, reject) => {
             const dataTransfer = new DataTransfer()
-            const event = new ClipboardEvent("copy", {
+            const event = new ClipboardEvent(type, {
                 clipboardData: dataTransfer
             })
             this.dispatchEvent(event)

@@ -815,7 +815,42 @@ describe("FigureEditor", function () {
             describe("mouse", function () {
             })
 
-            describe("copy'n paste (aka. clipboard)", function () {
+            describe("cut, copy, paste via clipboard", function () {
+                describe("cut", function () {
+                    it("nothing to cut", async function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        const text = await scene.cut()
+                        expect(text).to.be.undefined
+                    })
+                    it("cut within one word", async function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyB")
+                        scene.keydown("KeyC")
+                        scene.keydown("KeyD")
+                        scene.keydown("ArrowLeft")
+                        scene.keydown("ArrowLeft", { shift: true })
+                        scene.keydown("ArrowLeft", { shift: true })
+
+                        const xtext = await scene.cut()
+                        expect(xtext).to.equal("bc")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+                        const textSource = text.textSource
+                        const wordBoxes = textSource.wordBoxes
+
+                        expect(wordBoxes.length).to.equal(1)
+                        expect(wordBoxes[0].word).to.equal("ad")
+                        expect(wordBoxes[0].svg?.textContent).to.equal("ad")
+
+                        expect(cursor.offsetWord).equal(0)
+                        expect(cursor.offsetChar).equal(1)
+                    })
+                })
                 describe("copy", function () {
                     it("nothing to copy", async function () {
                         const scene = new FigureEditorScene()
@@ -892,12 +927,16 @@ describe("FigureEditor", function () {
                         await scene.paste("DEADBEEF")
 
                         const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
                         const textSource = text.textSource
                         const wordBoxes = textSource.wordBoxes
 
                         expect(wordBoxes.length).to.equal(1)
                         expect(wordBoxes[0].word).to.equal("aDEADBEEFz")
                         expect(wordBoxes[0].svg?.textContent).to.equal("aDEADBEEFz")
+
+                        expect(cursor.offsetWord).equal(0)
+                        expect(cursor.offsetChar).equal(9)
                     })
                     it("insert text with space", async function () {
                         const scene = new FigureEditorScene()
@@ -926,8 +965,6 @@ describe("FigureEditor", function () {
                         expect(cursor.offsetWord).equal(1)
                         expect(cursor.offsetChar).equal(4)
                     })
-                    // insert two words
-                    // insert three words?
                 })
             })
 

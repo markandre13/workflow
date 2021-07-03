@@ -173,7 +173,7 @@ export class TextTool extends Tool {
     override clipboard(editor: FigureEditor, event: ClipboardEvent) {
         switch (event.type) {
             case "cut":
-                this.cut(event)
+                this.cut(editor, event)
                 break
             case "copy":
                 this.copy(event)
@@ -184,22 +184,29 @@ export class TextTool extends Tool {
         }
     }
 
-    cut(event: ClipboardEvent) {
-        console.log(`CUT`)
-        console.log(event)
-        if (!event.clipboardData)
-            return
-        event.clipboardData.setData('text/plain', "Cut Hello")
-        event.preventDefault()
-    }
-
-    copy(event: ClipboardEvent) {
+    cut(editor: FigureEditor, event: ClipboardEvent) {
         if (!event.clipboardData)
             return
 
         const cursor = this.text.cursor
         if (!cursor.hasSelection())
             return
+
+        this.copy(event)
+        this.text.cursor.deleteSelectedText()
+        this.text.textSource.reset()
+            const wordwrap = new WordWrap(editor.getPath(this.text) as Path, this.text.textSource)
+            this.text.cursor.textSource.updateSVG()
+            this.text.cursor.updateCursor()
+    }
+
+    copy(event: ClipboardEvent) {
+        if (!event.clipboardData)
+            return
+        const cursor = this.text.cursor
+        if (!cursor.hasSelection())
+            return
+
 
         const [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = cursor.getSelection()
 
