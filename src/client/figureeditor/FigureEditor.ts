@@ -485,6 +485,6 @@ export class FigureEditor extends ModelView<LayerModel> {
 
     @bind clipboard(event: ClipboardEvent) {
         if (this.tool && this.selectedLayer)
-            this.tool.clipboard(event)
+            this.tool.clipboard(this, event)
     }
 }

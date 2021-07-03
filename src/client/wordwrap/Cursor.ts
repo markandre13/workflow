@@ -159,7 +159,7 @@ export class Cursor {
                 break
             default:
                 if (e.value.length == 1) {
-                    this.insertCharacter(e.value)
+                    this.insertText(e.value)
                     this.textSource.reset()
                     const wordwrap2 = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
                     this.textSource.updateSVG()
@@ -192,29 +192,38 @@ export class Cursor {
         }
     }
 
-    insertCharacter(value: string) {
+    insertText(value: string) {
         if (this.selectionOffsetWord !== null) {
             this.deleteSelectedText()
         }
-        let r = this.boxes[this.offsetWord]
-        if (value === " ") {
-            if (this.offsetChar === 0) {
-                console.log(`Cursor.keyDown(): ignoring ' ' at beginning of word`)
-                return
+
+        let newBoxes: WordBox[] = []
+        TextSource.splitTextIntoWordBoxes(newBoxes, value)
+
+        if (newBoxes.length === 0)
+            return
+
+        let word0 = this.boxes[this.offsetWord]
+        let tail0 = word0.word.substr(this.offsetChar)
+        word0.word = word0.word.substr(0, this.offsetChar)
+        word0.word += newBoxes[0].word
+
+        if (newBoxes.length > 1 || newBoxes[0].word.length == 0) {
+            if (newBoxes.length > 1) {
+                newBoxes.splice(0, 1)
             }
-            // const word = this.textSource.wordBoxes[this.offsetWord]
-            this.textSource.wordBoxes.splice(this.offsetWord + 1, 0, new WordBox(0, 0, r.word.substring(this.offsetChar)))
-            r.word = r.word.substring(0, this.offsetChar)
-            if (r.svg)
-                r.svg.textContent = r.word
-            this.offsetChar = 0
-            this.offsetWord++
+            this.offsetChar = newBoxes[newBoxes.length - 1].word.length
+            this.offsetWord = this.offsetWord += newBoxes.length
+
+            newBoxes[newBoxes.length - 1].word += tail0
+            this.textSource.wordBoxes.splice(this.offsetWord + 1, 0, ...newBoxes)
         } else {
-            r.word = r.word.slice(0, this.offsetChar) + value + r.word.slice(this.offsetChar)
-            if (r.svg !== undefined) {
-                r.svg.textContent = r.word
-            }
-            this.offsetChar++
+            this.offsetChar = word0.word.length
+            word0.word += tail0
+        }
+
+        if (word0.svg) {
+            word0.svg.textContent = word0.word
         }
     }
 

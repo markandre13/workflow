@@ -29,17 +29,17 @@ export class TextSource implements WordSource {
     height: number // hack
 
     constructor(text?: string) {
-        this.wordBoxes = new Array<WordBox>()
+        this.wordBoxes = []
         this.current = 0
         this.space = 0
         this.height = 0
 
         if (text == undefined)
             text = "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        this.splitTextIntoWordBoxes(text)
+        TextSource.splitTextIntoWordBoxes(this.wordBoxes, text)
     }
 
-    protected splitTextIntoWordBoxes(text: string): void {
+    static splitTextIntoWordBoxes(wordBoxes: WordBox[], text: string): void {
         let word = ''
         for (let char of text) {
             switch (char) {
@@ -49,7 +49,7 @@ export class TextSource implements WordSource {
                 case '\n':
                 case '\v':
                     let rectangle = new WordBox(word.length * 8, 16, word)
-                    this.wordBoxes.push(rectangle)
+                    wordBoxes.push(rectangle)
                     word = ""
                     break
                 default:
@@ -58,11 +58,11 @@ export class TextSource implements WordSource {
         }
         if (word.length > 0) {
             let rectangle = new WordBox(word.length * 8, 16, word)
-            this.wordBoxes.push(rectangle)
+            wordBoxes.push(rectangle)
         }
-        if (this.wordBoxes.length === 0) {
+        if (wordBoxes.length === 0) {
             let rectangle = new WordBox(0, 16, "")
-            this.wordBoxes.push(rectangle)
+            wordBoxes.push(rectangle)
         }
     }
 
@@ -146,7 +146,7 @@ export class TextSource implements WordSource {
         for (let word of this.wordBoxes) {
             if (visible) {
                 if (word.svg === undefined) {
-                    console.log(`TextSource: word within visible area as no SVG element`)
+                    console.log(`TextSource: word within visible area has no SVG element`)
                 } else {
                     word.svg.setAttributeNS("", "x", `${word.origin.x}`)
                     word.svg.setAttributeNS("", "y", `${word.origin.y + word.ascent}`)

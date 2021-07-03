@@ -26,9 +26,11 @@
  ******************************************************************/
 
 import { Point, Rectangle } from "shared/geometry"
-import { EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
+import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
 import { Tool } from "./Tool"
 import * as figures from "../figures"
+import { WordWrap } from "client/wordwrap/wordwrap"
+import { Path } from "client/paths"
 
 enum TextCursor {
     NONE,
@@ -168,7 +170,7 @@ export class TextTool extends Tool {
         }
     }
 
-    override clipboard(event: ClipboardEvent) {
+    override clipboard(editor: FigureEditor, event: ClipboardEvent) {
         switch (event.type) {
             case "cut":
                 this.cut(event)
@@ -177,7 +179,7 @@ export class TextTool extends Tool {
                 this.copy(event)
                 break
             case "paste":
-                this.paste(event)
+                this.paste(editor, event)
                 break
         }
     }
@@ -192,8 +194,6 @@ export class TextTool extends Tool {
     }
 
     copy(event: ClipboardEvent) {
-    //     console.log(`COPY`)
-    //     console.log(event)
         if (!event.clipboardData)
             return
 
@@ -218,15 +218,17 @@ export class TextTool extends Tool {
         event.preventDefault()
     }
 
-    paste(e: ClipboardEvent) {
-        console.log(`PASTE`)
-        console.log(e)
+    paste(editor: FigureEditor, e: ClipboardEvent) {
         const item = Array.from(e.clipboardData!.items).filter(e => e.kind === "string" && e.type === "text/plain").shift()
-        if (item) {
-            item.getAsString(clipText => {
-                this.text.cursor.insertCharacter(clipText)
-            })
-        }
+        if (item === undefined)
+            return
+        item.getAsString(clipText => {
+            this.text.cursor.insertText(clipText)
+            this.text.textSource.reset()
+            const wordwrap = new WordWrap(editor.getPath(this.text) as Path, this.text.textSource)
+            this.text.cursor.textSource.updateSVG()
+            this.text.cursor.updateCursor()
+        })
     }
 
     private setCursor(type: TextCursor, svg: SVGElement) {

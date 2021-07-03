@@ -899,6 +899,33 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].word).to.equal("aDEADBEEFz")
                         expect(wordBoxes[0].svg?.textContent).to.equal("aDEADBEEFz")
                     })
+                    it("insert text with space", async function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyB")
+                        scene.keydown("KeyY")
+                        scene.keydown("KeyZ")
+                        scene.keydown("Home")
+                        scene.keydown("ArrowRight")
+                        scene.keydown("ArrowRight", { shift: true })
+                        scene.keydown("ArrowRight", { shift: true })
+                        await scene.paste("DEAD BEEF")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+                        const textSource = text.textSource
+                        const wordBoxes = textSource.wordBoxes
+
+                        expect(wordBoxes.length).to.equal(2)
+                        expect(wordBoxes[0].word).to.equal("aDEAD")
+                        expect(wordBoxes[0].svg?.textContent).to.equal("aDEAD")
+                        expect(wordBoxes[1].word).to.equal("BEEFz")
+                        expect(wordBoxes[1].svg?.textContent).to.equal("BEEFz")
+
+                        expect(cursor.offsetWord).equal(1)
+                        expect(cursor.offsetChar).equal(4)
+                    })
                     // insert two words
                     // insert three words?
                 })
