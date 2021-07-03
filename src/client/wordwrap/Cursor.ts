@@ -87,8 +87,8 @@ export class Cursor {
         }
     }
 
-    updateSelection(e: EditorKeyboardEvent) {
-        if (e.shift) {
+    updateSelection(e?: EditorKeyboardEvent) {
+        if (e === undefined || e.shift) {
             if (this.selectionOffsetWord < 0) {
                 this.selectionOffsetWord = this.offsetWord
                 this.selectionOffsetChar = this.offsetChar
@@ -130,34 +130,14 @@ export class Cursor {
                     this.updateCursor()
                     break
                 }
-            // WHEW! CLEAR SELECTION AGAIN???
             case "Delete":
                 if (this.selectionOffsetWord >= 0) {
                     this.deleteSelectedText()
-                } else
-                    if (this.offsetChar < r.word.length) {
-                        r.word = r.word.slice(0, this.offsetChar) + r.word.slice(this.offsetChar + 1)
-                        if (r.svg !== undefined) {
-                            r.svg.textContent = r.word
-                        }
-                    } else {
-                        if (this.offsetWord + 1 >= this.textSource.wordBoxes.length) {
-                            // end if last word, nothing to delete
-                            return
-                        }
-
-                        const nextWord = this.textSource.wordBoxes[this.offsetWord + 1]
-                        r.word += nextWord.word
-                        if (r.svg) {
-                            r.svg.textContent = r.word
-                        }
-
-                        this.textSource.wordBoxes.splice(this.offsetWord + 1, 1)
-                        if (nextWord.svg) {
-                            nextWord.svg.parentElement?.removeChild(nextWord.svg)
-                        }
-                    }
-
+                } else {
+                    this.updateSelection()
+                    this.moveCursorRight()
+                    this.deleteSelectedText()
+                }
                 // redo word wrap
                 this.textSource.reset()
                 const wordwrap = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
