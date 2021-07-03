@@ -119,16 +119,7 @@ export class Cursor {
         switch (e.code) {
             case "ArrowRight":
                 this.updateSelection(e)
-                // WHEW! END OF TEXT???
-                ++this.offsetChar
-                if (this.offsetChar > r.word.length) {
-                    if (this.offsetWord >= this.boxes.length || this.boxes[this.offsetWord].endOfWrap) {
-                        --this.offsetChar
-                        break
-                    }
-                    this.offsetChar = 0
-                    ++this.offsetWord
-                }
+                this.moveCursorRight()
                 this.updateCursor()
                 break
             case "Backspace":
@@ -266,6 +257,18 @@ export class Cursor {
                 break
             default:
                 this.xDuringVerticalMovement = undefined
+        }
+    }
+
+    moveCursorRight() {
+        ++this.offsetChar
+        if (this.offsetChar > this.boxes[this.offsetWord].word.length) {
+            if (this.offsetWord >= this.boxes.length || this.boxes[this.offsetWord].endOfWrap) {
+                --this.offsetChar
+            } else {
+                this.offsetChar = 0
+                ++this.offsetWord
+            }
         }
     }
 
