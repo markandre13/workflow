@@ -44,7 +44,7 @@ export class Cursor {
     offsetChar: number      // index within wordBox
 
     // cursor location when selection began
-    selectionOffsetWord: number = -1
+    selectionOffsetWord: number = -1 // FIXME: use null instead of -1
     selectionOffsetChar: number = 0
 
     constructor(text: Text, svg: SVGElement, textSource: TextSource) {
@@ -164,30 +164,61 @@ export class Cursor {
                     this.updateCursor()
                     break
                 }
-                // WHEW! CLEAR SELECTION AGAIN???
+            // WHEW! CLEAR SELECTION AGAIN???
             case "Delete":
-                if (this.offsetChar < r.word.length) {
-                    r.word = r.word.slice(0, this.offsetChar) + r.word.slice(this.offsetChar + 1)
-                    if (r.svg !== undefined) {
-                        r.svg.textContent = r.word
-                    }
-                } else {
-                    if (this.offsetWord + 1 >= this.textSource.wordBoxes.length) {
-                        console.log("END OF LAST WORD, NOTHING TO DELETE")
-                        return
-                    }
+                if (this.selectionOffsetWord >= 0) {
+                    const [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = this.getSelection()
+                    if (offsetWord0 === offsetWord1) {
+                        const word = this.textSource.wordBoxes[offsetWord0]
+                        word.word = word.word.substring(0, offsetChar0) + word.word.substring(offsetChar1)
+                        if (word.svg !== undefined) {
+                            word.svg.textContent = word.word
+                        }
+                    } else {
+                        const word0 = this.textSource.wordBoxes[offsetWord0]
+                        const word1 = this.textSource.wordBoxes[offsetWord1]
+                        word0.word = word0.word.substring(0, offsetChar0) + word1.word.substring(offsetChar1)
+                        if (word0.svg !== undefined) {
+                            word0.svg.textContent = word0.word
+                        }
 
-                    const nextWord = this.textSource.wordBoxes[this.offsetWord + 1]
-                    r.word += nextWord.word
-                    if (r.svg) {
-                        r.svg.textContent = r.word
-                    }
+                        for (let i = offsetWord0 + 1; i < offsetWord1; ++i) {
+                            const word = this.textSource.wordBoxes[i]
+                            if (word.svg) {
+                                word.svg.parentElement?.removeChild(word.svg)
+                                word.svg = undefined
+                            }
+                        }
+                        this.textSource.wordBoxes.splice(offsetWord0+1, offsetWord1 - offsetWord0)
 
-                    this.textSource.wordBoxes.splice(this.offsetWord + 1, 1)
-                    if (nextWord.svg) {
-                        nextWord.svg.parentElement?.removeChild(nextWord.svg)
+                        console.log(this.textSource.wordBoxes)
                     }
-                }
+                    this.offsetWord = offsetWord0
+                    this.offsetChar = offsetChar0
+                    this.selectionOffsetWord = -1
+                } else
+                    if (this.offsetChar < r.word.length) {
+                        r.word = r.word.slice(0, this.offsetChar) + r.word.slice(this.offsetChar + 1)
+                        if (r.svg !== undefined) {
+                            r.svg.textContent = r.word
+                        }
+                    } else {
+                        if (this.offsetWord + 1 >= this.textSource.wordBoxes.length) {
+                            // end if last word, nothing to delete
+                            return
+                        }
+
+                        const nextWord = this.textSource.wordBoxes[this.offsetWord + 1]
+                        r.word += nextWord.word
+                        if (r.svg) {
+                            r.svg.textContent = r.word
+                        }
+
+                        this.textSource.wordBoxes.splice(this.offsetWord + 1, 1)
+                        if (nextWord.svg) {
+                            nextWord.svg.parentElement?.removeChild(nextWord.svg)
+                        }
+                    }
 
                 // redo word wrap
                 this.textSource.reset()
@@ -386,16 +417,16 @@ export class Cursor {
 
     getSelection() {
         let [offsetWord0, offsetChar0] = [this.offsetWord, this.offsetChar]
-            let [offsetWord1, offsetChar1] = [this.selectionOffsetWord, this.selectionOffsetChar]
+        let [offsetWord1, offsetChar1] = [this.selectionOffsetWord, this.selectionOffsetChar]
 
-            //  this.offsetToScreen(this.selectionOffsetWord, this.selectionOffsetChar)
-            if (offsetWord0 > offsetWord1 ||
-                (offsetWord0 === offsetWord1 &&
-                    offsetChar0 > offsetChar1)
-            ) {
-                return [offsetWord1, offsetChar1, offsetWord0, offsetChar0]
-            }
-            return [offsetWord0, offsetChar0, offsetWord1, offsetChar1]
+        //  this.offsetToScreen(this.selectionOffsetWord, this.selectionOffsetChar)
+        if (offsetWord0 > offsetWord1 ||
+            (offsetWord0 === offsetWord1 &&
+                offsetChar0 > offsetChar1)
+        ) {
+            return [offsetWord1, offsetChar1, offsetWord0, offsetChar0]
+        }
+        return [offsetWord0, offsetChar0, offsetWord1, offsetChar1]
     }
 
     // use offsetWord and offsetChar to place the cursor

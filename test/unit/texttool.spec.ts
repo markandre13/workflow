@@ -125,128 +125,257 @@ describe("FigureEditor", function () {
                 expect(wordBoxes[1].word).to.equal("b")
                 expect(wordBoxes[1].svg?.textContent).to.equal("b")
             })
+            it("insert deletes selected text")
         })
         describe("delete text", function () {
-            it("delete first character", function () {
-                const scene = new FigureEditorScene()
-                scene.createTextArea()
-                scene.keydown("KeyA")
-                scene.keydown("KeyB")
-                scene.keydown("KeyC")
-                scene.keydown("ArrowLeft")
-                scene.keydown("ArrowLeft")
-                scene.keydown("ArrowLeft")
-                scene.keydown("Delete")
+            describe("no selection", function () {
+                it("delete first character", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+                    scene.keydown("KeyC")
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("Delete")
 
-                const text = scene.model.layers[0].data[0] as Text
-                const textSource = text.textSource
-                const wordBoxes = textSource.wordBoxes
-                expect(wordBoxes.length).to.equal(1)
-                expect(wordBoxes[0].word).to.equal("bc")
-                expect(wordBoxes[0].svg?.textContent).to.equal("bc")
+                    const text = scene.model.layers[0].data[0] as Text
+                    const textSource = text.textSource
+                    const wordBoxes = textSource.wordBoxes
+                    expect(wordBoxes.length).to.equal(1)
+                    expect(wordBoxes[0].word).to.equal("bc")
+                    expect(wordBoxes[0].svg?.textContent).to.equal("bc")
+                })
+                it("delete middle character", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+                    scene.keydown("KeyC")
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("Delete")
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const textSource = text.textSource
+                    const wordBoxes = textSource.wordBoxes
+                    expect(wordBoxes.length).to.equal(1)
+                    expect(wordBoxes[0].word).to.equal("ac")
+                    expect(wordBoxes[0].svg?.textContent).to.equal("ac")
+                })
+                it("delete last character", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+                    scene.keydown("KeyC")
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("Delete")
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const textSource = text.textSource
+                    const wordBoxes = textSource.wordBoxes
+                    expect(wordBoxes.length).to.equal(1)
+                    expect(wordBoxes[0].word).to.equal("ab")
+                    expect(wordBoxes[0].svg?.textContent).to.equal("ab")
+                })
+                it("delete behind last character of last word", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("Delete")
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const textSource = text.textSource
+                    const wordBoxes = textSource.wordBoxes
+                    expect(wordBoxes.length).to.equal(1)
+                    expect(wordBoxes[0].word).to.equal("a")
+                    expect(wordBoxes[0].svg?.textContent).to.equal("a")
+                })
+                it("delete behind last character of word (aka delete space between two words)", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+                    scene.keydown("Space")
+                    scene.keydown("KeyC")
+                    scene.keydown("KeyD")
+
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("ArrowLeft")
+
+                    scene.keydown("Delete")
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const textSource = text.textSource
+                    const wordBoxes = textSource.wordBoxes
+                    expect(wordBoxes.length).to.equal(1)
+                    expect(wordBoxes[0].word).to.equal("abcd")
+                    expect(wordBoxes[0].svg?.textContent).to.equal("abcd")
+                })
+                it("delete two characters (two check that deleting the 1st leaves us in correct position to delete the 2nd)", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("KeyB")
+                    scene.keydown("KeyC")
+                    scene.keydown("KeyD")
+
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("ArrowLeft")
+                    scene.keydown("ArrowLeft")
+
+                    scene.keydown("Delete")
+                    scene.keydown("Delete")
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const textSource = text.textSource
+                    const wordBoxes = textSource.wordBoxes
+                    expect(wordBoxes.length).to.equal(1)
+                    expect(wordBoxes[0].word).to.equal("ad")
+                    expect(wordBoxes[0].svg?.textContent).to.equal("ad")
+                })
+                it("backspace (only once test as it shares the implementation with delete)", function () {
+                    const scene = new FigureEditorScene()
+                    scene.createTextArea()
+                    scene.keydown("KeyA")
+                    scene.keydown("Backspace")
+
+                    const text = scene.model.layers[0].data[0] as Text
+                    const textSource = text.textSource
+                    const wordBoxes = textSource.wordBoxes
+                    expect(wordBoxes.length).to.equal(1)
+                    expect(wordBoxes[0].word).to.equal("")
+                    expect(wordBoxes[0].svg?.textContent).to.equal("")
+                })
             })
-            it("delete middle character", function () {
-                const scene = new FigureEditorScene()
-                scene.createTextArea()
-                scene.keydown("KeyA")
-                scene.keydown("KeyB")
-                scene.keydown("KeyC")
-                scene.keydown("ArrowLeft")
-                scene.keydown("ArrowLeft")
-                scene.keydown("Delete")
+            describe("selection", function () {
+                describe("delete deletes selected text", function () {
+                    it("within single word", function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyB")
+                        scene.keydown("KeyC")
+                        scene.keydown("KeyD")
 
-                const text = scene.model.layers[0].data[0] as Text
-                const textSource = text.textSource
-                const wordBoxes = textSource.wordBoxes
-                expect(wordBoxes.length).to.equal(1)
-                expect(wordBoxes[0].word).to.equal("ac")
-                expect(wordBoxes[0].svg?.textContent).to.equal("ac")
-            })
-            it("delete last character", function () {
-                const scene = new FigureEditorScene()
-                scene.createTextArea()
-                scene.keydown("KeyA")
-                scene.keydown("KeyB")
-                scene.keydown("KeyC")
-                scene.keydown("ArrowLeft")
-                scene.keydown("Delete")
+                        scene.keydown("Home")
+                        scene.keydown("ArrowRight")
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
 
-                const text = scene.model.layers[0].data[0] as Text
-                const textSource = text.textSource
-                const wordBoxes = textSource.wordBoxes
-                expect(wordBoxes.length).to.equal(1)
-                expect(wordBoxes[0].word).to.equal("ab")
-                expect(wordBoxes[0].svg?.textContent).to.equal("ab")
-            })
-            it("delete behind last character of last word", function () {
-                const scene = new FigureEditorScene()
-                scene.createTextArea()
-                scene.keydown("KeyA")
-                scene.keydown("Delete")
+                        scene.keydown("Delete")
 
-                const text = scene.model.layers[0].data[0] as Text
-                const textSource = text.textSource
-                const wordBoxes = textSource.wordBoxes
-                expect(wordBoxes.length).to.equal(1)
-                expect(wordBoxes[0].word).to.equal("a")
-                expect(wordBoxes[0].svg?.textContent).to.equal("a")
-            })
-            it("delete behind last character of word (aka delete space between two words)", function () {
-                const scene = new FigureEditorScene()
-                scene.createTextArea()
-                scene.keydown("KeyA")
-                scene.keydown("KeyB")
-                scene.keydown("Space")
-                scene.keydown("KeyC")
-                scene.keydown("KeyD")
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+                        const textSource = text.textSource
+                        const wordBoxes = textSource.wordBoxes
 
-                scene.keydown("ArrowLeft")
-                scene.keydown("ArrowLeft")
-                scene.keydown("ArrowLeft")
+                        expect(wordBoxes.length).to.equal(1)
+                        expect(wordBoxes[0].word).to.equal("ad")
+                        expect(wordBoxes[0].svg?.textContent).to.equal("ad")
 
-                scene.keydown("Delete")
+                        // no selection
+                        expect(cursor.selectionOffsetWord).to.lessThan(0)
 
-                const text = scene.model.layers[0].data[0] as Text
-                const textSource = text.textSource
-                const wordBoxes = textSource.wordBoxes
-                expect(wordBoxes.length).to.equal(1)
-                expect(wordBoxes[0].word).to.equal("abcd")
-                expect(wordBoxes[0].svg?.textContent).to.equal("abcd")
-            })
-            it("delete two characters (two check that deleting the 1st leaves us in correct position to delete the 2nd)", function () {
-                const scene = new FigureEditorScene()
-                scene.createTextArea()
-                scene.keydown("KeyA")
-                scene.keydown("KeyB")
-                scene.keydown("KeyC")
-                scene.keydown("KeyD")
+                        // cursor at correct position
+                        expect(cursor.offsetWord).to.equal(0)
+                        expect(cursor.offsetChar).to.equal(1)
+                    })
+                    it("within two words", function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyB")
+                        scene.keydown("KeyC")
+                        scene.keydown("KeyD")
+                        scene.keydown("Space")
+                        scene.keydown("KeyE")
+                        scene.keydown("KeyF")
+                        scene.keydown("KeyG")
+                        scene.keydown("KeyH")
 
-                scene.keydown("ArrowLeft")
-                scene.keydown("ArrowLeft")
-                scene.keydown("ArrowLeft")
+                        scene.keydown("Home")
+                        scene.keydown("ArrowRight")
+                        scene.keydown("ArrowRight")
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
 
-                scene.keydown("Delete")
-                scene.keydown("Delete")
+                        scene.keydown("Delete")
 
-                const text = scene.model.layers[0].data[0] as Text
-                const textSource = text.textSource
-                const wordBoxes = textSource.wordBoxes
-                expect(wordBoxes.length).to.equal(1)
-                expect(wordBoxes[0].word).to.equal("ad")
-                expect(wordBoxes[0].svg?.textContent).to.equal("ad")
-            })
-            it("backspace (only once test as it shares the implementation with delete)", function () {
-                const scene = new FigureEditorScene()
-                scene.createTextArea()
-                scene.keydown("KeyA")
-                scene.keydown("Backspace")
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+                        const textSource = text.textSource
+                        const wordBoxes = textSource.wordBoxes
 
-                const text = scene.model.layers[0].data[0] as Text
-                const textSource = text.textSource
-                const wordBoxes = textSource.wordBoxes
-                expect(wordBoxes.length).to.equal(1)
-                expect(wordBoxes[0].word).to.equal("")
-                expect(wordBoxes[0].svg?.textContent).to.equal("")
+                        expect(wordBoxes.length).to.equal(1)
+                        expect(wordBoxes[0].word).to.equal("abgh")
+                        expect(wordBoxes[0].svg?.textContent).to.equal("abgh")
+
+                        // no selection
+                        expect(cursor.selectionOffsetWord).to.lessThan(0)
+
+                        // cursor at correct position
+                        expect(cursor.offsetWord).to.equal(0)
+                        expect(cursor.offsetChar).to.equal(2)
+                    })
+                    it("within three words", function () {
+                        const scene = new FigureEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyB")
+                        scene.keydown("KeyC")
+                        scene.keydown("KeyD")
+                        scene.keydown("Space")
+                        scene.keydown("KeyE")
+                        scene.keydown("KeyF")
+                        scene.keydown("KeyG")
+                        scene.keydown("KeyH")
+                        scene.keydown("Space")
+                        scene.keydown("KeyI")
+                        scene.keydown("KeyJ")
+                        scene.keydown("KeyK")
+                        scene.keydown("KeyL")
+
+                        scene.keydown("Home")
+                        scene.keydown("ArrowRight")
+                        scene.keydown("ArrowRight")
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+                        scene.keydown("ArrowRight", {shift: true})
+
+                        scene.keydown("Delete")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const cursor = text.cursor
+                        const textSource = text.textSource
+                        const wordBoxes = textSource.wordBoxes
+
+                        expect(wordBoxes.length).to.equal(1)
+                        expect(wordBoxes[0].word).to.equal("abkl")
+                        expect(wordBoxes[0].svg?.textContent).to.equal("abkl")
+
+                        // no selection
+                        expect(cursor.selectionOffsetWord).to.lessThan(0)
+
+                        // cursor at correct position
+                        expect(cursor.offsetWord).to.equal(0)
+                        expect(cursor.offsetChar).to.equal(2)
+                    })
+                })
+                it("backspace deletes selected text")
             })
         })
         describe("cursor", function () {
@@ -647,7 +776,10 @@ describe("FigureEditor", function () {
                         const text = await scene.copy()
                         expect(text).to.equal("a b c")
                     })
-
+                })
+                describe("paste", function () {
+                    // insert
+                    // replace selection
                 })
             })
 
