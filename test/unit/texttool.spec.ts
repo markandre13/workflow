@@ -10,7 +10,7 @@ import { Text } from "client/figures/Text"
 import { Tool } from "client/figuretools"
 
 describe("FigureEditor", function () {
-    describe.only("TextTool", function () {
+    describe("TextTool", function () {
         describe("Area", function () {
             it("create", function () {
                 // GIVEN an empty figure editor with TextTool being active
@@ -278,7 +278,7 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].svg?.textContent).to.equal("ad")
 
                         // no selection
-                        expect(cursor.selectionOffsetWord).to.lessThan(0)
+                        expect(cursor.hasSelection()).to.be.false
 
                         // cursor at correct position
                         expect(cursor.offsetWord).to.equal(0)
@@ -318,7 +318,7 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].svg?.textContent).to.equal("abgh")
 
                         // no selection
-                        expect(cursor.selectionOffsetWord).to.lessThan(0)
+                        expect(cursor.hasSelection()).to.be.false
 
                         // cursor at correct position
                         expect(cursor.offsetWord).to.equal(0)
@@ -368,7 +368,7 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].svg?.textContent).to.equal("abkl")
 
                         // no selection
-                        expect(cursor.selectionOffsetWord).to.lessThan(0)
+                        expect(cursor.hasSelection()).to.be.false
 
                         // cursor at correct position
                         expect(cursor.offsetWord).to.equal(0)
@@ -400,7 +400,7 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].svg?.textContent).to.equal("ad")
 
                         // no selection
-                        expect(cursor.selectionOffsetWord).to.lessThan(0)
+                        expect(cursor.hasSelection()).to.be.false
 
                         // cursor at correct position
                         expect(cursor.offsetWord).to.equal(0)
@@ -758,7 +758,7 @@ describe("FigureEditor", function () {
                         scene.keydown("KeyA", { shift: true })
                         const text = scene.model.layers[0].data[0] as Text
                         const cursor = text.cursor
-                        expect(cursor.selectionOffsetWord).to.equal(-1)
+                        expect(cursor.hasSelection()).to.be.false
                     })
                 })
             })

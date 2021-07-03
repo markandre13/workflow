@@ -44,7 +44,7 @@ export class Cursor {
     offsetChar: number      // index within wordBox
 
     // cursor location when selection began
-    selectionOffsetWord: number = -1 // FIXME: use null instead of -1
+    selectionOffsetWord: number | null = null
     selectionOffsetChar: number = 0
 
     constructor(text: Text, svg: SVGElement, textSource: TextSource) {
@@ -59,6 +59,10 @@ export class Cursor {
         this.svgCursor = this.createCursor()
         this.updateCursor()
         this.svgParent.appendChild(this.svgCursor)
+    }
+
+    hasSelection(): boolean {
+        return this.selectionOffsetWord !== null
     }
 
     createCursor(): SVGLineElement {
@@ -89,12 +93,12 @@ export class Cursor {
 
     updateSelection(e?: EditorKeyboardEvent) {
         if (e === undefined || e.shift) {
-            if (this.selectionOffsetWord < 0) {
+            if (this.selectionOffsetWord === null) {
                 this.selectionOffsetWord = this.offsetWord
                 this.selectionOffsetChar = this.offsetChar
             }
         } else {
-            this.selectionOffsetWord = -1
+            this.selectionOffsetWord = null
         }
     }
 
@@ -127,7 +131,7 @@ export class Cursor {
                 this.updateCursor()
                 break
             case "Backspace":
-                if (this.selectionOffsetWord >= 0) {
+                if (this.selectionOffsetWord !== null) {
                     this.deleteSelectedText()
                 } else {
                     this.updateSelection()
@@ -140,7 +144,7 @@ export class Cursor {
                 this.updateCursor()
                 break
             case "Delete":
-                if (this.selectionOffsetWord >= 0) {
+                if (this.selectionOffsetWord !== null) {
                     this.deleteSelectedText()
                 } else {
                     this.updateSelection()
@@ -287,7 +291,7 @@ export class Cursor {
         }
         this.offsetWord = offsetWord0
         this.offsetChar = offsetChar0
-        this.selectionOffsetWord = -1
+        this.selectionOffsetWord = null
     }
 
     // FIXME: name does not indicate position is not changed
@@ -418,6 +422,9 @@ export class Cursor {
     }
 
     getSelection() {
+        if (this.selectionOffsetWord === null)
+            throw Error("no selection")
+
         let [offsetWord0, offsetChar0] = [this.offsetWord, this.offsetChar]
         let [offsetWord1, offsetChar1] = [this.selectionOffsetWord, this.selectionOffsetChar]
 
@@ -436,7 +443,7 @@ export class Cursor {
 
         const [x, y, h] = this.offsetToScreen(this.offsetWord, this.offsetChar)
 
-        if (this.selectionOffsetWord < 0) {
+        if (this.selectionOffsetWord === null) {
             if (this.svgSelection) {
                 this.svgSelection.parentElement?.removeChild(this.svgSelection)
                 this.svgSelection = undefined

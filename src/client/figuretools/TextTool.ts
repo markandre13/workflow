@@ -198,9 +198,9 @@ export class TextTool extends Tool {
             return
 
         const cursor = this.text.cursor
-        if (cursor.selectionOffsetWord < 0)
+        if (!cursor.hasSelection())
             return
-        
+
         const [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = cursor.getSelection()
 
         if (offsetWord0 === offsetWord1) {
