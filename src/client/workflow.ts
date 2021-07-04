@@ -31,16 +31,6 @@ import { ColorSwatch } from "./widgets/colorswatch"
 import { Client_impl } from "./Client_impl"
 import { BoardModel } from "./BoardModel"
 
-export async function runtest(test: Function) {
-    window.customElements.define("toad-figureeditor", FigureEditor)
-    try {
-        test()
-    }
-    catch(error) {
-        console.log("error: "+error.message)
-    }
-}
-
 export async function main(url: string|undefined) {
     registerHTMLCustomElements();
 
