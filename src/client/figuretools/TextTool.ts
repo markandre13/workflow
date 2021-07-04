@@ -29,8 +29,6 @@ import { Point, Rectangle } from "shared/geometry"
 import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
 import { Tool } from "./Tool"
 import * as figures from "../figures"
-import { WordWrap } from "client/wordwrap/wordwrap"
-import { Path } from "client/paths"
 import { TextEditor } from "client/wordwrap/TextEditor"
 
 enum TextCursorType {
@@ -56,7 +54,7 @@ export class TextTool extends Tool {
     svgRect!: SVGRectElement
 
     text!: figures.Text
-    texteditor!: TextEditor
+    texteditor?: TextEditor
 
     constructor() {
         super()
@@ -69,6 +67,7 @@ export class TextTool extends Tool {
     }
 
     override deactivate(event: EditorMouseEvent) {
+        this.stopEdit(event)
         this.setCursor(TextCursorType.NONE, event.editor.svgView)
         event.editor.svgView.style.cursor = "default"
         this.removeOutlines(event.editor)
@@ -84,8 +83,8 @@ export class TextTool extends Tool {
             if (figure instanceof figures.Text) {
                 this.text = figure
                 this.state = TextToolState.EDIT
-                this.texteditor = new TextEditor(event.editor, figure)
-                this.texteditor.mousedown(event)
+                this.startEdit(event)
+                this.texteditor!.mousedown(event)
                 Tool.selection.set(figure)
                 this.updateDecorationOfSelection(event.editor)
             } else {
@@ -98,7 +97,7 @@ export class TextTool extends Tool {
         switch (this.state) {
             case TextToolState.EDIT:
                 if (event.editor.mouseButtonIsDown) {
-                    this.texteditor.mousemove(event)
+                    this.texteditor!.mousemove(event)
                     return
                 }
             case TextToolState.NONE:
@@ -116,20 +115,20 @@ export class TextTool extends Tool {
                 this.stopDrawTextArea(event)
                 this.createTextArea(event)
                 this.state = TextToolState.EDIT
-                this.texteditor = new TextEditor(event.editor, this.text)
+                this.startEdit(event)
                 break
         }
     }
 
     override keydown(event: EditorKeyboardEvent) {
         if (this.state == TextToolState.EDIT) {
-            this.texteditor.keydown(event)
+            this.texteditor!.keydown(event)
         }
     }
 
     override clipboard(editor: FigureEditor, event: ClipboardEvent) {
         if (this.state == TextToolState.EDIT) {
-            this.texteditor.clipboard(editor, event)
+            this.texteditor!.clipboard(editor, event)
         }
     }
 
@@ -169,6 +168,22 @@ export class TextTool extends Tool {
                 this.setCursor(TextCursorType.SHAPE, event.editor.svgView)
             }
         }
+    }
+
+    //
+    // Edit
+    //
+
+    startEdit(event: EditorMouseEvent) {
+        this.stopEdit(event)
+        this.texteditor = new TextEditor(event.editor, this.text)
+    }
+
+    stopEdit(event: EditorMouseEvent) {
+        if (this.texteditor === undefined)
+            return
+        this.texteditor.stop()
+        this.texteditor = undefined
     }
 
     //

@@ -28,7 +28,7 @@ import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureed
 export class TextEditor {
     text: Text
     svgParent: SVGElement
-    svgCursor: SVGLineElement
+    svgCursor?: SVGLineElement
     svgSelection?: SVGPathElement
 
     textSource: TextSource // use the one in text
@@ -70,6 +70,18 @@ export class TextEditor {
         let cursor = document.createElementNS("http://www.w3.org/2000/svg", "line")
         cursor.setAttributeNS("", "stroke", "#000")
         return cursor
+    }
+
+    stop() {
+        if (this.svgCursor) {
+            this.svgCursor.parentElement!.removeChild(this.svgCursor)
+            this.svgCursor = undefined
+        }
+        if (this.svgSelection) {
+            this.svgSelection.parentElement!.removeChild(this.svgSelection)
+            this.svgSelection = undefined
+        }
+        this.selectionOffsetWord = null
     }
 
     mousedown(e: EditorMouseEvent) {
@@ -554,11 +566,9 @@ export class TextEditor {
             }
 
             if (this.svgSelection === undefined) {
-                // console.log(`create selection to from ${x0} to ${x1}`)
                 this.svgSelection = path.createSVG("#b3d7ff", 1, "#b3d7ff")
                 this.svgParent.insertBefore(this.svgSelection, this.svgParent.children[0])
             } else {
-                // console.log(`update selection to from ${x0} to ${x1}`)
                 path.updateSVG(this.svgParent, this.svgSelection)
             }
         }
@@ -570,10 +580,10 @@ export class TextEditor {
         const y1 = `${Math.round(y) + 0.5}`
         const y2 = `${Math.round(y + h) + 0.5}`
 
-        this.svgCursor.setAttributeNS("", "x1", xs)
-        this.svgCursor.setAttributeNS("", "y1", y1)
-        this.svgCursor.setAttributeNS("", "x2", xs)
-        this.svgCursor.setAttributeNS("", "y2", y2)
+        this.svgCursor!.setAttributeNS("", "x1", xs)
+        this.svgCursor!.setAttributeNS("", "y1", y1)
+        this.svgCursor!.setAttributeNS("", "x2", xs)
+        this.svgCursor!.setAttributeNS("", "y2", y2)
 
         this.pauseCaretAnimation()
     }
@@ -596,9 +606,9 @@ export class TextEditor {
             window.clearTimeout(this.timer)
             this.timer = undefined
         }
-        this.svgCursor.classList.remove("cursor-blink")
+        this.svgCursor!.classList.remove("cursor-blink")
         this.timer = window.setTimeout(() => {
-            this.svgCursor.classList.add("cursor-blink")
+            this.svgCursor!.classList.add("cursor-blink")
             this.timer = undefined
         }, 500)
     }
