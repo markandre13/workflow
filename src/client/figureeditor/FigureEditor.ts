@@ -17,6 +17,7 @@
  */
 
 import { bind } from "bind-decorator"
+import { HTMLElementProps, setInitialProperties } from "toad.js"
 import { ModelView } from "toad.js"
 
 import { Rectangle, Matrix } from "shared/geometry"
@@ -131,6 +132,11 @@ class CacheEntry {
     }
 }
 
+interface FigureEditorProps extends HTMLElementProps {
+    model?: LayerModel
+    tool?: ToolModel
+}
+
 export class FigureEditor extends ModelView<LayerModel> {
     inputCatcher: HTMLDivElement
     scrollView: HTMLDivElement
@@ -147,7 +153,7 @@ export class FigureEditor extends ModelView<LayerModel> {
 
     cache: Cache
 
-    constructor() {
+    constructor(props?: FigureEditorProps) {
         super()
 
         this.cache = new Map<number, CacheEntry>()
@@ -182,6 +188,10 @@ export class FigureEditor extends ModelView<LayerModel> {
         this.shadowRoot!.appendChild(document.importNode(style, true))
         this.shadowRoot!.appendChild(this.inputCatcher)
         this.shadowRoot!.appendChild(this.scrollView)
+
+        setInitialProperties(this, props)
+        if (props?.tool)
+            this.setModel(props.tool as any)
     }
 
     setTool(tool?: Tool) {
@@ -434,6 +444,10 @@ export class FigureEditor extends ModelView<LayerModel> {
     //
 
     @bind mouseDown(mouseEvent: MouseEvent) {
+        console.log(`FigureEditor.mouseDown()`)
+        console.log(this.tool)
+        console.log(this.selectedLayer)
+
         this.inputCatcher.focus({ preventScroll: true })
         mouseEvent.preventDefault()
 
