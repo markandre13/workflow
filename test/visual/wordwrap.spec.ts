@@ -12,7 +12,7 @@ import { WordWrap, Slice, WordSource } from "client/wordwrap/wordwrap"
 import { WordBox } from "client/wordwrap/WordBox"
 
 import { TextSource } from "client/wordwrap/TextSource"
-import { Cursor } from "client/wordwrap/Cursor"
+import { TextEditor } from "client/wordwrap/TextEditor"
 
 // FIXME: document attributes
 interface WordWrapTest {
@@ -402,7 +402,7 @@ describe("wordwrap", function () {
             textSource.initializeWordBoxes(svg)
             wordwrap.placeWordBoxes(textSource)
             textSource.displayWordBoxes()
-            new Cursor(svg, wordwrap, textSource)
+            new TextEditor(svg, wordwrap, textSource)
 
             if (textSource.wordBoxes.length === 0)
                 return undefined

@@ -22,10 +22,10 @@ import { WordBox } from "./WordBox"
 import { Point } from "shared/geometry"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
-import { EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
+import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
 
 // FIXME: this class quickly turned into an TextEditor, merge it into TextTool
-export class Cursor {
+export class TextEditor {
     text: Text
     svgParent: SVGElement
     svgCursor: SVGLineElement
@@ -47,18 +47,18 @@ export class Cursor {
     selectionOffsetWord: number | null = null
     selectionOffsetChar: number = 0
 
-    constructor(text: Text, svg: SVGElement, textSource: TextSource) {
+    constructor(editor: FigureEditor, text: Text) {
         this.text = text
-        this.svgParent = svg
-        this.textSource = textSource
-        this.boxes = textSource.wordBoxes
+        this.svgParent = editor.getSVG(text)!
+        this.textSource = text.textSource
+        this.boxes = text.textSource.wordBoxes
         this.position = new Point()
         this.xDuringVerticalMovement = undefined
         this.offsetWord = 0
         this.offsetChar = 0
         this.svgCursor = this.createCursor()
         this.updateCursor()
-        this.svgParent.appendChild(this.svgCursor)
+        this.svgParent.appendChild(this.svgCursor) // FIXME: we want the cursor/caret in the overlay in front of the text outline so that it's visible
     }
 
     hasSelection(): boolean {
@@ -509,16 +509,7 @@ export class Cursor {
         this.svgCursor.setAttributeNS("", "x2", xs)
         this.svgCursor.setAttributeNS("", "y2", y2)
 
-        // disable blinking for 0.5s while moving
-        if (this.timer) {
-            window.clearTimeout(this.timer)
-            this.timer = undefined
-        }
-        this.svgCursor.classList.remove("cursor-blink")
-        this.timer = window.setTimeout(() => {
-            this.svgCursor.classList.add("cursor-blink")
-            this.timer = undefined
-        }, 500)
+        this.pauseCaretAnimation()
     }
 
     offsetToScreen(offsetWord: number, offsetChar: number) {
@@ -533,11 +524,16 @@ export class Cursor {
         return [r.origin.x + x, r.origin.y, r.size.height]
     }
 
-    stop() {
+    pauseCaretAnimation() {
+        // disable blinking for 0.5s while moving
         if (this.timer) {
             window.clearTimeout(this.timer)
             this.timer = undefined
-            this.svgCursor.classList.remove("cursor-blink")
         }
+        this.svgCursor.classList.remove("cursor-blink")
+        this.timer = window.setTimeout(() => {
+            this.svgCursor.classList.add("cursor-blink")
+            this.timer = undefined
+        }, 500)
     }
 }

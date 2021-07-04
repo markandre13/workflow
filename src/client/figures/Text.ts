@@ -17,26 +17,22 @@
  */
 
 import { Point } from "shared/geometry"
-import { AbstractPath, Path } from "../paths"
+import { AbstractPath, Path } from "client/paths"
 import { Shape } from "./Shape"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value     from "shared/workflow_value"
 
-import { WordWrap } from "../wordwrap/wordwrap"
-import { TextSource } from "../wordwrap/TextSource"
-import { Cursor } from "../wordwrap/Cursor"
+import { WordWrap } from "client/wordwrap/wordwrap"
+import { TextSource } from "client/wordwrap/TextSource"
 
 export class Text extends Shape implements valuetype.figure.Text {
     text!: string
     textSource: TextSource
-    cursor!: Cursor
     constructor(init?: Partial<Text>) {
         super(init)
         this.stroke = "none"
         this.fill = "#000"
-        // this.strokeWidth = 0.0
         value.figure.initText(this, init)
-        // this.text ="Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
         this.textSource = new TextSource(this.text)     
     }
 
@@ -67,7 +63,7 @@ export class Text extends Shape implements valuetype.figure.Text {
             let wordwrap = new WordWrap(path as Path)
             wordwrap.placeWordBoxes(this.textSource)
             this.textSource.updateSVG()
-            this.cursor = new Cursor(this, svg, this.textSource)
+            // this.cursor = new TextEditor(this, svg, this.textSource)
             parentSVG.removeChild(svg) // FIXME: change API so that figures add themselves to the parent
         } else {
             this.textSource.reset()
@@ -75,7 +71,7 @@ export class Text extends Shape implements valuetype.figure.Text {
             let wordwrap = new WordWrap(path as Path)
             wordwrap.placeWordBoxes(this.textSource)
             this.textSource.updateSVG()
-            this.cursor.updateCursor()
+            // this.cursor.updateCursor()
         }
         return svg
     }

@@ -31,8 +31,9 @@ import { Tool } from "./Tool"
 import * as figures from "../figures"
 import { WordWrap } from "client/wordwrap/wordwrap"
 import { Path } from "client/paths"
+import { TextEditor } from "client/wordwrap/TextEditor"
 
-enum TextCursor {
+enum TextCursorType {
     NONE,
     EDIT,
     AREA,
@@ -48,18 +49,19 @@ enum TextToolState {
 
 export class TextTool extends Tool {
     state: TextToolState
-    currentCursor: TextCursor
+    currentCursor: TextCursorType
 
     mouseDownAt!: Point
     defs!: SVGDefsElement
     svgRect!: SVGRectElement
 
     text!: figures.Text
+    texteditor!: TextEditor
 
     constructor() {
         super()
         this.state = TextToolState.NONE
-        this.currentCursor = TextCursor.NONE
+        this.currentCursor = TextCursorType.NONE
     }
 
     override activate(event: EditorMouseEvent) {
@@ -67,7 +69,7 @@ export class TextTool extends Tool {
     }
 
     override deactivate(event: EditorMouseEvent) {
-        this.setCursor(TextCursor.NONE, event.editor.svgView)
+        this.setCursor(TextCursorType.NONE, event.editor.svgView)
         event.editor.svgView.style.cursor = "default"
         this.removeOutlines(event.editor)
         this.removeDecoration(event.editor)
@@ -97,7 +99,8 @@ export class TextTool extends Tool {
             if (figure instanceof figures.Text) {
                 this.text = figure
                 this.state = TextToolState.EDIT
-                this.text.cursor.mousedown(event)
+                this.texteditor = new TextEditor(event.editor, figure)
+                this.texteditor.mousedown(event)
                 Tool.selection.clear()
                 Tool.selection.add(figure)
                 this.updateDecorationOfSelection(event.editor)
@@ -113,19 +116,19 @@ export class TextTool extends Tool {
         switch (this.state) {
             case TextToolState.EDIT:
                 if (event.editor.mouseButtonIsDown) {
-                    this.text.cursor.mousemove(event)
+                    this.texteditor.mousemove(event)
                     return
                 }
             case TextToolState.NONE:
                 let figure = event.editor.selectedLayer!.findFigureAt(event)
                 // console.log(`at ${event.x},${event.y} found ${figure}`)
                 if (figure === undefined) {
-                    this.setCursor(TextCursor.AREA, event.editor.svgView)
+                    this.setCursor(TextCursorType.AREA, event.editor.svgView)
                 } else {
                     if (figure instanceof figures.Text) {
-                        this.setCursor(TextCursor.EDIT, event.editor.svgView)
+                        this.setCursor(TextCursorType.EDIT, event.editor.svgView)
                     } else {
-                        this.setCursor(TextCursor.SHAPE, event.editor.svgView)
+                        this.setCursor(TextCursorType.SHAPE, event.editor.svgView)
                     }
                 }
                 break
@@ -160,13 +163,14 @@ export class TextTool extends Tool {
                 Tool.selection.clear()
                 Tool.selection.add(this.text)
                 this.updateDecorationOfSelection(event.editor)
+                this.texteditor = new TextEditor(event.editor, this.text)
                 break
         }
     }
 
     override keydown(event: EditorKeyboardEvent) {
         if (this.state == TextToolState.EDIT) {
-            this.text.cursor.keydown(event)
+            this.texteditor.keydown(event)
         }
     }
 
@@ -188,27 +192,24 @@ export class TextTool extends Tool {
         if (!event.clipboardData)
             return
 
-        const cursor = this.text.cursor
-        if (!cursor.hasSelection())
+        if (!this.texteditor.hasSelection())
             return
 
         this.copy(event)
-        this.text.cursor.deleteSelectedText()
+        this.texteditor.deleteSelectedText()
         this.text.textSource.reset()
             const wordwrap = new WordWrap(editor.getPath(this.text) as Path, this.text.textSource)
-            this.text.cursor.textSource.updateSVG()
-            this.text.cursor.updateCursor()
+            this.texteditor.textSource.updateSVG()
+            this.texteditor.updateCursor()
     }
 
     copy(event: ClipboardEvent) {
         if (!event.clipboardData)
             return
-        const cursor = this.text.cursor
-        if (!cursor.hasSelection())
+        if (!this.texteditor.hasSelection())
             return
 
-
-        const [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = cursor.getSelection()
+        const [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = this.texteditor.getSelection()
 
         if (offsetWord0 === offsetWord1) {
             const word = this.text.textSource.wordBoxes[offsetWord0].word
@@ -230,33 +231,33 @@ export class TextTool extends Tool {
         if (item === undefined)
             return
         item.getAsString(clipText => {
-            this.text.cursor.insertText(clipText)
+            this.texteditor.insertText(clipText)
             this.text.textSource.reset()
             const wordwrap = new WordWrap(editor.getPath(this.text) as Path, this.text.textSource)
-            this.text.cursor.textSource.updateSVG()
-            this.text.cursor.updateCursor()
+            this.text.textSource.updateSVG()
+            this.texteditor.updateCursor()
         })
     }
 
-    private setCursor(type: TextCursor, svg: SVGElement) {
+    private setCursor(type: TextCursorType, svg: SVGElement) {
         if (this.currentCursor === type)
             return
         this.currentCursor = type
         svg.style.cursor = ""
         switch (type) {
-            case TextCursor.NONE:
+            case TextCursorType.NONE:
                 svg.style.cursor = "default"
                 break
-            case TextCursor.EDIT:
+            case TextCursorType.EDIT:
                 svg.style.cursor = `url(${Tool.cursorPath}text-edit.svg) 9 12, move`
                 break
-            case TextCursor.AREA:
+            case TextCursorType.AREA:
                 svg.style.cursor = `url(${Tool.cursorPath}text-area.svg) 9 12, move`
                 break
-            case TextCursor.SHAPE:
+            case TextCursorType.SHAPE:
                 svg.style.cursor = `url(${Tool.cursorPath}text-shape.svg) 9 12, move`
                 break
-            case TextCursor.PATH:
+            case TextCursorType.PATH:
                 svg.style.cursor = `url(${Tool.cursorPath}text-path.svg) 9 12, move`
                 break
         }

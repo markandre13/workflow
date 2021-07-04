@@ -421,6 +421,10 @@ export class FigureEditor extends ModelView<LayerModel> {
         return this.cache.get(figure.id)?.path
     }
 
+    getSVG(figure: Figure): SVGElement | undefined {
+        return this.cache.get(figure.id)?.svg
+    }
+
     override focus(options?: FocusOptions) {
         this.inputCatcher.focus(options)
     }

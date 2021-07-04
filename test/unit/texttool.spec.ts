@@ -73,14 +73,14 @@ describe("FigureEditor", function () {
                 scene.keydown("KeyB")
 
                 const text = scene.model.layers[0].data[0] as Text
-                const cursor = text.cursor
+                const editor = scene.textTool.texteditor
                 const word = text.textSource.wordBoxes[0]
                 expect(word.word).to.equal("ab")
                 expect(word.svg?.textContent).to.equal("ab")
 
-                // cursor at correct position
-                expect(cursor.offsetWord).to.equal(0)
-                expect(cursor.offsetChar).to.equal(2)
+                // caret at correct position
+                expect(editor.offsetWord).to.equal(0)
+                expect(editor.offsetChar).to.equal(2)
             })
             it("type a blank letter", function () {
                 const scene = new FigureEditorScene()
@@ -105,7 +105,7 @@ describe("FigureEditor", function () {
                 scene.keydown("KeyB")
 
                 const text = scene.model.layers[0].data[0] as Text
-                const cursor = text.cursor
+                const editor = scene.textTool.texteditor
                 const textSource = text.textSource
                 const wordBoxes = textSource.wordBoxes
                 expect(wordBoxes.length).to.equal(2)
@@ -114,9 +114,9 @@ describe("FigureEditor", function () {
                 expect(wordBoxes[1].word).to.equal("b")
                 expect(wordBoxes[1].svg?.textContent).to.equal("b")
 
-                // cursor at correct position
-                expect(cursor.offsetWord).to.equal(1)
-                expect(cursor.offsetChar).to.equal(1)
+                // caret at correct position
+                expect(editor.offsetWord).to.equal(1)
+                expect(editor.offsetChar).to.equal(1)
             })
             it("split two letters by inserting a space", function () {
                 const scene = new FigureEditorScene()
@@ -127,7 +127,7 @@ describe("FigureEditor", function () {
                 scene.keydown("Space")
 
                 const text = scene.model.layers[0].data[0] as Text
-                const cursor = text.cursor
+                const editor = scene.textTool.texteditor
                 const textSource = text.textSource
                 const wordBoxes = textSource.wordBoxes
 
@@ -137,9 +137,9 @@ describe("FigureEditor", function () {
                 expect(wordBoxes[1].word).to.equal("b")
                 expect(wordBoxes[1].svg?.textContent).to.equal("b")
 
-                // cursor at correct position
-                expect(cursor.offsetWord).to.equal(1)
-                expect(cursor.offsetChar).to.equal(0)
+                // caret at correct position
+                expect(editor.offsetWord).to.equal(1)
+                expect(editor.offsetChar).to.equal(0)
             })
             it("insert deletes selected text", function () {
                 const scene = new FigureEditorScene()
@@ -157,7 +157,7 @@ describe("FigureEditor", function () {
                 scene.keydown("KeyX")
 
                 const text = scene.model.layers[0].data[0] as Text
-                const cursor = text.cursor
+                const editor = scene.textTool.texteditor
                 const textSource = text.textSource
                 const wordBoxes = textSource.wordBoxes
 
@@ -168,11 +168,11 @@ describe("FigureEditor", function () {
                 expect(wordBoxes[0].svg?.textContent).to.equal("axd")
 
                 // no selection
-                expect(cursor.hasSelection()).to.be.false
+                expect(editor.hasSelection()).to.be.false
 
-                // cursor at correct position
-                expect(cursor.offsetWord).to.equal(0)
-                expect(cursor.offsetChar).to.equal(2)
+                // caret at correct position
+                expect(editor.offsetWord).to.equal(0)
+                expect(editor.offsetChar).to.equal(2)
             })
         })
         describe("delete text", function () {
@@ -317,7 +317,7 @@ describe("FigureEditor", function () {
                         scene.keydown("Delete")
 
                         const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
                         const textSource = text.textSource
                         const wordBoxes = textSource.wordBoxes
 
@@ -326,11 +326,11 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].svg?.textContent).to.equal("ad")
 
                         // no selection
-                        expect(cursor.hasSelection()).to.be.false
+                        expect(editor.hasSelection()).to.be.false
 
-                        // cursor at correct position
-                        expect(cursor.offsetWord).to.equal(0)
-                        expect(cursor.offsetChar).to.equal(1)
+                        // caret at correct position
+                        expect(editor.offsetWord).to.equal(0)
+                        expect(editor.offsetChar).to.equal(1)
                     })
                     it("within two words", function () {
                         const scene = new FigureEditorScene()
@@ -357,7 +357,7 @@ describe("FigureEditor", function () {
                         scene.keydown("Delete")
 
                         const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
                         const textSource = text.textSource
                         const wordBoxes = textSource.wordBoxes
 
@@ -366,11 +366,11 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].svg?.textContent).to.equal("abgh")
 
                         // no selection
-                        expect(cursor.hasSelection()).to.be.false
+                        expect(editor.hasSelection()).to.be.false
 
-                        // cursor at correct position
-                        expect(cursor.offsetWord).to.equal(0)
-                        expect(cursor.offsetChar).to.equal(2)
+                        // caret at correct position
+                        expect(editor.offsetWord).to.equal(0)
+                        expect(editor.offsetChar).to.equal(2)
                     })
                     it("within three words", function () {
                         const scene = new FigureEditorScene()
@@ -407,7 +407,7 @@ describe("FigureEditor", function () {
                         scene.keydown("Delete")
 
                         const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
                         const textSource = text.textSource
                         const wordBoxes = textSource.wordBoxes
 
@@ -416,11 +416,11 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].svg?.textContent).to.equal("abkl")
 
                         // no selection
-                        expect(cursor.hasSelection()).to.be.false
+                        expect(editor.hasSelection()).to.be.false
 
-                        // cursor at correct position
-                        expect(cursor.offsetWord).to.equal(0)
-                        expect(cursor.offsetChar).to.equal(2)
+                        // caret at correct position
+                        expect(editor.offsetWord).to.equal(0)
+                        expect(editor.offsetChar).to.equal(2)
                     })
                 })
                 it("backspace deletes selected text", function () {
@@ -439,7 +439,7 @@ describe("FigureEditor", function () {
                     scene.keydown("Backspace")
 
                     const text = scene.model.layers[0].data[0] as Text
-                    const cursor = text.cursor
+                    const editor = scene.textTool.texteditor
                     const textSource = text.textSource
                     const wordBoxes = textSource.wordBoxes
 
@@ -448,26 +448,26 @@ describe("FigureEditor", function () {
                     expect(wordBoxes[0].svg?.textContent).to.equal("ad")
 
                     // no selection
-                    expect(cursor.hasSelection()).to.be.false
+                    expect(editor.hasSelection()).to.be.false
 
-                    // cursor at correct position
-                    expect(cursor.offsetWord).to.equal(0)
-                    expect(cursor.offsetChar).to.equal(1)
+                    // caret at correct position
+                    expect(editor.offsetWord).to.equal(0)
+                    expect(editor.offsetChar).to.equal(1)
                 })
             })
         })
-        describe("cursor", function () {
+        describe("caret", function () {
             it("is visible in a newly created text area", function () {
                 const scene = new FigureEditorScene()
                 scene.createTextArea()
 
                 const text = scene.model.layers[0].data[0] as Text
-                const cursor = text.cursor
+                const editor = scene.textTool.texteditor
                 const word = text.textSource.wordBoxes[0]
 
-                expect(cursor.offsetWord).equal(0)
-                expect(cursor.offsetChar).equal(0)
-                const line = cursor.svgCursor
+                expect(editor.offsetWord).equal(0)
+                expect(editor.offsetChar).equal(0)
+                const line = editor.svgCursor
 
                 // THEN it's visible
                 // FIXME: currently it seems to be hidden behind the selection marker
@@ -483,12 +483,12 @@ describe("FigureEditor", function () {
                 scene.keydown("KeyA")
 
                 const text = scene.model.layers[0].data[0] as Text
-                const cursor = text.cursor
+                const editor = scene.textTool.texteditor
                 const word = text.textSource.wordBoxes[0]
 
-                expect(cursor.offsetWord).equal(0)
-                expect(cursor.offsetChar).equal(1)
-                const line = cursor.svgCursor
+                expect(editor.offsetWord).equal(0)
+                expect(editor.offsetChar).equal(1)
+                const line = editor.svgCursor
 
                 // THEN it's visible
                 // FIXME: currently it seems to be hidden behind the selection marker
@@ -504,12 +504,12 @@ describe("FigureEditor", function () {
                 scene.keydown("ArrowLeft")
 
                 const text = scene.model.layers[0].data[0] as Text
-                const cursor = text.cursor
+                const editor = scene.textTool.texteditor
                 const word = text.textSource.wordBoxes[0]
 
-                expect(cursor.offsetWord).equal(0)
-                expect(cursor.offsetChar).equal(0)
-                const line = cursor.svgCursor
+                expect(editor.offsetWord).equal(0)
+                expect(editor.offsetChar).equal(0)
+                const line = editor.svgCursor
 
                 // THEN it's visible
                 // FIXME: currently it seems to be hidden behind the selection marker
@@ -526,12 +526,12 @@ describe("FigureEditor", function () {
                 scene.keydown("ArrowRight")
 
                 const text = scene.model.layers[0].data[0] as Text
-                const cursor = text.cursor
+                const editor = scene.textTool.texteditor
                 const word = text.textSource.wordBoxes[0]
 
-                expect(cursor.offsetWord).equal(0)
-                expect(cursor.offsetChar).equal(1)
-                const line = cursor.svgCursor
+                expect(editor.offsetWord).equal(0)
+                expect(editor.offsetChar).equal(1)
+                const line = editor.svgCursor
 
                 expect(line.getAttributeNS("", "x1")).to.equal(`${Math.round(10 + word.size.width) + 0.5}`)
                 expect(line.getAttributeNS("", "y1")).to.equal(`${15.5}`)
@@ -546,8 +546,7 @@ describe("FigureEditor", function () {
                     scene.keydown("KeyB")
                     scene.keydown("Home")
 
-                    const text = scene.model.layers[0].data[0] as Text
-                    const cursor = text.cursor
+                    const cursor = scene.textTool.texteditor
                     expect(cursor.offsetWord).equal(0)
                     expect(cursor.offsetChar).equal(0)
                 })
@@ -558,10 +557,9 @@ describe("FigureEditor", function () {
                     scene.keydown("KeyB")
                     scene.keydown("KeyA", { ctrl: true })
 
-                    const text = scene.model.layers[0].data[0] as Text
-                    const cursor = text.cursor
-                    expect(cursor.offsetWord).equal(0)
-                    expect(cursor.offsetChar).equal(0)
+                    const editor = scene.textTool.texteditor
+                    expect(editor.offsetWord).equal(0)
+                    expect(editor.offsetChar).equal(0)
                 })
                 describe("unit tests", function () {
                     it("jump from 2nd word to 1st word", function () {
@@ -571,16 +569,15 @@ describe("FigureEditor", function () {
                         scene.keydown("Space")
                         scene.keydown("KeyB")
 
-                        const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
 
                         scene.keydown("Home")
-                        expect(cursor.offsetWord).equal(0)
-                        expect(cursor.offsetChar).equal(0)
+                        expect(editor.offsetWord).equal(0)
+                        expect(editor.offsetChar).equal(0)
 
                         scene.keydown("Home")
-                        expect(cursor.offsetWord).equal(0)
-                        expect(cursor.offsetChar).equal(0)
+                        expect(editor.offsetWord).equal(0)
+                        expect(editor.offsetChar).equal(0)
                     })
                     it("jump to the head of the 2nd line", function () {
                         const scene = new FigureEditorScene()
@@ -593,16 +590,15 @@ describe("FigureEditor", function () {
                             scene.keydown("Space")
                         }
 
-                        const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
 
                         scene.keydown("Home")
-                        expect(cursor.offsetWord).equal(3)
-                        expect(cursor.offsetChar).equal(0)
+                        expect(editor.offsetWord).equal(3)
+                        expect(editor.offsetChar).equal(0)
 
                         scene.keydown("Home")
-                        expect(cursor.offsetWord).equal(3)
-                        expect(cursor.offsetChar).equal(0)
+                        expect(editor.offsetWord).equal(3)
+                        expect(editor.offsetChar).equal(0)
                     })
                 })
             })
@@ -616,10 +612,9 @@ describe("FigureEditor", function () {
 
                     scene.keydown("End")
 
-                    const text = scene.model.layers[0].data[0] as Text
-                    const cursor = text.cursor
-                    expect(cursor.offsetWord).equal(0)
-                    expect(cursor.offsetChar).equal(2)
+                    const editor = scene.textTool.texteditor
+                    expect(editor.offsetWord).equal(0)
+                    expect(editor.offsetChar).equal(2)
                 })
                 it("Ctrl + E", function () {
                     const scene = new FigureEditorScene()
@@ -630,10 +625,9 @@ describe("FigureEditor", function () {
 
                     scene.keydown("KeyE", { ctrl: true })
 
-                    const text = scene.model.layers[0].data[0] as Text
-                    const cursor = text.cursor
-                    expect(cursor.offsetWord).equal(0)
-                    expect(cursor.offsetChar).equal(2)
+                    const editor = scene.textTool.texteditor
+                    expect(editor.offsetWord).equal(0)
+                    expect(editor.offsetChar).equal(2)
                 })
                 describe("unit tests", function () {
                     it("jump from 1st word to the 2nd word", function () {
@@ -644,16 +638,15 @@ describe("FigureEditor", function () {
                         scene.keydown("KeyB")
                         scene.keydown("Home")
 
-                        const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
 
                         scene.keydown("End")
-                        expect(cursor.offsetWord).equal(1)
-                        expect(cursor.offsetChar).equal(1)
+                        expect(editor.offsetWord).equal(1)
+                        expect(editor.offsetChar).equal(1)
 
                         scene.keydown("End")
-                        expect(cursor.offsetWord).equal(1)
-                        expect(cursor.offsetChar).equal(1)
+                        expect(editor.offsetWord).equal(1)
+                        expect(editor.offsetChar).equal(1)
                     })
                     it("jump to the end of the 2nd line", function () {
                         const scene = new FigureEditorScene()
@@ -668,16 +661,15 @@ describe("FigureEditor", function () {
                         }
                         scene.keydown("Home")
 
-                        const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
 
                         scene.keydown("End")
-                        expect(cursor.offsetWord).equal(5)
-                        expect(cursor.offsetChar).equal(4)
+                        expect(editor.offsetWord).equal(5)
+                        expect(editor.offsetChar).equal(4)
 
                         scene.keydown("End")
-                        expect(cursor.offsetWord).equal(5)
-                        expect(cursor.offsetChar).equal(4)
+                        expect(editor.offsetWord).equal(5)
+                        expect(editor.offsetChar).equal(4)
                     })
                 })
             })
@@ -692,15 +684,15 @@ describe("FigureEditor", function () {
                     scene.keydown("ArrowRight", { shift: true })
 
                     const text = scene.model.layers[0].data[0] as Text
-                    const cursor = text.cursor
+                    const editor = scene.textTool.texteditor
 
-                    expect(cursor.selectionOffsetWord).to.equal(0)
-                    expect(cursor.selectionOffsetChar).to.equal(0)
-                    expect(cursor.offsetWord).to.equal(0)
-                    expect(cursor.offsetChar).to.equal(1)
+                    expect(editor.selectionOffsetWord).to.equal(0)
+                    expect(editor.selectionOffsetChar).to.equal(0)
+                    expect(editor.offsetWord).to.equal(0)
+                    expect(editor.offsetChar).to.equal(1)
 
                     const word = text.textSource.wordBoxes[0]
-                    const selection = cursor.svgSelection!
+                    const selection = editor.svgSelection!
 
                     const path = selection.getPathData()
                     expect(path.length).to.equal(5)
@@ -719,21 +711,21 @@ describe("FigureEditor", function () {
                     scene.keydown("ArrowLeft", { shift: true })
 
                     const text = scene.model.layers[0].data[0] as Text
-                    const cursor = text.cursor
+                    const editor = scene.textTool.texteditor
 
-                    expect(cursor.selectionOffsetWord).to.equal(1)
-                    expect(cursor.selectionOffsetChar).to.equal(1)
-                    expect(cursor.offsetWord).to.equal(0)
-                    expect(cursor.offsetChar).to.equal(0)
+                    expect(editor.selectionOffsetWord).to.equal(1)
+                    expect(editor.selectionOffsetChar).to.equal(1)
+                    expect(editor.offsetWord).to.equal(0)
+                    expect(editor.offsetChar).to.equal(0)
 
                     const word0 = text.textSource.wordBoxes[0]
                     const word1 = text.textSource.wordBoxes[1]
-                    const selection = cursor.svgSelection!
+                    const selection = editor.svgSelection!
 
                     const path = selection.getPathData()
                     expect(path.length).to.equal(5)
                     expect(path).to.containSubset([{ values: [10, 15] }])
-                    expect(path).to.containSubset([{ values: [10 + word0.size.width + cursor.textSource.space + word1.size.width, 15 + word0.size.height] }])
+                    expect(path).to.containSubset([{ values: [10 + word0.size.width + editor.textSource.space + word1.size.width, 15 + word0.size.height] }])
                 })
                 it("select with Home + shift", function () {
                     const scene = new FigureEditorScene()
@@ -743,12 +735,11 @@ describe("FigureEditor", function () {
 
                     scene.keydown("Home", { shift: true })
 
-                    const text = scene.model.layers[0].data[0] as Text
-                    const cursor = text.cursor
-                    expect(cursor.selectionOffsetWord).to.equal(0)
-                    expect(cursor.selectionOffsetChar).to.equal(2)
-                    expect(cursor.offsetWord).to.equal(0)
-                    expect(cursor.offsetChar).to.equal(0)
+                    const editor = scene.textTool.texteditor
+                    expect(editor.selectionOffsetWord).to.equal(0)
+                    expect(editor.selectionOffsetChar).to.equal(2)
+                    expect(editor.offsetWord).to.equal(0)
+                    expect(editor.offsetChar).to.equal(0)
 
                 })
                 it("select with End + shift", function () {
@@ -760,12 +751,11 @@ describe("FigureEditor", function () {
 
                     scene.keydown("End", { shift: true })
 
-                    const text = scene.model.layers[0].data[0] as Text
-                    const cursor = text.cursor
-                    expect(cursor.selectionOffsetWord).to.equal(0)
-                    expect(cursor.selectionOffsetChar).to.equal(0)
-                    expect(cursor.offsetWord).to.equal(0)
-                    expect(cursor.offsetChar).to.equal(2)
+                    const editor = scene.textTool.texteditor
+                    expect(editor.selectionOffsetWord).to.equal(0)
+                    expect(editor.selectionOffsetChar).to.equal(0)
+                    expect(editor.offsetWord).to.equal(0)
+                    expect(editor.offsetChar).to.equal(2)
                 })
 
                 // double click to select word?
@@ -804,9 +794,9 @@ describe("FigureEditor", function () {
                         const scene = new FigureEditorScene()
                         scene.createTextArea()
                         scene.keydown("KeyA", { shift: true })
-                        const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
-                        expect(cursor.hasSelection()).to.be.false
+
+                        const editor = scene.textTool.texteditor
+                        expect(editor.hasSelection()).to.be.false
                     })
                 })
             })
@@ -839,7 +829,7 @@ describe("FigureEditor", function () {
                         expect(xtext).to.equal("bc")
 
                         const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
                         const textSource = text.textSource
                         const wordBoxes = textSource.wordBoxes
 
@@ -847,8 +837,8 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].word).to.equal("ad")
                         expect(wordBoxes[0].svg?.textContent).to.equal("ad")
 
-                        expect(cursor.offsetWord).equal(0)
-                        expect(cursor.offsetChar).equal(1)
+                        expect(editor.offsetWord).equal(0)
+                        expect(editor.offsetChar).equal(1)
                     })
                 })
                 describe("copy", function () {
@@ -927,7 +917,7 @@ describe("FigureEditor", function () {
                         await scene.paste("DEADBEEF")
 
                         const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
                         const textSource = text.textSource
                         const wordBoxes = textSource.wordBoxes
 
@@ -935,8 +925,8 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[0].word).to.equal("aDEADBEEFz")
                         expect(wordBoxes[0].svg?.textContent).to.equal("aDEADBEEFz")
 
-                        expect(cursor.offsetWord).equal(0)
-                        expect(cursor.offsetChar).equal(9)
+                        expect(editor.offsetWord).equal(0)
+                        expect(editor.offsetChar).equal(9)
                     })
                     it("insert text with space", async function () {
                         const scene = new FigureEditorScene()
@@ -952,7 +942,7 @@ describe("FigureEditor", function () {
                         await scene.paste("DEAD BEEF")
 
                         const text = scene.model.layers[0].data[0] as Text
-                        const cursor = text.cursor
+                        const editor = scene.textTool.texteditor
                         const textSource = text.textSource
                         const wordBoxes = textSource.wordBoxes
 
@@ -962,14 +952,14 @@ describe("FigureEditor", function () {
                         expect(wordBoxes[1].word).to.equal("BEEFz")
                         expect(wordBoxes[1].svg?.textContent).to.equal("BEEFz")
 
-                        expect(cursor.offsetWord).equal(1)
-                        expect(cursor.offsetChar).equal(4)
+                        expect(editor.offsetWord).equal(1)
+                        expect(editor.offsetChar).equal(4)
                     })
                 })
             })
 
-            // TEST: disable cursor when switching to another Text
-            // TEST: when the cursor leaves the region were words are rendered...
+            // TEST: disable caret when switching to another Text
+            // TEST: when the caret leaves the region were words are rendered...
             // => this stuff will solve itself when Cursor get's merged into TextTool
 
             // next steps:
