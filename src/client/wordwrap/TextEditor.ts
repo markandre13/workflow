@@ -193,6 +193,71 @@ export class TextEditor {
         }
     }
 
+    clipboard(editor: FigureEditor, event: ClipboardEvent) {
+        switch (event.type) {
+            case "cut":
+                this.cut(editor, event)
+                break
+            case "copy":
+                this.copy(event)
+                break
+            case "paste":
+                this.paste(editor, event)
+                break
+        }
+    }
+
+    protected cut(editor: FigureEditor, event: ClipboardEvent) {
+        if (!event.clipboardData)
+            return
+
+        if (!this.hasSelection())
+            return
+
+        this.copy(event)
+        this.deleteSelectedText()
+        this.text.textSource.reset()
+        const wordwrap = new WordWrap(editor.getPath(this.text) as Path, this.text.textSource)
+        this.textSource.updateSVG()
+        this.updateCursor()
+    }
+
+    protected copy(event: ClipboardEvent) {
+        if (!event.clipboardData)
+            return
+        if (!this.hasSelection())
+            return
+
+        const [offsetWord0, offsetChar0, offsetWord1, offsetChar1] = this.getSelection()
+
+        if (offsetWord0 === offsetWord1) {
+            const word = this.text.textSource.wordBoxes[offsetWord0].word
+            event.clipboardData.setData('text/plain', word.substr(offsetChar0, offsetChar1 - offsetChar0))
+        } else {
+            const words = this.text.textSource.wordBoxes
+            let text = words[offsetWord0].word.substr(offsetChar0) + " "
+            for (let i = offsetWord0 + 1; i < offsetWord1; ++i) {
+                text += words[i].word + " "
+            }
+            text += words[offsetWord1].word.substr(0, offsetChar1)
+            event.clipboardData.setData('text/plain', text)
+        }
+        event.preventDefault()
+    }
+
+    protected paste(editor: FigureEditor, e: ClipboardEvent) {
+        const item = Array.from(e.clipboardData!.items).filter(e => e.kind === "string" && e.type === "text/plain").shift()
+        if (item === undefined)
+            return
+        item.getAsString(clipText => {
+            this.insertText(clipText)
+            this.text.textSource.reset()
+            const wordwrap = new WordWrap(editor.getPath(this.text) as Path, this.text.textSource)
+            this.text.textSource.updateSVG()
+            this.updateCursor()
+        })
+    }
+
     insertText(value: string) {
         if (this.selectionOffsetWord !== null) {
             this.deleteSelectedText()
