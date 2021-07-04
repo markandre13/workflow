@@ -56,9 +56,10 @@ export class TextEditor {
         this.xDuringVerticalMovement = undefined
         this.offsetWord = 0
         this.offsetChar = 0
+
         this.svgCursor = this.createCursor()
         this.updateCursor()
-        this.svgParent.appendChild(this.svgCursor) // FIXME: we want the cursor/caret in the overlay in front of the text outline so that it's visible
+        editor.decorationOverlay.appendChild(this.svgCursor)
     }
 
     hasSelection(): boolean {

@@ -79,37 +79,19 @@ export class TextTool extends Tool {
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         if (figure === undefined) {
             this.state = TextToolState.AREA
-            this.mouseDownAt = event
-            // create text area
-            this.defs = document.createElementNS("http://www.w3.org/2000/svg", "defs")
-            this.defs.innerHTML =
-                `<pattern id="textToolPattern"
-                x="0" y="0" width="100" height="4"
-                patternUnits="userSpaceOnUse"
-                patternTransform="rotate(45)">
-               <line x1="0" y1="0" x2="100" y2="0" style="stroke: rgb(79,128,255)" />
-            </pattern>`
-            event.editor.svgView.appendChild(this.defs)
-
-            this.svgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-            this.svgRect.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
-            this.svgRect.setAttributeNS("", 'fill', 'url(#textToolPattern)')
-            event.editor.decorationOverlay.appendChild(this.svgRect)
+            this.startDrawTextArea(event)
         } else {
             if (figure instanceof figures.Text) {
                 this.text = figure
                 this.state = TextToolState.EDIT
                 this.texteditor = new TextEditor(event.editor, figure)
                 this.texteditor.mousedown(event)
-                Tool.selection.clear()
-                Tool.selection.add(figure)
+                Tool.selection.set(figure)
                 this.updateDecorationOfSelection(event.editor)
             } else {
                 // create text within shape
             }
         }
-        // let text = new figures.Text({origin: event})
-        // event.editor.addFigure(text)
     }
 
     override mousemove(event: EditorMouseEvent) {
@@ -120,26 +102,10 @@ export class TextTool extends Tool {
                     return
                 }
             case TextToolState.NONE:
-                let figure = event.editor.selectedLayer!.findFigureAt(event)
-                // console.log(`at ${event.x},${event.y} found ${figure}`)
-                if (figure === undefined) {
-                    this.setCursor(TextCursorType.AREA, event.editor.svgView)
-                } else {
-                    if (figure instanceof figures.Text) {
-                        this.setCursor(TextCursorType.EDIT, event.editor.svgView)
-                    } else {
-                        this.setCursor(TextCursorType.SHAPE, event.editor.svgView)
-                    }
-                }
+                this.setCursorBasedOnFigureBelowMouse(event)
                 break
             case TextToolState.AREA:
-                let x0 = this.mouseDownAt!.x, y0 = this.mouseDownAt!.y, x1 = event.x, y1 = event.y
-                if (x1 < x0) [x0, x1] = [x1, x0]
-                if (y1 < y0) [y0, y1] = [y1, y0]
-                this.svgRect!.setAttributeNS("", "x", String(Math.round(x0) + 0.5)) // FIXME: just a hunch for nice rendering
-                this.svgRect!.setAttributeNS("", "y", String(Math.round(y0) + 0.5))
-                this.svgRect!.setAttributeNS("", "width", String(Math.round(x1 - x0)))
-                this.svgRect!.setAttributeNS("", "height", String(Math.round(y1 - y0)))
+                this.resizeDrawTextArea(event)
                 break
         }
     }
@@ -147,22 +113,9 @@ export class TextTool extends Tool {
     override mouseup(event: EditorMouseEvent) {
         switch (this.state) {
             case TextToolState.AREA:
+                this.stopDrawTextArea(event)
+                this.createTextArea(event)
                 this.state = TextToolState.EDIT
-                event.editor.decorationOverlay.removeChild(this.svgRect)
-                event.editor.svgView.removeChild(this.defs)
-
-                let x0 = this.mouseDownAt!.x, y0 = this.mouseDownAt!.y, x1 = event.x, y1 = event.y
-                if (x1 < x0) [x0, x1] = [x1, x0]
-                if (y1 < y0) [y0, y1] = [y1, y0]
-
-                // we add the figure here
-                let rect = new Rectangle({ origin: { x: x0, y: y0 }, size: { width: x1 - x0, height: y1 - y0 } })
-                this.text = new figures.Text(rect)
-                event.editor.addFigure(this.text)
-
-                Tool.selection.clear()
-                Tool.selection.add(this.text)
-                this.updateDecorationOfSelection(event.editor)
                 this.texteditor = new TextEditor(event.editor, this.text)
                 break
         }
@@ -188,7 +141,7 @@ export class TextTool extends Tool {
         }
     }
 
-    cut(editor: FigureEditor, event: ClipboardEvent) {
+    protected cut(editor: FigureEditor, event: ClipboardEvent) {
         if (!event.clipboardData)
             return
 
@@ -198,12 +151,12 @@ export class TextTool extends Tool {
         this.copy(event)
         this.texteditor.deleteSelectedText()
         this.text.textSource.reset()
-            const wordwrap = new WordWrap(editor.getPath(this.text) as Path, this.text.textSource)
-            this.texteditor.textSource.updateSVG()
-            this.texteditor.updateCursor()
+        const wordwrap = new WordWrap(editor.getPath(this.text) as Path, this.text.textSource)
+        this.texteditor.textSource.updateSVG()
+        this.texteditor.updateCursor()
     }
 
-    copy(event: ClipboardEvent) {
+    protected copy(event: ClipboardEvent) {
         if (!event.clipboardData)
             return
         if (!this.texteditor.hasSelection())
@@ -217,7 +170,7 @@ export class TextTool extends Tool {
         } else {
             const words = this.text.textSource.wordBoxes
             let text = words[offsetWord0].word.substr(offsetChar0) + " "
-            for(let i = offsetWord0+1; i < offsetWord1; ++i) {
+            for (let i = offsetWord0 + 1; i < offsetWord1; ++i) {
                 text += words[i].word + " "
             }
             text += words[offsetWord1].word.substr(0, offsetChar1)
@@ -226,7 +179,7 @@ export class TextTool extends Tool {
         event.preventDefault()
     }
 
-    paste(editor: FigureEditor, e: ClipboardEvent) {
+    protected paste(editor: FigureEditor, e: ClipboardEvent) {
         const item = Array.from(e.clipboardData!.items).filter(e => e.kind === "string" && e.type === "text/plain").shift()
         if (item === undefined)
             return
@@ -239,7 +192,7 @@ export class TextTool extends Tool {
         })
     }
 
-    private setCursor(type: TextCursorType, svg: SVGElement) {
+    protected setCursor(type: TextCursorType, svg: SVGElement) {
         if (this.currentCursor === type)
             return
         this.currentCursor = type
@@ -261,5 +214,75 @@ export class TextTool extends Tool {
                 svg.style.cursor = `url(${Tool.cursorPath}text-path.svg) 9 12, move`
                 break
         }
+    }
+
+    protected setCursorBasedOnFigureBelowMouse(event: EditorMouseEvent) {
+        let figure = event.editor.selectedLayer!.findFigureAt(event)
+        // console.log(`at ${event.x},${event.y} found ${figure}`)
+        if (figure === undefined) {
+            this.setCursor(TextCursorType.AREA, event.editor.svgView)
+        } else {
+            if (figure instanceof figures.Text) {
+                this.setCursor(TextCursorType.EDIT, event.editor.svgView)
+            } else {
+                this.setCursor(TextCursorType.SHAPE, event.editor.svgView)
+            }
+        }
+    }
+
+    //
+    // TextArea
+    //
+
+    protected startDrawTextArea(event: EditorMouseEvent) {
+        this.mouseDownAt = event
+        // create text area
+        this.defs = document.createElementNS("http://www.w3.org/2000/svg", "defs")
+        this.defs.innerHTML =
+            `<pattern id="textToolPattern"
+                x="0" y="0" width="100" height="4"
+                patternUnits="userSpaceOnUse"
+                patternTransform="rotate(45)">
+               <line x1="0" y1="0" x2="100" y2="0" style="stroke: rgb(79,128,255)" />
+            </pattern>`
+        event.editor.svgView.appendChild(this.defs)
+
+        this.svgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        this.svgRect.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
+        this.svgRect.setAttributeNS("", 'fill', 'url(#textToolPattern)')
+        event.editor.decorationOverlay.appendChild(this.svgRect)
+    }
+
+    protected resizeDrawTextArea(event: EditorMouseEvent) {
+        let x0 = this.mouseDownAt!.x, y0 = this.mouseDownAt!.y, x1 = event.x, y1 = event.y
+        if (x1 < x0) [x0, x1] = [x1, x0]
+        if (y1 < y0) [y0, y1] = [y1, y0]
+        this.svgRect!.setAttributeNS("", "x", `${Math.round(x0) + 0.5}`) // FIXME: just a hunch for nice rendering
+        this.svgRect!.setAttributeNS("", "y", `${Math.round(y0) + 0.5}`)
+        this.svgRect!.setAttributeNS("", "width", `${Math.round(x1 - x0)}`)
+        this.svgRect!.setAttributeNS("", "height", `${Math.round(y1 - y0)}`)
+    }
+
+    protected stopDrawTextArea(event: EditorMouseEvent) {
+        event.editor.decorationOverlay.removeChild(this.svgRect)
+        event.editor.svgView.removeChild(this.defs)
+    }
+
+    protected createTextArea(event: EditorMouseEvent) {
+        let x0 = this.mouseDownAt!.x,
+            y0 = this.mouseDownAt!.y,
+            x1 = event.x,
+            y1 = event.y
+
+        if (x1 < x0) [x0, x1] = [x1, x0]
+        if (y1 < y0) [y0, y1] = [y1, y0]
+
+        // we add the figure here
+        let rect = new Rectangle(x0, y0, x1 - x0, y1 - y0)
+        this.text = new figures.Text(rect)
+        event.editor.addFigure(this.text)
+
+        Tool.selection.set(this.text)
+        this.updateDecorationOfSelection(event.editor)
     }
 }

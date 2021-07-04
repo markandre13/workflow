@@ -26,6 +26,11 @@ export class FigureSelectionModel {
         this.modified = new Signal()
         this.selection = new Set<Figure>()
     }
+    set(figure: Figure): void {
+        this.selection.clear()
+        this.selection.add(figure)
+        this.modified.trigger()
+    }
     add(figure: Figure): void {
         this.selection.add(figure)
         this.modified.trigger()
