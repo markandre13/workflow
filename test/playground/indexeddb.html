@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+    <title>Workflow</title>
+    <meta name="description" content="A collaborative real-time white- and kanban board."/>
+    <meta name="copyright" content="Mark-André Hopf <mhopf@mark13.org>"/>
+  </head>
+  <script>
+    function main() {
+        console.log("loaded!!!")
+        if (!window.indexedDB) {
+            console.log("No IndexedDB available.")
+            return
+        }
+
+        var databaseName = "workflowX"
+
+        var deleteRequest = indexedDB.deleteDatabase(databaseName)
+        deleteRequest.onerror = function(event) {
+            console.log("Error deleting database.");
+        }
+        deleteRequest.onsuccess = function(event) {
+          console.log("Database deleted")
+
+          // create database with name & version
+          var openRequest = window.indexedDB.open(databaseName, 1);
+          openRequest.onerror = function(event) {
+              console.log("Error opening database.");
+          }
+          openRequest.onupgradeneeded = function(event) {
+              console.log("Initializing/Upgrading database")
+              var db = event.target.result;
+              db.onerror = function(event) {
+                console.log("Error opening database")
+                console.log(event)
+              }
+              var objectStore = db.createObjectStore("document", {
+                keyPath: "id",
+                autoIncrement: true
+              })
+              // indexed fields
+              objectStore.createIndex("name", "name", { unique: false })
+              // objectStore.createIndex("content", "content", { unique: false })
+              console.log("object store created")
+          }
+          openRequest.onsuccess = function(event) {
+              console.log("Database has been initialized")
+
+              var db = event.target.result
+              var transaction = db.transaction("document", "readwrite")
+              var store = transaction.objectStore("document")
+              var add1 = store.add({ name: "doodle", content: {
+                    layer: [
+                      { type: "rectangle" },
+                      { type: "circle" }
+                    ]
+                  }
+              })
+              var add2 = store.add({ name: "doodle2", content: {
+                    layer: [
+                      { type: "text" },
+                      { type: "path" }
+                    ]
+                  }
+              })
+              transaction.onerror = function(event) {
+                  console.log("Error in write transaction")
+              }
+              transaction.oncomplete = function(event) {
+                console.log("Data has been written to the database")
+
+                console.log(`added entry ${add1.result}`)
+                console.log(`added entry ${add2.result}`)
+
+                console.log(event)
+
+                var transaction = db.transaction("document")
+                var objectStore = transaction.objectStore("document")
+                var readRequest = objectStore.get(add2.result)
+                readRequest.onerror = function(event) {
+                    console.log("Read request failed.")
+                }
+                readRequest.onsuccess = function(event) {
+                    if (readRequest.result) {
+                        console.log("Found entry")
+                        console.log(readRequest.result.name)
+                        console.log(readRequest.result.content)
+                    } else {
+                        console.log("No entry found")
+                    }
+                }
+              } 
+          }
+      }
+    }
+  </script>
+  <body onload="main()">
+    Under ConstructionX
+  </body>
+</html>
