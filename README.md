@@ -2,7 +2,57 @@
 
 <p align="center"><img src="img/screenshot.png" width="386" height="279" alt="screenshot" /></p>
 
-<p align="center"><a href="https://markandre13.github.io/workflow-demo/">Live Demo<a/></p>
+<p align="center"><a href="https://markandre13.github.io/workflow-demo/">Live Demo</a></p>
+
+## Goal
+
+Workflow is intended for everything related to 2d vector graphics.
+
+The target is users as well as artists/software developers who want to tweak and extend their tools and have the source code as well as the created artwork creates available in an open non-proprietary format.
+
+The name _Workflow_ was choosen to indicate a tool which can be adjusted to the user's workflow.
+
+## Vector Graphics (In Development)
+
+Providing decent vector graphics support 
+
+* basic shapes like rectangle, circle, ...
+* text
+* bezier paths
+* freehand
+* boolean operations
+* flood fill
+* bitmap images
+* transformations (perspective, etc.)
+
+Note: Last time I looked at Inkscape, their algorithms leave something to wish for, eg.
+* Inkscape's flood fill converts the image to a bitmap, fills that and converts the result back to a vector graphic. the result depends on the current zoom level.
+* Inkscape's ink tool doesn't use all the pen's data (pressure, rotation) to emulate the nib.
+
+## Manga/Comic (Planned)
+
+I've been a user of Manga Studio/Cell Studio Paint and one of the biggest drawbacks for me was it's inability to export vector graphics. Hence the plan is to support the following features in Workflow:
+
+* Screentones
+* Panels
+* Rulers
+* Speech Bubbles
+* Pages
+* Page Templates
+
+## Software Development (Planned)
+
+I'm a software developer and most of the time the diagrams I draw are done as ASCII art because it is easy to create and share.
+
+Hence the plan is to add support for various UML Diagrams
+
+## Collaborative Real-Time (Planned)
+
+The code currently contains a limited proof of concept. For a production ready implementation WebRTC and CRDTs will be required.
+
+## Scrum/Kanban Board (Planned)
+
+This is the idea which got Workflow started in the first place:
 
 Managing the software development process through Lean/Agile methodologies
 means to apply the same steps used in creating an algorithm to the software
@@ -138,6 +188,3 @@ tweak index.html like this
 and restart Apache
 
     apachectl -k graceful
-
-## Architecture
-
