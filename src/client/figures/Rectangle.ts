@@ -18,7 +18,6 @@
 
 import { Point } from "shared/geometry"
 import { AbstractPath, Path } from "../paths"
-import { Figure } from "../figures"
 import { Shape } from "./Shape"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value     from "shared/workflow_value"

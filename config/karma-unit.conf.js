@@ -1,6 +1,7 @@
 module.exports = (config) => {
   config.set({
     debug: true,
+    // logLevel: config.LOG_DEBUG,
 
     frameworks: ["mocha", "chai", "karma-typescript"],
     singleRun: true,
@@ -26,19 +27,21 @@ module.exports = (config) => {
     autoWatch: false, // karma-typescript does it's own watching (is this okay or do we need 'watch: false' ?)
     files: [
       { pattern: "test/setup.ts" },
-      { pattern: "test/unit/**/*.ts" },
+      { pattern: "test/unit/**/*.+(ts|tsx)" },
       { pattern: "src/client/**/*.ts" },
+      { pattern: "src/client/views/**/*.+(ts|tsx)" },
       { pattern: "src/shared/**/*.ts" },
-      { pattern: "polyfill/path-data-polyfill.js"},
+      { pattern: "polyfill/path-data-polyfill.js" },
       { pattern: "img/**/*.svg", included: false, served: true },
       { pattern: 'node_modules/**/*.js.map', included: false, served: true, nocache: true }
     ],
 
     // compile
     preprocessors: {
-      "**/*.ts": ["karma-typescript"]
+      "**/*.+(ts|tsx)": ["karma-typescript"],
     },
     karmaTypescriptConfig: {
+      stopOnFailure: false,
       tsconfig: "tsconfig.json",
       compilerOptions: {
         module: "commonjs",
@@ -51,12 +54,6 @@ module.exports = (config) => {
         instrumentation: false,
         sourceMap: true,
       },
-      include: [
-        "test/unit/**/*.ts",
-        "test/setup.ts",
-        "src/shared/**/*.ts",
-        "src/client/**/*.ts",
-      ],
       exclude: [
         "node_modules",
         "test/ui",

@@ -20,19 +20,11 @@ import { expect, use } from "chai"
 import chaiAlmost = require('chai-almost')
 use(chaiAlmost())
 
-import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, sizeMultiplyNumber, rotatePointAroundPointBy } from "shared/geometry"
+import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, rotatePointAroundPointBy } from "shared/geometry"
 
 import * as figure from "client/figures"
 import { Tool, SelectToolState } from "client/figuretools"
 import { FigureEditorScene } from "./FigureEditorScene"
-
-declare global {
-    interface SVGPathElement {
-        d: string
-        setPathData(data: any): void
-        getPathData(): any
-    }
-}
 
 describe("FigureEditor", () => {
 

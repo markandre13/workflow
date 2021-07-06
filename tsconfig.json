@@ -12,7 +12,7 @@
             "client/*": ["client/*"]
         },
         "jsx": "react-jsx",
-        "jsxImportSource": "toad.js",
+        "jsxImportSource": "client",
         "experimentalDecorators": true,
         "downlevelIteration": true,
         "strict": true,
@@ -24,7 +24,7 @@
     },
     "include": [
         "src/**/*.ts",
-        "src/**/*.tsx",
+        "src/client/views/**/*.tsx",
         "test/**/*.ts",
         "test/**/*.tsx",
     ],

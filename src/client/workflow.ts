@@ -25,11 +25,13 @@ import * as figure from "./figures"
 
 import { Layer } from "./figureeditor/Layer"
 import { FigureEditor } from "./figureeditor/FigureEditor"
-import { StrokeAndFill } from "./widgets/strokeandfill"
-import { ColorSwatch } from "./widgets/colorswatch"
+import { StrokeAndFill } from "./views/widgets/strokeandfill"
+import { ColorSwatch } from "./views/widgets/colorswatch"
 
 import { Client_impl } from "./Client_impl"
 import { BoardModel } from "./BoardModel"
+
+// import { openFile } from "./view/widgets/filedialog"
 
 export async function main(url: string|undefined) {
     registerHTMLCustomElements();
@@ -39,7 +41,9 @@ export async function main(url: string|undefined) {
     initializeORB(orb)
     initializeCORBAValueTypes()
 
+   
     if (url === undefined) {
+        // openFile()
         new Client_impl(orb)
         return
     }

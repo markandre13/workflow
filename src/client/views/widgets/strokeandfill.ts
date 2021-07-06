@@ -17,7 +17,7 @@
  */
 
 import { ModelView, Model } from "toad.js"
-import { Path } from "../paths/Path";
+import { Path } from "client/paths/Path";
 
 let strokeandfillStyle = document.createElement("style")
 strokeandfillStyle.textContent=`

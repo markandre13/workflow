@@ -19,3 +19,11 @@
 export * from "./paths/AbstractPath"
 export * from "./paths/Path"
 export * from "./paths/PathGroup"
+
+declare global {
+    interface SVGPathElement {
+        d: string
+        setPathData(data: any): void
+        getPathData(): any
+    }
+}
