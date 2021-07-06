@@ -1,3 +1,21 @@
+/*
+ *  workflow - A collaborative real-time white- and kanban board
+ *  Copyright (C) 2018-2021 Mark-André Hopf <mhopf@mark13.org>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { Fragment, Menu, ToolButton, action } from "toad.js"
 import { StrokeAndFill } from "client/views/widgets/strokeandfill"
 import { ColorSwatch } from "client/views/widgets/colorswatch"
@@ -10,6 +28,8 @@ import { ToolModel } from "client/figuretools/ToolModel"
 import { LayerModel } from "client/figureeditor"
 
 export function homeScreen(model: LayerModel, tool: ToolModel, strokeandfill: StrokeAndFillModel, colorswatch: ColorSwatchModel, avatar: HtmlModel): Fragment {
+    // FIXME: let ColorSwatch take a closure
+    // FIXME: make it possible to use Action directly
     const setcolor = action("setcolor", (data?: any) => {
         strokeandfill.set(data)
     })

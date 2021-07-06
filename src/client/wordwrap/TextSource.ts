@@ -39,6 +39,16 @@ export class TextSource implements WordSource {
         TextSource.splitTextIntoWordBoxes(this.wordBoxes, text)
     }
 
+    toString(): string {
+        let text = ""
+        for(const box of this.wordBoxes) {
+            if (text.length != 0)
+                text += " "
+            text += box.word
+        }
+        return text
+    }
+
     static splitTextIntoWordBoxes(wordBoxes: WordBox[], text: string): void {
         let word = ''
         for (let char of text) {

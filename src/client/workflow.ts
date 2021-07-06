@@ -82,6 +82,7 @@ export function initializeCORBAValueTypes() {
     ORB.registerValueType("figure.Shape", figure.Shape)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
     ORB.registerValueType("figure.Circle", figure.Circle)
+    ORB.registerValueType("figure.Text", figure.Text)
     ORB.registerValueType("figure.Group", figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
 

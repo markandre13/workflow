@@ -26,14 +26,19 @@ import { WordWrap } from "client/wordwrap/wordwrap"
 import { TextSource } from "client/wordwrap/TextSource"
 
 export class Text extends Shape implements valuetype.figure.Text {
-    text!: string
-    textSource: TextSource
+    textSource!: TextSource
     constructor(init?: Partial<Text>) {
         super(init)
         this.stroke = "none"
         this.fill = "#000"
-        value.figure.initText(this, init)
-        this.textSource = new TextSource(this.text)     
+        value.figure.initText(this, init)   
+    }
+
+    get text(): string {
+        return this.textSource.toString()
+    }
+    set text(value: string) {
+        this.textSource = new TextSource(value)
     }
 
     distance(pt: Point): number {
