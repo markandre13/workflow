@@ -1,95 +1,87 @@
-// import { IDBPDatabase, openDB } from 'idb';
+import { IndexedDB, ObjectStore } from "client/utils/indexeddb"
 
-class IndexDB {
-    db?: IDBDatabase
+import { expect, use } from "chai"
+import chaiAsPromised = require('chai-as-promised')
+use(chaiAsPromised)
 
-    constructor() {
-        // const deleteRequest = window.indexedDB.deleteDatabase(this.databaseName)
-        // deleteRequest.onerror = this.onError
-        // deleteRequest.onsuccess = (event) => {
-        //   console.log("Database deleted")
-        //   this.openDatabase()
-        // }
-    }
-
-    // IDBVersionChangeEvent
-    deleteDatabase(databaseName: string) {
-        return new Promise<Event>((resolve, reject) => {
-            const deleteRequest = window.indexedDB.deleteDatabase(databaseName)
-            deleteRequest.onerror = reject
-            deleteRequest.onsuccess = resolve
-        })
-    }
-
-    open(databaseName: string, version: number, onupgrade: (db: IDBDatabase) => void) {
-        return new Promise<Event>((resolve, reject) => {
-            const openRequest = window.indexedDB.open(databaseName, version)
-            openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-                this.db = (event.target as IDBRequest).result
-                onupgrade(this.db!)
-            }
-            openRequest.onerror = reject
-            openRequest.onsuccess = (event: Event) => {
-                this.db = (event.target as IDBRequest).result
-                resolve(event)
-            }
-        })
-    }
-
-    // TODO: add a list of entities?
-    add(storeName: string, entity: any) {
-        if (!this.db)
-            throw Error("no database")
-        const transaction = this.db.transaction(storeName, "readwrite")
-        const store = transaction.objectStore(storeName)
-        const request = store.add(entity)
-        return new Promise<Event>((resolve, reject) => {
-            request.onerror = reject
-            request.onsuccess = resolve
-        })
-    }
-
-    // put(, key)  // the key is needed for autoincrement indexes. there the key isn't part of the record/entity, if ommited, put() will work like add()
-
-    get(storeName: string, index: number) {
-        if (!this.db)
-            throw Error("no database")
-        const transaction = this.db.transaction(storeName, "readwrite") // storeName can be a list of stores involved in the transaction!
-        const store = transaction.objectStore(storeName)
-        const request = store.get(index)
-        return new Promise<Event>((resolve, reject) => {
-            request.onerror = reject
-            request.onsuccess = resolve
-        })
-
-        // store.
-    }
+interface Shape {
+    type: string
 }
 
+interface MyDocument {
+    name: string
+    content: Shape[]
+}
+
+/*
+Generally they only commit when the last success/error callback fires and that callback schedules no more requests.
+-- https://stackoverflow.com/questions/10484965/how-can-i-put-several-requests-in-one-transaction-in-indexeddb
+
+we need some API to handle multiple operations within a single transaction:
+
+db.transaction([store1, store2], "readwrite", ([store1, store2]) => []
+    store1.add(...)
+    store2.add(...)
+})
+*/
+
 describe("IndexedDB", function () {
-    it.only("promise", async function () {
-        const db = new IndexDB()
-        // TODO: create objectstores and register them in db?
+    it("works as promised", async function () {
         let result
 
-        result = await db.deleteDatabase("workflow")
-
-        result = await db.open("workflow", 1, (db: IDBDatabase) => {
-            // db.objectStoreNames contains a list of object stores which already exist
+        const db = new IndexedDB()
+        const store = new ObjectStore<MyDocument>(db, "document", (db: IDBDatabase) => {
             const objectStore = db.createObjectStore("document", {
-                keyPath: "id",
+                // keyPath: "id",
                 autoIncrement: true
             })
-            objectStore.createIndex("name", "name", { unique: false })
+            objectStore.createIndex("name", "name", { unique: true })
         })
-        // console.log(result)
 
-        result = await db.add("document", { name: "Untitled.wf", content: [{ type: "rectangle" }, { type: "circle" }] })
-        const id = (result.target as IDBRequest).result as number
-        // console.log(id)
+        result = await db.delete("workflow")
+        result = await db.open("workflow", 1)
 
-        result = await db.get("document", id)
-        const entity = (result.target as IDBRequest).result
-        console.log(entity)
+        // we can add an entry
+        const id1 = await store.add({ name: "Untitled.wf", content: [{ type: "rectangle" }, { type: "circle" }] })
+        expect(id1).to.equal(1)
+
+        // and retrieve it again using the returned id
+        let entity = await store.get(id1)
+        expect(entity?.name).to.equal("Untitled.wf")
+
+        // when we violate the index constraint we get an exception
+        expect(store.add({ name: "Untitled.wf", content: [{ type: "rectangle" }, { type: "circle" }] })).to.be.rejectedWith(Error)
+
+        // but we add another entry which does not violate the index constraint
+        const id2 = await store.add({ name: "Untitled-1.wf", content: [{ type: "rectangle" }, { type: "circle" }] })
+        expect(id2).to.equal(2)
+
+        // we can replace an existing entry
+        result = await store.put({ name: "Untitled.wf", content: [{ type: "circle" }, { type: "text" }] }, id1)
+
+        entity = await store.get(id1)
+        expect(entity?.content[0].type).to.equal("circle")
+
+        // we can retrieve all stored entries at once
+        const allEntries = await store.getAll()
+        expect(allEntries.length).to.equal(2)
+        expect(allEntries[0].name).to.equal("Untitled.wf")
+        expect(allEntries[1].name).to.equal("Untitled-1.wf")
+
+        // we can retrieve all stored keys at once
+        const allKeys = await store.getAllKeys()
+        expect(allKeys.length).to.equal(2)
+        expect(allKeys[0]).to.equal(id1)
+        expect(allKeys[1]).to.equal(id2)
+
+        // we can delete an existing entry
+        result = await store.delete(id1)
+
+        // retrieving a deleted entry returns undefined
+        entity = await store.get(id1)
+        expect(entity).to.be.undefined
+
+        // deleting a deleted entry does not cause an error
+        result = await store.delete(id1)
     })
 })
