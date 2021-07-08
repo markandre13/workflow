@@ -23,6 +23,7 @@ import { ModelView } from "toad.js"
 import { Rectangle, Matrix } from "shared/geometry"
 import { AbstractPath } from "client/paths"
 import { Figure } from "shared/workflow_valuetype"
+import { AttributedFigure } from "client/figures/AttributedFigure"
 import { Tool } from "client/figuretools"
 import { StrokeAndFillModel } from "client/views/widgets/strokeandfill"
 import { ToolModel } from "client/figuretools/ToolModel"
@@ -135,6 +136,7 @@ class CacheEntry {
 interface FigureEditorProps extends HTMLElementProps {
     model?: LayerModel
     tool?: ToolModel
+    strokeandfill?: StrokeAndFillModel
 }
 
 export class FigureEditor extends ModelView<LayerModel> {
@@ -192,6 +194,8 @@ export class FigureEditor extends ModelView<LayerModel> {
         setInitialProperties(this, props)
         if (props?.tool)
             this.setModel(props.tool as any)
+        if (props?.strokeandfill)
+            this.setModel(props.strokeandfill as any)
     }
 
     setTool(tool?: Tool) {
@@ -211,6 +215,10 @@ export class FigureEditor extends ModelView<LayerModel> {
                 this.toolModel.modified.remove(this)
                 this.toolModel = undefined
             }
+            if (this.strokeAndFillModel) {
+                this.strokeAndFillModel.modified.remove(this)
+                this.strokeAndFillModel = undefined
+            }
             super.setModel(undefined)
         }
         else if (model instanceof ToolModel) {
@@ -225,13 +233,17 @@ export class FigureEditor extends ModelView<LayerModel> {
         else if (model instanceof StrokeAndFillModel) {
             if (this.strokeAndFillModel === model)
                 return
-            if (this.tool) {
-                this.tool.deactivate(this.createEditorMouseEvent())
-            }
             this.strokeAndFillModel = model
-            if (this.tool) {
-                this.tool.activate(this.createEditorMouseEvent())
-            }
+            this.strokeAndFillModel.modified.add(() => {
+                for(let figure of Tool.selection.selection) {
+                    if (figure instanceof AttributedFigure) {
+                        figure.stroke = this.strokeAndFillModel!.stroke
+                        figure.fill = this.strokeAndFillModel!.fill
+                        let cached = this.cache.get(figure.id)
+                        figure.updateSVG(cached?.path as AbstractPath, this.layer!, cached?.svg)
+                    }
+                }
+            }, this)
         }
         else {
             super.setModel(model as LayerModel)
@@ -444,9 +456,9 @@ export class FigureEditor extends ModelView<LayerModel> {
     //
 
     @bind mouseDown(mouseEvent: MouseEvent) {
-        console.log(`FigureEditor.mouseDown()`)
-        console.log(this.tool)
-        console.log(this.selectedLayer)
+        // console.log(`FigureEditor.mouseDown()`)
+        // console.log(this.tool)
+        // console.log(this.selectedLayer)
 
         this.inputCatcher.focus({ preventScroll: true })
         mouseEvent.preventDefault()

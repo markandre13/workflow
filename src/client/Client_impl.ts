@@ -39,11 +39,12 @@ import { BoardListener_impl } from "./BoardListener_impl"
 import { LocalLayer } from "./figureeditor/LocalLayer"
 import { LocalLayerModel } from "./figureeditor/LocalLayerModel"
 
-import { ColorSwatch, ColorSwatchModel } from "client/views/widgets/colorswatch"
-import { StrokeAndFill } from "client/views/widgets/strokeandfill"
-import { FigureEditor, LayerModel } from "client/figureeditor"
+import { ColorSwatchModel } from "client/views/widgets/colorswatch"
+import { LayerModel } from "client/figureeditor"
 
 import { homeScreen } from "client/views/pages/homescreen"
+import { IndexedDB, ObjectStore } from "./utils/indexeddb"
+import { Layer } from "./figureeditor/Layer"
 
 namespace dom {
     export function erase(n: Element): void {
@@ -174,6 +175,37 @@ export class Client_impl extends skel.Client {
 
         let model = new LocalLayerModel()
         let layer = new LocalLayer()
+        
+        // const db = new IndexedDB()
+        // // await db.delete("workflow")
+        // const store = new ObjectStore<{name: string, content: string}>(db, "document", (db: IDBDatabase) => {
+        //     const objectStore = db.createObjectStore("document", {
+        //         // keyPath: "id",
+        //         autoIncrement: true
+        //     })
+        //     objectStore.createIndex("name", "name", { unique: false })
+        // })
+        // await db.open("workflow", 2)
+        // const page = await store.get(1)
+        // if (page === undefined) {
+        //     console.log("CREATE INITIAL PAGE")
+        //     await store.add({name: "Untitled.wf", content: ""})
+        // } else {
+        //     console.log("FOUND PREVIOUS PAGE")
+        //     console.log(page)
+        //     if (page.content !== "") {
+        //         const layer2 = this.orb.deserialize(page.content) as Layer
+        //         layer.data = layer2.data
+        //     }
+        // }
+        // const save = () => {
+        //     console.log("SAVE")
+        //     store.put({name: "Untitled.wf", content: this.orb.serialize(layer)}, 1)
+        //     setTimeout(save, 10000)
+        // }
+        // save()
+        // setTimeout(save, 10000)
+
         model.layers.push(layer)
         bind("board", model)
 

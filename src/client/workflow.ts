@@ -37,7 +37,7 @@ export async function main(url: string|undefined) {
     registerHTMLCustomElements();
 
     let orb = new ORB()
-    //    orb.debug = 1
+    // orb.debug = 1
     initializeORB(orb)
     initializeCORBAValueTypes()
 

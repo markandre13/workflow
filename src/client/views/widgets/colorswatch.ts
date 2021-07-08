@@ -119,7 +119,7 @@ export class ColorSwatch extends ActionView {
                 // FIXME: Point and Rectangle should really provide constructors with coordinates
                 let box = new Rectangle({origin: {x: 1+x*10, y: 1+y*10}, size: { width: 9, height: 9}})
                 if (box.contains(mousePosition)) {
-                    console.log("got color ", color)
+                    // console.log("got color ", color)
                     this.action.trigger("rgb("+color[0]+","+color[1]+","+color[2]+")")
                     break;
                 }

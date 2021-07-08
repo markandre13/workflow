@@ -72,26 +72,11 @@ export class SelectTool extends Tool {
         Tool.selection.modified.add( () => {
             this.updateOutlineAndDecorationOfSelection(event.editor)
         }, this)
-
-        if (event.editor.strokeAndFillModel) {
-            event.editor.strokeAndFillModel.modified.add( () => {
-                // console.log("SelectTool.strokeAndFillModel.modified -> update selected figures")
-                for(let figure of Tool.selection.selection) {
-                    if (figure instanceof AttributedFigure) {
-                        figure.stroke = event.editor.strokeAndFillModel!.stroke
-                        figure.fill = event.editor.strokeAndFillModel!.fill
-                    }
-                }
-            }, this)
-        }
         Tool.selection.modified.trigger()
     }
     
     override deactivate(event: EditorMouseEvent) {
         Tool.selection.modified.remove(this)
-        if (event.editor.strokeAndFillModel) {
-            event.editor.strokeAndFillModel!.modified.remove(this)
-        }
         this.removeOutlines(event.editor)
         this.removeDecoration(event.editor)
     }
