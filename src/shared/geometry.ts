@@ -183,7 +183,6 @@ export function distancePointToLine(q: Point, p0: Point, p1: Point): number {
         return Math.abs(b.y * a.x - b.x * a.y) / Math.sqrt(lb)
 }
 
-
 export class Rectangle implements value.Rectangle {
     origin!: Point
     size!: Size

@@ -23,7 +23,7 @@ import { EditorMouseEvent } from "../figureeditor/EditorMouseEvent"
 import { EditorKeyboardEvent } from "../figureeditor/EditorKeyboardEvent"
 import { FigureSelectionModel } from "../figureeditor/FigureSelectionModel"
 import { FigureEditor } from "../figureeditor/FigureEditor"
-import { Rectangle, Matrix, pointPlusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual } from "shared/geometry"
+import { Rectangle, Matrix, pointPlusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual, pointMinusPoint, squaredLength, Point, rotatePointAroundPointBy } from "shared/geometry"
 
 export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()
@@ -125,12 +125,80 @@ export class Tool {
         // console.log(`SelectTool.updateBoundary() DONE`)
     }
 
-    getBoundaryHandle(handle: number): Rectangle {
+    getBoundaryHandle(handle: number): Path {
+        const m = new Matrix(this.transformation)
+        m.append(this.boundaryTransformation)
+
         let   x = this.boundary.origin.x,
               y = this.boundary.origin.y,
               w = this.boundary.size.width,
               h = this.boundary.size.height
 
+        //
+        // ROTATE
+        //
+        if (handle >= 8) {
+            let previous, center
+            switch(handle) {
+                case 8:
+                    previous = m.transformPoint({x: x, y: y+h})
+                    center = m.transformPoint({x: x, y: y})
+                    break
+                case 9:
+                    previous = m.transformPoint({x: x, y: y})
+                    center = m.transformPoint({x: x+w/2, y: y})
+                    break
+                case 10:
+                    previous = m.transformPoint({x: x, y: y})
+                    center = m.transformPoint({x: x+w, y: y})
+                    break
+                case 11:
+                    previous = m.transformPoint({x: x+w, y: y})
+                    center = m.transformPoint({x: x+w, y: y + h/2})
+                    break
+                case 12:
+                    previous = m.transformPoint({x: x+w, y: y})
+                    center = m.transformPoint({x: x+w, y: y+h})
+                    break
+                case 13:
+                    previous = m.transformPoint({x: x+w, y: y+h})
+                    center = m.transformPoint({x: x+w/2, y: y+h})
+                    break
+                case 14:
+                    previous = m.transformPoint({x: x+w, y: y+h})
+                    center = m.transformPoint({x: x, y: y+h})
+                    break
+                case 15:
+                    previous = m.transformPoint({x: x, y: y+h})
+                    center = m.transformPoint({x: x, y: y+h/2})
+                    break
+                default:
+                    throw Error("yikes")
+            }
+
+            const toCenterX = pointMinusPoint(center, previous)
+            const toCenter = pointMultiplyNumber(toCenterX, 1/Math.sqrt(squaredLength(toCenterX)))
+
+            const scale1 = m.transformPoint({x:0, y: 0})
+            const scale2 = m.transformPoint({x: Figure.HANDLE_RANGE, y: 0})
+            const size = Math.sqrt(squaredLength(pointMinusPoint(scale2, scale1)))
+
+            let start = pointPlusPoint(center, pointMultiplyNumber(toCenter, -size * 2))
+            if (handle % 2 !== 0)
+                start = rotatePointAroundPointBy(start, center, -Math.PI/4)
+
+            const path = new Path()
+            path.move(center)
+            for(let i=0, r=Math.PI/2; i <= 8; ++i, r+=Math.PI/16) {
+                path.line(rotatePointAroundPointBy(start, center, r))
+            }
+            path.close()
+            return path
+        }
+
+        //
+        // SCALE
+        //
         let v = { x: 0, y: 0} // FIXME: pre-store x in an array
         switch(handle % 8) {
             case  0:
@@ -167,8 +235,6 @@ export class Tool {
                 break
         }
         let r = new Rectangle(x, y, Figure.HANDLE_RANGE, Figure.HANDLE_RANGE)
-        let m = new Matrix(this.transformation)
-        m.append(this.boundaryTransformation)
 
         r.origin = m.transformPoint(r.origin)
         r.origin.x -= Figure.HANDLE_RANGE / 2.0
@@ -185,11 +251,12 @@ export class Tool {
         r.origin.x = Math.round(r.origin.x-0.5)+0.5
         r.origin.y = Math.round(r.origin.y-0.5)+0.5
         
-        return r
+        const path = new Path()
+        path.appendRect(r)
+        return path
     }
     
     setCursorForHandle(handle: number, svg: SVGElement) {
-        // return
         switch(handle) {
             case 0:
                 svg.setAttributeNS("", "style", `cursor: url(${Tool.cursorPath}select-resize-nw.svg) 6 6, move`)
@@ -353,15 +420,17 @@ export class Tool {
     }
     
     createDecorationHandles(editor: FigureEditor) {
-        for(let handle=0; handle<16; ++handle) {
-            let path = new Path()
-            path.appendRect(this.getBoundaryHandle(handle))
+        for(let handle=15; handle>=0; --handle) {
+            // let path = new Path()
+            // path.appendRect(this.getBoundaryHandle(handle))
+            const path = this.getBoundaryHandle(handle)
             let svg: SVGElement
             if (handle<8) {
                 svg = path.createSVG("rgb(79,128,255)", 1, "#fff")
             } else {
                 // transparent SVGElement can not be seen but clicked
                 svg = path.createSVG("rgba(0,0,0,0)", 1, "rgba(0,0,0,0)")
+                // svg = path.createSVG("rgb(79,128,255)", 1, "#ff0")
             }
             this.setCursorForHandle(handle, svg)
             this.decoration!.appendChild(svg)

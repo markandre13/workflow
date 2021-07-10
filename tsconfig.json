@@ -13,6 +13,7 @@
         },
         "jsx": "react-jsx",
         "jsxImportSource": "client",
+        "esModuleInterop": true,
         "experimentalDecorators": true,
         "downlevelIteration": true,
         "strict": true,

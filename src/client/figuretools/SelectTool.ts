@@ -27,7 +27,6 @@
 
 import { Point, Rectangle, Matrix, pointMinusPoint, pointMinus } from "shared/geometry"
 import { Figure } from "../figures/Figure"
-import { AttributedFigure } from "../figures/AttributedFigure"
 import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
 import { Tool } from "./Tool"
 
@@ -193,9 +192,8 @@ export class SelectTool extends Tool {
         if (Tool.selection.empty())
             return false
         for(let handle = 0; handle<16; ++handle) {
-            let rectangle = this.getBoundaryHandle(handle)
-            // console.log(`  check handle ${handle} at ${rectangle.origin.x}, ${rectangle.origin.y}`)
-            if (!rectangle.contains(event))
+            const path = this.getBoundaryHandle(handle)
+            if (!path.contains(event))
                 continue
             this.selectedHandle = handle
             this.handleStart = event

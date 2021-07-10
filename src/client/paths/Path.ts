@@ -19,6 +19,8 @@
 import { Point, Rectangle, Matrix } from "shared/geometry"
 import { AbstractPath } from "./AbstractPath"
 
+import robustPointInPolygon from "robust-point-in-polygon"
+
 export class Path extends AbstractPath {
     data: Array<any>
     constructor();
@@ -62,6 +64,25 @@ export class Path extends AbstractPath {
     }
     empty(): boolean {
         return this.data.length == 0
+    }
+    contains(point: Point): boolean {
+        // using robustPointInPolygon for now
+        // may want to have a look at "Practical Geometry Algorithms: with C++ Code" by Daniel Sunday
+        const flat:number[][] = []
+        for(let entry of this.data) {
+            switch(entry.type) {
+                case "M":
+                case "L":
+                    flat.push(entry.values)
+                    break
+                case "C":
+                    throw Error("curves are not implemented yet")
+                case "Z":
+                    if (entry !== this.data[this.data.length-1])
+                        throw Error("multiple segmentes are not implemented yet")
+            }
+        }
+        return robustPointInPolygon(flat as any, [point.x, point.y] as any) <= 0
     }
     // relativeMove
     // relativeLine
