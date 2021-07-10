@@ -38,7 +38,6 @@ export class ShapeTool extends Tool {
     }
 
     override mousedown(event: EditorMouseEvent) {
-        console.log("ShapeTool.mousedown()")
         this.shape = new this.creator()
         this.shape.setHandlePosition(0, event)
         this.shape.setHandlePosition(2, event)
@@ -54,9 +53,7 @@ export class ShapeTool extends Tool {
     }
 
     override mousemove(event: EditorMouseEvent) {
-        console.log("ShapeTool.mousemove()")
         if (!event.mouseDown) {
-            console.log("  => event has no mouseDown flag")
             return
         }
         let shape = this.shape!
@@ -66,8 +63,6 @@ export class ShapeTool extends Tool {
     }
 
     override mouseup(event: EditorMouseEvent) {
-        console.log("ShapeTool.mouseup()")
-
         let shape = this.shape!
 
         shape.setHandlePosition(2, event)
@@ -84,10 +79,7 @@ export class ShapeTool extends Tool {
         // let path = shape.getPath()
         event.editor.decorationOverlay.removeChild(this.svg!!)
 
-        console.log("  => add shape")
         event.editor.addFigure(shape)
-        console.log("  => added shape")
-        console.log(event.editor.model?.layers[0].data)
         this.shape = undefined
         this.svg = undefined
     }

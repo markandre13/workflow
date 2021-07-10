@@ -171,7 +171,7 @@ export class Client_impl extends skel.Client {
     }
 
     private async offline() {
-        console.log("offline()")
+        // console.log("offline()")
 
         let model = new LocalLayerModel()
         let layer = new LocalLayer()
@@ -188,18 +188,18 @@ export class Client_impl extends skel.Client {
         await db.open("workflow", 2)
         const page = await store.get(1)
         if (page === undefined) {
-            console.log("CREATE INITIAL PAGE")
+            // console.log("CREATE INITIAL PAGE")
             await store.add({name: "Untitled.wf", content: ""})
         } else {
-            console.log("FOUND PREVIOUS PAGE")
-            console.log(page)
+            // console.log("FOUND PREVIOUS PAGE")
+            // console.log(page)
             if (page.content !== "") {
                 const layer2 = this.orb.deserialize(page.content) as Layer
                 layer.data = layer2.data
             }
         }
         model.modified.add( () => {
-            console.log("SAVE")
+            // console.log("SAVE")
             store.put({name: "Untitled.wf", content: this.orb.serialize(layer)}, 1)
         })
 
