@@ -176,35 +176,32 @@ export class Client_impl extends skel.Client {
         let model = new LocalLayerModel()
         let layer = new LocalLayer()
         
-        // const db = new IndexedDB()
-        // // await db.delete("workflow")
-        // const store = new ObjectStore<{name: string, content: string}>(db, "document", (db: IDBDatabase) => {
-        //     const objectStore = db.createObjectStore("document", {
-        //         // keyPath: "id",
-        //         autoIncrement: true
-        //     })
-        //     objectStore.createIndex("name", "name", { unique: false })
-        // })
-        // await db.open("workflow", 2)
-        // const page = await store.get(1)
-        // if (page === undefined) {
-        //     console.log("CREATE INITIAL PAGE")
-        //     await store.add({name: "Untitled.wf", content: ""})
-        // } else {
-        //     console.log("FOUND PREVIOUS PAGE")
-        //     console.log(page)
-        //     if (page.content !== "") {
-        //         const layer2 = this.orb.deserialize(page.content) as Layer
-        //         layer.data = layer2.data
-        //     }
-        // }
-        // const save = () => {
-        //     console.log("SAVE")
-        //     store.put({name: "Untitled.wf", content: this.orb.serialize(layer)}, 1)
-        //     setTimeout(save, 10000)
-        // }
-        // save()
-        // setTimeout(save, 10000)
+        const db = new IndexedDB()
+        // await db.delete("workflow")
+        const store = new ObjectStore<{name: string, content: string}>(db, "document", (db: IDBDatabase) => {
+            const objectStore = db.createObjectStore("document", {
+                // keyPath: "id",
+                autoIncrement: true
+            })
+            objectStore.createIndex("name", "name", { unique: false })
+        })
+        await db.open("workflow", 2)
+        const page = await store.get(1)
+        if (page === undefined) {
+            console.log("CREATE INITIAL PAGE")
+            await store.add({name: "Untitled.wf", content: ""})
+        } else {
+            console.log("FOUND PREVIOUS PAGE")
+            console.log(page)
+            if (page.content !== "") {
+                const layer2 = this.orb.deserialize(page.content) as Layer
+                layer.data = layer2.data
+            }
+        }
+        model.modified.add( () => {
+            console.log("SAVE")
+            store.put({name: "Untitled.wf", content: this.orb.serialize(layer)}, 1)
+        })
 
         model.layers.push(layer)
         bind("board", model)
@@ -245,8 +242,8 @@ export class Client_impl extends skel.Client {
     private createToolModel(): ToolModel {
         let toolmodel = new ToolModel()
         toolmodel.add("select", new SelectTool())
-        toolmodel.add("rectangle", new ShapeTool(() => { return new Rectangle.Rectangle() }))
-        toolmodel.add("circle", new ShapeTool(() => { return new Circle.Circle() }))
+        toolmodel.add("rectangle", new ShapeTool(Rectangle.Rectangle))
+        toolmodel.add("circle", new ShapeTool(Circle.Circle))
         toolmodel.add("text", new TextTool())
         toolmodel.stringValue = "select"
         bind("tool", toolmodel) // for tool buttons

@@ -37,9 +37,9 @@ export enum StrokeOrFill {
 }
 
 export class StrokeAndFillModel extends Model {
-    _stroke: string
-    _fill: string
-    _strokeOrFill: StrokeOrFill
+    protected _stroke: string
+    protected _fill: string
+    protected _strokeOrFill: StrokeOrFill
 
     constructor() {
         super()

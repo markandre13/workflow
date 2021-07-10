@@ -25,14 +25,15 @@ import { LayerEvent } from './LayerEvent'
 import { LayerModel } from "./LayerModel"
 import { LocalLayer } from "./LocalLayer"
 import { Operation } from "./FigureEditor"
+import { Group } from 'client/figures/Group'
 
 export class LocalLayerModel implements LayerModel {
     idCounter: number
     modified: Signal<LayerEvent>
     layers: Array<LocalLayer>
-    
+
     constructor() {
-        this.idCounter = 0
+        this.idCounter = -1
         this.modified = new Signal()
         // this.modified.add((data: LayerEvent)=>{
         //     console.log(`LocalLayerModel.modified(), need to do something: ${JSON.stringify(data)}`)
@@ -49,12 +50,33 @@ export class LocalLayerModel implements LayerModel {
     }
 
     add(layerId: number, figure: Figure) {
+        if (this.idCounter === -1) {
+            this.setIdCounter()
+        }
         // console.log(`LocalLayerModel.add(${layerId}, ${(figure as Object).constructor.name})`)
         let layer = this.layerById(layerId)
         figure.id = this.idCounter
         ++this.idCounter
         layer.data.push(figure)
-        this.modified.trigger({operation: Operation.ADD_FIGURES, figures: [figure.id]})
+        this.modified.trigger({ operation: Operation.ADD_FIGURES, figures: [figure.id] })
+    }
+
+    protected setIdCounter() {
+        for (let layer of this.layers) {
+            for (let figure of layer.data) {
+                this.setIdCounterByFigure(figure)
+            }
+        }
+        ++this.idCounter
+    }
+
+    protected setIdCounterByFigure(figure: Figure) {
+        this.idCounter = Math.max(this.idCounter, figure.id)
+        if (figure instanceof Group) {
+            for (let groupFigure of figure.childFigures) {
+                this.setIdCounterByFigure(groupFigure)
+            }
+        }
     }
 
     // layerId: layer containing figures to be transformed
@@ -67,10 +89,10 @@ export class LocalLayerModel implements LayerModel {
             let fig = layer.data[index]
             if (!fastFigureIds.has(fig.id))
                 continue
-                
+
             if (fig.matrix === undefined && fig.transform(matrix)) {
                 // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${matrix}) -> trigger with UPDATE_FIGURES`)
-                this.modified.trigger({operation: Operation.UPDATE_FIGURES, figures: [fig.id]})
+                this.modified.trigger({ operation: Operation.UPDATE_FIGURES, figures: [fig.id] })
                 continue
             }
 
@@ -78,7 +100,7 @@ export class LocalLayerModel implements LayerModel {
                 fig.matrix = new Matrix()
             fig.matrix.prepend(matrix)
             // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${matrix}) -> trigger with TRANSFORM_FIGURES`)
-            this.modified.trigger({operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: [fig.id]})
+            this.modified.trigger({ operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: [fig.id] })
         }
     }
 
@@ -86,18 +108,18 @@ export class LocalLayerModel implements LayerModel {
         // console.log(`LocalLayerModel.delete(${layerID}, ${figureIds})`)
         let fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         let layer = this.layerById(layerID)
-        for(let i=layer.data.length-1; i>=0; --i) {
+        for (let i = layer.data.length - 1; i >= 0; --i) {
             if (!fastFigureIds.has(layer.data[i].id))
                 continue
             layer.data.splice(i, 1)
         }
-        this.modified.trigger({operation: Operation.DELETE_FIGURES, figures: figureIds})
+        this.modified.trigger({ operation: Operation.DELETE_FIGURES, figures: figureIds })
     }
 
     figureIdsAsSet(figureIds: Array<number>): Set<number> {
         // console.log(`LocalLayerModel.figureIdsAsSet(${figureIds})`)
         let figureIdSet = new Set<number>()
-        for(let id of figureIds)
+        for (let id of figureIds)
             figureIdSet.add(id)
         return figureIdSet
     }

@@ -20,32 +20,33 @@ import { Tool } from "./Tool"
 import { Shape } from "../figures/Shape"
 import { EditorMouseEvent } from "../figureeditor"
 
+/**
+ * Create Shapes, eg. Rectangle, Circle, ...
+ */
 export class ShapeTool extends Tool {
-    creator: Function
+    creator: new() => Shape
     shape?: Shape
     svg?: SVGElement
 
-    constructor(creator: Function) {
+    constructor(creator: new () => Shape) {
         super()
         this.creator = creator
     }
-    
+
     override activate(event: EditorMouseEvent) {
         Tool.selection.clear()
     }
-    
-    override deactivate(event: EditorMouseEvent) {
-    }
 
     override mousedown(event: EditorMouseEvent) {
-        this.shape = this.creator() as Shape
+        console.log("ShapeTool.mousedown()")
+        this.shape = new this.creator()
         this.shape.setHandlePosition(0, event)
         this.shape.setHandlePosition(2, event)
         if (event.editor.strokeAndFillModel) {
             this.shape.stroke = event.editor.strokeAndFillModel.stroke
             this.shape.fill = event.editor.strokeAndFillModel.fill
         }
-        
+
         let path = this.shape.getPath()
         this.svg = this.shape.updateSVG(path, event.editor.decorationOverlay)
         // Tool.setOutlineColors(path) FIXME
@@ -53,8 +54,11 @@ export class ShapeTool extends Tool {
     }
 
     override mousemove(event: EditorMouseEvent) {
-        if (!event.mouseDown)
+        console.log("ShapeTool.mousemove()")
+        if (!event.mouseDown) {
+            console.log("  => event has no mouseDown flag")
             return
+        }
         let shape = this.shape!
         shape.setHandlePosition(2, event)
         let path = shape.getPath()
@@ -62,15 +66,17 @@ export class ShapeTool extends Tool {
     }
 
     override mouseup(event: EditorMouseEvent) {
+        console.log("ShapeTool.mouseup()")
+
         let shape = this.shape!
-    
+
         shape.setHandlePosition(2, event)
 
-        if (shape.size.width<0) {
+        if (shape.size.width < 0) {
             shape.origin.x += shape.size.width
             shape.size.width = -shape.size.width
         }
-        if (shape.size.height<0) {
+        if (shape.size.height < 0) {
             shape.origin.y += shape.size.height
             shape.size.height = -shape.size.height
         }
@@ -78,7 +84,10 @@ export class ShapeTool extends Tool {
         // let path = shape.getPath()
         event.editor.decorationOverlay.removeChild(this.svg!!)
 
+        console.log("  => add shape")
         event.editor.addFigure(shape)
+        console.log("  => added shape")
+        console.log(event.editor.model?.layers[0].data)
         this.shape = undefined
         this.svg = undefined
     }
