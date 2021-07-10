@@ -26,7 +26,7 @@
  ******************************************************************/
 
 import { Point, Rectangle } from "shared/geometry"
-import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
+import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
 import * as figures from "../figures"
 import { TextEditor } from "client/wordwrap/TextEditor"
@@ -123,12 +123,20 @@ export class TextTool extends Tool {
     override keydown(event: EditorKeyboardEvent) {
         if (this.state == TextToolState.EDIT) {
             this.texteditor!.keydown(event)
+            event.editor.model?.modified.trigger({
+                operation: Operation.UPDATE_FIGURES,
+                figures: [this.text.id]
+            })
         }
     }
 
     override clipboard(editor: FigureEditor, event: ClipboardEvent) {
         if (this.state == TextToolState.EDIT) {
             this.texteditor!.clipboard(editor, event)
+            editor.model?.modified.trigger({
+                operation: Operation.UPDATE_FIGURES,
+                figures: [this.text.id]
+            })
         }
     }
 
@@ -184,6 +192,10 @@ export class TextTool extends Tool {
             return
         this.texteditor.stop()
         this.texteditor = undefined
+        event.editor.model?.modified.trigger({
+            operation: Operation.UPDATE_FIGURES,
+            figures: [this.text.id]
+        })
     }
 
     //
