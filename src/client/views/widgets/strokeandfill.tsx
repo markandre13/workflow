@@ -71,10 +71,8 @@ export class StrokeAndFillModel extends Model {
         switch (this._strokeOrFill) {
             case StrokeOrFill.STROKE:
                 return this.stroke
-                break
             case StrokeOrFill.FILL:
                 return this.fill
-                break
             case StrokeOrFill.NONE:
             case StrokeOrFill.BOTH:
                 return ""
@@ -231,6 +229,7 @@ export class StrokeAndFill extends ModelView<StrokeAndFillModel> {
     @bind assignColor() {
         if (!this.model)
             return
+        this.model.modified.lock()
         switch (this.model.strokeOrFill) {
             case StrokeOrFill.STROKE:
                 this.model.stroke = this.stroke
@@ -239,6 +238,8 @@ export class StrokeAndFill extends ModelView<StrokeAndFillModel> {
                 this.model.fill = this.fill
                 break
         }
+        this.model.modified.trigger() // force assigning the current colors to the selection
+        this.model.modified.unlock()
     }
 
     @bind assignNone() {
