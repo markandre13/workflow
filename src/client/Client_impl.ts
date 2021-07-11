@@ -18,7 +18,7 @@
 
 import {
     Template, TextModel, HtmlModel,
-    bind, action,
+    bind, action, Action,
 } from "toad.js"
 
 import { AccountPreferences } from "./AccountPreferences"
@@ -45,6 +45,7 @@ import { LayerModel } from "client/figureeditor"
 import { homeScreen } from "client/views/pages/homescreen"
 import { IndexedDB, ObjectStore } from "./utils/indexeddb"
 import { Layer } from "./figureeditor/Layer"
+import { ExportDrawing } from "./views/dialogs/ExportDrawing"
 
 namespace dom {
     export function erase(n: Element): void {
@@ -206,9 +207,13 @@ export class Client_impl extends skel.Client {
         model.layers.push(layer)
         bind("board", model)
 
+        action("file|export", () => {
+            new ExportDrawing("Untitled.wf", layer, this.orb)
+        })
+
         const homeScreen = this.getHomeScreen(model)
 
-        // this.createMenuActions("Maria Doe", "user@localhost")
+        this.createMenuActions("Maria Doe", "user@localhost")
         // this.createAvatarModel("img/avatars/whale.svg")
         // this.createToolModel() // for figureeditor
         // this.createStrokeAndFillModel()

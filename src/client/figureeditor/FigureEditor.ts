@@ -250,18 +250,8 @@ export class FigureEditor extends ModelView<LayerModel> {
         }
     }
 
-    override connectedCallback() {
-        // FIXME: updateView without an argument is usually called when the model is set
-        // we should delay all calls to updateView() till the view is connected
-        this.updateView()
-    }
-
     // called whenever the model is modified
     override updateView(event?: LayerEvent) {
-        // FIXME: this should be a property of toad.js
-        if (!this.isConnected) {
-            return
-        }
 
         // console.log(`FigureEditor.updateView(${JSON.stringify(event)})`)
         if (this.model === undefined || this.model.layers.length === 0) {
