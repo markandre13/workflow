@@ -192,8 +192,8 @@ export class SelectTool extends Tool {
         if (Tool.selection.empty())
             return false
         for(let handle = 0; handle<16; ++handle) {
-            const path = this.getBoundaryHandle(handle)
-            if (!path.contains(event))
+            const handleInfo = this.getBoundaryHandle(handle)
+            if (!handleInfo.path.contains(event))
                 continue
             this.selectedHandle = handle
             this.handleStart = event

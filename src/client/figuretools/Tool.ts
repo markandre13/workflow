@@ -125,7 +125,7 @@ export class Tool {
         // console.log(`SelectTool.updateBoundary() DONE`)
     }
 
-    getBoundaryHandle(handle: number): Path {
+    getBoundaryHandle(handle: number): {path: Path, handleDirection: Point} {
         const m = new Matrix(this.transformation)
         m.append(this.boundaryTransformation)
 
@@ -133,6 +133,38 @@ export class Tool {
               y = this.boundary.origin.y,
               w = this.boundary.size.width,
               h = this.boundary.size.height
+
+        const figureCenter = m.transformPoint({x: x+w/2, y: y+h/2})
+
+        let handleDirection: Point
+        switch(handle % 8) {
+            case 0:
+                handleDirection = { x: -1, y: -1 }
+                break
+            case 1:
+                handleDirection = { x: 0, y: -1 }
+                break
+            case 2:
+                handleDirection = { x: 1, y: -1 }
+                break
+            case 3:
+                handleDirection = { x: 1, y: 0 }
+                break
+            case 4:
+                handleDirection = { x: 1, y: 1 }
+                break
+            case 5:
+                handleDirection = { x: 0, y: 1 }
+                break
+            case 6:
+                handleDirection = { x: -1, y: 1 }
+                break
+            case 7:
+                handleDirection = { x: -1, y: 0 }
+                break                                                                                                                                                                                                                        
+        }
+        const origin = m.transformPoint({x: 0, y: 0})
+        handleDirection = pointMinusPoint(m.transformPoint(handleDirection!), origin)
 
         //
         // ROTATE
@@ -193,7 +225,7 @@ export class Tool {
                 path.line(rotatePointAroundPointBy(start, center, r))
             }
             path.close()
-            return path
+            return { path, handleDirection }
         }
 
         //
@@ -234,30 +266,31 @@ export class Tool {
                 v = { x: -1, y:  0}
                 break
         }
-        let r = new Rectangle(x, y, Figure.HANDLE_RANGE, Figure.HANDLE_RANGE)
+        const r = new Rectangle(x, y, Figure.HANDLE_RANGE, Figure.HANDLE_RANGE)
 
-        r.origin = m.transformPoint(r.origin)
+        const center = r.origin = m.transformPoint(r.origin)
         r.origin.x -= Figure.HANDLE_RANGE / 2.0
         r.origin.y -= Figure.HANDLE_RANGE / 2.0
-
-        // for handle <= 7 move away from center by one pixel
-        // for handle > 7, move away from center by one + s pixel
-
-        if (handle>=8) {
-            v = pointMultiplyNumber(v, Figure.HANDLE_RANGE+1)
-            r.origin = pointPlusPoint(r.origin, v)
-        }
 
         r.origin.x = Math.round(r.origin.x-0.5)+0.5
         r.origin.y = Math.round(r.origin.y-0.5)+0.5
         
         const path = new Path()
         path.appendRect(r)
-        return path
+        return { path, handleDirection }
     }
     
-    setCursorForHandle(handle: number, svg: SVGElement) {
-        switch(handle) {
+    setCursorForHandle(h: number, handle: {path: Path, handleDirection: Point}, svg: SVGElement) {
+        const r1 = Math.atan2(handle.handleDirection.y, handle.handleDirection.x)
+        const r2 = r1 + (13 - 7.5) / 16 * 2 * Math.PI
+        let r3 = ( Math.round(r2 / (2 * Math.PI) * 8) + 8 ) % 8
+
+        // console.log(`h=${h}, r1=${r1}, r2=${r2}, r3=${r3}`)
+
+        if (h >= 8)
+            r3 += 8
+
+        switch(r3) {
             case 0:
                 svg.setAttributeNS("", "style", `cursor: url(${Tool.cursorPath}select-resize-nw.svg) 6 6, move`)
                 break
@@ -420,19 +453,19 @@ export class Tool {
     }
     
     createDecorationHandles(editor: FigureEditor) {
-        for(let handle=15; handle>=0; --handle) {
+        for(let h=15; h>=0; --h) {
             // let path = new Path()
             // path.appendRect(this.getBoundaryHandle(handle))
-            const path = this.getBoundaryHandle(handle)
+            const handle = this.getBoundaryHandle(h)
             let svg: SVGElement
-            if (handle<8) {
-                svg = path.createSVG("rgb(79,128,255)", 1, "#fff")
+            if (h<8) {
+                svg = handle.path.createSVG("rgb(79,128,255)", 1, "#fff")
             } else {
                 // transparent SVGElement can not be seen but clicked
-                svg = path.createSVG("rgba(0,0,0,0)", 1, "rgba(0,0,0,0)")
-                // svg = path.createSVG("rgb(79,128,255)", 1, "#ff0")
+                svg = handle.path.createSVG("rgba(0,0,0,0)", 1, "rgba(0,0,0,0)")
+                // svg = handle.path.createSVG("rgb(79,128,255)", 1, "#ff0")
             }
-            this.setCursorForHandle(handle, svg)
+            this.setCursorForHandle(h, handle, svg)
             this.decoration!.appendChild(svg)
         }
     }
