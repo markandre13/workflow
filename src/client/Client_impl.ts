@@ -46,6 +46,7 @@ import { homeScreen } from "client/views/pages/homescreen"
 import { IndexedDB, ObjectStore } from "./utils/indexeddb"
 import { Layer } from "./figureeditor/Layer"
 import { ExportDrawing } from "./views/dialogs/ExportDrawing"
+import { ImportDrawing } from "./views/dialogs/ImportDrawing"
 
 namespace dom {
     export function erase(n: Element): void {
@@ -209,6 +210,9 @@ export class Client_impl extends skel.Client {
 
         action("file|export", () => {
             new ExportDrawing("Untitled.wf", layer, this.orb)
+        })
+        action("file|import", () => {
+            new ImportDrawing(model, this.orb)
         })
 
         const homeScreen = this.getHomeScreen(model)
