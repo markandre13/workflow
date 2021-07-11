@@ -217,7 +217,7 @@ export class Client_impl extends skel.Client {
 
         const homeScreen = this.getHomeScreen(model)
 
-        this.createMenuActions("Maria Doe", "user@localhost")
+        // this.createMenuActions("Maria Doe", "user@localhost")
         // this.createAvatarModel("img/avatars/whale.svg")
         // this.createToolModel() // for figureeditor
         // this.createStrokeAndFillModel()
