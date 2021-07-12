@@ -6,7 +6,6 @@ export class ImportDrawing extends Dialog {
     constructor(model: LayerModel, orb: ORB) {
         super()
 
-
         let uploadOccured = false
 
         const upload = document.createElement("input")
@@ -21,9 +20,13 @@ export class ImportDrawing extends Dialog {
                 const content = await file.text()
                 // console.log(content)
                 const data = orb.deserialize(content)
+
+                // this is a very nasty hack!
                 const layer = model.layers[0]
+                model.delete(layer.id, layer.data.map((f)=>f.id))
                 layer.data = data
                 model.modified.trigger(undefined as any)
+
                 this.close()
             }
         }, false)

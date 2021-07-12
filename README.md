@@ -12,9 +12,7 @@ Take a look 👉 <a href="https://markandre13.github.io/workflow/">Live Demo</a>
 * export/import drawing to/from local file in workflow's internal JSON format
 * various annoying glitches and usability issues which are being worked on! 😅
 
-**Please Note**
-* import currently requires a page reload to work properly
-* exports may not load in upcoming versions yet
+**Please Note**: exports may not load in upcoming versions yet
 
 ## Goal
 
