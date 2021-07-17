@@ -138,18 +138,32 @@ export class LocalDrawingModel implements DrawingModel {
     bringForward(layerID: number, figureIds: Array<number>): void {
         const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         const layer = this.layerById(layerID)
-        for (let i = layer.data.length - 1; i >= 0; --i) {
-            if (!fastFigureIds.has(layer.data[i].id))
-                continue
-            const figure = layer.data[i]
-            layer.data.splice(i, 1)
-            layer.data.splice(i+1, 0, figure)
+
+        const figures = this.removeFromLayer(layer, fastFigureIds)
+        figures.reverse()
+
+        for (let i = 0; i < figureIds.length; ++i) {
+            layer.data.splice(figureIds[i]+1, 0, figures[i])
         }
 
         this.modified.trigger({ operation: Operation.BRING_FIGURES_FORWARD, figures: figureIds })
     }
 
     bringBackward(layerID: number, figureIds: Array<number>): void {
+        const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
+        const layer = this.layerById(layerID)
+
+        const figures = this.removeFromLayer(layer, fastFigureIds)
+        figures.reverse()
+
+        for (let i = 0; i < figureIds.length; ++i) {
+            let idx = figureIds[i]-1
+            if (idx < 0)
+                idx = 0
+            layer.data.splice(idx, 0, figures[i])
+        }
+
+        this.modified.trigger({ operation: Operation.BRING_FIGURES_BACKWARD, figures: figureIds })
     }
 
     protected layerById(layerID: number) {

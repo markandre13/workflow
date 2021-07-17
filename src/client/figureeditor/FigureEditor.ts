@@ -396,32 +396,12 @@ export class FigureEditor extends ModelView<DrawingModel> {
                 break
 
             case Operation.BRING_FIGURES_TO_FRONT: {
-                const figures: SVGElement[] = []
-
-                for (let id of event.figures) {
-                    let cached = this.cache.get(id)
-                    if (!cached)
-                        throw Error(`FigureEditor error: cache lacks id $id`)
-                    if (cached.svg !== undefined) {
-                        layer.removeChild(cached.svg)
-                        figures.push(cached.svg)
-                    }
-                }
+                const figures = this.removeFromLayer(layer, event.figures)
                 figures.forEach(e => layer.appendChild(e))
             } break
 
             case Operation.BRING_FIGURES_TO_BACK: {
-                const figures: SVGElement[] = []
-
-                for (let id of event.figures) {
-                    let cached = this.cache.get(id)
-                    if (!cached)
-                        throw Error(`FigureEditor error: cache lacks id $id`)
-                    if (cached.svg !== undefined) {
-                        layer.removeChild(cached.svg)
-                        figures.push(cached.svg)
-                    }
-                }
+                const figures = this.removeFromLayer(layer, event.figures)
                 if (layer.childNodes.length === 0) {
                     figures.reverse()
                     figures.forEach(e => layer.appendChild(e))
@@ -430,6 +410,28 @@ export class FigureEditor extends ModelView<DrawingModel> {
                     figures.forEach(e => layer.insertBefore(e, front))
                 }
             } break
+
+            case Operation.BRING_FIGURES_FORWARD: {
+                const figures = this.removeFromLayer(layer, event.figures)
+                for (let i = 0; i < figures.length; ++i) {
+                    if (event.figures[i]+1 < layer.childNodes.length) {
+                        layer.insertBefore(figures[i], layer.childNodes[event.figures[i]+1])
+                    } else {
+                        layer.appendChild(figures[i])
+                    }
+                }
+            } break
+
+            case Operation.BRING_FIGURES_BACKWARD: {
+                const figures = this.removeFromLayer(layer, event.figures)
+                for (let i = 0; i < event.figures.length; ++i) {
+                    let idx = event.figures[i] - 1
+                    if (idx < 0)
+                        idx = 0
+                    layer.insertBefore(figures[i], layer.childNodes[idx])
+                }
+            } break
+
         }
 
         // update scrollbars
@@ -442,6 +444,21 @@ export class FigureEditor extends ModelView<DrawingModel> {
             this.scrollView.scrollLeft = -this.bounds.origin.x
             this.scrollView.scrollTop = -this.bounds.origin.y
         }, 0)
+    }
+
+    protected removeFromLayer(layer: SVGElement, figures: number[]) {
+        const removedFigures: SVGElement[] = []
+
+        for (let id of figures) {
+            let cached = this.cache.get(id)
+            if (!cached)
+                throw Error(`FigureEditor error: cache lacks id $id`)
+            if (cached.svg === undefined)
+                throw Error("yikes")
+            layer.removeChild(cached.svg)
+            removedFigures.push(cached.svg)
+        }
+        return removedFigures
     }
 
     adjustBounds(): void {
