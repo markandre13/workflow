@@ -81,7 +81,12 @@ export function homeScreen(model: LayerModel, tool: ToolModel, strokeandfill: St
                         {name: "scale", label: "Scale"},
                         {name: "shear", label: "Shear"},
                     ]},
-                    {name: "arrange", label: "Arrange"},
+                    {name: "arrange", label: "Arrange", sub: [
+                        {name: "front", label: "Bring To Front", shortcut: "Ctrl+Shift+]"},
+                        {name: "back", label: "Bring To Back", shortcut: "Ctrl+Shift+["},
+                        {name: "forward", label: "Bring Forward", shortcut: "Ctrl+]"},
+                        {name: "backward", label: "Bring Backward", shortcut: "Ctrl+["},
+                    ]},
                     {name: "group", label: "Group"},
                     {name: "ungroup", label: "Ungroup"},
                 ]},

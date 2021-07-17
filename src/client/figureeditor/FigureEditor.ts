@@ -18,7 +18,7 @@
 
 import { bind } from "bind-decorator"
 import { HTMLElementProps, setInitialProperties } from "toad.js"
-import { ModelView } from "toad.js"
+import { ModelView, action } from "toad.js"
 
 import { Rectangle, Matrix } from "shared/geometry"
 import { AbstractPath } from "client/paths"
@@ -98,6 +98,10 @@ export enum Operation {
     REMOVE_LAYERS,
     ADD_FIGURES,
     DELETE_FIGURES,
+    BRING_FIGURES_TO_FRONT,
+    BRING_FIGURES_TO_BACK,
+    BRING_FIGURES_FORWARD,
+    BRING_FIGURES_BACKWARD,
     TRANSFORM_FIGURES, // translate, rotate, scale
     UPDATE_FIGURES, // get new path
     MOVE_HANDLE
@@ -171,7 +175,7 @@ export class FigureEditor extends ModelView<LayerModel> {
         this.inputCatcher.addEventListener("cut", this.clipboard)
         this.inputCatcher.addEventListener("copy", this.clipboard)
         this.inputCatcher.addEventListener("paste", this.clipboard)
-        
+
         this.scrollView = document.createElement("div")
         this.scrollView.classList.add("stretch")
         this.scrollView.classList.add("scrollView")
@@ -196,6 +200,23 @@ export class FigureEditor extends ModelView<LayerModel> {
             this.setModel(props.tool as any)
         if (props?.strokeandfill)
             this.setModel(props.strokeandfill as any)
+
+        action("object|arrange|front", () => {
+            if (this.model)
+                this.model.bringToFront(this.selectedLayer!.id, Tool.selection.figureIds())
+        })
+        action("object|arrange|back", () => {
+            if (this.model)
+                this.model.bringToBack(this.selectedLayer!.id, Tool.selection.figureIds())
+        })
+        action("object|arrange|forward", () => {
+            if (this.model)
+                this.model.bringForward(this.selectedLayer!.id, Tool.selection.figureIds())
+        })
+        action("object|arrange|backward", () => {
+            if (this.model)
+                this.model.bringBackward(this.selectedLayer!.id, Tool.selection.figureIds())
+        })
     }
 
     setTool(tool?: Tool) {
@@ -235,7 +256,7 @@ export class FigureEditor extends ModelView<LayerModel> {
                 return
             this.strokeAndFillModel = model
             this.strokeAndFillModel.modified.add(() => {
-                for(let figure of Tool.selection.selection) {
+                for (let figure of Tool.selection.selection) {
                     if (figure instanceof AttributedFigure) {
                         figure.stroke = this.strokeAndFillModel!.stroke
                         figure.fill = this.strokeAndFillModel!.fill
@@ -312,6 +333,7 @@ export class FigureEditor extends ModelView<LayerModel> {
                     }
                 }
                 break
+
             case Operation.TRANSFORM_FIGURES:
                 for (let id of event.figures) {
                     let cached = this.cache.get(id)
@@ -341,6 +363,7 @@ export class FigureEditor extends ModelView<LayerModel> {
 
                     // variant iii: add transform to SVGElement
                 } break
+
             case Operation.UPDATE_FIGURES:
                 for (let id of event.figures) {
                     let cached = this.cache.get(id)
@@ -360,6 +383,7 @@ export class FigureEditor extends ModelView<LayerModel> {
                     cached.svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
                 }
                 break
+
             case Operation.DELETE_FIGURES:
                 for (let id of event.figures) {
                     let cached = this.cache.get(id)
@@ -370,6 +394,42 @@ export class FigureEditor extends ModelView<LayerModel> {
                     this.cache.delete(id)
                 }
                 break
+
+            case Operation.BRING_FIGURES_TO_FRONT: {
+                const figures: SVGElement[] = []
+
+                for (let id of event.figures) {
+                    let cached = this.cache.get(id)
+                    if (!cached)
+                        throw Error(`FigureEditor error: cache lacks id $id`)
+                    if (cached.svg !== undefined) {
+                        layer.removeChild(cached.svg)
+                        figures.push(cached.svg)
+                    }
+                }
+                figures.forEach(e => layer.appendChild(e))
+            } break
+
+            case Operation.BRING_FIGURES_TO_BACK: {
+                const figures: SVGElement[] = []
+
+                for (let id of event.figures) {
+                    let cached = this.cache.get(id)
+                    if (!cached)
+                        throw Error(`FigureEditor error: cache lacks id $id`)
+                    if (cached.svg !== undefined) {
+                        layer.removeChild(cached.svg)
+                        figures.push(cached.svg)
+                    }
+                }
+                if (layer.childNodes.length === 0) {
+                    figures.reverse()
+                    figures.forEach(e => layer.appendChild(e))
+                } else {
+                    const front = layer.childNodes[0]
+                    figures.forEach(e => layer.insertBefore(e, front))
+                }
+            } break
         }
 
         // update scrollbars

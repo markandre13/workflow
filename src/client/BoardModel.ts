@@ -52,5 +52,11 @@ export class BoardModel implements valuetype.BoardModel, LayerModel {
     add(layerID: number, figure: Figure) {
         this.board!.add(layerID, figure)
     }
+
+    // these do work over the network
     delete(layerID: number, indices: Array<number>): void {}
+    bringToFront(layerID: number, indices: Array<number>): void {}
+    bringToBack(layerID: number, indices: Array<number>): void {}
+    bringForward(layerID: number, indices: Array<number>): void {}
+    bringBackward(layerID: number, indices: Array<number>): void {}
 }

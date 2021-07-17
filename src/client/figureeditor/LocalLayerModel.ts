@@ -26,6 +26,7 @@ import { LayerModel } from "./LayerModel"
 import { LocalLayer } from "./LocalLayer"
 import { Operation } from "./FigureEditor"
 import { Group } from 'client/figures/Group'
+import { Layer } from './Layer'
 
 export class LocalLayerModel implements LayerModel {
     idCounter: number
@@ -104,17 +105,61 @@ export class LocalLayerModel implements LayerModel {
         }
     }
 
-    delete(layerID: number, figureIds: Array<number>): void {
-        // console.log(`LocalLayerModel.delete(${layerID}, ${figureIds})`)
-        let fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
-        let layer = this.layerById(layerID)
+    protected removeFromLayer(layer: Layer, figureIds: Set<number>): Figure[] {
+        const figures: Figure[] = []
         for (let i = layer.data.length - 1; i >= 0; --i) {
-            if (!fastFigureIds.has(layer.data[i].id))
+            if (!figureIds.has(layer.data[i].id))
                 continue
+            figures.push(layer.data[i])
             layer.data.splice(i, 1)
         }
+        return figures
+    }
+
+    delete(layerID: number, figureIds: Array<number>): void {
+        // console.log(`LocalLayerModel.delete(${layerID}, ${figureIds})`)
+
+        // remove from data model
+        const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
+        const layer = this.layerById(layerID)
+
+        this.removeFromLayer(layer, fastFigureIds)
+
+        // inform views to update
         this.modified.trigger({ operation: Operation.DELETE_FIGURES, figures: figureIds })
     }
+
+    bringToFront(layerID: number, figureIds: Array<number>): void {
+        const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
+        const layer = this.layerById(layerID)
+
+        const figures = this.removeFromLayer(layer, fastFigureIds)
+
+        figures.reverse()
+        layer.data.push(...figures)
+
+        this.modified.trigger({ operation: Operation.BRING_FIGURES_TO_FRONT, figures: figureIds })
+    }
+
+    bringToBack(layerID: number, figureIds: Array<number>): void {
+        const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
+        const layer = this.layerById(layerID)
+
+        const figures = this.removeFromLayer(layer, fastFigureIds)
+
+        // insert at head
+        figures.reverse()
+        layer.data.splice(0, 0, ...figures)
+
+        this.modified.trigger({ operation: Operation.BRING_FIGURES_TO_BACK, figures: figureIds })
+    }
+
+    bringForward(layerID: number, figureIds: Array<number>): void {
+    }
+
+    bringBackward(layerID: number, figureIds: Array<number>): void {
+    }
+
 
     figureIdsAsSet(figureIds: Array<number>): Set<number> {
         // console.log(`LocalLayerModel.figureIdsAsSet(${figureIds})`)

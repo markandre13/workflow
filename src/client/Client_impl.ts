@@ -18,7 +18,7 @@
 
 import {
     Template, TextModel, HtmlModel,
-    bind, action, Action,
+    bind, action
 } from "toad.js"
 
 import { AccountPreferences } from "./AccountPreferences"
@@ -208,6 +208,7 @@ export class Client_impl extends skel.Client {
         model.layers.push(layer)
         bind("board", model)
 
+        // FIXME: move into figure editor?
         action("file|export", () => {
             new ExportDrawing("Untitled.wf", layer, this.orb)
         })
