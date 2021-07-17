@@ -21,16 +21,16 @@ import { Matrix } from "shared/geometry"
 
 import { Figure } from "../figures/Figure"
 
-import { LayerEvent } from './LayerEvent'
-import { LayerModel } from "./LayerModel"
+import { DrawingEvent } from './DrawingEvent'
+import { DrawingModel } from "./DrawingModel"
 import { LocalLayer } from "./LocalLayer"
 import { Operation } from "./FigureEditor"
 import { Group } from 'client/figures/Group'
 import { Layer } from './Layer'
 
-export class LocalLayerModel implements LayerModel {
+export class LocalDrawingModel implements DrawingModel {
     idCounter: number
-    modified: Signal<LayerEvent>
+    modified: Signal<DrawingEvent>
     layers: Array<LocalLayer>
 
     constructor() {
@@ -40,14 +40,6 @@ export class LocalLayerModel implements LayerModel {
         //     console.log(`LocalLayerModel.modified(), need to do something: ${JSON.stringify(data)}`)
         // })
         this.layers = new Array<LocalLayer>()
-    }
-
-    layerById(layerID: number) {
-        for (let layer of this.layers) {
-            if (layer.id === layerID)
-                return layer
-        }
-        throw Error("LocalLayerModel.layerById(): unknown layer id " + layerID)
     }
 
     add(layerId: number, figure: Figure) {
@@ -105,17 +97,6 @@ export class LocalLayerModel implements LayerModel {
         }
     }
 
-    protected removeFromLayer(layer: Layer, figureIds: Set<number>): Figure[] {
-        const figures: Figure[] = []
-        for (let i = layer.data.length - 1; i >= 0; --i) {
-            if (!figureIds.has(layer.data[i].id))
-                continue
-            figures.push(layer.data[i])
-            layer.data.splice(i, 1)
-        }
-        return figures
-    }
-
     delete(layerID: number, figureIds: Array<number>): void {
         // console.log(`LocalLayerModel.delete(${layerID}, ${figureIds})`)
 
@@ -155,13 +136,42 @@ export class LocalLayerModel implements LayerModel {
     }
 
     bringForward(layerID: number, figureIds: Array<number>): void {
+        const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
+        const layer = this.layerById(layerID)
+        for (let i = layer.data.length - 1; i >= 0; --i) {
+            if (!fastFigureIds.has(layer.data[i].id))
+                continue
+            const figure = layer.data[i]
+            layer.data.splice(i, 1)
+            layer.data.splice(i+1, 0, figure)
+        }
+
+        this.modified.trigger({ operation: Operation.BRING_FIGURES_FORWARD, figures: figureIds })
     }
 
     bringBackward(layerID: number, figureIds: Array<number>): void {
     }
 
+    protected layerById(layerID: number) {
+        for (let layer of this.layers) {
+            if (layer.id === layerID)
+                return layer
+        }
+        throw Error("LocalLayerModel.layerById(): unknown layer id " + layerID)
+    }
 
-    figureIdsAsSet(figureIds: Array<number>): Set<number> {
+    protected removeFromLayer(layer: Layer, figureIds: Set<number>): Figure[] {
+        const figures: Figure[] = []
+        for (let i = layer.data.length - 1; i >= 0; --i) {
+            if (!figureIds.has(layer.data[i].id))
+                continue
+            figures.push(layer.data[i])
+            layer.data.splice(i, 1)
+        }
+        return figures
+    }
+
+    protected figureIdsAsSet(figureIds: Array<number>): Set<number> {
         // console.log(`LocalLayerModel.figureIdsAsSet(${figureIds})`)
         let figureIdSet = new Set<number>()
         for (let id of figureIds)

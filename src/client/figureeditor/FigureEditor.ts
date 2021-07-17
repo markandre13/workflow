@@ -28,11 +28,11 @@ import { Tool } from "client/figuretools"
 import { StrokeAndFillModel } from "client/views/widgets/strokeandfill"
 import { ToolModel } from "client/figuretools/ToolModel"
 import { Layer } from "./Layer"
-import { LayerModel } from "./LayerModel"
+import { DrawingModel } from "./DrawingModel"
 import { EditorMouseEvent } from "./EditorMouseEvent"
 import { EditorKeyboardEvent } from "./EditorKeyboardEvent"
 import { Group } from "client/figures/Group"
-import { LayerEvent } from "./LayerEvent"
+import { DrawingEvent } from "./DrawingEvent"
 
 import * as figure from "../figures"
 
@@ -138,12 +138,12 @@ class CacheEntry {
 }
 
 interface FigureEditorProps extends HTMLElementProps {
-    model?: LayerModel
+    model?: DrawingModel
     tool?: ToolModel
     strokeandfill?: StrokeAndFillModel
 }
 
-export class FigureEditor extends ModelView<LayerModel> {
+export class FigureEditor extends ModelView<DrawingModel> {
     inputCatcher: HTMLDivElement
     scrollView: HTMLDivElement
     bounds: Rectangle
@@ -230,7 +230,7 @@ export class FigureEditor extends ModelView<LayerModel> {
             this.tool.activate(this.createEditorMouseEvent())
     }
 
-    override setModel(model?: LayerModel): void {
+    override setModel(model?: DrawingModel): void {
         if (model === undefined) {
             if (this.toolModel) {
                 this.toolModel.modified.remove(this)
@@ -267,12 +267,12 @@ export class FigureEditor extends ModelView<LayerModel> {
             }, this)
         }
         else {
-            super.setModel(model as LayerModel)
+            super.setModel(model as DrawingModel)
         }
     }
 
     // called whenever the model is modified
-    override updateView(event?: LayerEvent) {
+    override updateView(event?: DrawingEvent) {
 
         // console.log(`FigureEditor.updateView(${JSON.stringify(event)})`)
         if (this.model === undefined || this.model.layers.length === 0) {

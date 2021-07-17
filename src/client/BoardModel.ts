@@ -20,15 +20,15 @@ import { Signal } from "toad.js"
 import { Matrix } from "shared/geometry"
 import { Figure } from "./figures/Figure"
 import { Layer } from "./figureeditor/Layer"
-import { LayerModel } from "./figureeditor/LayerModel"
+import { DrawingModel } from "./figureeditor/DrawingModel"
 
 import * as inf from "shared/workflow"
 import * as value from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
-import { LayerEvent } from "./figureeditor/LayerEvent"
+import { DrawingEvent } from "./figureeditor/DrawingEvent"
 
 // FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
-export class BoardModel implements valuetype.BoardModel, LayerModel {
+export class BoardModel implements valuetype.BoardModel, DrawingModel {
     // BoardModel
     bid!: number
     name!: string
@@ -36,7 +36,7 @@ export class BoardModel implements valuetype.BoardModel, LayerModel {
     layers!: Array<Layer>
 
     // LayerModel
-    modified: Signal<LayerEvent>
+    modified: Signal<DrawingEvent>
 
     board?: inf.Board
 

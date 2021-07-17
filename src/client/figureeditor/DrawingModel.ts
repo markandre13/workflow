@@ -16,11 +16,20 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Operation } from "./FigureEditor"
+import { Signal } from "toad.js"
 import { Matrix } from "shared/geometry"
+import { Figure } from "shared/workflow_valuetype"
+import { Layer } from "./Layer"
+import { DrawingEvent } from "./DrawingEvent"
 
-export interface LayerEvent {
-    operation: Operation
-    figures: number[]
-    matrix?: Matrix
+export interface DrawingModel {
+    modified: Signal<DrawingEvent>
+    layers: Array<Layer>
+    add(layerID: number, figure: Figure): void
+    transform(layerID: number, indices: Array<number>, matrix: Matrix): void
+    delete(layerID: number, indices: Array<number>): void
+    bringToFront(layerID: number, indices: Array<number>): void
+    bringToBack(layerID: number, indices: Array<number>): void
+    bringForward(layerID: number, indices: Array<number>): void
+    bringBackward(layerID: number, indices: Array<number>): void
 }

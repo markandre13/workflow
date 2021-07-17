@@ -1,9 +1,9 @@
-import { LayerModel } from "client/figureeditor"
+import { DrawingModel } from "client/figureeditor"
 import { ORB } from "corba.js"
 import { Dialog, Button } from "toad.js"
 
 export class ImportDrawing extends Dialog {
-    constructor(model: LayerModel, orb: ORB) {
+    constructor(model: DrawingModel, orb: ORB) {
         super()
 
         let uploadOccured = false

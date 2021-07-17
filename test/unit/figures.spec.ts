@@ -1,7 +1,7 @@
 import { ORB } from "corba.js"
 import { initializeORB } from "client/workflow"
 import { LocalLayer } from "client/figureeditor/LocalLayer"
-import { LocalLayerModel } from "client/figureeditor/LocalLayerModel"
+import { LocalDrawingModel } from "client/figureeditor/LocalDrawingModel"
 import { Figure, Rectangle, Text } from "client/figures"
 import { expect } from "chai"
 
@@ -17,7 +17,7 @@ describe("figure serialization/deserialization", function() {
     const orb = new ORB()
     //    orb.debug = 1
     initializeORB(orb)
-    const model = new LocalLayerModel()
+    const model = new LocalDrawingModel()
     const layer = new LocalLayer()
     model.layers.push(layer)
 

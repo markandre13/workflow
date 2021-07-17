@@ -25,9 +25,9 @@ import { HtmlModel } from "toad.js"
 import { StrokeAndFillModel } from "../widgets/strokeandfill"
 import { ColorSwatchModel } from "../widgets/colorswatch"
 import { ToolModel } from "client/figuretools/ToolModel"
-import { LayerModel } from "client/figureeditor"
+import { DrawingModel } from "client/figureeditor"
 
-export function homeScreen(model: LayerModel, tool: ToolModel, strokeandfill: StrokeAndFillModel, colorswatch: ColorSwatchModel, avatar: HtmlModel): Fragment {
+export function homeScreen(model: DrawingModel, tool: ToolModel, strokeandfill: StrokeAndFillModel, colorswatch: ColorSwatchModel, avatar: HtmlModel): Fragment {
     // FIXME: let ColorSwatch take a closure
     // FIXME: make it possible to use Action directly
     const setcolor = action("setcolor", (data?: any) => {

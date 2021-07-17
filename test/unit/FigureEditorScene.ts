@@ -17,7 +17,7 @@
  */
 
 import { SelectTool, TextTool, Tool } from "client/figuretools"
-import { LocalLayerModel } from "client/figureeditor/LocalLayerModel"
+import { LocalDrawingModel } from "client/figureeditor/LocalDrawingModel"
 import { Figure } from "client/figures"
 import * as figure from "client/figures"
 import { FigureEditor, KeyCode } from "client/figureeditor"
@@ -90,7 +90,7 @@ export class FigureEditorScene {
     selectTool: SelectTool
     textTool: TextTool
     id: number
-    model: LocalLayerModel
+    model: LocalDrawingModel
     figures: Array<Figure>
     mousePosition: Point
     verbose: boolean
@@ -112,7 +112,7 @@ export class FigureEditorScene {
 
         Tool.selection.clear()
 
-        let model = new LocalLayerModel()
+        let model = new LocalDrawingModel()
         let layer = new LocalLayer()
 
         model.layers.push(layer)
@@ -184,10 +184,10 @@ export class FigureEditorScene {
             throw Error("Error: selection decoration is empty")
         let msg = ""
         for (let i of [0, 2, 4, 6]) {
-            let r = this.figureeditor.tool!.getBoundaryHandle(i)
-            if (r.inside(point))
+            const handleInfo = this.figureeditor.tool!.getBoundaryHandle(i)
+            if (handleInfo.path.contains(point))
                 return
-            msg = `${msg} (${r.origin.x}, ${r.origin.y})`
+            msg = `${msg} (${handleInfo.path.data})`
         }
         throw Error(`Selection decoration has no edge (${point.x}, ${point.y}). We have ${msg}`)
     }

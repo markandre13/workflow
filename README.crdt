@@ -1,0 +1,18 @@
+Resources
+
+https://crdt.tech
+https://github.com/yjs/yjs
+
+
+operation
+  can be out of order, but protocol must resend and ignore duplicates
+state
+  send the whole state or a delta of the state
+
+replication
+strongly consistent
+optimistic
+
+
+* peer id + clock time can be used to achieve the same order on all peers
+  this can be used to achieve a last-writer-wins semantic

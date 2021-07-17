@@ -37,10 +37,10 @@ import { StrokeAndFillModel } from "./views/widgets/strokeandfill"
 import { BoardModel } from "./BoardModel"
 import { BoardListener_impl } from "./BoardListener_impl"
 import { LocalLayer } from "./figureeditor/LocalLayer"
-import { LocalLayerModel } from "./figureeditor/LocalLayerModel"
+import { LocalDrawingModel } from "./figureeditor/LocalDrawingModel"
 
 import { ColorSwatchModel } from "client/views/widgets/colorswatch"
-import { LayerModel } from "client/figureeditor"
+import { DrawingModel } from "client/figureeditor"
 
 import { homeScreen } from "client/views/pages/homescreen"
 import { IndexedDB, ObjectStore } from "./utils/indexeddb"
@@ -149,7 +149,7 @@ export class Client_impl extends skel.Client {
         // dom.add(document.body, homeScreen)
     }
 
-    getHomeScreen(model: LayerModel) {
+    getHomeScreen(model: DrawingModel) {
         // MODEL
         const tool = this.createToolModel()
         const strokeandfill = this.createStrokeAndFillModel()
@@ -175,7 +175,7 @@ export class Client_impl extends skel.Client {
     private async offline() {
         // console.log("offline()")
 
-        let model = new LocalLayerModel()
+        let model = new LocalDrawingModel()
         let layer = new LocalLayer()
         
         const db = new IndexedDB()
