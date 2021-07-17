@@ -36,7 +36,6 @@ import { StrokeAndFillModel } from "./views/widgets/strokeandfill"
 
 import { BoardModel } from "./BoardModel"
 import { BoardListener_impl } from "./BoardListener_impl"
-import { LocalLayer } from "./figureeditor/LocalLayer"
 import { LocalDrawingModel } from "./figureeditor/LocalDrawingModel"
 
 import { ColorSwatchModel } from "client/views/widgets/colorswatch"
@@ -176,7 +175,7 @@ export class Client_impl extends skel.Client {
         // console.log("offline()")
 
         let model = new LocalDrawingModel()
-        let layer = new LocalLayer()
+        let layer = new Layer()
         
         const db = new IndexedDB()
         // await db.delete("workflow")

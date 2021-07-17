@@ -1,9 +1,8 @@
 import { expect } from "chai"
 
 import { LocalDrawingModel } from "client/figureeditor/LocalDrawingModel"
-import { LocalLayer } from "client/figureeditor/LocalLayer"
 import { Rectangle } from "client/figures"
-import { FigureEditor } from "client/figureeditor"
+import { FigureEditor, Layer } from "client/figureeditor"
 
 describe("FigureEditor", function () {
     describe("arrange", function () {
@@ -31,6 +30,12 @@ describe("FigureEditor", function () {
             expect(svgsToNumbers(editor)).to.deep.equal([1, 0, 3, 2])
         })
 
+        // it.only("bring backward", function() {
+        //     const { drawing, editor } = setup()
+        //     drawing.bringBackward(1, [3])
+        //     expect(svgsToNumbers(editor)).to.deep.equal([0, 1, 3, 2])
+        // })
+
         function svgsToNumbers(editor: FigureEditor) {
             const display: number[] = []
             for(let i=0; i<editor.layer!.children.length; ++i)
@@ -40,7 +45,7 @@ describe("FigureEditor", function () {
 
         function setup() {
             const drawing = new LocalDrawingModel()
-            const layer = new LocalLayer({ id: 1, name: "Layer 1" })
+            const layer = new Layer({ id: 1, name: "Layer 1" })
             drawing.layers.push(layer)
 
             drawing.add(1, new Rectangle({ origin: { x: 0, y: 0 }, size: { width: 10, height: 10 } }))

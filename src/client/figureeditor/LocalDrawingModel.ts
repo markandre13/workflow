@@ -23,53 +23,24 @@ import { Figure } from "../figures/Figure"
 
 import { DrawingEvent } from './DrawingEvent'
 import { DrawingModel } from "./DrawingModel"
-import { LocalLayer } from "./LocalLayer"
 import { Operation } from "./FigureEditor"
 import { Group } from 'client/figures/Group'
 import { Layer } from './Layer'
 
 export class LocalDrawingModel implements DrawingModel {
-    idCounter: number
-    modified: Signal<DrawingEvent>
-    layers: Array<LocalLayer>
-
-    constructor() {
-        this.idCounter = -1
-        this.modified = new Signal()
-        // this.modified.add((data: LayerEvent)=>{
-        //     console.log(`LocalLayerModel.modified(), need to do something: ${JSON.stringify(data)}`)
-        // })
-        this.layers = new Array<LocalLayer>()
-    }
+    idCounter = -1
+    modified = new Signal<DrawingEvent>()
+    layers: Layer[] = []
 
     add(layerId: number, figure: Figure) {
-        if (this.idCounter === -1) {
-            this.setIdCounter()
-        }
-        // console.log(`LocalLayerModel.add(${layerId}, ${(figure as Object).constructor.name})`)
         let layer = this.layerById(layerId)
-        figure.id = this.idCounter
-        ++this.idCounter
+        if (figure.id === 0) {
+            if (this.idCounter === -1)
+                this.initializeIdCounter()
+            figure.id = ++this.idCounter
+        }
         layer.data.push(figure)
         this.modified.trigger({ operation: Operation.ADD_FIGURES, figures: [figure.id] })
-    }
-
-    protected setIdCounter() {
-        for (let layer of this.layers) {
-            for (let figure of layer.data) {
-                this.setIdCounterByFigure(figure)
-            }
-        }
-        ++this.idCounter
-    }
-
-    protected setIdCounterByFigure(figure: Figure) {
-        this.idCounter = Math.max(this.idCounter, figure.id)
-        if (figure instanceof Group) {
-            for (let groupFigure of figure.childFigures) {
-                this.setIdCounterByFigure(groupFigure)
-            }
-        }
     }
 
     // layerId: layer containing figures to be transformed
@@ -114,10 +85,10 @@ export class LocalDrawingModel implements DrawingModel {
         const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         const layer = this.layerById(layerID)
 
-        const figures = this.removeFromLayer(layer, fastFigureIds)
+        const removed = this.removeFromLayer(layer, fastFigureIds)
 
-        figures.reverse()
-        layer.data.push(...figures)
+        removed.figures.reverse()
+        layer.data.push(...removed.figures)
 
         this.modified.trigger({ operation: Operation.BRING_FIGURES_TO_FRONT, figures: figureIds })
     }
@@ -126,11 +97,11 @@ export class LocalDrawingModel implements DrawingModel {
         const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         const layer = this.layerById(layerID)
 
-        const figures = this.removeFromLayer(layer, fastFigureIds)
+        const removed = this.removeFromLayer(layer, fastFigureIds)
 
         // insert at head
-        figures.reverse()
-        layer.data.splice(0, 0, ...figures)
+        removed.figures.reverse()
+        layer.data.splice(0, 0, ...removed.figures)
 
         this.modified.trigger({ operation: Operation.BRING_FIGURES_TO_BACK, figures: figureIds })
     }
@@ -139,11 +110,12 @@ export class LocalDrawingModel implements DrawingModel {
         const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         const layer = this.layerById(layerID)
 
-        const figures = this.removeFromLayer(layer, fastFigureIds)
-        figures.reverse()
+        const removed = this.removeFromLayer(layer, fastFigureIds)
+        removed.figures.reverse()
+        removed.index.reverse()
 
         for (let i = 0; i < figureIds.length; ++i) {
-            layer.data.splice(figureIds[i]+1, 0, figures[i])
+            layer.data.splice(removed.index[i]+1, 0, removed.figures[i])
         }
 
         this.modified.trigger({ operation: Operation.BRING_FIGURES_FORWARD, figures: figureIds })
@@ -153,17 +125,36 @@ export class LocalDrawingModel implements DrawingModel {
         const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
         const layer = this.layerById(layerID)
 
-        const figures = this.removeFromLayer(layer, fastFigureIds)
-        figures.reverse()
-
+        const removed = this.removeFromLayer(layer, fastFigureIds)
+        removed.figures.reverse()
+        removed.index.reverse()
+        
         for (let i = 0; i < figureIds.length; ++i) {
-            let idx = figureIds[i]-1
+            let idx = removed.index[i]-1
             if (idx < 0)
                 idx = 0
-            layer.data.splice(idx, 0, figures[i])
+            layer.data.splice(idx, 0, removed.figures[i])
         }
 
         this.modified.trigger({ operation: Operation.BRING_FIGURES_BACKWARD, figures: figureIds })
+    }
+
+    protected initializeIdCounter() {
+        for (let layer of this.layers) {
+            for (let figure of layer.data) {
+                this.initializeIdCounterHelper(figure)
+            }
+        }
+        ++this.idCounter
+    }
+
+    protected initializeIdCounterHelper(figure: Figure) {
+        this.idCounter = Math.max(this.idCounter, figure.id)
+        if (figure instanceof Group) {
+            for (let groupFigure of figure.childFigures) {
+                this.initializeIdCounterHelper(groupFigure)
+            }
+        }
     }
 
     protected layerById(layerID: number) {
@@ -174,15 +165,18 @@ export class LocalDrawingModel implements DrawingModel {
         throw Error("LocalLayerModel.layerById(): unknown layer id " + layerID)
     }
 
-    protected removeFromLayer(layer: Layer, figureIds: Set<number>): Figure[] {
-        const figures: Figure[] = []
+    protected removeFromLayer(layer: Layer, figureIds: Set<number>): {figures: Figure[], index: number[]} {
+        const result: {figures: Figure[], index: number[]} = {figures: [], index: []}
         for (let i = layer.data.length - 1; i >= 0; --i) {
             if (!figureIds.has(layer.data[i].id))
                 continue
-            figures.push(layer.data[i])
+            result.figures.push(layer.data[i])
+            result.index.push(i)
             layer.data.splice(i, 1)
         }
-        return figures
+        if (result.figures.length !== figureIds.size)
+            throw Error(`Unknown figure Ids`)
+        return result
     }
 
     protected figureIdsAsSet(figureIds: Array<number>): Set<number> {

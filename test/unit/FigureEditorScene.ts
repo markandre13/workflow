@@ -20,11 +20,10 @@ import { SelectTool, TextTool, Tool } from "client/figuretools"
 import { LocalDrawingModel } from "client/figureeditor/LocalDrawingModel"
 import { Figure } from "client/figures"
 import * as figure from "client/figures"
-import { FigureEditor, KeyCode } from "client/figureeditor"
+import { FigureEditor, KeyCode, Layer } from "client/figureeditor"
 import { Path } from "client/paths"
 
 import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointMinusPoint, pointMinus } from "shared/geometry"
-import { LocalLayer } from "client/figureeditor/LocalLayer"
 import { EditorMouseEvent } from "client/figureeditor/EditorMouseEvent"
 
 // NOTE: the translation in here is insufficient
@@ -113,7 +112,7 @@ export class FigureEditorScene {
         Tool.selection.clear()
 
         let model = new LocalDrawingModel()
-        let layer = new LocalLayer()
+        let layer = new Layer()
 
         model.layers.push(layer)
         this.figureeditor.setModel(model)

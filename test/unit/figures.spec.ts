@@ -1,11 +1,11 @@
 import { ORB } from "corba.js"
 import { initializeORB } from "client/workflow"
-import { LocalLayer } from "client/figureeditor/LocalLayer"
 import { LocalDrawingModel } from "client/figureeditor/LocalDrawingModel"
 import { Figure, Rectangle, Text } from "client/figures"
 import { expect } from "chai"
 
 import {FigureEditorScene} from "./FigureEditorScene"
+import { Layer } from "client/figureeditor"
 
 // NOTE: this was originally written to check the get/set of Text's "text" attribute
 // and that it works together with corba.js's serialization/deserialization.
@@ -18,7 +18,7 @@ describe("figure serialization/deserialization", function() {
     //    orb.debug = 1
     initializeORB(orb)
     const model = new LocalDrawingModel()
-    const layer = new LocalLayer()
+    const layer = new Layer()
     model.layers.push(layer)
 
     function wire(figure: Figure) {
