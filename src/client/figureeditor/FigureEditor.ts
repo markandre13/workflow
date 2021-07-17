@@ -412,23 +412,23 @@ export class FigureEditor extends ModelView<DrawingModel> {
             } break
 
             case Operation.BRING_FIGURES_FORWARD: {
-                const figures = this.removeFromLayer(layer, event.figures)
-                for (let i = 0; i < figures.length; ++i) {
-                    if (event.figures[i]+1 < layer.childNodes.length) {
-                        layer.insertBefore(figures[i], layer.childNodes[event.figures[i]+1])
+                const removed = this.removeFromLayerWithIndex(layer, event.figures)
+                for (let i = 0; i < removed.figures.length; ++i) {
+                    if (removed.index[i] < layer.childNodes.length) {
+                        layer.insertBefore(removed.figures[i], layer.childNodes[removed.index[i]])
                     } else {
-                        layer.appendChild(figures[i])
+                        layer.appendChild(removed.figures[i])
                     }
                 }
             } break
 
             case Operation.BRING_FIGURES_BACKWARD: {
-                const figures = this.removeFromLayer(layer, event.figures)
+                const removed = this.removeFromLayerWithIndex(layer, event.figures)
                 for (let i = 0; i < event.figures.length; ++i) {
-                    let idx = event.figures[i] - 1
+                    let idx = removed.index[i]
                     if (idx < 0)
                         idx = 0
-                    layer.insertBefore(figures[i], layer.childNodes[idx])
+                    layer.insertBefore(removed.figures[i], layer.childNodes[idx])
                 }
             } break
 
@@ -459,6 +459,27 @@ export class FigureEditor extends ModelView<DrawingModel> {
             removedFigures.push(cached.svg)
         }
         return removedFigures
+    }
+
+    // Array.from(element.parentNode.children).indexOf(element)
+    protected removeFromLayerWithIndex(layer: SVGElement, figures: number[]):  {figures: SVGElement[], index: number[]} {
+        const result: {figures: SVGElement[], index: number[]} = {figures: [], index: []}
+        // const removedFigures: SVGElement[] = []
+        
+        const index = new Map<Figure, number>()
+        this.selectedLayer!.data.forEach( (figure, idx) => index.set(figure, idx))
+
+        for (let id of figures) {
+            let cached = this.cache.get(id)
+            if (!cached)
+                throw Error(`FigureEditor error: cache lacks id $id`)
+            if (cached.svg === undefined)
+                throw Error("yikes")
+            layer.removeChild(cached.svg)
+            result.figures.push(cached.svg)
+            result.index.push(index.get(cached.figure)!)
+        }
+        return result
     }
 
     adjustBounds(): void {
