@@ -18,7 +18,7 @@
 
 import {
     Template, TextModel, HtmlModel,
-    bind, action
+    bindModel as bind, action
 } from "toad.js"
 
 import { AccountPreferences } from "./AccountPreferences"

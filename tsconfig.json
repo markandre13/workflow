@@ -5,14 +5,14 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "traceResolution": false,
-        "lib": ["esnext", "dom"],
+        "lib": ["ESNext", "DOM"],
         "baseUrl": "src",
         "paths": {
             "shared/*": ["shared/*"],
             "client/*": ["client/*"]
         },
         "jsx": "react-jsx",
-        "jsxImportSource": "client",
+        "jsxImportSource": "toad.jsx/lib",
         "esModuleInterop": true,
         "experimentalDecorators": true,
         "downlevelIteration": true,

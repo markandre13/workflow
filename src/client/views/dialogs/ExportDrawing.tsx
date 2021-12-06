@@ -1,6 +1,6 @@
 import { Layer } from "client/figureeditor/Layer"
 import { ORB } from "corba.js"
-import { Dialog, Button, TextModel, TextView } from "toad.js"
+import { Dialog, Button, TextModel, Text } from "toad.js"
 
 export class ExportDrawing extends Dialog {
     constructor(filename: string, layer: Layer, orb: ORB) {
@@ -13,7 +13,7 @@ export class ExportDrawing extends Dialog {
         this.open(<>
             <h1>Export</h1>
             <p>
-                <TextView model={filenameModel} />
+                <Text model={filenameModel} />
             </p>
             <p>
                 <Button action={this.close}>Cancel</Button>

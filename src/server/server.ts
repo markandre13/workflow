@@ -23,7 +23,8 @@ import * as crypto from 'crypto'
 import * as bcrypt from 'bcrypt'
 const bcryptRounds = 10
 
-import { ORB } from 'corba.js/lib/orb/orb-nodejs' // FIXME corba.js/nodejs corba.js/browser ?
+import { ORB } from 'corba.js'
+// import { TcpProtocol } from 'corba.js/lib/src/net/tcp'
 import * as skel from "shared/workflow_skel"
 import * as stub from "shared/workflow_stub"
 
@@ -130,7 +131,7 @@ async function main() {
     
     orb.bind("WorkflowServer", new WorkflowServer_impl(orb))
 
-    orb.listen("0.0.0.0", 8000)
+    // orb.listen("0.0.0.0", 8000)
 
     console.log("listening...")
 }

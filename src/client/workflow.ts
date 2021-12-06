@@ -48,13 +48,13 @@ export async function main(url: string|undefined) {
         return
     }
 
-    try {
-        await orb.connect(url)
-    }
-    catch(error) {
-        document.body.innerHTML = "could not connect to workflow server '"+url+"'. please try again later."
-        return
-    }
+    // try {
+    //     await orb.connect(url)
+    // }
+    // catch(error) {
+    //     document.body.innerHTML = "could not connect to workflow server '"+url+"'. please try again later."
+    //     return
+    // }
     orb.onclose = () => {
         document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
     }
