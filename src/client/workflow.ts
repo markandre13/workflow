@@ -38,6 +38,7 @@ export async function main(url: string|undefined) {
 
     let orb = new ORB()
     // orb.debug = 1
+    // orb.addProtocol(new BrowserWsProtocol(url))
     initializeORB(orb)
     initializeCORBAValueTypes()
 
@@ -58,8 +59,8 @@ export async function main(url: string|undefined) {
     orb.onclose = () => {
         document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
     }
-
-    let workflowserver = stub.WorkflowServer.narrow(await orb.resolve("WorkflowServer"))
+    // hm... how to squeze websocket into the corbname: url? => we don't?
+    let workflowserver = stub.WorkflowServer.narrow(await orb.resolve("corbaname::ws:0#WorkflowServer"))
     let sessionServerSide = await workflowserver.getServer()
     let sessionClientSide = new Client_impl(orb, sessionServerSide)
 }

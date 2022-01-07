@@ -1,12 +1,14 @@
-import typescript from 'rollup-plugin-typescript2'
+import typescript from 'rollup-plugin-typescript2';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 export default {
     input: 'src/server/server.ts',
-    external: ['knex', 'crypto', 'bcrypt', 'corba.js', 'corba.js/lib/orb/orb-nodejs'],
+    external: ['knex', 'crypto', 'bcrypt', 'corba.js'],
     output: {
-      file: 'js/server.js',
       name: 'workflow-server',
-      format: 'commonjs', // umd, es, 
+      format: 'es',
+      file: 'js/server.js',
       sourcemap: true
     },
     plugins: [
@@ -21,5 +23,7 @@ export default {
                 "src/shared/**/*.ts"
             ]
         }),
+        nodeResolve(),
+        commonjs()
     ]
 }

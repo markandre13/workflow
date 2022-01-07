@@ -18,13 +18,12 @@
 
 console.log('booting workflow server v0.1')
 
-import { knex } from 'knex'
-import * as crypto from 'crypto'
-import * as bcrypt from 'bcrypt'
+import knex from 'knex'
+import crypto from 'crypto'
+import bcrypt from 'bcrypt'
 const bcryptRounds = 10
 
-import { ORB } from 'corba.js'
-// import { TcpProtocol } from 'corba.js/lib/src/net/tcp'
+import { ORB, WsProtocol } from 'corba.js'
 import * as skel from "shared/workflow_skel"
 import * as stub from "shared/workflow_stub"
 
@@ -131,7 +130,9 @@ async function main() {
     
     orb.bind("WorkflowServer", new WorkflowServer_impl(orb))
 
-    // orb.listen("0.0.0.0", 8000)
+    const proto = new WsProtocol()
+    orb.addProtocol(proto)
+    proto.listen(orb, 8000)
 
     console.log("listening...")
 }
