@@ -16,103 +16,70 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export class IndexedDB {
-    db?: IDBDatabase
-    stores: ObjectStore<any>[] = []
+// FIXME: we might get success before upgradeneeded is finished?
 
-    delete(databaseName: string) {
-        return new Promise<Event>((resolve, reject) => {
-            const request = window.indexedDB.deleteDatabase(databaseName)
-            request.onerror = () => reject(request.error)
-            request.onsuccess = resolve
-        })
-    }
-
-    open(databaseName: string, version: number) {
-        return new Promise<Event>((resolve, reject) => {
-            const request = window.indexedDB.open(databaseName, version)
-            request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-                this.db = (event.target as IDBRequest).result
-                this.stores.forEach(store => store.upgrade(this.db!))
-            }
-            request.onerror = () => reject(request.error)
-            request.onsuccess = (event: Event) => {
-                this.db = request.result
-                resolve(event)
-            }
-        })
-    }
+export async function openDatabase(name: string, version: number, upgrade: (event: IDBVersionChangeEvent) => void): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+        const request = window.indexedDB.open(name, version) as IDBOpenDBRequest
+        request.onupgradeneeded = (event) => {
+            upgrade(event)
+        }
+        request.onsuccess = (event) => resolve((event.target as IDBOpenDBRequest).result)
+        request.onerror = (error) => reject((error.target as IDBOpenDBRequest).error)
+    })
 }
 
-export class ObjectStore<T> {
-    db: IndexedDB
-    storeName: string
-    upgrade: (db: IDBDatabase) => void
+export async function deleteDatabase(name: string) {
+    return new Promise((resolve, reject) => {
+        const request = window.indexedDB.deleteDatabase(name)
+        request.onsuccess = (event) => resolve(event)
+        request.onerror = (error) => reject(error)
+    })
+}
 
-    constructor(db: IndexedDB, storeName: string, upgrade: (db: IDBDatabase) => void) {
-        this.db = db
-        this.storeName = storeName
-        this.upgrade = upgrade
-        db.stores.push(this)
-    }
+export async function add(db: IDBDatabase, storeName: string, value: any) {
+    return new Promise((resolve, reject) => {
+        // console.log(`${db.name}.${storeName}.add(${value})`)
+        const transaction = db.transaction([storeName], "readwrite")
+        transaction.oncomplete = (event) => resolve(event)
+        transaction.onerror = (error) => reject(error)
+        const store = transaction.objectStore(storeName)
+        store.add(value)
+    })
+}
 
-    async add(entity: T): Promise<IDBValidKey> {
-        const transaction = this.db.db!.transaction(this.storeName, "readwrite")
-        const store = transaction.objectStore(this.storeName)
-        const request = store.add(entity)
-        return new Promise<IDBValidKey>((resolve, reject) => {
-            request.onerror = () => reject(request.error)
-            request.onsuccess = () => resolve(request.result)
-        })
-    }
+export async function put(db: IDBDatabase, storeName: string, value: any) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([storeName], "readwrite")
+        transaction.oncomplete = (event) => resolve(event)
+        transaction.onerror = (error) => reject(error)
+        const store = transaction.objectStore(storeName)
+        store.put(value)
+    })
+}
 
-    async put(entity: T, key?: IDBValidKey): Promise<IDBValidKey> {
-        const transaction = this.db.db!.transaction(this.storeName, "readwrite")
-        const store = transaction.objectStore(this.storeName)
-        const request = store.put(entity, key)
-        return new Promise<IDBValidKey>((resolve, reject) => {
-            request.onerror = () => reject(request.error)
-            request.onsuccess = () => resolve(request.result)
-        })
-    }
+export async function get(db: IDBDatabase, storeName: string, key: any) {
+    return new Promise((resolve, reject) => {
+        try {
+            const request = db
+                .transaction([storeName], "readonly")
+                .objectStore(storeName)
+                .get(key)
+            request.onsuccess = (event) => resolve((event.target as IDBRequest).result)
+            request.onerror = (error) => reject(error)
+        }
+        catch (error) {
+            resolve(undefined)
+        }
+    })
+}
 
-    async get(query: IDBValidKey | IDBKeyRange): Promise<T | undefined> {
-        const transaction = this.db.db!.transaction(this.storeName, "readonly")
-        const store = transaction.objectStore(this.storeName)
-        const request = store.get(query)
-        return new Promise<T | undefined>((resolve, reject) => {
-            request.onerror = () => reject(request.error)
-            request.onsuccess = () => resolve(request.result)
-        })
-    }
-
-    async getAll(query?: IDBValidKey | IDBKeyRange, count?: number): Promise<T[]> {
-        const transaction = this.db.db!.transaction(this.storeName, "readonly")
-        const store = transaction.objectStore(this.storeName)
-        const request = store.getAll(query, count)
-        return new Promise<T[]>((resolve, reject) => {
-            request.onerror = () => reject(request.error)
-            request.onsuccess = () => resolve(request.result)
-        })
-    }
-
-    async getAllKeys(query?: IDBValidKey | IDBKeyRange, count?: number): Promise<IDBValidKey[]> {
-        const transaction = this.db.db!.transaction(this.storeName, "readonly")
-        const store = transaction.objectStore(this.storeName)
-        const request = store.getAllKeys(query, count)
-        return new Promise<IDBValidKey[]>((resolve, reject) => {
-            request.onerror = () => reject(request.error)
-            request.onsuccess = () => resolve(request.result)
-        })
-    }
-
-    async delete(index: IDBValidKey): Promise<Event> {
-        const transaction = this.db.db!.transaction(this.storeName, "readwrite")
-        const store = transaction.objectStore(this.storeName)
-        const request = store.delete(index)
-        return new Promise<Event>((resolve, reject) => {
-            request.onerror = () => reject(request.error)
-            request.onsuccess = resolve
-        })
-    }
+export async function deleteRow(db: IDBDatabase, storeName: string, key: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const request = db
+            .transaction([storeName], "readwrite").objectStore(storeName)
+            .delete(key)
+        request.onsuccess = () => resolve()
+        request.onerror = (error) => reject(error)
+    })
 }

@@ -48,7 +48,7 @@ class Filesystem {
     }
 
     openDatabase() {
-        var openRequest = window.indexedDB.open(this.databaseName, 1)
+        var openRequest = window.indexedDB.open(this.databaseName, 3)
         openRequest.onerror = this.onError
         openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
             this.db = openRequest.result

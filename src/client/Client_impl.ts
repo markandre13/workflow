@@ -42,7 +42,7 @@ import { ColorSwatchModel } from "client/views/widgets/colorswatch"
 import { DrawingModel } from "client/figureeditor"
 
 import { homeScreen } from "client/views/pages/homescreen"
-import { IndexedDB, ObjectStore } from "./utils/indexeddb"
+import * as xdb from "./utils/indexeddb"
 import { Layer } from "./figureeditor/Layer"
 import { ExportDrawing } from "./views/dialogs/ExportDrawing"
 import { ImportDrawing } from "./views/dialogs/ImportDrawing"
@@ -176,33 +176,38 @@ export class Client_impl extends skel.Client {
 
         let model = new LocalDrawingModel()
         let layer = new Layer()
-        
-        const db = new IndexedDB()
-        // await db.delete("workflow")
-        const store = new ObjectStore<{name: string, content: string}>(db, "document", (db: IDBDatabase) => {
-            const objectStore = db.createObjectStore("document", {
-                // keyPath: "id",
-                autoIncrement: true
+
+        try {
+            await xdb.deleteDatabase("workflow")
+
+            const db = await xdb.openDatabase("workflow2", 1, (event: IDBVersionChangeEvent) => {
+                const db = (event.target as IDBOpenDBRequest) .result
+                if (event.oldVersion < 1) {
+                    db.createObjectStore("document", {keyPath: "name"})
+                }
             })
-            objectStore.createIndex("name", "name", { unique: false })
-        })
-        await db.open("workflow", 2)
-        const page = await store.get(1)
-        if (page === undefined) {
-            // console.log("CREATE INITIAL PAGE")
-            await store.add({name: "Untitled.wf", content: ""})
-        } else {
-            // console.log("FOUND PREVIOUS PAGE")
-            // console.log(page)
-            if (page.content !== "") {
-                const layer2 = this.orb.deserialize(page.content) as Layer
-                layer.data = layer2.data
+            const page = await xdb.get(db, "document", "Untitled.wf") as {name: string, content: ArrayBuffer}
+
+            if (page === undefined) {
+                console.log("CREATE INITIAL PAGE")
+                await xdb.add(db, "document", {name: "Untitled.wf", content: new ArrayBuffer(0)})
+            } else {
+                console.log("FOUND PREVIOUS PAGE")
+                // console.log(page)
+                if (page.content.byteLength > 0) {
+                    const layer2 = this.orb.deserialize(page.content) as Layer
+                    layer.data = layer2.data
+                }
             }
+            model.modified.add( () => {
+                console.log("SAVE")
+                xdb.put(db, "document", {name: "Untitled.wf", content: this.orb.serialize(layer)})
+            })
         }
-        model.modified.add( () => {
-            // console.log("SAVE")
-            store.put({name: "Untitled.wf", content: this.orb.serialize(layer)}, 1)
-        })
+        catch(error) {
+            console.log(`Failed to access workflow's IndexedDB: ${error}`)
+            console.log(error)
+        }
 
         model.layers.push(layer)
         bind("board", model)

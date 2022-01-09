@@ -17,7 +17,7 @@ export class ImportDrawing extends Dialog {
             if (upload.files?.length === 1) {
                 const file = upload.files[0]
                 // console.log(`file: "${file.name}", size ${file.size} bytes`)
-                const content = await file.text()
+                const content = await file.arrayBuffer()
                 // console.log(content)
                 const data = orb.deserialize(content)
 
