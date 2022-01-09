@@ -167,6 +167,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
         this.bounds = new Rectangle()
         this.zoom = 1.0
 
+        // the input catcher's task is to catch events for this view
         this.inputCatcher = document.createElement("div")
         this.inputCatcher.classList.add("stretch")
         this.inputCatcher.classList.add("inputCatcher")
@@ -179,7 +180,6 @@ export class FigureEditor extends ModelView<DrawingModel> {
         this.scrollView = document.createElement("div")
         this.scrollView.classList.add("stretch")
         this.scrollView.classList.add("scrollView")
-
         this.scrollView.addEventListener("mousedown", this.mouseDown)
         this.scrollView.addEventListener("mousemove", this.mouseMove)
         this.scrollView.addEventListener("mouseup", this.mouseUp)
@@ -256,14 +256,12 @@ export class FigureEditor extends ModelView<DrawingModel> {
                 return
             this.strokeAndFillModel = model
             this.strokeAndFillModel.modified.add(() => {
-                for (let figure of Tool.selection.selection) {
-                    if (figure instanceof AttributedFigure) {
-                        figure.stroke = this.strokeAndFillModel!.stroke
-                        figure.fill = this.strokeAndFillModel!.fill
-                        let cached = this.cache.get(figure.id)
-                        figure.updateSVG(cached?.path as AbstractPath, this.layer!, cached?.svg)
-                    }
-                }
+                this.model!.setStrokeAndFill(
+                    this.selectedLayer!.id,
+                    Tool.selection.figureIds(),
+                    this.strokeAndFillModel!.stroke,
+                    this.strokeAndFillModel!.fill
+                )
             }, this)
         }
         else {

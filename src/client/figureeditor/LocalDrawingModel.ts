@@ -26,7 +26,13 @@ import { DrawingModel } from "./DrawingModel"
 import { Operation } from "./FigureEditor"
 import { Group } from 'client/figures/Group'
 import { Layer } from './Layer'
+import { AttributedFigure } from 'client/figures'
 
+/**
+ * Drawing model for when there is no server.
+ * 
+ * Changes the model and sends a message to listeners.
+ */
 export class LocalDrawingModel implements DrawingModel {
     idCounter = -1
     modified = new Signal<DrawingEvent>()
@@ -41,6 +47,40 @@ export class LocalDrawingModel implements DrawingModel {
         }
         layer.data.push(figure)
         this.modified.trigger({ operation: Operation.ADD_FIGURES, figures: [figure.id] })
+    }
+
+    delete(layerID: number, figureIds: Array<number>): void {
+        // console.log(`LocalLayerModel.delete(${layerID}, ${figureIds})`)
+
+        // remove from data model
+        const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
+        const layer = this.layerById(layerID)
+
+        this.removeFromLayer(layer, fastFigureIds)
+
+        // inform views to update
+        this.modified.trigger({ operation: Operation.DELETE_FIGURES, figures: figureIds })
+    }
+
+    setStrokeAndFill(layerID: number, figureIds: Array<number>, stroke: string, fill: string):void {
+        this.forAllFigures(layerID, figureIds, (figure) => {
+            if (figure instanceof AttributedFigure) {
+                figure.stroke = stroke
+                figure.fill = fill
+            }
+        })
+        this.modified.trigger({ operation: Operation.UPDATE_FIGURES, figures: figureIds })
+    }
+
+    forAllFigures(layerID: number, figureIds: Array<number>, callback: (figure: Figure) => void) {
+        let fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
+        let layer = this.layerById(layerID)
+        for (let index in layer.data) {
+            let fig = layer.data[index]
+            if (fastFigureIds.has(fig.id)) {
+                callback(fig)
+            }
+        }
     }
 
     // layerId: layer containing figures to be transformed
@@ -66,19 +106,6 @@ export class LocalDrawingModel implements DrawingModel {
             // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${matrix}) -> trigger with TRANSFORM_FIGURES`)
             this.modified.trigger({ operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: [fig.id] })
         }
-    }
-
-    delete(layerID: number, figureIds: Array<number>): void {
-        // console.log(`LocalLayerModel.delete(${layerID}, ${figureIds})`)
-
-        // remove from data model
-        const fastFigureIds = this.figureIdsAsSet(figureIds) // FIXME: could use the FigureEditor cache instead
-        const layer = this.layerById(layerID)
-
-        this.removeFromLayer(layer, fastFigureIds)
-
-        // inform views to update
-        this.modified.trigger({ operation: Operation.DELETE_FIGURES, figures: figureIds })
     }
 
     bringToFront(layerID: number, figureIds: Array<number>): void {

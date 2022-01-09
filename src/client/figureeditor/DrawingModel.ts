@@ -26,8 +26,9 @@ export interface DrawingModel {
     modified: Signal<DrawingEvent>
     layers: Array<Layer>
     add(layerID: number, figure: Figure): void
-    transform(layerID: number, indices: Array<number>, matrix: Matrix): void
     delete(layerID: number, indices: Array<number>): void
+    setStrokeAndFill(layerID: number, indices: Array<number>, stroke: string, fill: string):void
+    transform(layerID: number, indices: Array<number>, matrix: Matrix): void
     bringToFront(layerID: number, indices: Array<number>): void
     bringToBack(layerID: number, indices: Array<number>): void
     bringForward(layerID: number, indices: Array<number>): void
