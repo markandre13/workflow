@@ -26,8 +26,6 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
     constructor(init?: Partial<Rectangle>) {
         super(init)
         value.figure.initRectangle(this, init)
-        value.figure.initShape(this, init)
-        value.initFigure(this, init)
     }
     distance(pt: Point): number {
         // FIXME: not final: RANGE and fill="none" need to be considered

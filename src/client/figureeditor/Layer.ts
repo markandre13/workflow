@@ -20,17 +20,21 @@ import * as value from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
 import { Point, Matrix } from "shared/geometry"
 import { Figure } from "../figures"
+import { GIOPDecoder } from "corba.js"
 
-export class Layer implements valuetype.Layer {
-    // FigureModel
+export class FigureModel implements valuetype.FigureModel {
     data!: Array<Figure>
+    constructor(init?: Partial<value.FigureModel>|GIOPDecoder) {
+        value.initFigureModel(this, init)
+    }
+}
 
-    // Layer
+export class Layer extends FigureModel implements valuetype.Layer {
     id!: number
     name!: string
     
-    constructor(init?: Partial<value.Layer>) {
-        value.initFigureModel(this, init) // FIXME corba.js: shouldn't initLayer include this call?
+    constructor(init?: Partial<value.Layer>|GIOPDecoder) {
+        super(init)
         value.initLayer(this, init)
     }
 

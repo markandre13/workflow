@@ -18,6 +18,7 @@
 
 import * as value  from "./workflow_value"
 import * as valuetype from "./workflow_valuetype"
+import { GIOPDecoder } from "corba.js" 
 
 export class Point implements value.Point {
     x!: number
@@ -26,7 +27,11 @@ export class Point implements value.Point {
     constructor()
     constructor(point: Partial<Point>)
     constructor(x: number, y: number)
-    constructor(xOrPoint?: number|Partial<Point>, y?: number) {
+    constructor(decoder: GIOPDecoder)
+    constructor(xOrPoint?: number|Partial<Point>|GIOPDecoder, y?: number) {
+        if (xOrPoint instanceof GIOPDecoder) {
+            value.initPoint(this, xOrPoint)
+        } else
         if (xOrPoint === undefined) {
             value.initPoint(this)
         } else
@@ -48,7 +53,11 @@ export class Size implements value.Size {
     constructor()
     constructor(size: Partial<Size>)
     constructor(width: number, height: number)
-    constructor(widthOrSize?: number|Partial<Size>, height?: number) {
+    constructor(decoder: GIOPDecoder)
+    constructor(widthOrSize?: number|Partial<Size>|GIOPDecoder, height?: number) {
+        if (widthOrSize instanceof GIOPDecoder) {
+            value.initSize(this, widthOrSize)
+        } else
         if (widthOrSize === undefined) {
             value.initSize(this)
         } else
@@ -191,7 +200,11 @@ export class Rectangle implements value.Rectangle {
     constructor(rectangle: Partial<value.Rectangle>)
     constructor(origin: Point, size: Size)
     constructor(x: number, y: number, width: number, height: number)
-    constructor(xOrOriginOrRectangle?: number|Point|Partial<value.Rectangle>, yOrSize?: number|Size, width?: number, height?: number) {
+    constructor(decoder: GIOPDecoder)
+    constructor(xOrOriginOrRectangle?: number|Point|Partial<value.Rectangle>|GIOPDecoder, yOrSize?: number|Size, width?: number, height?: number) {
+        if (xOrOriginOrRectangle instanceof GIOPDecoder) {
+            value.initRectangle(this, xOrOriginOrRectangle)
+        } else
         if (xOrOriginOrRectangle === undefined) {
             value.initRectangle(this)
         } else
@@ -531,7 +544,7 @@ export class Matrix implements value.Matrix {
     e!: number
     f!: number
 
-    constructor(matrix?: Partial<value.Matrix>) {
+    constructor(matrix?: Partial<value.Matrix>|GIOPDecoder) {
         value.initMatrix(this, matrix)
         if (matrix === undefined) {
             this.a = 1.0

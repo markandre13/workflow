@@ -195,8 +195,13 @@ export class Client_impl extends skel.Client {
                 console.log("FOUND PREVIOUS PAGE")
                 // console.log(page)
                 if (page.content.byteLength > 0) {
-                    const layer2 = this.orb.deserialize(page.content) as Layer
-                    layer.data = layer2.data
+                    try {
+                        const layer2 = this.orb.deserialize(page.content) as Layer
+                        layer.data = layer2.data
+                    }
+                    catch(error) {
+                        console.log(`Failed to deserialize 'Untitled.wf': ${error}`) 
+                    }
                 }
             }
             model.modified.add( () => {

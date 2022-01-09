@@ -17,7 +17,9 @@
  */
 
 import { Figure } from "./Figure"
+import * as value  from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
+import { GIOPDecoder } from "corba.js"
 
 /**
  * The base class for all figures which have a stroke and/or fill.
@@ -29,10 +31,14 @@ export abstract class AttributedFigure extends Figure implements valuetype.figur
     stroke!: string
     strokeWidth!: number
     fill!: string
-    constructor(init?: Partial<AttributedFigure>) {
+    constructor(init?: Partial<AttributedFigure>|GIOPDecoder) {
         super(init)
-        this.stroke = "#000"
-        this.strokeWidth = 1.0
-        this.fill = "#fff"
+        if (init instanceof GIOPDecoder) {
+            value.figure.initAttributedFigure(this, init)
+        } else {
+            this.stroke = "#000"
+            this.strokeWidth = 1.0
+            this.fill = "#fff"
+        }
     }
 }

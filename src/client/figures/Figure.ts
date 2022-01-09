@@ -20,6 +20,7 @@ import * as value  from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
 import { Path, AbstractPath } from "../paths"
 import { Point, Rectangle, Matrix } from "shared/geometry"
+import { GIOPDecoder } from "corba.js"
 
 /**
  * The base class of a figures like rectangle, circle, bezier curve, text, image, etc
@@ -32,7 +33,7 @@ export abstract class Figure implements valuetype.Figure
     public static readonly FIGURE_RANGE = 5.0
     public static readonly HANDLE_RANGE = 5.0
     
-    constructor(init?: Partial<value.Figure>) {
+    constructor(init?: Partial<value.Figure>|GIOPDecoder) {
         value.initFigure(this, init)
     }
 
