@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { bind } from "bind-decorator"
+import { bind } from "client/utils/bind-decorator"
 import { HTMLElementProps, setInitialProperties } from "toad.js"
 import { ModelView, action } from "toad.js"
 

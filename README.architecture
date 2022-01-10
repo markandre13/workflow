@@ -1,3 +1,8 @@
+Build Pipeline
+
+* Uses ESM Modules
+* When using @web/dev-server, Chrome has better error messages than Safari when loading modules fails
+
 What the workflow client is doing
 o on start a Client_impl instance is created to receive either feedback from
   server, or when there is none, 

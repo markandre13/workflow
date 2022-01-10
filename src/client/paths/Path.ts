@@ -16,10 +16,10 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point, Rectangle, Matrix } from "shared/geometry"
+import { Point, Rectangle, Matrix, distancePointToLine, isZero } from "shared/geometry"
 import { AbstractPath } from "./AbstractPath"
 
-import robustPointInPolygon from "robust-point-in-polygon"
+import { pointInPolygonWN } from "shared/pointInPolygon"
 
 export class Path extends AbstractPath {
     data: Array<any>
@@ -66,23 +66,29 @@ export class Path extends AbstractPath {
         return this.data.length == 0
     }
     contains(point: Point): boolean {
-        // using robustPointInPolygon for now
-        // may want to have a look at "Practical Geometry Algorithms: with C++ Code" by Daniel Sunday
-        const flat:number[][] = []
+        const flat: Point[] = []
         for(let entry of this.data) {
             switch(entry.type) {
                 case "M":
                 case "L":
-                    flat.push(entry.values)
+                    flat.push({x: entry.values[0], y: entry.values[1]})
                     break
                 case "C":
                     throw Error("curves are not implemented yet")
                 case "Z":
                     if (entry !== this.data[this.data.length-1])
-                        throw Error("multiple segmentes are not implemented yet")
+                        throw Error("multiple segments are not implemented yet")
             }
         }
-        return robustPointInPolygon(flat as any, [point.x, point.y] as any) <= 0
+        flat.push(flat[0])
+        if (pointInPolygonWN(point, flat, flat.length-1))
+            return true
+        for(let i=1; i<flat.length; ++i) {
+            if (isZero(distancePointToLine(point, flat[i-1], flat[i]))) {
+                return true
+            }
+        }
+        return false
     }
     // relativeMove
     // relativeLine

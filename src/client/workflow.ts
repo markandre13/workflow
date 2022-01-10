@@ -17,31 +17,34 @@
  */
 
 import { View } from "toad.js"
-import { ORB } from 'corba.js'
+import { ORB } from "corba.js"
+
 
 import * as stub from "shared/workflow_stub"
 import { Point, Size, Rectangle, Matrix } from "shared/geometry"
-import * as figure from "./figures"
+
+// SyntaxError: Importing binding name 'default' cannot be resolved by star export entries
+import * as figure from "./figures.js"
+// import { Figure } from "./figures"
 
 import { Layer } from "./figureeditor/Layer"
+import { BoardModel } from "./BoardModel"
+import { Client_impl } from "./Client_impl"
+
 import { FigureEditor } from "./figureeditor/FigureEditor"
 import { StrokeAndFill } from "./views/widgets/strokeandfill"
-import { ColorSwatch } from "./views/widgets/colorswatch"
+import { ColorSwatch } from "./views/widgets/colorswatch"
 
-import { Client_impl } from "./Client_impl"
-import { BoardModel } from "./BoardModel"
 
-// import { openFile } from "./view/widgets/filedialog"
-
-export async function main(url: string|undefined) {
+export async function main(url: string|undefined = undefined) {
+    console.log("WORKFLOW: MAIN")
     registerHTMLCustomElements();
 
-    let orb = new ORB()
+    const orb = new ORB()
     // orb.debug = 1
-    // orb.addProtocol(new BrowserWsProtocol(url))
+     // orb.addProtocol(new BrowserWsProtocol(url))
     initializeORB(orb)
     initializeCORBAValueTypes()
-
    
     if (url === undefined) {
         // openFile()
@@ -49,20 +52,20 @@ export async function main(url: string|undefined) {
         return
     }
 
-    // try {
-    //     await orb.connect(url)
-    // }
-    // catch(error) {
-    //     document.body.innerHTML = "could not connect to workflow server '"+url+"'. please try again later."
-    //     return
-    // }
-    orb.onclose = () => {
-        document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
-    }
-    // hm... how to squeze websocket into the corbname: url? => we don't?
-    let workflowserver = stub.WorkflowServer.narrow(await orb.resolve("corbaname::ws:0#WorkflowServer"))
-    let sessionServerSide = await workflowserver.getServer()
-    let sessionClientSide = new Client_impl(orb, sessionServerSide)
+//     // try {
+//     //     await orb.connect(url)
+//     // }
+//     // catch(error) {
+//     //     document.body.innerHTML = "could not connect to workflow server '"+url+"'. please try again later."
+//     //     return
+//     // }
+//     orb.onclose = () => {
+//         document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
+//     }
+//     // hm... how to squeze websocket into the corbname: url? => we don't?
+//     let workflowserver = stub.WorkflowServer.narrow(await orb.resolve("corbaname::ws:0#WorkflowServer"))
+    // let sessionServerSide = await workflowserver.getServer()
+//     let sessionClientSide = new Client_impl(orb, sessionServerSide)
 }
 
 export function initializeORB(orb: ORB) {
@@ -87,7 +90,7 @@ export function initializeCORBAValueTypes() {
     ORB.registerValueType("figure.Group", figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
 
-    //    ORB.registerValueType("FigureModel", FigureModel)
+    // //    ORB.registerValueType("FigureModel", FigureModel)
     ORB.registerValueType("Layer", Layer)
     ORB.registerValueType("BoardModel", BoardModel)
 }
@@ -97,3 +100,4 @@ export function registerHTMLCustomElements() {
     View.define("toad-strokeandfill", StrokeAndFill)
     View.define("toad-colorswatch", ColorSwatch)
 }
+

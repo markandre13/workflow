@@ -23,7 +23,8 @@ import crypto from 'crypto'
 import bcrypt from 'bcrypt'
 const bcryptRounds = 10
 
-import { ORB, WsProtocol } from 'corba.js'
+import { ORB } from 'corba.js'
+import { WsProtocol } from 'corba.js/lib/src/net/ws'
 import * as skel from "shared/workflow_skel"
 import * as stub from "shared/workflow_stub"
 

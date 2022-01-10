@@ -27,8 +27,11 @@ import { GIOPDecoder } from "corba.js"
  */
 export abstract class Figure implements valuetype.Figure
 {
+    // each figure has an id shared by all clients
     id!: number
-    matrix!: Matrix // FIXME in corba.js: should be optional
+
+    // each figure has an optional affine transformation
+    matrix!: Matrix // FIXME in corba.js: should be optional (as per CORBA every object is optional... :()
 
     public static readonly FIGURE_RANGE = 5.0
     public static readonly HANDLE_RANGE = 5.0

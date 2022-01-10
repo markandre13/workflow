@@ -18,7 +18,7 @@
 
 import {
     Template, TextModel, HtmlModel,
-    bindModel as bind, action
+    bindModel, action
 } from "toad.js"
 
 import { AccountPreferences } from "./AccountPreferences"
@@ -27,8 +27,7 @@ import { ORB } from "corba.js"
 import * as inf from "shared/workflow"
 import * as skel from "shared/workflow_skel"
 
-import * as Rectangle from "./figures/Rectangle"
-import * as Circle from "./figures/Circle"
+import { Rectangle, Circle } from "./figures"
 
 import { SelectTool, ShapeTool, TextTool } from "./figuretools"
 import { ToolModel } from "./figuretools/ToolModel"
@@ -167,7 +166,7 @@ export class Client_impl extends skel.Client {
         boardmodel.board = board
         let boardListener = new BoardListener_impl(this.orb, boardmodel)
         board.addListener(boardListener)
-        bind("board", boardmodel)
+        bindModel("board", boardmodel)
         return boardmodel
     }
 
@@ -215,7 +214,7 @@ export class Client_impl extends skel.Client {
         }
 
         model.layers.push(layer)
-        bind("board", model)
+        bindModel("board", model)
 
         // FIXME: move into figure editor?
         action("file|export", () => {
@@ -249,9 +248,9 @@ export class Client_impl extends skel.Client {
     }
 
     private createStrokeAndFillModel(): StrokeAndFillModel {
-        let strokeandfillmodel = new StrokeAndFillModel()
-        bind("strokeandfill", strokeandfillmodel)
-        bind("board", strokeandfillmodel)
+        const strokeandfillmodel = new StrokeAndFillModel()
+        bindModel("strokeandfill", strokeandfillmodel)
+        bindModel("board", strokeandfillmodel)
         action("setcolor", (data?: any) => {
             strokeandfillmodel.set(data)
         })
@@ -261,12 +260,12 @@ export class Client_impl extends skel.Client {
     private createToolModel(): ToolModel {
         let toolmodel = new ToolModel()
         toolmodel.add("select", new SelectTool())
-        toolmodel.add("rectangle", new ShapeTool(Rectangle.Rectangle))
-        toolmodel.add("circle", new ShapeTool(Circle.Circle))
+        toolmodel.add("rectangle", new ShapeTool(Rectangle))
+        toolmodel.add("circle", new ShapeTool(Circle))
         toolmodel.add("text", new TextTool())
         toolmodel.stringValue = "select"
-        bind("tool", toolmodel) // for tool buttons
-        bind("board", toolmodel)
+        bindModel("tool", toolmodel) // for tool buttons
+        bindModel("board", toolmodel)
         return toolmodel
     }
 
@@ -281,7 +280,7 @@ export class Client_impl extends skel.Client {
                 <rect x="0" y="0" width="32" height="32" rx="4" ry="4" stroke="none" fill="#08f" />
                 <image clip-path="url(#mask)" xlink:href="${avatar}" x="2" y="2" width="28px" height="28px" />
             </svg>`)
-        bind("avatar", model)
+        bindModel("avatar", model)
         return model
     }
 }

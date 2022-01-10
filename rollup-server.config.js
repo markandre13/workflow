@@ -4,7 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 
 export default {
     input: 'src/server/server.ts',
-    external: ['knex', 'crypto', 'bcrypt', 'corba.js'],
+    external: ['knex', 'crypto', 'bcrypt', 'corba.js', 'websocket'],
     output: {
       name: 'workflow-server',
       format: 'es',
