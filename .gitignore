@@ -3,4 +3,5 @@
 node_modules
 coverage/
 js/
+build/
 src/shared/workflow*.ts

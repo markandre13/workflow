@@ -122,6 +122,15 @@ module figure {
         public string text;
     };
 
+    valuetype PathSegment {
+        public char type;
+        public sequence<double> data;
+    };
+
+    valuetype Path: AttributedFigure {
+        public sequence<PathSegment> segments;
+    };
+
     valuetype Group: Figure {
 	    public sequence<Figure> childFigures;
     };

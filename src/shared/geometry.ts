@@ -128,13 +128,13 @@ export function rotatePointAroundPointBy(point: Point, center: Point, byRadiant:
     let p = new Point(center.x + Math.cos(radiant) * diameter, center.y + Math.sin(radiant) * diameter)
 
     // FIXME: move this sanity check into separate test
-    let m = new Matrix()
-    m.translate(pointMinus(center))
-    m.rotate(byRadiant)
-    m.translate(center)
-    let pp = m.transformPoint(point)
-    if (!pointEqualsPoint(p, pp))
-        throw Error("something's wrong with the matrix")
+    // let m = new Matrix()
+    // m.translate(pointMinus(center))
+    // m.rotate(byRadiant)
+    // m.translate(center)
+    // let pp = m.transformPoint(point)
+    // if (!pointEqualsPoint(p, pp))
+    //     console.log(`something's wrong with the matrix`)
 
     return p
 }

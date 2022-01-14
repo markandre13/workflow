@@ -38,7 +38,7 @@ export function homeScreen(model: DrawingModel, tool: ToolModel, strokeandfill: 
             <div style={{ position: "absolute", left: 0, width: "41px", top: "49px", bottom: "32px", backgroundColor: "#e3dbdb" }}>
                 <ToolButton model={tool} value="select" img="img/tool/select.svg" />
                 <ToolButton model={tool} value="line" img="img/tool/line.svg" />
-                <ToolButton model={tool} value="freehand" img="img/tool/freehand.svg" />
+                <ToolButton model={tool} value="pen" img="img/tool/freehand.svg" />
                 <ToolButton model={tool} value="rectangle" img="img/tool/rectangle.svg" />
                 <ToolButton model={tool} value="circle" img="img/tool/circle.svg" />
                 <ToolButton model={tool} value="text" img="img/tool/text.svg" />

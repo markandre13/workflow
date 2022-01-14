@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Selection Tool (V): Select, Move, Scale, Rotate, Shear
+// missing: Direct Selection Tool (A)
+
 /******************************************************************
  * TERMS
  * o decoration: a rectangular frame with the handles (FIXME: frame is missing, TODO: pivot point for rotation as handle)
