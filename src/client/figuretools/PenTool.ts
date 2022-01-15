@@ -51,6 +51,7 @@ import { Path } from "../figures/Path"
 import { Point, distancePointToPoint } from "shared/geometry"
 
 // FIXME: cursor: remove white border from tip and set center one pixel above tip
+// FIXME: cursor: white surrounding for ready, edge, ...
 // FIXME: use (document|body).onmousemove for mouse event outside browser
 //        or https://developer.mozilla.org/en-US/docs/Web/API/Element/setPointerCapture
 // FIXME: draw temporary path as outline, sync intermediate steps with the model
@@ -114,9 +115,10 @@ export class PenTool extends Tool {
                 this.updateBoundary() // FIXME: side effect
                 event.editor.decorationOverlay.appendChild(this.decoration)
 
-                const anchor = this.createAnchor(event)
-                this.decoration.appendChild(anchor)
-                this.anchors.push(anchor)
+                this.addAnchor(event)
+                // const anchor = this.createAnchor(event)
+                // this.decoration.appendChild(anchor)
+                // this.anchors.push(anchor)
 
                 this.path = new Path()
                 if (event.editor.strokeAndFillModel) {
@@ -149,16 +151,18 @@ export class PenTool extends Tool {
                     v[5] = event.y
                     path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
 
-                    const anchor = this.createAnchor(event)
-                    this.decoration!.appendChild(anchor)
-                    this.anchors.push(anchor)
+                    this.addAnchor(event)
+                    // const anchor = this.createAnchor(event)
+                    // this.decoration!.appendChild(anchor)
+                    // this.anchors.push(anchor)
                     this.updateHandle(1)
                 } else {
                     console.log(`HOVER -> down -> DRAG: idx = ${idx}, type = ${segment.type}`)
 
-                    const anchor = this.createAnchor(event)
-                    this.decoration!.appendChild(anchor)
-                    this.anchors.push(anchor)
+                    this.addAnchor(event)
+                    // const anchor = this.createAnchor(event)
+                    // this.decoration!.appendChild(anchor)
+                    // this.anchors.push(anchor)
 
                     const m = mirrorPoint(
                         {x: segment.values![4], y: segment.values![5]},
@@ -278,6 +282,16 @@ export class PenTool extends Tool {
         return anchor
     }
 
+    addAnchor(p: Point) {
+        if (this.anchors.length > 0) {
+            this.anchors[this.anchors.length - 1].style.cursor = ""
+        }
+        const anchor = this.createAnchor(p)
+        anchor.style.cursor = `url(${Tool.cursorPath}pen-edge.svg) 5 1, crosshair`
+        this.decoration!.appendChild(anchor)
+        this.anchors.push(anchor)
+    }
+
     createHandle(p: Point) {
         const x = Math.round(p.x-0.5)+0.5
         const y = Math.round(p.y-0.5)+0.5
@@ -295,7 +309,6 @@ export class PenTool extends Tool {
     updateHandle(idx: number, anchorPos: Point, handlePos: Point): void
     updateHandle(idx: number, anchorPos?: Point, handlePos?: Point): void {
         if (anchorPos === undefined) {
-            console.log(`hide handle ${idx}`)
             if (this._handles[idx] !== undefined) {
                 this._handles[idx].style.display = "none"
                 this.lines[idx].style.display = "none"
@@ -304,8 +317,6 @@ export class PenTool extends Tool {
         }
         if (handlePos === undefined)
             throw Error("yikes")
-
-        console.log(`show handle ${idx}`)
 
         if (this._handles[idx] === undefined) {
             this._handles[idx] = this.createHandle(handlePos)
