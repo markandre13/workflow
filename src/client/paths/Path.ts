@@ -21,8 +21,20 @@ import { AbstractPath } from "./AbstractPath"
 
 import { pointInPolygonWN } from "shared/pointInPolygon"
 
+interface CloseSegment {
+    type: 'Z'
+    values: undefined
+}
+
+interface DrawSegment {
+    type: 'M'|'L'|'C'
+    values: number[]
+}
+
+type Segment = DrawSegment | CloseSegment
+
 export class Path extends AbstractPath {
-    data: Array<any>
+    data: Array<Segment>
     constructor();
     constructor(path: Path)
     constructor(path: Array<Point>)
@@ -34,13 +46,13 @@ export class Path extends AbstractPath {
             for (let i = 1; i < path.length; ++i) {
                 this.data.push({ type: 'L', values: [path[i].x, path[i].y] })
             }
-            this.data.push({ type: 'Z' })
+            this.data.push({ type: 'Z', values: undefined })
         }
         else if (path instanceof Path) {
             for (let entry of path.data) {
                 switch (entry.type) {
                     case "M":
-                        this.data.push({ type: 'M', values: [entry.values[0], entry.values[1]] })
+                        this.data.push({ type: 'M', values: [entry.values![0], entry.values![1]] })
                         break
                     case "L":
                         this.data.push({ type: 'L', values: [entry.values[0], entry.values[1]] })
@@ -49,7 +61,7 @@ export class Path extends AbstractPath {
                         this.data.push({ type: 'C', values: [entry.values[0], entry.values[1], entry.values[2], entry.values[3], entry.values[4], entry.values[5]] })
                         break
                     case "Z":
-                        this.data.push({ type: 'Z' })
+                        this.data.push({ type: 'Z', values: undefined })
                         break
                 }
             }
@@ -124,7 +136,7 @@ export class Path extends AbstractPath {
         if (typeof pointOrX === "object")
             this.data.push({ type: 'M', values: [pointOrX.x, pointOrX.y] })
         else
-            this.data.push({ type: 'M', values: [pointOrX, Y] })
+            this.data.push({ type: 'M', values: [pointOrX, Y!] })
         return this
     }
     line(point: Point): Path
@@ -133,7 +145,7 @@ export class Path extends AbstractPath {
         if (typeof pointOrX === "object")
             this.data.push({ type: 'L', values: [pointOrX.x, pointOrX.y] })
         else
-            this.data.push({ type: 'L', values: [pointOrX, Y] })
+            this.data.push({ type: 'L', values: [pointOrX, Y!] })
         return this
     }
     curve(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number): Path
@@ -153,14 +165,14 @@ export class Path extends AbstractPath {
             typeof p1OrY0 === "number" &&
             typeof p2OrX1 === "number")
         {
-            this.data.push({ type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1, X2, Y2] })
+            this.data.push({ type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1!, X2!, Y2!] })
         } else {
             throw Error("yikes")
         }
         return this
     }
     close(): Path {
-        this.data.push({ type: 'Z' })
+        this.data.push({ type: 'Z', values: undefined })
         return this
     }
     appendRect(rectangle: any): Path {

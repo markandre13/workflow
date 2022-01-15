@@ -435,7 +435,8 @@ export class FigureEditorScene {
         let n = 0
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
         for(let i=0; i<decorations.children.length; ++i) {
-            if (decorations.children[i] instanceof SVGRectElement) {
+            if (decorations.children[i] instanceof SVGRectElement &&
+                (decorations.children[i] as SVGRectElement).style.display !== "none") {
                 ++n
             }
         }
@@ -446,7 +447,8 @@ export class FigureEditorScene {
         let n = 0
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
         for(let i=0; i<decorations.children.length; ++i) {
-            if (decorations.children[i] instanceof SVGCircleElement) {
+            if (decorations.children[i] instanceof SVGCircleElement &&
+                (decorations.children[i] as SVGCircleElement).style.display !== "none") {
                 ++n
             }
         }
@@ -457,7 +459,7 @@ export class FigureEditorScene {
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
         for(let i=0; i<decorations.children.length; ++i) {
             const child = decorations.children[i]
-            if (child instanceof SVGRectElement) {
+            if (child instanceof SVGRectElement && child.style.display !== "none") {
                 const r = new Rectangle(
                     Number.parseFloat(child.getAttributeNS(null, "x")!),
                     Number.parseFloat(child.getAttributeNS(null, "y")!),
@@ -476,7 +478,7 @@ export class FigureEditorScene {
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
         for(let i=0; i<decorations.children.length; ++i) {
             const child = decorations.children[i]
-            if (child instanceof SVGCircleElement) {
+            if (child instanceof SVGCircleElement && child.style.display !== "none") {
                 const cx = Number.parseFloat(child.getAttributeNS(null, "cx")!)
                 const cy = Number.parseFloat(child.getAttributeNS(null, "cy")!)
                 const r = Number.parseFloat(child.getAttributeNS(null, "r")!)
@@ -488,6 +490,15 @@ export class FigureEditorScene {
                 if (rect.inside(point)) {
                     return true
                 }
+            }
+        }
+        console.error(`expected handle at (${point.x}, ${point.y})`)
+        for(let i=0; i<decorations.children.length; ++i) {
+            const child = decorations.children[i]
+            if (child instanceof SVGCircleElement && child.style.display !== "none") {
+                const cx = Number.parseFloat(child.getAttributeNS(null, "cx")!)
+                const cy = Number.parseFloat(child.getAttributeNS(null, "cy")!)
+                console.log(`  have (${cx}, ${cy})`)
             }
         }
         return false

@@ -48,15 +48,12 @@ import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
 import { EditorMouseEvent } from "../figureeditor"
 import { Path } from "../figures/Path"
-import { Path as RawPath } from "../paths/Path"
-import { Point, Rectangle, distancePointToPoint } from "shared/geometry"
-import { MenuButton } from "toad.js"
-import { AbstractPath } from "client/paths/AbstractPath"
-import { getTextOfJSDocComment } from "typescript"
+import { Point, distancePointToPoint } from "shared/geometry"
 
 // FIXME: cursor: remove white border from tip and set center one pixel above tip
 // FIXME: use (document|body).onmousemove for mouse event outside browser
 //        or https://developer.mozilla.org/en-US/docs/Web/API/Element/setPointerCapture
+// FIXME: draw temporary path as outline, sync intermediate steps with the model
 
 enum Cursor {
     DEFAULT,
@@ -72,8 +69,16 @@ enum Cursor {
 
 enum State {
     READY,
-    LINE,
-    DIRECT
+    HOVER0,
+    HOVER,
+    DRAG
+}
+
+function mirrorPoint(center: Point, point: Point) {
+    return new Point(
+        center.x - (point.x - center.x),
+        center.y - (point.y - center.y)
+    )
 }
 
 export class PenTool extends Tool {
@@ -101,7 +106,7 @@ export class PenTool extends Tool {
     override mousedown(event: EditorMouseEvent) {
         switch(this.state) {
             case State.READY:
-                this.state = State.DIRECT // make this DIRECT, and switch to line afterwards?
+                this.state = State.DRAG
                 this.setCursor(event, Cursor.DIRECT)
 
                 this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
@@ -127,82 +132,117 @@ export class PenTool extends Tool {
                 // this.updateAnchor(0) // create or update
 
                 break
-            // case State.LINE:
-            //     this.state = State.DIRECT
-            //     this.setCursor(event, Cursor.DIRECT)
-            //     break
+
+            case State.HOVER0:
+            case State.HOVER: {
+                this.setCursor(event, Cursor.DIRECT)
+
+                const path = this.path!
+                const idx = path.path.data.length - 1
+                const segment = path.path.data[idx]
+
+                if (this.state === State.HOVER0) {
+                    const v = segment.values!
+                    v[2] = event.x
+                    v[3] = event.y
+                    v[4] = event.x
+                    v[5] = event.y
+                    path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
+
+                    const anchor = this.createAnchor(event)
+                    this.decoration!.appendChild(anchor)
+                    this.anchors.push(anchor)
+                    this.updateHandle(1)
+                } else {
+                    console.log(`HOVER -> down -> DRAG: idx = ${idx}, type = ${segment.type}`)
+
+                    const anchor = this.createAnchor(event)
+                    this.decoration!.appendChild(anchor)
+                    this.anchors.push(anchor)
+
+                    const m = mirrorPoint(
+                        {x: segment.values![4], y: segment.values![5]},
+                        {x: segment.values![2], y: segment.values![3]}
+                    )
+
+                    path.curve(m, event, event)
+                    path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
+
+                    this.updateHandle(0, 
+                        {x: segment.values![4], y: segment.values![5]},
+                        m
+                    )
+                    this.updateHandle(1)
+                    this.updateHandle(2)
+
+                }
+                this.state = State.DRAG
+            } break
         }
     }
    
     override mousemove(event: EditorMouseEvent) {
         switch (this.state) {
-            // case State.LINE: {
-            //     const path = this.path!
-            //     const idx = path.path.data.length - 1
-            //     path.path.data[idx].values[0] = event.x
-            //     path.path.data[idx].values[1] = event.y
-            //     path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
-            // } break
-            case State.DIRECT: {
-                const x = this.path!.path.data[0].values[0]
-                const y = this.path!.path.data[0].values[1]
+            case State.DRAG: {
+                const path = this.path!
+                const idx = path.path.data.length - 1
+                const segment = path.path.data[idx]
+                if (segment.type === 'L') {
+                    const x = segment.values[0]
+                    const y = segment.values[1]
+                    this.updateHandle(0, {x, y}, event)
+                    const p = {
+                        x: x - (event.x - x),
+                        y: y - (event.y - y)
+                    }
+                    this.updateHandle(1, {x, y}, p)
+                } else {
+                    const x = segment.values![4]
+                    const y = segment.values![5]
+                    const mx = x - ( event.x - x)
+                    const my = y - ( event.y - y)
 
-                this.updateHandle(0, {x, y}, event)
+                    segment.values![2] = mx
+                    segment.values![3] = my
+                    path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
 
-                // const line0 = this.createLine({x, y}, event)                   
-                // this.decoration!.appendChild(line0)
-
-                const p = {
-                    x: x - (event.x - x),
-                    y: y - (event.y - y)
+                    this.updateHandle(1, {x, y}, event)
+                    this.updateHandle(2, {x, y}, {x: mx, y: my})
                 }
-                this.updateHandle(1, {x, y}, p)
-
-                // const line1 = this.createLine({x, y}, p)
-                // this.decoration!.appendChild(line1)
-                // const path = this.path!
-                // const idx1 = path.path.data.length - 1
-                // const segment1 = path.path.data[idx1]
-                // if (segment1.type === 'L' &&
-                //     distancePointToPoint(
-                //         event,
-                //         new Point(segment1.values[0], segment1.values[1])
-                //     ) >= 1)
-                // {
-                //     const segment0 = path.path.data[idx1 - 1]
-
-                //     segment1.type = 'C'
-                //     const v = new Array<number>(6)
-                //     v[0] = segment0.values[segment0.values.length - 2]
-                //     v[1] = segment0.values[segment0.values.length - 1]
-                //     v[4] = segment1.values[0]
-                //     v[5] = segment1.values[1]
-                //     segment1.values = v
-                // }
-                // if (segment1.type === 'C') {
-                //     const v = segment1.values
-                //     v[2] = event.x
-                //     v[3] = event.y
-                //     path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
-                // }
             } break
-
         }
     }
 
     override mouseup(event: EditorMouseEvent) {
         switch(this.state) {
-            case State.DIRECT:
+            case State.DRAG: {
                 this.setCursor(event, Cursor.ACTIVE)
-                this.state = State.LINE
+                this.state = State.HOVER
+
+                const path = this.path!
+                const idx = path.path.data.length - 1
+                const segment = path.path.data[idx]
+                if (segment.type === 'L' &&
+                    distancePointToPoint(
+                        event,
+                        new Point(segment.values[0], segment.values[1])
+                    ) >= 1)
+                {
+                    this.state = State.HOVER0
+                    console.log(`DRAG -> up -> HOVER0: L to C`)
+                    segment.type = 'C'
+                    const v = new Array<number>(6)
+                    v[0] = event.x
+                    v[1] = event.y
+                    v[2] = event.x
+                    v[3] = event.y
+                    v[4] = event.x
+                    v[5] = event.y
+                    segment.values = v
+                    path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
+                }
+            } break
         }
-        // if (this.path) {
-        //     event.editor.decorationOverlay.removeChild(this.svg!!)
-        //     // event.editor.addFigure(this.path)
-        //     this.path = undefined
-        //     this.svg = undefined
-        //     this.setCursor(event, Cursor.READY)
-        // }
     }
 
     setCursor(event: EditorMouseEvent, cursor: Cursor) {
@@ -251,21 +291,38 @@ export class PenTool extends Tool {
         return handle
     }
 
-    updateHandle(i: number, anchorPos: Point, handlePos: Point) {
-        if (this._handles[i] === undefined) {
-            this._handles[i] = this.createHandle(handlePos)
-            this.decoration!.appendChild(this._handles[i])
-            this.lines[i] = this.createLine(anchorPos, handlePos)
-            this.decoration!.appendChild(this.lines[i])
+    updateHandle(idx: number): void
+    updateHandle(idx: number, anchorPos: Point, handlePos: Point): void
+    updateHandle(idx: number, anchorPos?: Point, handlePos?: Point): void {
+        if (anchorPos === undefined) {
+            console.log(`hide handle ${idx}`)
+            if (this._handles[idx] !== undefined) {
+                this._handles[idx].style.display = "none"
+                this.lines[idx].style.display = "none"
+            }
+            return
+        }
+        if (handlePos === undefined)
+            throw Error("yikes")
+
+        console.log(`show handle ${idx}`)
+
+        if (this._handles[idx] === undefined) {
+            this._handles[idx] = this.createHandle(handlePos)
+            this.decoration!.appendChild(this._handles[idx])
+            this.lines[idx] = this.createLine(anchorPos, handlePos)
+            this.decoration!.appendChild(this.lines[idx])
         } else {
+            this._handles[idx].style.display = ""
+            this.lines[idx].style.display = ""
             const x = Math.round(handlePos.x-0.5)+0.5
             const y = Math.round(handlePos.y-0.5)+0.5
-            this._handles[i].setAttributeNS("", "cx", `${x}`)
-            this._handles[i].setAttributeNS("", "cy", `${y}`)
-            this.lines[i].setAttributeNS("", "x1", `${anchorPos.x}`)
-            this.lines[i].setAttributeNS("", "y1", `${anchorPos.y}`)
-            this.lines[i].setAttributeNS("", "x2", `${handlePos.x}`)
-            this.lines[i].setAttributeNS("", "y2", `${handlePos.y}`)
+            this._handles[idx].setAttributeNS("", "cx", `${x}`)
+            this._handles[idx].setAttributeNS("", "cy", `${y}`)
+            this.lines[idx].setAttributeNS("", "x1", `${anchorPos.x}`)
+            this.lines[idx].setAttributeNS("", "y1", `${anchorPos.y}`)
+            this.lines[idx].setAttributeNS("", "x2", `${handlePos.x}`)
+            this.lines[idx].setAttributeNS("", "y2", `${handlePos.y}`)
         }
     }
 

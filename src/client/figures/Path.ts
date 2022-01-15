@@ -43,7 +43,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         super(init)
         value.figure.initPath(this, init)
         this.path = new RawPath()
-        this.path.data = this.segments
+        this.path.data = this.segments as any
     }
 
     move(point: Point) { this.path.move(point) }
