@@ -181,6 +181,10 @@ export function dot(a: Point, b: Point): number {
     return a.x * b.x + a.y * b.y
 }
 
+export function distancePointToPoint(p0: Point, p1: Point): number {
+    return Math.sqrt(squaredLength(pointMinusPoint(p1, p0)))
+}
+
 export function distancePointToLine(q: Point, p0: Point, p1: Point): number {
     let b = pointMinusPoint(p1, p0),
         a = pointMinusPoint(q, p0),

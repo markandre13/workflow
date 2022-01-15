@@ -33,10 +33,11 @@
         "sourceMap": true,
     },
     "include": [
-        "src/client/workflow.ts"
+        "src/client/workflow.ts",
         // "src/client/views/**/*.ts",
         // "src/client/views/**/*.tsx",
         // "src/shared/*.ts",
+        "test/unit/pentool.spec.ts"
     ],
     "exclude": [
         "node_modules"

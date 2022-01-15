@@ -17,7 +17,7 @@
  */
 
 import { expect, use } from "chai"
-import chaiAlmost = require('chai-almost')
+import chaiAlmost from "chai-almost"
 use(chaiAlmost())
 
 import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, rotatePointAroundPointBy } from "shared/geometry"

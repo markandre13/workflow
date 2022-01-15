@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { SelectTool, TextTool, Tool } from "client/figuretools"
+import { SelectTool, PenTool, TextTool, Tool } from "client/figuretools"
 import { LocalDrawingModel } from "client/figureeditor/LocalDrawingModel"
 import { Figure } from "client/figures"
 import * as figure from "client/figures"
@@ -87,6 +87,7 @@ interface KeyboardOption {
 export class FigureEditorScene {
     figureeditor: FigureEditor
     selectTool: SelectTool
+    penTool: PenTool
     textTool: TextTool
     id: number
     model: LocalDrawingModel
@@ -97,15 +98,22 @@ export class FigureEditorScene {
     constructor(verbose = false) {
         this.verbose = verbose
         this.id = 0
-        this.figureeditor = new FigureEditor()
-        document.body.innerHTML = ""
-        document.body.appendChild(this.figureeditor)
 
-        Tool.cursorPath = "base/img/cursor/"
+        let testFrame = document.getElementById("testframe")
+        if (testFrame === null) {    
+            testFrame = document.createElement("div")
+            testFrame.id = "testframe"
+            document.body.appendChild(testFrame)
+        }
+      
+        this.figureeditor = new FigureEditor()
+        testFrame.appendChild(this.figureeditor)
+
         if (Tool.selection)
             Tool.selection.clear()
 
         this.selectTool = new SelectTool()
+        this.penTool = new PenTool()
         this.textTool = new TextTool()
         this.figureeditor.setTool(this.selectTool)
 
@@ -135,6 +143,7 @@ export class FigureEditorScene {
     // semantic operations
 
     selectSelectTool() { this.figureeditor.setTool(this.selectTool) }
+    selectPenTool() { this.figureeditor.setTool(this.penTool) }
     selectTextTool() { this.figureeditor.setTool(this.textTool) }
 
     addFigure(figure: Figure): void {
@@ -416,5 +425,71 @@ export class FigureEditorScene {
         })
         this.dispatchEvent(event)
         return this.sleep(0)
+    }
+
+    //
+    // New methods for pentool.spec.ts
+    //
+
+    getAnchorCount() {
+        let n = 0
+        const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+        for(let i=0; i<decorations.children.length; ++i) {
+            if (decorations.children[i] instanceof SVGRectElement) {
+                ++n
+            }
+        }
+        return n
+    }
+
+    getHandleCount() {
+        let n = 0
+        const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+        for(let i=0; i<decorations.children.length; ++i) {
+            if (decorations.children[i] instanceof SVGCircleElement) {
+                ++n
+            }
+        }
+        return n
+    }
+
+    hasAnchorAt(point: Point) {
+        const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+        for(let i=0; i<decorations.children.length; ++i) {
+            const child = decorations.children[i]
+            if (child instanceof SVGRectElement) {
+                const r = new Rectangle(
+                    Number.parseFloat(child.getAttributeNS(null, "x")!),
+                    Number.parseFloat(child.getAttributeNS(null, "y")!),
+                    Number.parseFloat(child.getAttributeNS(null, "width")!),
+                    Number.parseFloat(child.getAttributeNS(null, "height")!)
+                )
+                if (r.inside(point)) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    hasHandleAt(point: Point) {
+        const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+        for(let i=0; i<decorations.children.length; ++i) {
+            const child = decorations.children[i]
+            if (child instanceof SVGCircleElement) {
+                const cx = Number.parseFloat(child.getAttributeNS(null, "cx")!)
+                const cy = Number.parseFloat(child.getAttributeNS(null, "cy")!)
+                const r = Number.parseFloat(child.getAttributeNS(null, "r")!)
+                const rect = new Rectangle(
+                    cx - r,
+                    cy - r,
+                    r * 2, r * 2
+                )
+                if (rect.inside(point)) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 }
