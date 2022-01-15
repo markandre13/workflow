@@ -19,6 +19,8 @@
 // Quick orientation for myself before going to work:
 
 // Icon: something with splines/beziérs (isograph drawing bezier?)
+// Illustrator uses a nib cursor, despite the fixed line width.
+// Hence I use a technical pena as cursor, like a rapido/iso-graph
 // Pen Tool (P): Create Paths <=== we are here
 //   Anchor
 //   Anchor has two handles
@@ -28,13 +30,33 @@
 
 // Similar tools:
 // Curvature Tool (Shift+~): draw lines first, then bend them (isograph picking a curve?)
+// how about combining this with the pen tool by moving add/remove anchor elsewhere?
+
 // Pencil Tool (N): Freehand with fixed width (Icon: isograph/radiograph & winding line)
 // Paintbrush Tool (B): Freehand with variable width (Icon: brush/nib)
+// pencil, brush, nib, ... should all be the same tool, but with different configuration,
+// similar to manga studio/cell studio paint, icon/cursor would be a nib, which might be
+// confusion to illustrator users but it would be more realistic
+
 // Blob Tool (Shift B): Like the marker tool I came up with (Icon: marker)
+
+// Testing: I want visual unit tests for this!!!
 
 import { Tool } from "./Tool"
 import { EditorMouseEvent } from "../figureeditor"
 import { Path } from "../figures/Path"
+
+enum Cursor {
+    DEFAULT,
+    READY,
+    ACTIVE,
+    // CORNER, // this is a handle cursor
+    // ADD_ANCHOR, // position dependent
+    // DELETE_ANCHOR, // this is a handle cursor
+    // CONTINUE, // this is a handle cursor
+    // CLOSE // this is a handle cursor
+}
+
 
 export class PenTool extends Tool {
     svg?: SVGElement
@@ -46,10 +68,16 @@ export class PenTool extends Tool {
 
     override activate(event: EditorMouseEvent) {
         Tool.selection.clear()
+        this.setCursor(event, Cursor.READY)
+    }
+
+    override deactivate(event: EditorMouseEvent) {
+        this.setCursor(event, Cursor.DEFAULT)
     }
 
     override mousedown(event: EditorMouseEvent) {
-        console.log(`mousedown!!`)
+        this.setCursor(event, Cursor.ACTIVE)
+
         this.path = new Path()
         this.path.move(event)
         this.path.line(event)
@@ -79,6 +107,21 @@ export class PenTool extends Tool {
             // event.editor.addFigure(this.path)
             this.path = undefined
             this.svg = undefined
+            this.setCursor(event, Cursor.READY)
+        }
+    }
+
+    setCursor(event: EditorMouseEvent, cursor: Cursor) {
+        switch(cursor) {
+            case Cursor.DEFAULT:
+                event.editor.svgView.style.cursor = ""
+                break
+            case Cursor.READY:
+                event.editor.svgView.style.cursor = `url(${Tool.cursorPath}pen-ready.svg) 5 1, crosshair`
+                break
+            case Cursor.ACTIVE:
+                event.editor.svgView.style.cursor = `url(${Tool.cursorPath}pen-active.svg) 5 1, crosshair`
+                break
         }
     }
 }
