@@ -48,13 +48,15 @@ import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
 import { EditorMouseEvent } from "../figureeditor"
 import { Path } from "../figures/Path"
-import { Point, distancePointToPoint } from "shared/geometry"
+import { Point, distancePointToPoint, Rectangle } from "shared/geometry"
 
 // FIXME: cursor: remove white border from tip and set center one pixel above tip
 // FIXME: cursor: white surrounding for ready, edge, ...
 // FIXME: use (document|body).onmousemove for mouse event outside browser
 //        or https://developer.mozilla.org/en-US/docs/Web/API/Element/setPointerCapture
 // FIXME: draw temporary path as outline, sync intermediate steps with the model
+// FIXME: use the temporary edgeHandle point also to start new curves instead of adding
+//        a new segment? (is that a thing?)
 
 enum Cursor {
     DEFAULT,
@@ -72,7 +74,8 @@ enum State {
     READY,
     HOVER0,
     HOVER,
-    DRAG
+    DRAG,
+    EDGE
 }
 
 function mirrorPoint(center: Point, point: Point) {
@@ -90,6 +93,8 @@ export class PenTool extends Tool {
     anchors: SVGRectElement[] = []
     _handles = new Array<SVGCircleElement>(3)
     lines = new Array<SVGLineElement>(3)
+
+    edgeHandle?: Point
 
     constructor() {
         super()
@@ -159,15 +164,32 @@ export class PenTool extends Tool {
                 } else {
                     console.log(`HOVER -> down -> DRAG: idx = ${idx}, type = ${segment.type}`)
 
+                    if (this.isLastAnchor(event)) {
+                        this.state = State.EDGE
+                        // path.curve(event, event, event)
+                        // path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.updateHandle(1,
+                            {x: segment.values![4], y: segment.values![5]},
+                            event
+                        )
+                        break
+                    }
+
                     this.addAnchor(event)
                     // const anchor = this.createAnchor(event)
                     // this.decoration!.appendChild(anchor)
                     // this.anchors.push(anchor)
 
-                    const m = mirrorPoint(
-                        {x: segment.values![4], y: segment.values![5]},
-                        {x: segment.values![2], y: segment.values![3]}
-                    )
+                    let m
+                    if (this.edgeHandle === undefined) {
+                        m = mirrorPoint(
+                            {x: segment.values![4], y: segment.values![5]},
+                            {x: segment.values![2], y: segment.values![3]}
+                        )
+                    } else {
+                        m = this.edgeHandle
+                        this.edgeHandle = undefined
+                    }
 
                     path.curve(m, event, event)
                     path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
@@ -178,7 +200,6 @@ export class PenTool extends Tool {
                     )
                     this.updateHandle(1)
                     this.updateHandle(2)
-
                 }
                 this.state = State.DRAG
             } break
@@ -214,6 +235,15 @@ export class PenTool extends Tool {
                     this.updateHandle(2, {x, y}, {x: mx, y: my})
                 }
             } break
+            case State.EDGE: {
+                const path = this.path!
+                const idx = path.path.data.length - 1
+                const segment = path.path.data[idx]
+                this.updateHandle(1,
+                    {x: segment.values![4], y: segment.values![5]},
+                    event
+                )
+            } break
         }
     }
 
@@ -246,6 +276,17 @@ export class PenTool extends Tool {
                     path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
                 }
             } break
+            case State.EDGE:
+                const path = this.path!
+                const idx = path.path.data.length - 1
+                const segment = path.path.data[idx]
+                this.updateHandle(1,
+                    {x: segment.values![4], y: segment.values![5]},
+                    event
+                )
+                this.edgeHandle = event
+                this.state = State.HOVER
+                break
         }
     }
 
@@ -290,6 +331,19 @@ export class PenTool extends Tool {
         anchor.style.cursor = `url(${Tool.cursorPath}pen-edge.svg) 5 1, crosshair`
         this.decoration!.appendChild(anchor)
         this.anchors.push(anchor)
+    }
+
+    isLastAnchor(p: Point) {
+        if (this.anchors.length === 0)
+            return false
+        const last = this.anchors[this.anchors.length - 1]
+        const rect = new Rectangle(
+            Number.parseFloat(last.getAttributeNS(null, "x")!),
+            Number.parseFloat(last.getAttributeNS(null, "y")!),
+            Number.parseFloat(last.getAttributeNS(null, "width")!),
+            Number.parseFloat(last.getAttributeNS(null, "height")!)
+        )
+        return rect.inside(p)
     }
 
     createHandle(p: Point) {
