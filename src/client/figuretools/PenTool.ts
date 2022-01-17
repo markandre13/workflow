@@ -162,8 +162,14 @@ export class PenTool extends Tool {
                     // this.anchors.push(anchor)
                     this.updateHandle(1)
                 } else {
-                    console.log(`HOVER -> down -> DRAG: idx = ${idx}, type = ${segment.type}`)
-
+                    if (this.isFirstAnchor(event)) {
+                        // FIXME: add fill color
+                        // FIXME: add curve                       
+                        this.path!.close()
+                        path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.state = State.READY
+                        break
+                    } else
                     if (this.isLastAnchor(event)) {
                         this.state = State.EDGE
                         // path.curve(event, event, event)
@@ -324,13 +330,30 @@ export class PenTool extends Tool {
     }
 
     addAnchor(p: Point) {
-        if (this.anchors.length > 0) {
+        if (this.anchors.length > 1) {
             this.anchors[this.anchors.length - 1].style.cursor = ""
         }
         const anchor = this.createAnchor(p)
-        anchor.style.cursor = `url(${Tool.cursorPath}pen-edge.svg) 5 1, crosshair`
+        if (this.anchors.length === 0) {
+            anchor.style.cursor = `url(${Tool.cursorPath}pen-close.svg) 5 1, crosshair`
+        } else {
+            anchor.style.cursor = `url(${Tool.cursorPath}pen-edge.svg) 5 1, crosshair`
+        }
         this.decoration!.appendChild(anchor)
         this.anchors.push(anchor)
+    }
+
+    isFirstAnchor(p: Point) {
+        if (this.anchors.length === 0)
+            return false
+        const first = this.anchors[0]
+        const rect = new Rectangle(
+            Number.parseFloat(first.getAttributeNS(null, "x")!),
+            Number.parseFloat(first.getAttributeNS(null, "y")!),
+            Number.parseFloat(first.getAttributeNS(null, "width")!),
+            Number.parseFloat(first.getAttributeNS(null, "height")!)
+        )
+        return rect.inside(p)
     }
 
     isLastAnchor(p: Point) {
