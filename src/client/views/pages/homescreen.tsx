@@ -35,19 +35,19 @@ export function homeScreen(model: DrawingModel, tool: ToolModel, strokeandfill: 
     })
     return <>
             <img src="img/logo.svg" width="44" height="44" style={{ position: "absolute", left: "2px", top: "2px" }} />
-            <div style={{ position: "absolute", left: 0, width: "41px", top: "49px", bottom: "32px", backgroundColor: "#e3dbdb" }}>
-                <ToolButton model={tool} value="select" img="img/tool/select.svg" />
-                <ToolButton model={tool} value="line" img="img/tool/line.svg" />
-                <ToolButton model={tool} value="pen" img="img/tool/freehand.svg" />
-                <ToolButton model={tool} value="rectangle" img="img/tool/rectangle.svg" />
-                <ToolButton model={tool} value="circle" img="img/tool/circle.svg" />
-                <ToolButton model={tool} value="text" img="img/tool/text.svg" />
-                <ToolButton model={tool} value="state" img="img/tool/state.svg" />
-                <ToolButton model={tool} value="transition" img="img/tool/transition.svg" />
+            <div class="toolbar">
+                <ToolButton model={tool} value="select" img="img/tool/select.svg" title="Arrange (V)" />
+                <ToolButton model={tool} value="direct" img="img/tool/direct.svg" title="Edit (A)" />
+                <ToolButton model={tool} value="pen" img="img/tool/pen.svg" title="Technical Pen (P)" />
+                <ToolButton model={tool} value="nib" img="img/tool/nib.svg" title="Nib Pen (N)"/>
+                <ToolButton model={tool} value="rectangle" img="img/tool/rectangle.svg" title="Rectangle (M)" />
+                <ToolButton model={tool} value="circle" img="img/tool/circle.svg" title="Ellipse (L)" />
+                <ToolButton model={tool} value="text" img="img/tool/text.svg" title="Type (T)" />
+                <ToolButton model={tool} value="zoom" img="img/tool/zoom.svg" title="Zoom (Z)" />
                 <StrokeAndFill model={strokeandfill} />
                 <ColorSwatch model={colorswatch} action={setcolor} />
             </div>
-            <FigureEditor model={model} tool={tool} strokeandfill={strokeandfill} style={{position: "absolute", left: "41px", right: "0px", top: "49px", bottom: "32px"}} />
+            <FigureEditor model={model} tool={tool} strokeandfill={strokeandfill} style={{position: "absolute", left: "49px", right: "0px", top: "49px", bottom: "32px"}} />
             <div id="debug" style={{ position: "absolute", left: "0", right: "0", height: "32px", bottom: "0", backgroundColor: "silver" }}></div>
             <div style={{ position: "absolute", left: "48px", right: "0", top: "0" }}>
             <Menu config={[
