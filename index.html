@@ -71,29 +71,38 @@
         --toad-font-size: 12px;
         --toad-outline-color: #9eccfb;
         --toad-selection-color: #0069d4;
+        --toad-menu-face: #535353;
+        --toad-menu-type: #c3c3c3;
+        --toad-menu-shadow: #303030; 
       }
 
       body {
         font-family: var(--toad-font-family);
         font-size: var(--toad-font-size);
+        background: #535353;
       }
     
-      .fatradiobutton {
-        border: 1px solid #e3dbdb;
-        border-radius: 5px;
-        background: #e3dbdb;
-        width: 32px;
-        height: 32px;
-        padding: 3px;
+      .toolbar {
+        position: absolute;
+        left: 1px;
+        width: 48px;
+        top: 49px;
+        bottom: 32px;
+        background: #535353;
       }
-
-      .fatradiobutton-selected {
-        background: #ac9393;
+      .toolbar > toad-toolbutton {
+          width: 24px;
+          height: 20px;
+          border: none;
+          background: #535353;
+      }
+      .toolbar > toad-toolbutton[selected] {
+          background: #303030;
       }
     </style>
   </head>
   <body onload="workflow.main()" style="overflow: hidden;"></body>
-  <!-- <body onload="workflow.main('ws://localhost:8000')"></body> -->
-  <!-- <body onload="workflow.main('ws://'+window.location.hostname+':8000')"></body> -->
+  <!-- <body onload="workflow.main('ws://localhost:8080')"></body> -->
+  <!-- <body onload="workflow.main('ws://'+window.location.hostname+':8080')"></body> -->
   <!-- <body onload="workflow.main('wss://'+window.location.hostname+'/workflow/')"></body> -->
 </html>
