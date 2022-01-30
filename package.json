@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
-    "knex": "^1.0.1",
+    "knex": "^0.95.15",
     "sqlite3": "^5.0.2",
     "tslint": "^5.20.1",
     "websocket": "^1.0.34"
@@ -50,7 +50,7 @@
     "chai-almost": "^1.0.1",
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.6.0",
-    "corba.js": "0.0.12",
+    "corba.js": "0.1.1",
     "mocha": "^9.2.0",
     "rollup": "^2.66.1",
     "rollup-plugin-terser": "^7.0.2",

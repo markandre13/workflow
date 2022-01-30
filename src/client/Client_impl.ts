@@ -145,6 +145,13 @@ export class Client_impl extends skel.Client {
         dom.erase(document.body)
         // homeScreen.appendTo(document.body)
         // dom.add(document.body, homeScreen)
+
+        // this.createMenuActions("Maria Doe", "user@localhost")
+        // this.createAvatarModel("img/avatars/whale.svg")
+        // this.createToolModel() // for figureeditor
+        // this.createStrokeAndFillModel()
+
+        homeScreen.appendTo(document.body)
     }
 
     getHomeScreen(model: DrawingModel) {

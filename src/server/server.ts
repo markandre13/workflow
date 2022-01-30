@@ -24,7 +24,7 @@ import bcrypt from 'bcrypt'
 const bcryptRounds = 10
 
 import { ORB } from 'corba.js'
-import { WsProtocol } from 'corba.js/lib/src/net/ws'
+import { WsProtocol } from 'corba.js/net/ws'
 import * as skel from "shared/workflow_skel"
 import * as stub from "shared/workflow_stub"
 
@@ -133,9 +133,9 @@ async function main() {
 
     const proto = new WsProtocol()
     orb.addProtocol(proto)
-    proto.listen(orb, 8000)
+    proto.listen(orb, 8809)
 
-    console.log("listening...")
+    console.log("listening on port 8809...")
 }
 
 class WorkflowServer_impl extends skel.WorkflowServer {
@@ -252,13 +252,14 @@ class Project_impl extends skel.Project {
             console.log("return active board "+boardID)
             return board
         }
-        let result = await db.select("bid", "name", "description", "layers").from("boards").where({pid: this.data.pid, bid: boardID})
-        if (result.length !== 1) {
-            throw Error("Project_impl.getBoard("+boardID+"): no such board")
-        }
 
-        result[0].layers = this.orb.deserialize(result[0].layers)
-        let boardmodel = new BoardModel(result[0])
+        // let result = await db.select("bid", "name", "description", "layers").from("boards").where({pid: this.data.pid, bid: boardID})
+        // if (result.length !== 1) {
+        //     throw Error("Project_impl.getBoard("+boardID+"): no such board")
+        // }
+        // result[0].layers = this.orb.deserialize(result[0].layers)
+        // let boardmodel = new BoardModel(result[0])
+        let boardmodel = new BoardModel()
         board = new Board_impl(this.orb, boardmodel)
         this.boards.set(boardID, board)
         console.log("return restored board "+boardID)

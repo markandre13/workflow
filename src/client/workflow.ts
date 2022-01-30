@@ -18,7 +18,7 @@
 
 import { View } from "toad.js"
 import { ORB } from "corba.js"
-
+import { WsProtocol } from "corba.js/net/browser"
 
 import * as stub from "shared/workflow_stub"
 import { Point, Size, Rectangle, Matrix } from "shared/geometry"
@@ -35,37 +35,32 @@ import { FigureEditor } from "./figureeditor/FigureEditor"
 import { StrokeAndFill } from "./views/widgets/strokeandfill"
 import { ColorSwatch } from "./views/widgets/colorswatch"
 
-
 export async function main(url: string|undefined = undefined) {
     console.log("WORKFLOW: MAIN")
     registerHTMLCustomElements();
 
     const orb = new ORB()
-    // orb.debug = 1
-     // orb.addProtocol(new BrowserWsProtocol(url))
+    orb.debug = 1
+    orb.addProtocol(new WsProtocol())
     initializeORB(orb)
     initializeCORBAValueTypes()
-   
-    if (url === undefined) {
-        // openFile()
-        new Client_impl(orb)
-        return
-    }
-
-//     // try {
-//     //     await orb.connect(url)
-//     // }
-//     // catch(error) {
-//     //     document.body.innerHTML = "could not connect to workflow server '"+url+"'. please try again later."
-//     //     return
-//     // }
+ 
+    // if this fails, fall back to serverless
+    try {
+        const workflowserver = stub.WorkflowServer.narrow(
+            await orb.stringToObject(`corbaname::${window.location.hostname}:8809#WorkflowServer`)
+        )
+    // FIXME: corba.js can't do that yet, but the idea is that the connection re-establishes on it's own
 //     orb.onclose = () => {
 //         document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
 //     }
-//     // hm... how to squeze websocket into the corbname: url? => we don't?
-//     let workflowserver = stub.WorkflowServer.narrow(await orb.resolve("corbaname::ws:0#WorkflowServer"))
-    // let sessionServerSide = await workflowserver.getServer()
-//     let sessionClientSide = new Client_impl(orb, sessionServerSide)
+        const sessionServerSide = await workflowserver.getServer()
+        const sessionClientSide = new Client_impl(orb, sessionServerSide)
+    }
+    catch(e) {
+        console.log(`Failed to connect to WorkFlow server, falling back to serverless.`)
+        new Client_impl(orb)
+    }
 }
 
 export function initializeORB(orb: ORB) {
