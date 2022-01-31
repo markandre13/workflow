@@ -27,7 +27,7 @@ describe("PenTool", function() {
 
         scene.selectPenTool()
         expect(/pen-ready.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
-        expect(scene.penTool.outlinePath).to.be.undefined
+        expect(scene.penTool.path).to.be.undefined
 
         const downAt = {x: 100, y: 100}
         scene.mouseDownAt(downAt)
@@ -35,8 +35,8 @@ describe("PenTool", function() {
         expect(scene.getAnchorCount()).to.equal(1)
         expect(scene.getHandleCount()).to.equal(0)
         expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
-        expect(scene.penTool.outlinePath).not.to.be.undefined
-        const data = scene.penTool.outlinePath!.path.data
+        expect(scene.penTool.path).not.to.be.undefined
+        const data = scene.penTool.path!.path.data
         expect(data).to.deep.equal([
             {type: 'M', values: [100, 100]},
             {type: 'L', values: [100, 100]},

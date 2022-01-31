@@ -561,25 +561,26 @@ export class FigureEditor extends ModelView<DrawingModel> {
 
         this.mouseButtonIsDown = true
         if (this.tool && this.selectedLayer)
-            this.tool.mousedown(this.createEditorMouseEvent(mouseEvent))
+            this.tool.mouseEvent(this.createEditorMouseEvent(mouseEvent))
     }
 
     @bind mouseMove(mouseEvent: MouseEvent) {
         mouseEvent.preventDefault()
         if (this.tool && this.selectedLayer)
-            this.tool.mousemove(this.createEditorMouseEvent(mouseEvent))
+            this.tool.mouseEvent(this.createEditorMouseEvent(mouseEvent))
     }
 
     @bind mouseUp(mouseEvent: MouseEvent) {
         mouseEvent.preventDefault()
         this.mouseButtonIsDown = false
         if (this.tool && this.selectedLayer)
-            this.tool.mouseup(this.createEditorMouseEvent(mouseEvent))
+            this.tool.mouseEvent(this.createEditorMouseEvent(mouseEvent))
     }
 
     protected createEditorMouseEvent(mouseEvent?: MouseEvent): EditorMouseEvent {
         if (mouseEvent === undefined) {
-            return { editor: this, x: 0, y: 0, shiftKey: false, mouseDown: false, type: ""}
+            // FIXME: what is this????
+            return { editor: this, x: 0, y: 0, shiftKey: false, mouseDown: false, type: "mousemove"}
         }
         // (e.clientX-r.left, e.clientY-r.top) begins at the upper left corner of the editor window
         //                                     scrolling and origin are ignored
@@ -592,7 +593,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
             y: y,
             shiftKey: mouseEvent.shiftKey,
             mouseDown: this.mouseButtonIsDown,
-            type: mouseEvent.type
+            type: mouseEvent.type as any
         }
     }
 
