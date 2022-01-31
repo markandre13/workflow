@@ -294,27 +294,27 @@ export class FigureEditorScene {
         if (this.verbose)
             console.log(`### MOUSE DOWN AT ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
-        this.figureeditor.tool!.mousedown(new EditorMouseEvent(this.figureeditor, point, { shiftKey: shift }))
+        this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, point, { shiftKey: shift }, "mousedown"))
     }
 
     moveMouseTo(point: Point, shift = true) {
         if (this.verbose)
             console.log(`### MOVE MOUSE TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
-        this.figureeditor.tool!.mousemove(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }))
+        this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }, "mousemove"))
     }
 
     moveMouseBy(translation: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MOVE MOUSE BY ${translation.x}, ${translation.y}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
-        this.figureeditor.tool!.mousemove(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }))
+        this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }, "mousemove"))
     }
 
     mouseUp(shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE UP`)
-        this.figureeditor.tool!.mouseup(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }))
+        this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }, "mouseup"))
     }
 
     mouseClickAt(point: Point, shift = false): void {

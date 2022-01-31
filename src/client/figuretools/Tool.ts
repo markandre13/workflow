@@ -39,9 +39,18 @@ export class Tool {
 
     activate(event: EditorMouseEvent) {}
     deactivate(event: EditorMouseEvent) {}
+
+    mouseEvent(event: EditorMouseEvent) {
+        switch(event.type) {
+            case "mousedown": return this.mousedown(event);
+            case "mousemove": return this.mousemove(event);
+            case "mouseup": return this.mouseup(event);
+        }
+    }
     mousedown(event: EditorMouseEvent) {}
     mousemove(event: EditorMouseEvent) {}
     mouseup(event: EditorMouseEvent) {}
+
     keydown(event: EditorKeyboardEvent) {}
     clipboard(editor: FigureEditor, event: ClipboardEvent) {}
     
@@ -407,7 +416,7 @@ export class Tool {
             }
         } else {
             svg.setAttributeNS("", "stroke-width", "1")
-            svg.setAttributeNS("", "stroke", "rgb(79,128,255)")
+            svg.setAttributeNS("", "stroke", "#4f80ff")
             svg.setAttributeNS("", "fill", "none")
         }
     }

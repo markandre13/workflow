@@ -71,10 +71,10 @@ enum Cursor {
 }
 
 enum State {
-    READY,
-    HOVER0,
+    READY, // no path active yet
+    DRAG,  // mouse is down
+    HOVER0, // figure is active, mouse is up, we've drawn the 1st anchor and handle point
     HOVER,
-    DRAG,
     EDGE
 }
 
@@ -87,7 +87,8 @@ function mirrorPoint(center: Point, point: Point) {
 
 export class PenTool extends Tool {
     svg?: SVGElement
-    path?: Path
+    outlinePath?: Path // this is the most recent path for editing
+    path?: Path // this is the path we've send to the model
     state = State.READY
 
     anchors: SVGRectElement[] = []
@@ -125,15 +126,22 @@ export class PenTool extends Tool {
                 // this.decoration.appendChild(anchor)
                 // this.anchors.push(anchor)
 
-                this.path = new Path()
-                if (event.editor.strokeAndFillModel) {
-                    this.path.stroke = event.editor.strokeAndFillModel.stroke
-                    this.path.fill = event.editor.strokeAndFillModel.fill
-                }
-                this.path.move(event)
-                this.path.line(event)
-                const path = this.path.getPath()
-                this.svg = this.path.updateSVG(path, event.editor.decorationOverlay)
+                this.outlinePath = new Path()
+                // if (event.editor.strokeAndFillModel) {
+                //     this.outlinePath.stroke = event.editor.strokeAndFillModel.stroke
+                //     this.outlinePath.fill = event.editor.strokeAndFillModel.fill
+                // }
+                this.outlinePath.stroke = "#4f80ff"
+                this.outlinePath.move(event)
+                this.outlinePath.line(event)
+
+                // FIXME: these two lines we're going to change as follows:
+                // move it into a separate function, which only puts the last pathsegment similar to Adobe Illustrator
+                // on the decorationOverlay
+                const path = this.outlinePath.getPath()
+                this.svg = this.outlinePath.updateSVG(path, event.editor.decorationOverlay)
+
+                // this.setOutlineColors(this.svg) 
                 this.decoration.appendChild(this.svg)
 
                 // this.updateAnchor(0) // create or update
@@ -144,7 +152,7 @@ export class PenTool extends Tool {
             case State.HOVER: {
                 this.setCursor(event, Cursor.DIRECT)
 
-                const path = this.path!
+                const path = this.outlinePath!
                 const idx = path.path.data.length - 1
                 const segment = path.path.data[idx]
 
@@ -165,7 +173,7 @@ export class PenTool extends Tool {
                     if (this.isFirstAnchor(event)) {
                         // FIXME: add fill color
                         // FIXME: add curve                       
-                        this.path!.close()
+                        this.outlinePath!.close()
                         path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
                         this.state = State.READY
                         break
@@ -215,7 +223,7 @@ export class PenTool extends Tool {
     override mousemove(event: EditorMouseEvent) {
         switch (this.state) {
             case State.DRAG: {
-                const path = this.path!
+                const path = this.outlinePath!
                 const idx = path.path.data.length - 1
                 const segment = path.path.data[idx]
                 if (segment.type === 'L') {
@@ -242,7 +250,7 @@ export class PenTool extends Tool {
                 }
             } break
             case State.EDGE: {
-                const path = this.path!
+                const path = this.outlinePath!
                 const idx = path.path.data.length - 1
                 const segment = path.path.data[idx]
                 this.updateHandle(1,
@@ -259,9 +267,10 @@ export class PenTool extends Tool {
                 this.setCursor(event, Cursor.ACTIVE)
                 this.state = State.HOVER
 
-                const path = this.path!
+                const path = this.outlinePath!
                 const idx = path.path.data.length - 1
                 const segment = path.path.data[idx]
+
                 if (segment.type === 'L' &&
                     distancePointToPoint(
                         event,
@@ -281,9 +290,10 @@ export class PenTool extends Tool {
                     segment.values = v
                     path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
                 }
+                // TODO: if this is the end of a segment, update model (either call isLastAnchor? or introduce another state)
             } break
             case State.EDGE:
-                const path = this.path!
+                const path = this.outlinePath!
                 const idx = path.path.data.length - 1
                 const segment = path.path.data[idx]
                 this.updateHandle(1,

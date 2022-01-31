@@ -579,14 +579,21 @@ export class FigureEditor extends ModelView<DrawingModel> {
 
     protected createEditorMouseEvent(mouseEvent?: MouseEvent): EditorMouseEvent {
         if (mouseEvent === undefined) {
-            return { editor: this, x: 0, y: 0, shiftKey: false, mouseDown: false }
+            return { editor: this, x: 0, y: 0, shiftKey: false, mouseDown: false, type: ""}
         }
         // (e.clientX-r.left, e.clientY-r.top) begins at the upper left corner of the editor window
         //                                     scrolling and origin are ignored
         let r = this.scrollView.getBoundingClientRect()
         let x = (mouseEvent.clientX + 0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x) / this.zoom
         let y = (mouseEvent.clientY + 0.5 - r.top + this.scrollView.scrollTop + this.bounds.origin.y) / this.zoom
-        return { editor: this, x: x, y: y, shiftKey: mouseEvent.shiftKey, mouseDown: this.mouseButtonIsDown }
+        return { 
+            editor: this,
+            x: x,
+            y: y,
+            shiftKey: mouseEvent.shiftKey,
+            mouseDown: this.mouseButtonIsDown,
+            type: mouseEvent.type
+        }
     }
 
     //

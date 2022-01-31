@@ -21,11 +21,13 @@ import { FigureEditor } from "./FigureEditor"
 
 export class EditorMouseEvent extends Point {
     editor: FigureEditor
+    type: string
     mouseDown: boolean
     shiftKey: boolean
-    constructor(editor: FigureEditor, point: Point, opt: any = undefined) {
+    constructor(editor: FigureEditor, point: Point, opt: any = undefined, type: string) {
         super(point)
         this.editor = editor
+        this.type = type
         this.mouseDown = (opt || opt.mouseDown) ? true : false
         this.shiftKey = (opt || opt.shiftKey) ? true : false
     }
