@@ -9,7 +9,7 @@ Take a look 👉 <a href="https://markandre13.github.io/workflow/">Live Demo</a>
 * add rectangles, circles and text
 * move, scale, rotate, delete, set stroke and fill color
 * maintain drawing in the browser's permanent storage using IndexedDB
-* export/import drawing to/from local file in workflow's internal JSON format
+* export/import drawing to/from local file encoded in ISO/IEC 19500-2
 * various annoying glitches and usability issues which are being worked on! 😅
 
 **Please Note**: exports may not load in upcoming versions yet
@@ -18,7 +18,7 @@ Take a look 👉 <a href="https://markandre13.github.io/workflow/">Live Demo</a>
 
 Workflow is intended for everything related to 2d vector graphics.
 
-The target is users as well as artists/software developers who want to tweak and extend their tools and have the source code as well as the created artwork creates available in an open non-proprietary format.
+The target is users as well as artists/software developers who want to tweak and extend their tools and have the source code as well as the created artwork available in an open non-proprietary format.
 
 The name _Workflow_ was choosen to indicate a tool which can be adjusted to the user's workflow.
 
