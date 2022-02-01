@@ -54,7 +54,9 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     override getPath(): RawPath {
         return this.path
     }
-
+    override toString() {
+        return `figure.Path("${this.path}")`
+    }
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
             svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 

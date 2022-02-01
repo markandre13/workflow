@@ -276,3 +276,5 @@ export class StrokeAndFill extends ModelView<StrokeAndFillModel> {
         }
     }
 }
+
+StrokeAndFill.define("toad-strokeandfill", StrokeAndFill)

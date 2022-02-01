@@ -16,28 +16,20 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { View } from "toad.js"
 import { ORB } from "corba.js"
 import { WsProtocol } from "corba.js/net/browser"
 
 import * as stub from "shared/workflow_stub"
 import { Point, Size, Rectangle, Matrix } from "shared/geometry"
 
-// SyntaxError: Importing binding name 'default' cannot be resolved by star export entries
 import * as figure from "./figures.js"
-// import { Figure } from "./figures"
 
 import { Layer } from "./figureeditor/Layer"
 import { BoardModel } from "./BoardModel"
 import { Client_impl } from "./Client_impl"
 
-import { FigureEditor } from "./figureeditor/FigureEditor"
-import { StrokeAndFill } from "./views/widgets/strokeandfill"
-import { ColorSwatch } from "./views/widgets/colorswatch"
-
 export async function main(url: string|undefined = undefined) {
     console.log("WORKFLOW: MAIN")
-    registerHTMLCustomElements();
 
     const orb = new ORB()
     orb.debug = 1
@@ -50,10 +42,10 @@ export async function main(url: string|undefined = undefined) {
         const workflowserver = stub.WorkflowServer.narrow(
             await orb.stringToObject(`corbaname::${window.location.hostname}:8809#WorkflowServer`)
         )
-    // FIXME: corba.js can't do that yet, but the idea is that the connection re-establishes on it's own
-//     orb.onclose = () => {
-//         document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
-//     }
+        // FIXME: corba.js can't do that yet, but the idea is that the connection re-establishes on it's own
+        orb.onclose = () => {
+            document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
+        }
         const sessionServerSide = await workflowserver.getServer()
         const sessionClientSide = new Client_impl(orb, sessionServerSide)
     }
@@ -85,14 +77,8 @@ export function initializeCORBAValueTypes() {
     ORB.registerValueType("figure.Group", figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
 
-    // //    ORB.registerValueType("FigureModel", FigureModel)
+    // ORB.registerValueType("FigureModel", FigureModel)
     ORB.registerValueType("Layer", Layer)
     ORB.registerValueType("BoardModel", BoardModel)
-}
-
-export function registerHTMLCustomElements() {
-    View.define("toad-figureeditor", FigureEditor)
-    View.define("toad-strokeandfill", StrokeAndFill)
-    View.define("toad-colorswatch", ColorSwatch)
 }
 

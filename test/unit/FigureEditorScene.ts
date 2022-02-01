@@ -431,29 +431,45 @@ export class FigureEditorScene {
     // New methods for pentool.spec.ts
     //
 
-    getAnchorCount() {
-        let n = 0
+    getAnchorHandleCount() {
+        let a = 0, h = 0
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
         for(let i=0; i<decorations.children.length; ++i) {
             if (decorations.children[i] instanceof SVGRectElement &&
                 (decorations.children[i] as SVGRectElement).style.display !== "none") {
-                ++n
+                ++a
             }
-        }
-        return n
-    }
-
-    getHandleCount() {
-        let n = 0
-        const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
-        for(let i=0; i<decorations.children.length; ++i) {
             if (decorations.children[i] instanceof SVGCircleElement &&
                 (decorations.children[i] as SVGCircleElement).style.display !== "none") {
-                ++n
+                ++h
             }
         }
-        return n
+        return [a, h]
     }
+
+    // getAnchorCount() {
+    //     let n = 0
+    //     const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+    //     for(let i=0; i<decorations.children.length; ++i) {
+    //         if (decorations.children[i] instanceof SVGRectElement &&
+    //             (decorations.children[i] as SVGRectElement).style.display !== "none") {
+    //             ++n
+    //         }
+    //     }
+    //     return n
+    // }
+
+    // getHandleCount() {
+    //     let n = 0
+    //     const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+    //     for(let i=0; i<decorations.children.length; ++i) {
+    //         if (decorations.children[i] instanceof SVGCircleElement &&
+    //             (decorations.children[i] as SVGCircleElement).style.display !== "none") {
+    //             ++n
+    //         }
+    //     }
+    //     return n
+    // }
 
     hasAnchorAt(point: Point) {
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!

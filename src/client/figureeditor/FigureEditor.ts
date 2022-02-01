@@ -622,3 +622,5 @@ export class FigureEditor extends ModelView<DrawingModel> {
             this.tool.clipboard(this, event)
     }
 }
+
+FigureEditor.define("toad-figureeditor", FigureEditor)

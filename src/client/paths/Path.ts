@@ -70,6 +70,27 @@ export class Path extends AbstractPath {
     clone(): AbstractPath {
         return new Path(this)
     }
+    override toString() {
+        let text = ""
+        for (let seg of this.data) {
+            switch(seg.type) {
+                case 'M':
+                    text += `M ${seg.values[0]} ${seg.values[1]} `
+                    break
+                case 'L':
+                    text += `L ${seg.values[0]} ${seg.values[1]} `
+                    break
+                case 'C':
+                    text += `C ${seg.values[0]} ${seg.values[1]} ${seg.values[2]} ${seg.values[3]} ${seg.values[4]} ${seg.values[5]} `
+                    break
+                case 'Z':
+                    text += `Z `
+                    break
+            }
+        }
+        return text.substring(0, text.length-1)
+    }
+
     clear(): Path {
         this.data = []
         return this

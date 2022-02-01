@@ -136,3 +136,5 @@ export class ColorSwatch extends ActionView {
         this.shadowRoot!.appendChild(svg)
     }
 }
+
+ColorSwatch.define("toad-colorswatch", ColorSwatch)

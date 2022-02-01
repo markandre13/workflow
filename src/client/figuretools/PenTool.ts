@@ -71,8 +71,12 @@ enum Cursor {
 }
 
 enum State {
-    READY, // no path active yet
-    DRAG,  // mouse is down
+    READY,
+    FIRST_DOWN,
+    FIRST_UP,
+    DOWN,
+    UP,
+
     HOVER0, // figure is active, mouse is up, we've drawn the 1st anchor and handle point
     HOVER,
     EDGE
@@ -107,7 +111,72 @@ export class PenTool extends Tool {
     }
 
     override mouseEvent(event: EditorMouseEvent) {
-        // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
+        console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
+        console.log(`this.path=${this.path}`)
+
+        switch(this.state) {
+            case State.READY:
+                switch(event.type) {
+                    case "mousedown":
+                        this.prepareEditor(event)
+                        // start with a single anchor rectangle [] where the pointer went down
+                        this.addAnchor(event)
+                        this.path!.move(event)
+                        this.state = State.FIRST_DOWN
+                        break
+                } break
+            case State.FIRST_DOWN:
+                switch(event.type) {
+                    case "mouseup":
+                        this.state = State.FIRST_UP
+                        break
+                } break
+            case State.FIRST_UP:
+                switch(event.type) {
+                    case "mousedown":
+                        this.addAnchor(event)
+                        this.path!.line(event)
+                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.state = State.DOWN
+                        break
+                } break
+            case State.DOWN:
+                switch(event.type) {
+                    case "mouseup": {
+                        event.editor.addFigure(new Path(this.path))
+                        this.state = State.UP
+                    } break
+                } break
+        }
+    }
+
+    protected prepareEditor(event: EditorMouseEvent) {
+        this.setCursor(event, Cursor.DIRECT)
+        this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        this.decoration.id = "pen-tool-decoration"
+        this.updateBoundary() // FIXME: side effect
+        event.editor.decorationOverlay.appendChild(this.decoration)
+
+        // start the new path with a single line segment
+        this.path = new Path()
+        this.path.stroke = "#4f80ff"
+        // this.path.move(event)
+        // this.path.line(event)
+
+        // FIXME: these two lines we're going to change as follows:
+        // move it into a separate function, which only puts the last pathsegment similar to Adobe Illustrator
+        // on the decorationOverlay
+        const path = this.path.getPath()
+        this.svg = this.path.updateSVG(path, event.editor.decorationOverlay)
+
+        // this.setOutlineColors(this.svg) 
+        this.decoration.appendChild(this.svg)
+    }
+
+    /*
+    mouseEventOld(event: EditorMouseEvent) {
+        console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
+        console.log(`this.path=${this.path}`)
 
         switch (this.state) {
             case State.READY:
@@ -125,6 +194,7 @@ export class PenTool extends Tool {
                         this.addAnchor(event)
 
                         // start the new path with a single line segment
+                        console.log(`start the new path with a single line segment`)
                         this.path = new Path()
                         this.path.stroke = "#4f80ff"
                         this.path.move(event)
@@ -151,10 +221,12 @@ export class PenTool extends Tool {
                         const idx = path.path.data.length - 1
                         const segment = path.path.data[idx]
                         if (segment.type === 'L') {
+                            console.log(`PenTool: move initial line handle (at this moment)`) // we could already convert to a curve here!
                             const anchor = { x: segment.values[0], y: segment.values[1] }
                             this.updateHandle(0, anchor, event) // forward handle
                             this.updateHandle(1, anchor, mirrorPoint(anchor, event)) // backward handle
                         } else {
+                            console.log(`PenTool: move 'smooth' corner handle`)
                             const p = { x: segment.values![4], y: segment.values![5] }
                             const m = mirrorPoint(p, event)
                             segment.values![2] = m.x
@@ -168,8 +240,8 @@ export class PenTool extends Tool {
 
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
-                        this.state = State.HOVER
 
+                        // getLastSegment
                         const path = this.path!
                         const idx = path.path.data.length - 1
                         const segment = path.path.data[idx]
@@ -181,6 +253,7 @@ export class PenTool extends Tool {
                                 event,
                                 new Point(segment.values[0], segment.values[1])
                             ) >= 1) {
+                                console.log(`PenTool: convert line to curve`) // we could do this earlier
                             segment.type = 'C'
                             const v = new Array<number>(6)
                             v[0] = v[2] = v[4] = event.x
@@ -188,6 +261,10 @@ export class PenTool extends Tool {
                             segment.values = v
                             path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
                             this.state = State.HOVER0
+                            console.log("set state HOVER0")
+                        } else {
+                            console.log("set state HOVER")
+                            this.state = State.HOVER
                         }
                         // TODO: if this is the end of a segment, update model (either call isLastAnchor? or introduce another state)
                     } break
@@ -217,6 +294,7 @@ export class PenTool extends Tool {
                             this.updateHandle(1)
                         } else {
                             if (this.isFirstAnchor(event)) {
+                                console.log(`PenTool: is first anchor: close polygon`)
                                 // FIXME: add fill color
                                 // FIXME: add curve
                                 // FIXME: we might want to continue to drag
@@ -224,27 +302,30 @@ export class PenTool extends Tool {
                                 path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
                                 this.state = State.READY
                                 break
-                            } else
-                                if (this.isLastAnchor(event)) {
-                                    this.state = State.EDGE
-                                    // path.curve(event, event, event)
-                                    // path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
-                                    this.updateHandle(1,
-                                        { x: segment.values![4], y: segment.values![5] },
-                                        event
-                                    )
-                                    break
-                                }
+                            }
+                            if (this.isLastAnchor(event)) {
+                                console.log(`PenTool: is last anchor -> switch to EDGE mode`)
+                                this.state = State.EDGE
+                                // path.curve(event, event, event)
+                                // path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
+                                this.updateHandle(1,
+                                    { x: segment.values![4], y: segment.values![5] },
+                                    event
+                                )
+                                break
+                            }
 
                             this.addAnchor(event)
 
                             let m
                             if (this.edgeHandle === undefined) {
+                                console.log(`edgeHandle undefined`)
                                 m = mirrorPoint(
                                     { x: segment.values![4], y: segment.values![5] },
                                     { x: segment.values![2], y: segment.values![3] }
                                 )
                             } else {
+                                console.log(`edge handle`)
                                 m = this.edgeHandle
                                 this.edgeHandle = undefined
                             }
@@ -291,6 +372,7 @@ export class PenTool extends Tool {
 
         }
     }
+    */
 
     setCursor(event: EditorMouseEvent, cursor: Cursor) {
         switch (cursor) {
