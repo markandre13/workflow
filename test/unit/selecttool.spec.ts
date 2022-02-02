@@ -16,9 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { expect, use } from "chai"
-import chaiAlmost from "chai-almost"
-use(chaiAlmost())
+import { expect, use } from '@esm-bundle/chai'
+// import chaiAlmost from "chai-almost"
+// use(chaiAlmost())
+
+import { initializeCORBAValueTypes } from "client/workflow"
 
 import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, rotatePointAroundPointBy } from "shared/geometry"
 
@@ -26,7 +28,11 @@ import * as figure from "client/figures"
 import { Tool, SelectToolState } from "client/figuretools"
 import { FigureEditorScene } from "./FigureEditorScene"
 
-describe("FigureEditor", () => {
+describe("FigureEditor", function() {
+    this.beforeAll(async function() {
+        initializeCORBAValueTypes()
+        await loadScript("polyfill/path-data-polyfill.js")
+    })
 
     describe("SelectTool", () => {
 
@@ -852,3 +858,14 @@ describe("FigureEditor", () => {
         // ...
     })
 })
+
+function loadScript(filename: string) {
+    const pathDataPolyfill = document.createElement("script")
+    pathDataPolyfill.src = filename
+    const promise = new Promise( (resolve, reject) => {
+        pathDataPolyfill.onload = resolve
+        pathDataPolyfill.onerror = (error) => reject(new Error(`loadScript('${filename}') failed`))
+    })
+    document.head.appendChild(pathDataPolyfill)
+    return promise
+}
