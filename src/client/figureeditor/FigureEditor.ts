@@ -20,7 +20,7 @@ import { bind } from "client/utils/bind-decorator"
 import { HTMLElementProps, setInitialProperties } from "toad.js"
 import { ModelView, action } from "toad.js"
 
-import { Rectangle, Matrix } from "shared/geometry"
+import { Point, Rectangle, Matrix } from "shared/geometry"
 import { AbstractPath } from "client/paths"
 import { Figure } from "shared/workflow_valuetype"
 import { Tool } from "client/figuretools"
@@ -145,15 +145,22 @@ interface FigureEditorProps extends HTMLElementProps {
 export class FigureEditor extends ModelView<DrawingModel> {
     inputCatcher: HTMLDivElement
     scrollView: HTMLDivElement
-    bounds: Rectangle
-    zoom: number
-    svgView: SVGElement
-    tool?: Tool
-    toolModel?: ToolModel
-    strokeAndFillModel?: StrokeAndFillModel
-    mouseButtonIsDown: boolean
-    selectedLayer?: Layer
     decorationOverlay: SVGElement
+    svgView: SVGElement // that's the svg in the whole scroll area?
+
+    bounds: Rectangle // bounds of whut?
+    zoom: number // zoom factor
+
+    tool?: Tool // current tool
+    toolModel?: ToolModel // all available tools
+
+    strokeAndFillModel?: StrokeAndFillModel
+
+    // some additional mouse data commonly used by the tools
+    mouseDownAt?: Point
+    mouseIsDown: boolean
+
+    selectedLayer?: Layer
     layer?: SVGElement
 
     cache: Cache
@@ -162,7 +169,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
         super()
 
         this.cache = new Map<number, CacheEntry>()
-        this.mouseButtonIsDown = false
+        this.mouseIsDown = false
         this.bounds = new Rectangle()
         this.zoom = 1.0
 
@@ -559,9 +566,12 @@ export class FigureEditor extends ModelView<DrawingModel> {
         this.inputCatcher.focus({ preventScroll: true })
         mouseEvent.preventDefault()
 
-        this.mouseButtonIsDown = true
-        if (this.tool && this.selectedLayer)
-            this.tool.mouseEvent(this.createEditorMouseEvent(mouseEvent))
+        this.mouseIsDown = true
+        if (this.tool && this.selectedLayer) {
+            const editorEvent = this.createEditorMouseEvent(mouseEvent)
+            this.mouseDownAt = editorEvent
+            this.tool.mouseEvent(editorEvent)
+        }
     }
 
     @bind mouseMove(mouseEvent: MouseEvent) {
@@ -572,7 +582,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
 
     @bind mouseUp(mouseEvent: MouseEvent) {
         mouseEvent.preventDefault()
-        this.mouseButtonIsDown = false
+        this.mouseIsDown = false
         if (this.tool && this.selectedLayer)
             this.tool.mouseEvent(this.createEditorMouseEvent(mouseEvent))
     }
@@ -592,7 +602,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
             x: x,
             y: y,
             shiftKey: mouseEvent.shiftKey,
-            mouseDown: this.mouseButtonIsDown,
+            mouseDown: this.mouseIsDown,
             type: mouseEvent.type as any
         }
     }

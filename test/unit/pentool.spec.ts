@@ -5,14 +5,11 @@ import { expect, use } from '@esm-bundle/chai'
 import { FigureEditorScene } from "./FigureEditorScene"
 
 import { initializeCORBAValueTypes } from "client/workflow"
-import { Point } from 'shared/geometry'
+import { Point, pointMinusPoint, pointPlusPoint } from 'shared/geometry'
 import { Path } from 'client/figures/Path'
 
 function mirrorPoint(center: Point, point: Point) {
-    return new Point(
-        center.x - (point.x - center.x),
-        center.y - (point.y - center.y)
-    )
+    return pointMinusPoint(center, pointMinusPoint(point, center))
 }
 
 describe("PenTool", function() {
@@ -182,9 +179,10 @@ describe("PenTool", function() {
     })
 */
     describe("the moment we have enough data for the final curve/line and the mouse is released we add it to the figure", function() {
-        it.only("draw initial line", function() {
+        it("line", function() {
             const scene = new FigureEditorScene(false)
             scene.selectPenTool()
+            expect(/pen-ready.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
 
             const p0 = {x: 100, y: 100}
             const p1 = {x: 110, y: 80}
@@ -196,13 +194,19 @@ describe("PenTool", function() {
                 expect(data).to.deep.equal([
                     {type: 'M', values: [p0.x, p0.y]},
                 ])
+                expect(scene.model.layers[0].data.length).equals(0)
             }
             check()
+            expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
 
             scene.mouseUp()
             check()
-            scene.moveMouseTo(p1)
+            expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
+
+            scene.mouseTo(p1)
             check()
+            expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
+
             scene.mouseDownAt(p1)
             check = () => {
                 expect(scene.hasAnchorAt(p0)).to.be.true
@@ -213,33 +217,99 @@ describe("PenTool", function() {
                     {type: 'M', values: [p0.x, p0.y]},
                     {type: 'L', values: [p1.x, p1.y]},
                 ])
+                expect(scene.model.layers[0].data.length).equals(0)
             }
             check()
+            expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
+
             scene.mouseUp()
+            check = () => {
+                expect(scene.hasAnchorAt(p0)).to.be.true
+                expect(scene.hasAnchorAt(p1)).to.be.true
+                expect(scene.getAnchorHandleCount()).to.deep.equal([2, 0])
+                const data = scene.penTool.path!.path.data
+                expect(data).to.deep.equal([
+                    {type: 'M', values: [p0.x, p0.y]},
+                    {type: 'L', values: [p1.x, p1.y]},
+                ])
+                expect(scene.model.layers[0].data.length).equals(1)
+                expect(scene.model.layers[0].data[0]).instanceOf(Path)
+                const path = scene.model.layers[0].data[0] as Path
+                expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80")')
+            }
             check()
-            expect(scene.model.layers[0].data.length).equals(1)
-            expect(scene.model.layers[0].data[0]).instanceOf(Path)
-            const path = scene.model.layers[0].data[0] as Path
-            expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80")')
+            expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
         })
+
+        it.only("line + line", function() {
+            const ignorePoint = {x: 1234, y:5678}
+
+            const scene = new FigureEditorScene(false)
+            scene.selectPenTool()
+
+            // first line
+            const p0 = {x: 100, y: 100}
+            const p1 = {x: 110, y: 80}
+            scene.mouseDownAt(p0)
+            scene.mouseUp()
+            scene.mouseTo(p1)
+            scene.mouseDownAt(p1)
+            scene.mouseUp()
+
+            // second line
+            const p2 = {x: 130, y: 140}
+            scene.mouseTo(p2)
+            let check = () => {
+                expect(scene.hasAnchorAt(p0)).to.be.true
+                expect(scene.hasAnchorAt(p1)).to.be.true
+                expect(scene.getAnchorHandleCount()).to.deep.equal([2, 0])
+                expect(scene.penTool.path!.path.toString()).to.equal('M 100 100 L 110 80')
+
+                expect(scene.model.layers[0].data.length).equals(1)
+                expect(scene.model.layers[0].data[0]).instanceOf(Path)
+                const path = scene.model.layers[0].data[0] as Path
+                expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80")')
+            }
+            check()
+            expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
+
+            scene.mouseDownAt(p2)
+            check = () => {
+                expect(scene.hasAnchorAt(p0)).to.be.true
+                expect(scene.hasAnchorAt(p1)).to.be.true
+                expect(scene.hasAnchorAt(p2)).to.be.true
+                expect(scene.getAnchorHandleCount()).to.deep.equal([3, 0])
+                expect(scene.penTool.path!.path.toString()).to.equal('M 100 100 L 110 80 L 130 140')
+
+                expect(scene.model.layers[0].data.length).equals(1)
+                expect(scene.model.layers[0].data[0]).instanceOf(Path)
+                const path = scene.model.layers[0].data[0] as Path
+                expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80")')
+            }
+            check()
+            expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
+
+            scene.mouseTo(ignorePoint)
+            scene.mouseUp()
+            check = () => {
+                expect(scene.hasAnchorAt(p0)).to.be.true
+                expect(scene.hasAnchorAt(p1)).to.be.true
+                expect(scene.hasAnchorAt(p2)).to.be.true
+                expect(scene.getAnchorHandleCount()).to.deep.equal([3, 0])
+                expect(scene.penTool.path!.path.toString()).to.equal('M 100 100 L 110 80 L 130 140')
+
+                expect(scene.model.layers[0].data.length).equals(1)
+                expect(scene.model.layers[0].data[0]).instanceOf(Path)
+                const path = scene.model.layers[0].data[0] as Path
+                expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80 L 130 140")')
+            }
+            check()
+            expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
+        })
+        
     })
 
-    xit("draw line after", function() {
-        const scene = new FigureEditorScene(false)
-        scene.selectPenTool()
-
-        const p0 = {x: 100, y: 100}
-        const p1 = {x: 110, y: 80}
-        scene.mouseDownAt(p0)
-        scene.mouseUp()
-        scene.moveMouseTo(p1)
-        scene.mouseDownAt(p1)
-        scene.mouseUp()
-
-        const p2 = {x: 240, y: 150}
-        // scene.mouseDownAt(p3)
-
-    })
+    
 })
 
 function loadScript(filename: string) {

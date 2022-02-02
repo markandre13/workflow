@@ -46,7 +46,7 @@
 
 import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
-import { EditorMouseEvent } from "../figureeditor"
+import { EditorMouseEvent, Operation } from "../figureeditor"
 import { Path } from "../figures/Path"
 import { Point, Rectangle, distancePointToPoint, pointMinusPoint } from "shared/geometry"
 
@@ -74,8 +74,9 @@ enum State {
     READY,
     FIRST_DOWN,
     FIRST_UP,
-    DOWN,
+    SECOND_DOWN,
     UP,
+    DOWN,
 
     HOVER0, // figure is active, mouse is up, we've drawn the 1st anchor and handle point
     HOVER,
@@ -89,6 +90,7 @@ function mirrorPoint(center: Point, point: Point) {
 export class PenTool extends Tool {
     svg?: SVGElement
     path?: Path
+    figure?: Path
     state = State.READY
 
     anchors: SVGRectElement[] = []
@@ -118,6 +120,7 @@ export class PenTool extends Tool {
             case State.READY:
                 switch(event.type) {
                     case "mousedown":
+                        this.setCursor(event, Cursor.DIRECT)
                         this.prepareEditor(event)
                         // start with a single anchor rectangle [] where the pointer went down
                         this.addAnchor(event)
@@ -128,12 +131,33 @@ export class PenTool extends Tool {
             case State.FIRST_DOWN:
                 switch(event.type) {
                     case "mouseup":
+                        this.setCursor(event, Cursor.ACTIVE)
                         this.state = State.FIRST_UP
                         break
                 } break
             case State.FIRST_UP:
                 switch(event.type) {
                     case "mousedown":
+                        this.setCursor(event, Cursor.DIRECT)
+                        this.addAnchor(event)
+                        this.path!.line(event)
+                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.state = State.SECOND_DOWN
+                        break
+                } break
+            case State.SECOND_DOWN:
+                switch(event.type) {
+                    case "mouseup": {
+                        this.setCursor(event, Cursor.ACTIVE)
+                        this.figure = new Path(this.path!.path) // FIXME: doesn't work in server mode
+                        event.editor.addFigure(this.figure)
+                        this.state = State.UP
+                    } break
+                } break
+            case State.UP:
+                switch(event.type) {
+                    case "mousedown":
+                        this.setCursor(event, Cursor.DIRECT)
                         this.addAnchor(event)
                         this.path!.line(event)
                         this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
@@ -142,16 +166,20 @@ export class PenTool extends Tool {
                 } break
             case State.DOWN:
                 switch(event.type) {
-                    case "mouseup": {
-                        event.editor.addFigure(new Path(this.path))
+                    case "mouseup":
+                        this.setCursor(event, Cursor.ACTIVE)
                         this.state = State.UP
-                    } break
+                        this.figure!.line(event.editor.mouseDownAt!)
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                        break
                 } break
         }
     }
 
     protected prepareEditor(event: EditorMouseEvent) {
-        this.setCursor(event, Cursor.DIRECT)
         this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.decoration.id = "pen-tool-decoration"
         this.updateBoundary() // FIXME: side effect

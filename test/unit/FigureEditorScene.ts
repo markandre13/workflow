@@ -25,6 +25,7 @@ import { Path } from "client/paths"
 
 import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointMinusPoint, pointMinus } from "shared/geometry"
 import { EditorMouseEvent } from "client/figureeditor/EditorMouseEvent"
+import { throws } from "assert"
 
 // NOTE: the translation in here is insufficient
 // we could also track the modifier keys and emulate keyup events, etc.
@@ -294,10 +295,12 @@ export class FigureEditorScene {
         if (this.verbose)
             console.log(`### MOUSE DOWN AT ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
+        this.figureeditor.mouseIsDown = true
+        this.figureeditor.mouseDownAt = point
         this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, point, { shiftKey: shift }, "mousedown"))
     }
 
-    moveMouseTo(point: Point, shift = true) {
+    mouseTo(point: Point, shift = true) {
         if (this.verbose)
             console.log(`### MOVE MOUSE TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
@@ -314,6 +317,7 @@ export class FigureEditorScene {
     mouseUp(shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE UP`)
+        this.figureeditor.mouseIsDown = false
         this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }, "mouseup"))
     }
 
@@ -446,30 +450,6 @@ export class FigureEditorScene {
         }
         return [a, h]
     }
-
-    // getAnchorCount() {
-    //     let n = 0
-    //     const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
-    //     for(let i=0; i<decorations.children.length; ++i) {
-    //         if (decorations.children[i] instanceof SVGRectElement &&
-    //             (decorations.children[i] as SVGRectElement).style.display !== "none") {
-    //             ++n
-    //         }
-    //     }
-    //     return n
-    // }
-
-    // getHandleCount() {
-    //     let n = 0
-    //     const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
-    //     for(let i=0; i<decorations.children.length; ++i) {
-    //         if (decorations.children[i] instanceof SVGCircleElement &&
-    //             (decorations.children[i] as SVGCircleElement).style.display !== "none") {
-    //             ++n
-    //         }
-    //     }
-    //     return n
-    // }
 
     hasAnchorAt(point: Point) {
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!

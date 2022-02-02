@@ -53,7 +53,7 @@ export class TextTool extends Tool {
     defs!: SVGDefsElement
     svgRect!: SVGRectElement
 
-    text!: figures.Text
+    figure!: figures.Text // FIXME: this doesn't work in server mode
     texteditor?: TextEditor
 
     constructor() {
@@ -81,7 +81,7 @@ export class TextTool extends Tool {
             this.startDrawTextArea(event)
         } else {
             if (figure instanceof figures.Text) {
-                this.text = figure
+                this.figure = figure
                 this.state = TextToolState.EDIT
                 this.startEdit(event)
                 this.texteditor!.mousedown(event)
@@ -96,7 +96,7 @@ export class TextTool extends Tool {
     override mousemove(event: EditorMouseEvent) {
         switch (this.state) {
             case TextToolState.EDIT:
-                if (event.editor.mouseButtonIsDown) {
+                if (event.editor.mouseIsDown) {
                     this.texteditor!.mousemove(event)
                     return
                 }
@@ -125,7 +125,7 @@ export class TextTool extends Tool {
             this.texteditor!.keydown(event)
             event.editor.model?.modified.trigger({
                 operation: Operation.UPDATE_FIGURES,
-                figures: [this.text.id]
+                figures: [this.figure.id]
             })
         }
     }
@@ -135,7 +135,7 @@ export class TextTool extends Tool {
             this.texteditor!.clipboard(editor, event)
             editor.model?.modified.trigger({
                 operation: Operation.UPDATE_FIGURES,
-                figures: [this.text.id]
+                figures: [this.figure.id]
             })
         }
     }
@@ -184,7 +184,7 @@ export class TextTool extends Tool {
 
     startEdit(event: EditorMouseEvent) {
         this.stopEdit(event)
-        this.texteditor = new TextEditor(event.editor, this.text)
+        this.texteditor = new TextEditor(event.editor, this.figure)
     }
 
     stopEdit(event: EditorMouseEvent) {
@@ -194,7 +194,7 @@ export class TextTool extends Tool {
         this.texteditor = undefined
         event.editor.model?.modified.trigger({
             operation: Operation.UPDATE_FIGURES,
-            figures: [this.text.id]
+            figures: [this.figure.id]
         })
     }
 
@@ -247,10 +247,10 @@ export class TextTool extends Tool {
 
         // we add the figure here
         let rect = new Rectangle(x0, y0, x1 - x0, y1 - y0)
-        this.text = new figures.Text(rect)
-        event.editor.addFigure(this.text)
+        this.figure = new figures.Text(rect)
+        event.editor.addFigure(this.figure)
 
-        Tool.selection.set(this.text)
+        Tool.selection.set(this.figure)
         this.updateDecorationOfSelection(event.editor)
     }
 }

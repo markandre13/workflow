@@ -39,11 +39,17 @@ export class PathSegment implements value.figure.PathSegment {
 export class Path extends AttributedFigure implements valuetype.figure.Path {
     segments!: PathSegment[] // TODO: we could also implement RawPath???
     path: RawPath
-    constructor(init?: Partial<Path>) {
-        super(init)
-        value.figure.initPath(this, init)
-        this.path = new RawPath()
-        this.path.data = this.segments as any
+    constructor(init?: Partial<Path> | RawPath) {
+        if (init instanceof RawPath) {
+            super()
+            value.figure.initPath(this)
+            this.path = new RawPath(init)
+        } else {
+            super(init)
+            value.figure.initPath(this, init)
+            this.path = new RawPath()
+        }
+        this.segments = this.path.data as any
     }
 
     move(point: Point) { this.path.move(point) }
