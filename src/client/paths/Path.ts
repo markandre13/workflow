@@ -123,6 +123,27 @@ export class Path extends AbstractPath {
         }
         return false
     }
+    distance(point: Point) {
+        let m!: Point, p0!: Point, p1!: Point, d = Number.MAX_VALUE
+        for(let entry of this.data) {
+            switch(entry.type) {
+                case "M":
+                    m = p1 = {x: entry.values[0], y: entry.values[1]}
+                    break
+                case "L":
+                    p0 = p1
+                    p1 = {x: entry.values[0], y: entry.values[1]}
+                    d = Math.min(distancePointToLine(point, p0, p1), d)
+                    break
+                case "C":
+                    throw Error("curves are not implemented yet")
+                case "Z":
+                    d = Math.min(distancePointToLine(point, m, p1), d)
+            }
+        }
+        return d;
+    }
+
     // relativeMove
     // relativeLine
     // relativeCurve
@@ -134,19 +155,18 @@ export class Path extends AbstractPath {
                 case 'L':
                     segment.values = matrix.transformArrayPoint(segment.values as [number, number])
                     break
-                case 'C':
-                    {
-                        let pt = matrix.transformArrayPoint([segment.values[0], segment.values[1]])
-                        segment.values[0] = pt[0]
-                        segment.values[1] = pt[1]
-                        pt = matrix.transformArrayPoint([segment.values[2], segment.values[3]])
-                        segment.values[2] = pt[0]
-                        segment.values[3] = pt[1]
-                        pt = matrix.transformArrayPoint([segment.values[4], segment.values[5]])
-                        segment.values[4] = pt[0]
-                        segment.values[5] = pt[1]
-                    }
-                    break
+                case 'C': {
+                    let pt = matrix.transformArrayPoint([segment.values[0], segment.values[1]])
+                    segment.values[0] = pt[0]
+                    segment.values[1] = pt[1]
+                    pt = matrix.transformArrayPoint([segment.values[2], segment.values[3]])
+                    segment.values[2] = pt[0]
+                    segment.values[3] = pt[1]
+                    pt = matrix.transformArrayPoint([segment.values[4], segment.values[5]])
+                    segment.values[4] = pt[0]
+                    segment.values[5] = pt[1]
+                }
+                break
             }
         }
         return this

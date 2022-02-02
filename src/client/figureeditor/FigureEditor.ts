@@ -236,7 +236,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
             this.tool.activate(this.createEditorMouseEvent())
     }
 
-    override setModel(model?: DrawingModel): void {
+    override setModel(model?: DrawingModel | ToolModel | StrokeAndFillModel): void {
         if (model === undefined) {
             if (this.toolModel) {
                 this.toolModel.modified.remove(this)

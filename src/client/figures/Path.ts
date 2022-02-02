@@ -65,7 +65,8 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     }
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
-            svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
+            svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
+
         const svgPath = svg as SVGPathElement
         svgPath.setPathData((path as RawPath).data)
         svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
@@ -75,16 +76,15 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     }
 
     override distance(pt: Point): number {
-        // this will need number of intersection in case there are curve segments
-        // FIXME: not final: RANGE and fill="none" need to be considered
-        // if (this.origin.x <= pt.x && pt.x < this.origin.x + this.size.width &&
-        //     this.origin.y <= pt.y && pt.y < this.origin.y + this.size.height) {
-        //     return -1.0 // even closer than 0
-        // }
-        return Number.MAX_VALUE
+        // TODO: consider range/scale?
+        if (this.fill !== "none" && this.path.contains(pt)) {
+            return -1
+        }
+        return this.path.distance(pt)
     }
 
     transform(transform: Matrix): boolean {
+        console.log(`figure.Path.transform(${transform})`)
         if (!transform.isOnlyTranslateAndScale())
             return false
         this.path.transform(transform)

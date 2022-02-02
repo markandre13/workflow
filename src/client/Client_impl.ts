@@ -185,6 +185,7 @@ export class Client_impl extends skel.Client {
 
         try {
             await xdb.deleteDatabase("workflow")
+            await xdb.deleteDatabase("workflow2")
 
             const db = await xdb.openDatabase("workflow2", 1, (event: IDBVersionChangeEvent) => {
                 const db = (event.target as IDBOpenDBRequest) .result

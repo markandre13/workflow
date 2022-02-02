@@ -78,6 +78,8 @@ enum State {
     UP,
     DOWN,
 
+    CLOSE_DOWN,
+
     HOVER0, // figure is active, mouse is up, we've drawn the 1st anchor and handle point
     HOVER,
     EDGE
@@ -109,12 +111,13 @@ export class PenTool extends Tool {
     }
 
     override deactivate(event: EditorMouseEvent) {
+        this.clear(event)
         this.setCursor(event, Cursor.DEFAULT)
     }
 
     override mouseEvent(event: EditorMouseEvent) {
-        console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
-        console.log(`this.path=${this.path}`)
+        // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
+        // console.log(`this.path=${this.path}`)
 
         switch(this.state) {
             case State.READY:
@@ -150,6 +153,10 @@ export class PenTool extends Tool {
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
                         this.figure = new Path(this.path!.path) // FIXME: doesn't work in server mode
+                        if (event.editor.strokeAndFillModel) {
+                            this.figure.stroke = event.editor.strokeAndFillModel.stroke
+                            this.figure.fill = event.editor.strokeAndFillModel.fill
+                        }
                         event.editor.addFigure(this.figure)
                         this.state = State.UP
                     } break
@@ -158,10 +165,17 @@ export class PenTool extends Tool {
                 switch(event.type) {
                     case "mousedown":
                         this.setCursor(event, Cursor.DIRECT)
-                        this.addAnchor(event)
-                        this.path!.line(event)
-                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
-                        this.state = State.DOWN
+                        if (this.isFirstAnchor(event)) {
+                            this.path!.close()
+                            this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                            this.anchors[0].style.cursor = ""
+                            this.state = State.CLOSE_DOWN
+                        } else {
+                            this.addAnchor(event)
+                            this.path!.line(event)
+                            this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                            this.state = State.DOWN
+                        }
                         break
                 } break
             case State.DOWN:
@@ -176,10 +190,23 @@ export class PenTool extends Tool {
                         })
                         break
                 } break
+            case State.CLOSE_DOWN:
+                switch(event.type) {
+                    case "mouseup":
+                        this.state = State.READY
+                        this.setCursor(event, Cursor.READY)
+                        this.figure!.close()
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                    } break
         }
     }
 
     protected prepareEditor(event: EditorMouseEvent) {
+        this.clear(event)
+
         this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.decoration.id = "pen-tool-decoration"
         this.updateBoundary() // FIXME: side effect
@@ -188,6 +215,7 @@ export class PenTool extends Tool {
         // start the new path with a single line segment
         this.path = new Path()
         this.path.stroke = "#4f80ff"
+        this.path.fill = "none"
         // this.path.move(event)
         // this.path.line(event)
 
@@ -199,6 +227,16 @@ export class PenTool extends Tool {
 
         // this.setOutlineColors(this.svg) 
         this.decoration.appendChild(this.svg)
+    }
+
+    clear(event: EditorMouseEvent) {
+        this.anchors = []
+        if (this.decoration) {
+            event.editor.decorationOverlay.removeChild(this.decoration)
+        }
+        this.decoration = undefined
+        this.path = undefined
+        this.svg = undefined
     }
 
     /*

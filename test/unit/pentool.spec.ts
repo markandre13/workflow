@@ -7,6 +7,7 @@ import { FigureEditorScene } from "./FigureEditorScene"
 import { initializeCORBAValueTypes } from "client/workflow"
 import { Point, pointMinusPoint, pointPlusPoint } from 'shared/geometry'
 import { Path } from 'client/figures/Path'
+import { StrokeAndFillModel } from "client/views/widgets/strokeandfill"
 
 function mirrorPoint(center: Point, point: Point) {
     return pointMinusPoint(center, pointMinusPoint(point, center))
@@ -241,7 +242,7 @@ describe("PenTool", function() {
             expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
         })
 
-        it.only("line + line", function() {
+        it("line + line", function() {
             const ignorePoint = {x: 1234, y:5678}
 
             const scene = new FigureEditorScene(false)
@@ -252,7 +253,6 @@ describe("PenTool", function() {
             const p1 = {x: 110, y: 80}
             scene.mouseDownAt(p0)
             scene.mouseUp()
-            scene.mouseTo(p1)
             scene.mouseDownAt(p1)
             scene.mouseUp()
 
@@ -306,10 +306,61 @@ describe("PenTool", function() {
             check()
             expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
         })
-        
-    })
 
-    
+        it.only("line + line + close", function() {
+
+            const scene = new FigureEditorScene(false)
+
+            // TODO: move this into the scene
+            const strokeAndFill = new StrokeAndFillModel()
+            scene.figureeditor.setModel(strokeAndFill)
+            strokeAndFill.stroke = "#f00"
+            strokeAndFill.fill = "#08f"
+
+            scene.selectPenTool()
+            
+            // first line
+            const p0 = {x: 100, y: 100}
+            const p1 = {x: 110, y: 80}
+            scene.mouseDownAt(p0)
+            scene.mouseUp()
+            scene.mouseDownAt(p1)
+            scene.mouseUp()
+
+            // FIXME: the figure must also be selected so that the attributes can be modified while editing
+            const path = scene.model.layers[0].data[0] as Path
+            expect(path.stroke).equals(strokeAndFill.stroke)
+            expect(path.fill).equals(strokeAndFill.fill)
+
+            // second line
+            const p2 = {x: 130, y: 140}
+            scene.mouseDownAt(p2)
+            scene.mouseUp()
+
+            // close
+            scene.mouseDownAt(p0)
+            let check = () => {
+                expect(scene.hasAnchorAt(p0)).to.be.true
+                expect(scene.hasAnchorAt(p1)).to.be.true
+                expect(scene.hasAnchorAt(p2)).to.be.true
+                expect(scene.getAnchorHandleCount()).to.deep.equal([3, 0])
+                expect(scene.penTool.path!.path.toString()).to.equal('M 100 100 L 110 80 L 130 140 Z')
+            }
+            check()
+            expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
+            expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80 L 130 140")')
+
+            scene.mouseUp()
+            check()
+            expect(/pen-ready.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
+            expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80 L 130 140 Z")')
+
+            // figure should be selected
+            // handles should have no cursor
+        })
+
+        // when we begin a new figure, remove the previous selection
+    })
 })
 
 function loadScript(filename: string) {
