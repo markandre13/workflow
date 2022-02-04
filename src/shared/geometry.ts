@@ -703,6 +703,6 @@ export class Matrix implements value.Matrix {
     }
 
     toString(): string {
-        return `{rotate: [${this.a}, ${this.b}, ${this.c}, ${this.d}], translate: [${this.e}, ${this.f}})`
+        return `{rotate: [${this.a}, ${this.b}, ${this.c}, ${this.d}], translate: [${this.e}, ${this.f}]}`
     }
 }
