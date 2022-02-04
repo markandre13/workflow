@@ -58,10 +58,10 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     close() { this.path.close() }
   
     override getPath(): RawPath {
-        return this.path
+        return new RawPath(this.path) // TODO: tweak the outline code to do without?
     }
     override toString() {
-        return `figure.Path("${this.path}")`
+        return `figure.Path(m=${this.matrix}, d="${this.path}")`
     }
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
@@ -84,6 +84,8 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     }
 
     transform(transform: Matrix): boolean {
+        if (transform.isIdentity())
+            return true
         console.log(`figure.Path.transform(${transform})`)
         if (!transform.isOnlyTranslateAndScale())
             return false
