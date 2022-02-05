@@ -1,40 +1,37 @@
 
-                         FigureEditor Architecture
+# FigureEditor Architecture
 
- The figure editor attempts to provide the framework for full featured 2d
-vector graphic applications like Inkscape, CorelDraw or Adobe Illustrator.
+The figure editor attempts to provide the framework for full featured 2d
+vector graphic applications like Inkscape, CorelDraw or Adobe Illustrator
+as well as simpler use cases like file folders.
 
- Center is the FigureEditor class which can be extended by a number of tools:
+Center is the FigureEditor class which can be extended by a number of tools.
+Here is list of the basic tools along with their names in other applications:
 
-ShapeTool:   A shape is a figure providing only a limited set of operations,
-             like translation, rotation. Examples are Rectangle, Circles,
-             Images.
-             Each instance of the shape tool takes a shape in it's
-             constructor which it can duplicate and add to the figure editor.
-Select Tool: Provides basic operations on figures:
-             o select/deselect figures
-             o move
-             o rotate
-             o scale
-             If a figure does not provide these operations on it's own, it
-             will be wrapped into a Transform figure.
-Direct Manipulation:
-             Provides basic operations on a figure's handles, ie. to move
-             single points in a bezier curve.
+| Tool    | Illustrator      | CorelDraw | Inkscape              | Description                        |
+|---------|------------------|-----------|-----------------------|------------------------------------|
+| Arrange | Selection        | Pick      | Select                | Move, Rotate, Scale, Group, ...    |
+| Edit    | Direct Selection | Shape     | Control Point Editing | Edit points in figures.            |
+| Pen     | Pen              | Pen       | Bezier Path           | Curves drawn one segment at a time. |
+| Nib     | Paintbrush       | Artistic  | Pencil, Calligraphic  | Freehand curves considering pen pressure, rotation, tilt, ... |
 
   To support algorithms like fill, boolean operations, arrows which end at
 the outline of a figure, deformation of images, figures do not directly
 draw themselves.
+
   Figures export a path (lines & curves), which can then be
- o used or
- o manipulated by
+* used or
+* manipulated by
+
 algorithms.
+
   To provide a means for image manipulation, the manipulated paths then
 also need to be made available to the figures again. Ie. a image will
 export it's path, it get's deformed, the image figure then uses the path
 to render the image within the deformed path.
 (At least, that's the plan.)
 
+```
 class Figure {
   long id
   getPath(): Path
@@ -91,23 +88,26 @@ class PathGroup: AbstractPath {
   data: Array<AbstractPath>
   matrix?: matrix // sure?
 }
+```
 
-IDEA:
-o to simplify the implementation of figures, they should only hold
+## IDEA
+
+* to simplify the implementation of figures, they should only hold
   the data needed to describe them.
-o hence Figure.getPath() will always create a new path
-o the figure editor is responsible to cache these paths
-o Transform.getPath() will apply it's matrix to the path
+* hence Figure.getPath() will always create a new path
+* the figure editor is responsible to cache these paths
+* Transform.getPath() will apply it's matrix to the path
   this way we can append rotate and preprend scale to the transform
   matrix
-o this means changing a figure will not update the SVG because it does
+* this means changing a figure will not update the SVG because it does
   not know about it. that's the figure editor's job too.
 
-IMPLEMENTATION STRATEGY:
-o spike this idea in a little test
-o add caching later (if we need it at all)
+## IMPLEMENTATION STRATEGY
+* spike this idea in a little test
+* add caching later (if we need it at all)
 
 What happens at mouseUp at the end of rotating a figure:
+```
 SelectionTool.stopHandle()
 FigureEditor.transformSelection()
 MyLayerModel.transform()
@@ -118,4 +118,4 @@ MyLayerModel.transform()
 
   insert Transform
   call this.modified()
-
+```
