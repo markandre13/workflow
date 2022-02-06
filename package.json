@@ -17,7 +17,7 @@
     "build:server": "rollup --config rollup-server.config.js",
     "dev:compiler": "ttsc -w -p tsconfig-dev.json",
     "dev:server": "wds --node-resolve --watch --open --app-index index-dev.html",
-    "test:server": "wtr --watch build/test/unit/pentool.spec.js",
+    "test:server": "if test -z \"$npm_config_file\" ; then wtr --watch build/test/unit ; else wtr --watch $npm_config_file; fi",
     "update": "npx npm-check-updates -u && npm install"
   },
   "dependencies": {

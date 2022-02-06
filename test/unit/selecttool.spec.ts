@@ -25,6 +25,8 @@ import { initializeCORBAValueTypes } from "client/workflow"
 import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, rotatePointAroundPointBy } from "shared/geometry"
 
 import * as figure from "client/figures"
+import { Path as RawPath } from "client/paths/Path"
+import { Path } from "client/figures/Path"
 import { Tool, SelectToolState } from "client/figuretools"
 import { FigureEditorScene } from "./FigureEditorScene"
 
@@ -293,6 +295,54 @@ describe("FigureEditor", function() {
                     // THEN
                     scene.selectionHasRectangle(r1)
                     scene.outlineHasRectangle(r1)
+                })
+                // WIP: this did not work because unlike figure.Rectangle, figure.Path returned a reference to
+                // it's own Path, so that modifing the outline changed the figure itself
+                xit("moves paths's outline before mouse is released", () => {
+                    // GIVEN
+                    let scene = new FigureEditorScene()
+
+                    let r0 = new Rectangle(50.5, 50.5, 20, 30)
+                    let p = new RawPath()
+                    p.appendRect(r0)
+                    let fig = new Path(p)
+                    fig.id = ++scene.id
+                    fig.stroke = "#000"
+                    fig.fill = "rgba(255,0,0,0.2)"
+                    scene.model.add(0, fig)
+                    scene.figures.push(fig)
+
+                    expect(scene.model.layers[0].data[0].toString())
+                        .equals(`figure.Path(m=undefined, d="M 50.5 50.5 L 70.5 50.5 L 70.5 80.5 L 50.5 80.5 Z")`)
+
+                    scene.mouseDownAt({x: 60, y: 60})
+
+                    // FIXME: this triggesrs a transform in the select tool
+                    console.log(`2: ${scene.model.layers[0].data[0]}`)
+                    scene.mouseUp()
+
+                    // WHEN
+                    let translation = new Point(10, -10)
+                    let oldCenter = scene.centerOfFigure()
+                    console.log(`3: ${scene.model.layers[0].data[0]}`)
+                    scene.mouseDownAt(oldCenter)
+
+                    // this moveMouseBy should not update the figure, only the outline
+                    // this works with the rectangle, but not the path
+
+                    scene.moveMouseBy(translation)
+                    expect(scene.model.layers[0].data[0].toString())
+                        .equals(`figure.Path(m=undefined, d="M 50.5 50.5 L 70.5 50.5 L 70.5 80.5 L 50.5 80.5 Z")`)
+                    scene.mouseUp()
+
+                    // THEN
+                    let r1 = new Rectangle(r0)
+                    r1.origin = pointPlusPoint(r1.origin, translation)
+                    console.log(scene.model.layers[0].data[0].toString())
+                    // scene.selectionHasRectangle(r1)
+                    // scene.outlineHasRectangle(r1)
+
+                    console.log(`after move: ${scene.model.layers[0].data[0]}`)
                 })
                 it("moves figure without matrix when mouse is released", () => {
                     // GIVEN

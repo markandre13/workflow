@@ -236,7 +236,7 @@ describe("PenTool", function() {
                 expect(scene.model.layers[0].data.length).equals(1)
                 expect(scene.model.layers[0].data[0]).instanceOf(Path)
                 const path = scene.model.layers[0].data[0] as Path
-                expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80")')
+                expect(path.toString()).to.equal('figure.Path(d="M 100 100 L 110 80")')
             }
             check()
             expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
@@ -268,7 +268,7 @@ describe("PenTool", function() {
                 expect(scene.model.layers[0].data.length).equals(1)
                 expect(scene.model.layers[0].data[0]).instanceOf(Path)
                 const path = scene.model.layers[0].data[0] as Path
-                expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80")')
+                expect(path.toString()).to.equal('figure.Path(d="M 100 100 L 110 80")')
             }
             check()
             expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
@@ -284,7 +284,7 @@ describe("PenTool", function() {
                 expect(scene.model.layers[0].data.length).equals(1)
                 expect(scene.model.layers[0].data[0]).instanceOf(Path)
                 const path = scene.model.layers[0].data[0] as Path
-                expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80")')
+                expect(path.toString()).to.equal('figure.Path(d="M 100 100 L 110 80")')
             }
             check()
             expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
@@ -301,13 +301,13 @@ describe("PenTool", function() {
                 expect(scene.model.layers[0].data.length).equals(1)
                 expect(scene.model.layers[0].data[0]).instanceOf(Path)
                 const path = scene.model.layers[0].data[0] as Path
-                expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80 L 130 140")')
+                expect(path.toString()).to.equal('figure.Path(d="M 100 100 L 110 80 L 130 140")')
             }
             check()
             expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
         })
 
-        it.only("line + line + close", function() {
+        it("line + line + close", function() {
 
             const scene = new FigureEditorScene(false)
 
@@ -348,12 +348,12 @@ describe("PenTool", function() {
             }
             check()
             expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
-            expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80 L 130 140")')
+            expect(path.toString()).to.equal('figure.Path(d="M 100 100 L 110 80 L 130 140")')
 
             scene.mouseUp()
             check()
             expect(/pen-ready.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
-            expect(path.toString()).to.equal('figure.Path("M 100 100 L 110 80 L 130 140 Z")')
+            expect(path.toString()).to.equal('figure.Path(d="M 100 100 L 110 80 L 130 140 Z")')
 
             // figure should be selected
             // handles should have no cursor

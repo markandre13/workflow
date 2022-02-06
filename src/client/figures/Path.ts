@@ -58,10 +58,16 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     close() { this.path.close() }
   
     override getPath(): RawPath {
-        return new RawPath(this.path) // TODO: tweak the outline code to do without?
+        // TODO: tweak the outline code to do without? yes, because a path will usually be
+        // much larger than those figures which create a path on demand
+        return new RawPath(this.path) 
     }
     override toString() {
-        return `figure.Path(m=${this.matrix}, d="${this.path}")`
+        if (this.matrix===undefined) {
+            return `figure.Path(d="${this.path}")`
+        } else {
+            return `figure.Path(matrix=${this.matrix}, d="${this.path}")`
+        }
     }
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
@@ -84,9 +90,8 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     }
 
     transform(transform: Matrix): boolean {
-        if (transform.isIdentity())
+        if (transform.isIdentity()) // FIXME: this should never happen
             return true
-        console.log(`figure.Path.transform(${transform})`)
         if (!transform.isOnlyTranslateAndScale())
             return false
         this.path.transform(transform)
