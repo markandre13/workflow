@@ -73,8 +73,14 @@ enum Cursor {
 enum State {
     READY,
     FIRST_DOWN,
-    FIRST_UP,
-    SECOND_DOWN,
+    FIRST_DOWN_IS_CURVE,
+    FIRST_UP_IS_CURVE,
+    SECOND_DOWN_IS_CURVE,
+    SECOND_UP_IS_CURVE,
+    THIRD_DOWN_IS_CURVE,
+
+    FIRST_UP_IS_LINE,
+    SECOND_DOWN_IS_LINE,
     UP,
     DOWN,
 
@@ -83,6 +89,12 @@ enum State {
     HOVER0, // figure is active, mouse is up, we've drawn the 1st anchor and handle point
     HOVER,
     EDGE
+}
+
+enum Handle {
+    PREVIOUS_FORWARD,
+    CURRENT_BACKWARD,
+    CURRENT_FORWARD
 }
 
 function mirrorPoint(center: Point, point: Point) {
@@ -116,12 +128,12 @@ export class PenTool extends Tool {
     }
 
     override mouseEvent(event: EditorMouseEvent) {
-        // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
+        console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
         // console.log(`this.path=${this.path}`)
 
-        switch(this.state) {
+        switch (this.state) {
             case State.READY:
-                switch(event.type) {
+                switch (event.type) {
                     case "mousedown":
                         this.setCursor(event, Cursor.DIRECT)
                         this.prepareEditor(event)
@@ -131,28 +143,219 @@ export class PenTool extends Tool {
                         this.state = State.FIRST_DOWN
                         break
                 } break
+
             case State.FIRST_DOWN:
-                switch(event.type) {
+                switch (event.type) {
+                    case "mousemove": {
+                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                            const anchor = event.editor.mouseDownAt!
+                            const forwardHandle = event
+                            const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                            this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
+                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                            this.path!.curve(event, new Point(), new Point())
+                            this.state = State.FIRST_DOWN_IS_CURVE
+                        }
+                    } break
                     case "mouseup":
                         this.setCursor(event, Cursor.ACTIVE)
-                        this.state = State.FIRST_UP
+                        this.state = State.FIRST_UP_IS_LINE
                         break
                 } break
-            case State.FIRST_UP:
-                switch(event.type) {
+
+            case State.FIRST_DOWN_IS_CURVE:
+                switch (event.type) {
+                    case "mousemove": {
+                        const anchor = event.editor.mouseDownAt!
+                        const forwardHandle = event
+                        const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                        this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                        const path = this.path!
+                        const segment = path.path.data[path.path.data.length - 1]
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
+                        }
+                        segment.values[0] = event.x
+                        segment.values[1] = event.y
+                    } break
+                    case "mouseup": {
+                        this.state = State.FIRST_UP_IS_CURVE
+                        this.setCursor(event, Cursor.ACTIVE)
+                    } break
+                } break
+
+            case State.FIRST_UP_IS_CURVE:
+                switch (event.type) {
+                    case "mousedown": {
+                        this.setCursor(event, Cursor.DIRECT)
+                        this.addAnchor(event)
+                        this.updateHandle(Handle.CURRENT_BACKWARD)
+                        const path = this.path!
+                        const segment = path.path.data[path.path.data.length - 1]
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
+                        }
+                        segment.values[2] = segment.values[4] = event.x
+                        segment.values[3] = segment.values[5] = event.y
+                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.state = State.SECOND_DOWN_IS_CURVE
+                    } break
+                } break
+
+            case State.SECOND_DOWN_IS_CURVE:
+                switch (event.type) {
+                    case "mousemove": {
+                        const anchor = event.editor.mouseDownAt!
+                        const forwardHandle = event
+                        const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                        const path = this.path!
+                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
+                        }
+                        segment.values[2] = backwardHandle.x
+                        segment.values[3] = backwardHandle.y
+                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                    } break
+                    case "mouseup": {
+                        this.setCursor(event, Cursor.ACTIVE)
+                        this.figure = new Path(this.path!.path) // FIXME: won't work in client/server mode
+                        if (event.editor.strokeAndFillModel) {
+                            this.figure.stroke = event.editor.strokeAndFillModel.stroke
+                            this.figure.fill = event.editor.strokeAndFillModel.fill
+                        }
+                        event.editor.addFigure(this.figure)
+                        this.state = State.SECOND_UP_IS_CURVE
+                    } break
+                } break
+
+            case State.SECOND_UP_IS_CURVE:
+                switch (event.type) {
+                    case "mousedown": {
+                        // previous was a curve, hence this must be a curve too
+                        const path = this.path!
+                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
+                        }
+                        let h0 = { x: segment.values[2], y: segment.values[3] }
+                        const a0 = { x: segment.values[4], y: segment.values[5] }
+                        h0 = mirrorPoint(a0, h0)
+
+                        this.updateHandle(Handle.PREVIOUS_FORWARD, a0, h0)
+                        this.updateHandle(Handle.CURRENT_BACKWARD)
+                        this.updateHandle(Handle.CURRENT_FORWARD)
+
+                        this.addAnchor(event)
+                        this.path!.curve(h0, event, event)
+                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.state = State.THIRD_DOWN_IS_CURVE
+                    } break
+                } break
+
+            case State.THIRD_DOWN_IS_CURVE:
+                switch (event.type) {
+                    case "mousemove": {
+                        const path = this.path!
+                        const segment = path.path.data[path.path.data.length - 1]
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
+                        }
+                        let h0 = event
+                        const a0 = { x: segment.values[4], y: segment.values[5] }
+                        let h1 = mirrorPoint(a0, h0)
+                        segment.values[2] = h1.x
+                        segment.values[3] = h1.y
+
+                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+
+                        this.updateHandle(Handle.CURRENT_BACKWARD, a0, h1)
+                        this.updateHandle(Handle.CURRENT_FORWARD, a0, h0)
+                    } break
+                    case "mouseup": {
+                        const path = this.path!
+                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
+                        }
+                        this.figure!.curve(
+                            { x: segment.values[0], y: segment.values[1] },
+                            { x: segment.values[2], y: segment.values[3] },
+                            { x: segment.values[4], y: segment.values[5] }
+                        )
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                        this.state = State.SECOND_UP_IS_CURVE // ???
+                    } break
+                } break
+
+            case State.FIRST_UP_IS_LINE:
+                switch (event.type) {
                     case "mousedown":
                         this.setCursor(event, Cursor.DIRECT)
                         this.addAnchor(event)
                         this.path!.line(event)
                         this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
-                        this.state = State.SECOND_DOWN
+                        this.state = State.SECOND_DOWN_IS_LINE
                         break
                 } break
-            case State.SECOND_DOWN:
-                switch(event.type) {
+
+            case State.SECOND_DOWN_IS_LINE:
+                switch (event.type) {
+                    case "mousemove": {
+                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                            const path = this.path!
+                            const segment = path.path.data[path.path.data.length - 1]
+                            if (segment.type === 'L') { // TODO: make this a state
+                                if (path.path.data.length < 2) {
+                                    throw Error("yikes")
+                                }
+                                const segment0 = path.path.data[path.path.data.length - 2]
+                                let curveStartPoint
+                                switch (segment0.type) {
+                                    case 'M':
+                                    case 'L':
+                                        curveStartPoint = { x: segment0.values[0], y: segment0.values[1] }
+                                        break
+                                    case 'C':
+                                        curveStartPoint = { x: segment0.values[4], y: segment0.values[5] }
+                                        break
+                                    case 'Z':
+                                        throw Error("yikes")
+                                }
+
+                                const anchor = event.editor.mouseDownAt!
+                                const forwardHandle = event
+                                const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                                segment.type = 'C'
+                                segment.values = [
+                                    curveStartPoint.x, curveStartPoint.y,
+                                    backwardHandle.x, backwardHandle.y,
+                                    anchor.x, anchor.y
+                                ]
+                                this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                                this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
+                                this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                            } else if (segment.type === 'C') { // TODO: make this a state
+                                const anchor = event.editor.mouseDownAt!
+                                const forwardHandle = event
+                                const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                                segment.values[2] = backwardHandle.x
+                                segment.values[3] = backwardHandle.y
+                                this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                                this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
+                                this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                            }
+                        }
+                    } break
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
-                        this.figure = new Path(this.path!.path) // FIXME: doesn't work in server mode
+                        this.figure = new Path(this.path!.path) // FIXME: won't work in client/server mode
                         if (event.editor.strokeAndFillModel) {
                             this.figure.stroke = event.editor.strokeAndFillModel.stroke
                             this.figure.fill = event.editor.strokeAndFillModel.fill
@@ -161,8 +364,9 @@ export class PenTool extends Tool {
                         this.state = State.UP
                     } break
                 } break
+
             case State.UP:
-                switch(event.type) {
+                switch (event.type) {
                     case "mousedown":
                         this.setCursor(event, Cursor.DIRECT)
                         if (this.isFirstAnchor(event)) {
@@ -178,8 +382,9 @@ export class PenTool extends Tool {
                         }
                         break
                 } break
+
             case State.DOWN:
-                switch(event.type) {
+                switch (event.type) {
                     case "mouseup":
                         this.setCursor(event, Cursor.ACTIVE)
                         this.state = State.UP
@@ -191,7 +396,7 @@ export class PenTool extends Tool {
                         break
                 } break
             case State.CLOSE_DOWN:
-                switch(event.type) {
+                switch (event.type) {
                     case "mouseup":
                         this.state = State.READY
                         this.setCursor(event, Cursor.READY)
@@ -200,7 +405,7 @@ export class PenTool extends Tool {
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
-                    } break
+                } break
         }
     }
 
@@ -238,207 +443,6 @@ export class PenTool extends Tool {
         this.path = undefined
         this.svg = undefined
     }
-
-    /*
-    mouseEventOld(event: EditorMouseEvent) {
-        console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
-        console.log(`this.path=${this.path}`)
-
-        switch (this.state) {
-            case State.READY:
-                switch (event.type) {
-                    case "mousedown": {
-                        // prepare editor
-                        this.setCursor(event, Cursor.DIRECT)
-
-                        this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
-                        this.decoration.id = "pen-tool-decoration"
-                        this.updateBoundary() // FIXME: side effect
-                        event.editor.decorationOverlay.appendChild(this.decoration)
-
-                        // start with a single anchor rectangle [] where the pointer went down
-                        this.addAnchor(event)
-
-                        // start the new path with a single line segment
-                        console.log(`start the new path with a single line segment`)
-                        this.path = new Path()
-                        this.path.stroke = "#4f80ff"
-                        this.path.move(event)
-                        this.path.line(event)
-
-                        // FIXME: these two lines we're going to change as follows:
-                        // move it into a separate function, which only puts the last pathsegment similar to Adobe Illustrator
-                        // on the decorationOverlay
-                        const path = this.path.getPath()
-                        this.svg = this.path.updateSVG(path, event.editor.decorationOverlay)
-
-                        // this.setOutlineColors(this.svg) 
-                        this.decoration.appendChild(this.svg)
-
-                        // this.updateAnchor(0) // create or update
-                        this.state = State.DRAG
-                    } break
-                } break
-
-            case State.DRAG: {
-                switch (event.type) {
-                    case "mousemove": {
-                        const path = this.path!
-                        const idx = path.path.data.length - 1
-                        const segment = path.path.data[idx]
-                        if (segment.type === 'L') {
-                            console.log(`PenTool: move initial line handle (at this moment)`) // we could already convert to a curve here!
-                            const anchor = { x: segment.values[0], y: segment.values[1] }
-                            this.updateHandle(0, anchor, event) // forward handle
-                            this.updateHandle(1, anchor, mirrorPoint(anchor, event)) // backward handle
-                        } else {
-                            console.log(`PenTool: move 'smooth' corner handle`)
-                            const p = { x: segment.values![4], y: segment.values![5] }
-                            const m = mirrorPoint(p, event)
-                            segment.values![2] = m.x
-                            segment.values![3] = m.y
-                            path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
-                            // keep handle 0, as the previous forward handle
-                            this.updateHandle(1, p, event) // forward handle
-                            this.updateHandle(2, p, m) // backward handle
-                        }
-                    } break
-
-                    case "mouseup": {
-                        this.setCursor(event, Cursor.ACTIVE)
-
-                        // getLastSegment
-                        const path = this.path!
-                        const idx = path.path.data.length - 1
-                        const segment = path.path.data[idx]
-
-                        // as of now, this is just for the initial line segment
-                        // the initial point has been dragged, which means the initial line becomes a curve
-                        if (segment.type === 'L' &&
-                            distancePointToPoint(
-                                event,
-                                new Point(segment.values[0], segment.values[1])
-                            ) >= 1) {
-                                console.log(`PenTool: convert line to curve`) // we could do this earlier
-                            segment.type = 'C'
-                            const v = new Array<number>(6)
-                            v[0] = v[2] = v[4] = event.x
-                            v[1] = v[3] = v[5] = event.y
-                            segment.values = v
-                            path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
-                            this.state = State.HOVER0
-                            console.log("set state HOVER0")
-                        } else {
-                            console.log("set state HOVER")
-                            this.state = State.HOVER
-                        }
-                        // TODO: if this is the end of a segment, update model (either call isLastAnchor? or introduce another state)
-                    } break
-                }
-            } break
-
-            case State.HOVER0:
-            case State.HOVER: {
-                switch (event.type) {
-                    case "mousedown": {
-                        this.setCursor(event, Cursor.DIRECT)
-
-                        const path = this.path!
-                        const idx = path.path.data.length - 1
-                        const segment = path.path.data[idx]
-
-                        if (this.state === State.HOVER0) {
-                            const v = segment.values!
-                            v[2] = v[4] = event.x
-                            v[3] = v[5] = event.y
-                            path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
-
-                            this.addAnchor(event)
-                            // const anchor = this.createAnchor(event)
-                            // this.decoration!.appendChild(anchor)
-                            // this.anchors.push(anchor)
-                            this.updateHandle(1)
-                        } else {
-                            if (this.isFirstAnchor(event)) {
-                                console.log(`PenTool: is first anchor: close polygon`)
-                                // FIXME: add fill color
-                                // FIXME: add curve
-                                // FIXME: we might want to continue to drag
-                                this.path!.close()
-                                path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
-                                this.state = State.READY
-                                break
-                            }
-                            if (this.isLastAnchor(event)) {
-                                console.log(`PenTool: is last anchor -> switch to EDGE mode`)
-                                this.state = State.EDGE
-                                // path.curve(event, event, event)
-                                // path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
-                                this.updateHandle(1,
-                                    { x: segment.values![4], y: segment.values![5] },
-                                    event
-                                )
-                                break
-                            }
-
-                            this.addAnchor(event)
-
-                            let m
-                            if (this.edgeHandle === undefined) {
-                                console.log(`edgeHandle undefined`)
-                                m = mirrorPoint(
-                                    { x: segment.values![4], y: segment.values![5] },
-                                    { x: segment.values![2], y: segment.values![3] }
-                                )
-                            } else {
-                                console.log(`edge handle`)
-                                m = this.edgeHandle
-                                this.edgeHandle = undefined
-                            }
-
-                            path.curve(m, event, event)
-                            path.updateSVG(path.getPath(), event.editor.decorationOverlay, this.svg)
-
-                            this.updateHandle(0,
-                                { x: segment.values![4], y: segment.values![5] },
-                                m
-                            )
-                            this.updateHandle(1)
-                            this.updateHandle(2)
-                        }
-                        this.state = State.DRAG
-                    } break
-                }
-            } break
-            case State.EDGE: {
-                switch (event.type) {
-                    case "mousemove": {
-                        const path = this.path!
-                        const idx = path.path.data.length - 1
-                        const segment = path.path.data[idx]
-                        this.updateHandle(1,
-                            { x: segment.values![4], y: segment.values![5] },
-                            event
-                        )
-                    } break
-                    case "mouseup": {
-                        const path = this.path!
-                        const idx = path.path.data.length - 1
-                        const segment = path.path.data[idx]
-                        this.updateHandle(1,
-                            { x: segment.values![4], y: segment.values![5] },
-                            event
-                        )
-                        this.edgeHandle = event
-                        this.state = State.HOVER
-                        break
-                    } break
-                }
-            } break
-
-        }
-    }
-    */
 
     setCursor(event: EditorMouseEvent, cursor: Cursor) {
         switch (cursor) {
@@ -513,7 +517,8 @@ export class PenTool extends Tool {
         return rect.inside(p)
     }
 
-    createHandle(p: Point) {
+    // use updateHandle
+    private _createHandle(p: Point) {
         const x = Math.round(p.x - 0.5) + 0.5
         const y = Math.round(p.y - 0.5) + 0.5
 
@@ -526,9 +531,9 @@ export class PenTool extends Tool {
         return handle
     }
 
-    updateHandle(idx: number): void
-    updateHandle(idx: number, anchorPos: Point, handlePos: Point): void
-    updateHandle(idx: number, anchorPos?: Point, handlePos?: Point): void {
+    updateHandle(idx: Handle): void
+    updateHandle(idx: Handle, anchorPos: Point, handlePos: Point): void
+    updateHandle(idx: Handle, anchorPos?: Point, handlePos?: Point): void {
         if (anchorPos === undefined) {
             if (this._handles[idx] !== undefined) {
                 this._handles[idx].style.display = "none"
@@ -540,7 +545,7 @@ export class PenTool extends Tool {
             throw Error("yikes")
 
         if (this._handles[idx] === undefined) {
-            this._handles[idx] = this.createHandle(handlePos)
+            this._handles[idx] = this._createHandle(handlePos)
             this.decoration!.appendChild(this._handles[idx])
             this.lines[idx] = this.createLine(anchorPos, handlePos)
             this.decoration!.appendChild(this.lines[idx])

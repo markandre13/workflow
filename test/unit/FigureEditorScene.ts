@@ -23,9 +23,11 @@ import * as figure from "client/figures"
 import { FigureEditor, KeyCode, Layer } from "client/figureeditor"
 import { Path } from "client/paths"
 
-import { Point, Rectangle, Matrix, pointEqualsPoint, pointPlusPoint, pointMinusPoint, pointMinus } from "shared/geometry"
+import {
+    Point, Rectangle, Matrix,
+    pointEqualsPoint, pointPlusPoint, pointMinusPoint, pointMinus, distancePointToPoint
+} from "shared/geometry"
 import { EditorMouseEvent } from "client/figureeditor/EditorMouseEvent"
-import { throws } from "assert"
 
 // NOTE: the translation in here is insufficient
 // we could also track the modifier keys and emulate keyup events, etc.
@@ -101,12 +103,12 @@ export class FigureEditorScene {
         this.id = 0
 
         let testFrame = document.getElementById("testframe")
-        if (testFrame === null) {    
+        if (testFrame === null) {
             testFrame = document.createElement("div")
             testFrame.id = "testframe"
             document.body.appendChild(testFrame)
         }
-      
+
         this.figureeditor = new FigureEditor()
         testFrame.appendChild(this.figureeditor)
 
@@ -438,7 +440,7 @@ export class FigureEditorScene {
     getAnchorHandleCount() {
         let a = 0, h = 0
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
-        for(let i=0; i<decorations.children.length; ++i) {
+        for (let i = 0; i < decorations.children.length; ++i) {
             if (decorations.children[i] instanceof SVGRectElement &&
                 (decorations.children[i] as SVGRectElement).style.display !== "none") {
                 ++a
@@ -453,7 +455,7 @@ export class FigureEditorScene {
 
     hasAnchorAt(point: Point) {
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
-        for(let i=0; i<decorations.children.length; ++i) {
+        for (let i = 0; i < decorations.children.length; ++i) {
             const child = decorations.children[i]
             if (child instanceof SVGRectElement && child.style.display !== "none") {
                 const r = new Rectangle(
@@ -470,32 +472,51 @@ export class FigureEditorScene {
         return false
     }
 
-    hasHandleAt(point: Point) {
+    hasHandleAt(anchor: Point, handle: Point) {
         const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
-        for(let i=0; i<decorations.children.length; ++i) {
-            const child = decorations.children[i]
-            if (child instanceof SVGCircleElement && child.style.display !== "none") {
-                const cx = Number.parseFloat(child.getAttributeNS(null, "cx")!)
-                const cy = Number.parseFloat(child.getAttributeNS(null, "cy")!)
-                const r = Number.parseFloat(child.getAttributeNS(null, "r")!)
-                const rect = new Rectangle(
-                    cx - r,
-                    cy - r,
-                    r * 2, r * 2
-                )
-                if (rect.inside(point)) {
+        for (let i = 0; i < this.penTool._handles.length; ++i) {
+            const circle = this.penTool._handles[i]
+            if (circle !== undefined &&
+                circle.style.display !== "none" &&
+                circle.parentElement == decorations) {
+                const cx = Number.parseFloat(circle.getAttributeNS(null, "cx")!)
+                const cy = Number.parseFloat(circle.getAttributeNS(null, "cy")!)
+                const r = Number.parseFloat(circle.getAttributeNS(null, "r")!)
+                if (distancePointToPoint({ x: cx, y: cy }, handle) <= r) {
+                    const line = this.penTool.lines[i]
+                    const p0 = {
+                        x: Number.parseFloat(line.getAttributeNS(null, "x1")!),
+                        y: Number.parseFloat(line.getAttributeNS(null, "y1")!)
+                    }
+                    const p1 = {
+                        x: Number.parseFloat(line.getAttributeNS(null, "x2")!),
+                        y: Number.parseFloat(line.getAttributeNS(null, "y2")!)
+                    }
+                    if (distancePointToPoint(p0, anchor) > 1) {
+                        break
+                    }
+                    if (distancePointToPoint(p1, handle) > 1) {
+                        break
+                    }
                     return true
                 }
             }
         }
-        console.error(`expected handle at (${point.x}, ${point.y})`)
-        for(let i=0; i<decorations.children.length; ++i) {
-            const child = decorations.children[i]
-            if (child instanceof SVGCircleElement && child.style.display !== "none") {
-                const cx = Number.parseFloat(child.getAttributeNS(null, "cx")!)
-                const cy = Number.parseFloat(child.getAttributeNS(null, "cy")!)
-                console.log(`  have (${cx}, ${cy})`)
+        console.error(`expected anchor (${anchor.x}, ${anchor.y}) to handle (${handle.x}, ${handle.y})`)
+        for (let i = 0; i < this.penTool._handles.length; ++i) {
+            const circle = this.penTool._handles[i]
+            if (circle === undefined || circle.style.display === "none") {
+                continue
             }
+            const cx = Number.parseFloat(circle.getAttributeNS(null, "cx")!)
+            const cy = Number.parseFloat(circle.getAttributeNS(null, "cy")!)
+            const r = Number.parseFloat(circle.getAttributeNS(null, "r")!)
+            const line = this.penTool.lines[i]
+            const x1 = Number.parseFloat(line.getAttributeNS(null, "x1")!)
+            const y1 = Number.parseFloat(line.getAttributeNS(null, "y1")!)
+            const x2 = Number.parseFloat(line.getAttributeNS(null, "x2")!)
+            const y2 = Number.parseFloat(line.getAttributeNS(null, "y2")!)
+            console.log(`  have line(${x1}, ${y1} - ${x2}, ${y2}) to handle (${cx}, ${cy})`)
         }
         return false
     }

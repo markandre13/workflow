@@ -33,8 +33,11 @@ export abstract class Figure implements valuetype.Figure
     // each figure has an optional affine transformation
     matrix!: Matrix // FIXME in corba.js: should be optional (as per CORBA every object is optional... :()
 
+    // fixme: move into FigureEditor
     public static readonly FIGURE_RANGE = 5.0
     public static readonly HANDLE_RANGE = 5.0
+    // when a pressed point is moved more than this distance, we start dragging
+    public static readonly DRAG_START_DISTANCE = 1.0
     
     constructor(init?: Partial<value.Figure>|GIOPDecoder) {
         value.initFigure(this, init)
