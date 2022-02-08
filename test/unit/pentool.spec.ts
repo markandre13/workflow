@@ -21,7 +21,7 @@ describe("PenTool", function () {
 
     describe("draw curves one segment at a time", function () {
         it("line(point, point)", function () {
-            const scene = new FigureEditorScene(false)
+            const scene = new FigureEditorScene(true)
             scene.selectPenTool()
             expect(/pen-ready.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
 
@@ -31,11 +31,9 @@ describe("PenTool", function () {
             let check = () => {
                 expect(scene.hasAnchorAt(p0)).to.be.true
                 expect(scene.getAnchorHandleCount()).to.deep.equal([1, 0])
-                const data = scene.penTool.path!.path.data
-                expect(data).to.deep.equal([
-                    { type: 'M', values: [p0.x, p0.y] },
-                ])
-                expect(scene.model.layers[0].data.length).equals(0)
+                expect(scene.penTool.path!.path.toString()).to.equal('M 100 100')
+                expect(scene.model.layers[0].data.length).equals(1)
+                expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
             }
             check()
             expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
@@ -53,12 +51,9 @@ describe("PenTool", function () {
                 expect(scene.hasAnchorAt(p0)).to.be.true
                 expect(scene.hasAnchorAt(p1)).to.be.true
                 expect(scene.getAnchorHandleCount()).to.deep.equal([2, 0])
-                const data = scene.penTool.path!.path.data
-                expect(data).to.deep.equal([
-                    { type: 'M', values: [p0.x, p0.y] },
-                    { type: 'L', values: [p1.x, p1.y] },
-                ])
-                expect(scene.model.layers[0].data.length).equals(0)
+                expect(scene.penTool.path!.path.toString()).to.equal('M 100 100 L 110 80')
+                expect(scene.model.layers[0].data.length).equals(1)
+                expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
             }
             check()
             expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
@@ -68,21 +63,17 @@ describe("PenTool", function () {
                 expect(scene.hasAnchorAt(p0)).to.be.true
                 expect(scene.hasAnchorAt(p1)).to.be.true
                 expect(scene.getAnchorHandleCount()).to.deep.equal([2, 0])
-                const data = scene.penTool.path!.path.data
-                expect(data).to.deep.equal([
-                    { type: 'M', values: [p0.x, p0.y] },
-                    { type: 'L', values: [p1.x, p1.y] },
-                ])
+                expect(scene.penTool.path!.path.toString()).to.equal('M 100 100 L 110 80')
                 expect(scene.model.layers[0].data.length).equals(1)
                 expect(scene.model.layers[0].data[0]).instanceOf(Path)
                 const path = scene.model.layers[0].data[0] as Path
-                expect(path.toString()).to.equal('figure.Path(d="M 100 100 L 110 80")')
+                expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100 L 110 80')
             }
             check()
             expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
         })
 
-        it("line(point, point) + line(point, point)", function () {
+        it.only("line(point, point) + line(point, point)", function () {
             const ignorePoint = { x: 1234, y: 5678 }
 
             const scene = new FigureEditorScene(false)
@@ -361,7 +352,7 @@ describe("PenTool", function () {
             expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-active.svg")
         })
 
-        it("curve(angle, angle) + curve(angle, point)", function() {
+        it("curve(angle, angle) + curve(angle, point) + line(point, point)", function() {
             const scene = new FigureEditorScene(false)
 
             // TODO: move this into the scene
@@ -412,10 +403,14 @@ describe("PenTool", function () {
             path = scene.model.layers[0].data[0] as Path
             expect(path.toString()).to.equal('figure.Path(d="M 100 100 C 120 80 130 80 150 100 C 170 120 200 100 200 100")')
 
-            // TODO: continue with line
+            // add another point, which should now be a line
+            const p5 = { x: 250, y: 110}
+            scene.mouseDownAt(p5)
+            console.log(scene.penTool.path!.path.toString())
+            expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 120 80 130 80 150 100 C 170 120 200 100 200 100 L 250 110")
         })
 
-        it("curve(angle, angle) + curve(angle, curve)", function() {
+        it("curve(angle, angle) + curve(angle, angle)", function() {
             const scene = new FigureEditorScene(false)
 
             // TODO: move this into the scene

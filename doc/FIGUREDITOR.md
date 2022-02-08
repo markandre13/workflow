@@ -8,12 +8,31 @@ as well as simpler use cases like file folders.
 Center is the FigureEditor class which can be extended by a number of tools.
 Here is list of the basic tools along with their names in other applications:
 
-| Tool    | Illustrator      | CorelDraw | Inkscape              | Description                        |
-|---------|------------------|-----------|-----------------------|------------------------------------|
-| Arrange | Selection        | Pick      | Select                | Move, Rotate, Scale, Group, ...    |
-| Edit    | Direct Selection | Shape     | Control Point Editing | Edit points in figures.            |
-| Pen     | Pen              | Pen       | Bezier Path           | Curves drawn one segment at a time. |
-| Nib     | Paintbrush       | Artistic  | Pencil, Calligraphic  | Freehand curves considering pen pressure, rotation, tilt, ... |
+| Tool    | Affinity Designer        | CorelDraw                  | Illustrator                | Inkscape              | Description                         |
+|---------|--------------------------|----------------------------|----------------------------|-----------------------|-------------------------------------|
+| Arrange | Move (V)                 | Pick (Ctrl+Space)          | Selection (V)              | Select                | Move, Rotate, Scale, Group, ...     |
+| Edit    | Node (A)                 | Shape (A)                  | Direct Selection (A)       | Control Point Editing | Edit points in figures.             |
+| Pen     | Pen (P)                  | Pen                        | Pen (P)                    | Bezier Path           | Curves drawn one segment at a time. |
+| Nib     | Pencil (N), Vector Brush | Freehand (N), Artistic (I) | Pencil (N), Paintbrush (B) | Pencil, Calligraphic  | Freehand curves considering pen pressure, rotation, tilt, ... |
+| Brush   |                          |                            | Blob Brush                 |                       |                                     |
+| Fill    |                          |                            |                            |                       |                                     |
+| Type    | Text (T)                 | Text (T)                   | Type (T)                   |                       | Text                                |
+| Zoom    |                          |                            |                            |                       |                                     |
+  
+Anchors Types
+* smooth corner, curve (two symmetric handles)
+* straight corner (no handles)
+* curved corner (independent handles)
+* combination corner (one handle, hybrid)
+
+Corner Tool
+* click anchor point to remove handles
+* drag anchor or alt+click handle for symmetric handles
+* drag handle for curved corner
+* drag handle into anchor for combination corner
+(there's no symmetric but different lengths?)
+
+(handle = direction point)
 
   To support algorithms like fill, boolean operations, arrows which end at
 the outline of a figure, deformation of images, figures do not directly
