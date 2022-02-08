@@ -70,7 +70,7 @@ enum Cursor {
     // CLOSE // this is a handle cursor
 }
 
-enum State {
+export enum State {
     READY,
     DOWN_POINT,
     DOWN_CURVE,
@@ -78,7 +78,6 @@ enum State {
     DOWN_CURVE_POINT,
     DOWN_CURVE_CURVE,
     UP_X_CURVE,
-    THIRD_DOWN_CURVE,
 
     UP_POINT,
     DOWN_POINT_POINT,
@@ -225,12 +224,20 @@ export class PenTool extends Tool {
                     } break
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
-                        this.figure = new Path(this.path!.path) // FIXME: won't work in client/server mode
-                        if (event.editor.strokeAndFillModel) {
-                            this.figure.stroke = event.editor.strokeAndFillModel.stroke
-                            this.figure.fill = event.editor.strokeAndFillModel.fill
+                        const path = this.path!
+                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
                         }
-                        event.editor.addFigure(this.figure)
+                        this.figure!.curve(
+                            { x: segment.values[0], y: segment.values[1] },
+                            { x: segment.values[2], y: segment.values[3] },
+                            { x: segment.values[4], y: segment.values[5] }
+                        )
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
                         this.state = State.UP_POINT
                     } break
                 } break
@@ -254,12 +261,27 @@ export class PenTool extends Tool {
                     } break
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
-                        this.figure = new Path(this.path!.path) // FIXME: won't work in client/server mode
-                        if (event.editor.strokeAndFillModel) {
-                            this.figure.stroke = event.editor.strokeAndFillModel.stroke
-                            this.figure.fill = event.editor.strokeAndFillModel.fill
+                        // this.figure = new Path(this.path!.path) // FIXME: won't work in client/server mode
+                        // if (event.editor.strokeAndFillModel) {
+                        //     this.figure.stroke = event.editor.strokeAndFillModel.stroke
+                        //     this.figure.fill = event.editor.strokeAndFillModel.fill
+                        // }
+                        // event.editor.addFigure(this.figure)
+                        const path = this.path!
+                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
                         }
-                        event.editor.addFigure(this.figure)
+                        this.figure!.curve(
+                            { x: segment.values[0], y: segment.values[1] },
+                            { x: segment.values[2], y: segment.values[3] },
+                            { x: segment.values[4], y: segment.values[5] }
+                        )
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+
                         this.state = State.UP_X_CURVE
                     } break
                 } break
@@ -284,45 +306,7 @@ export class PenTool extends Tool {
                         this.addAnchor(event)
                         this.path!.curve(h0, event, event)
                         this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
-                        this.state = State.THIRD_DOWN_CURVE
-                    } break
-                } break
-
-            case State.THIRD_DOWN_CURVE:
-                switch (event.type) {
-                    case "mousemove": {
-                        const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1]
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        let h0 = event
-                        const a0 = { x: segment.values[4], y: segment.values[5] }
-                        let h1 = mirrorPoint(a0, h0)
-                        segment.values[2] = h1.x
-                        segment.values[3] = h1.y
-
-                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
-
-                        this.updateHandle(Handle.CURRENT_BACKWARD, a0, h1)
-                        this.updateHandle(Handle.CURRENT_FORWARD, a0, h0)
-                    } break
-                    case "mouseup": {
-                        const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        this.figure!.curve(
-                            { x: segment.values[0], y: segment.values[1] },
-                            { x: segment.values[2], y: segment.values[3] },
-                            { x: segment.values[4], y: segment.values[5] }
-                        )
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-                        this.state = State.UP_X_CURVE // ???
+                        this.state = State.DOWN_CURVE_POINT
                     } break
                 } break
 

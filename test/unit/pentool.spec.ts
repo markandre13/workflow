@@ -1,11 +1,10 @@
-import { expect, use } from '@esm-bundle/chai'
-// import { chaiAlmost from "chai-almost"
-// use(chaiAlmost())
+import { expect } from '@esm-bundle/chai'
 
 import { FigureEditorScene } from "./FigureEditorScene"
+import { State } from "client/figuretools/PenTool"
 
 import { initializeCORBAValueTypes } from "client/workflow"
-import { Point, pointMinusPoint, pointPlusPoint } from 'shared/geometry'
+import { Point, pointMinusPoint } from 'shared/geometry'
 import { Path } from 'client/figures/Path'
 import { StrokeAndFillModel } from "client/views/widgets/strokeandfill"
 
@@ -18,8 +17,93 @@ describe("PenTool", function () {
         initializeCORBAValueTypes()
         await loadScript("polyfill/path-data-polyfill.js")
     })
+    
+    // the checks the state machine according to doc/pentool-state-diagram.svg
+    describe("draw curves one segment at a time (v3)", function () {
+        it("READY", function() {
+            const scene = new FigureEditorScene(true)
+            scene.selectPenTool()
 
-    describe("draw curves one segment at a time", function () {
+            expect(scene.penTool.state).to.equal(State.READY)
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-ready.svg")
+        })
+        
+        it("READY ---down---> DOWN_POINT", function() {
+            const scene = new FigureEditorScene(true)
+            scene.selectPenTool()
+
+            const p0 = { x: 100, y: 100 }
+            scene.mouseDownAt(p0)
+
+            expect(scene.penTool.state).to.equal(State.DOWN_POINT)
+            expect(scene.hasAnchorAt(p0)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([1, 0])
+            expect(scene.penTool.path!.path.toString()).to.equal('M 100 100')
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+        })
+
+        it("DOWN_POINT ---up---> UP_POINT", function() {
+            const scene = new FigureEditorScene(true)
+            scene.selectPenTool()
+
+            const p0 = { x: 100, y: 100 }
+            scene.mouseDownAt(p0)
+            scene.mouseUp()
+
+            expect(scene.penTool.state).to.equal(State.UP_POINT)
+            expect(scene.hasAnchorAt(p0)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([1, 0])
+            expect(scene.penTool.path!.path.toString()).to.equal('M 100 100')
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-active.svg")
+        })
+
+        it("UP_POINT ---down---> DOWN_POINT_POINT", function() {
+            const scene = new FigureEditorScene(true)
+            scene.selectPenTool()
+
+            const p0 = { x: 100, y: 100 }
+            const p1 = { x: 110, y: 80 }
+            scene.mouseDownAt(p0)
+            scene.mouseUp()
+            scene.mouseDownAt(p1)
+
+            expect(scene.penTool.state).to.equal(State.DOWN_POINT_POINT)
+            expect(scene.hasAnchorAt(p0)).to.be.true
+            expect(scene.hasAnchorAt(p1)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([2, 0])
+            expect(scene.penTool.path!.path.toString()).to.equal('M 100 100 L 110 80')
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+        })
+
+        it("DOWN_POINT_POINT ---up---> UP_POINT", function() {
+            const scene = new FigureEditorScene(true)
+            scene.selectPenTool()
+
+            const p0 = { x: 100, y: 100 }
+            const p1 = { x: 110, y: 80 }
+            scene.mouseDownAt(p0)
+            scene.mouseUp()
+            scene.mouseDownAt(p1)
+            scene.mouseUp()
+
+            expect(scene.penTool.state).to.equal(State.UP_POINT)
+            expect(scene.hasAnchorAt(p0)).to.be.true
+            expect(scene.hasAnchorAt(p1)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([2, 0])
+            expect(scene.penTool.path!.path.toString()).to.equal('M 100 100 L 110 80')
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100 L 110 80')
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-active.svg")
+        })
+    })
+
+    xdescribe("draw curves one segment at a time (v2)", function () {
         it("line(point, point)", function () {
             const scene = new FigureEditorScene(true)
             scene.selectPenTool()
@@ -73,9 +157,7 @@ describe("PenTool", function () {
             expect(/pen-active.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
         })
 
-        it.only("line(point, point) + line(point, point)", function () {
-            const ignorePoint = { x: 1234, y: 5678 }
-
+        it("line(point, point) + line(point, point)", function () {
             const scene = new FigureEditorScene(false)
             scene.selectPenTool()
 
@@ -120,7 +202,6 @@ describe("PenTool", function () {
             check()
             expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
 
-            scene.mouseTo(ignorePoint)
             scene.mouseUp()
             check = () => {
                 expect(scene.hasAnchorAt(p0)).to.be.true
@@ -207,8 +288,10 @@ describe("PenTool", function () {
 
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([1, 0])
-            expect(scene.penTool.path!.path.toString()).to.equal("M 100 100")
-            expect(scene.model.layers[0].data.length).equals(0)
+            expect(scene.penTool.path!.path.toString()).to.equal('M 100 100')
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
+
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
 
             // dragging creates a curve
@@ -218,8 +301,11 @@ describe("PenTool", function () {
             expect(scene.hasHandleAt(p0, p1)).to.be.true
             expect(scene.hasHandleAt(p0, mirrorPoint(p0, p1)))
             expect(scene.getAnchorHandleCount()).to.deep.equal([1, 2])
-            expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 110 80 0 0 0 0")
-            expect(scene.model.layers[0].data.length).equals(0)
+
+            expect(scene.penTool.path!.path.toString()).to.equal('M 100 100 C 110 80 0 0 0 0')
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
+
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
 
             // dragging again updates the curve
@@ -231,7 +317,8 @@ describe("PenTool", function () {
                 expect(scene.hasHandleAt(p0, mirrorPoint(p0, p2)))
                 expect(scene.getAnchorHandleCount()).to.deep.equal([1, 2])
                 expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 130 70 0 0 0 0")
-                expect(scene.model.layers[0].data.length).equals(0)
+                expect(scene.model.layers[0].data.length).equals(1)
+                expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
             }
             check()
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
@@ -242,7 +329,7 @@ describe("PenTool", function () {
         })
 
         it("curve(angle, point)", function() {
-            const scene = new FigureEditorScene(false)
+            const scene = new FigureEditorScene(true)
 
             // TODO: move this into the scene
             const strokeAndFill = new StrokeAndFillModel()
@@ -270,7 +357,8 @@ describe("PenTool", function () {
                 expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 110 80 130 70 130 70")
             }
             check()
-            expect(scene.model.layers[0].data.length).equals(0)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
 
             scene.mouseUp()
@@ -309,10 +397,10 @@ describe("PenTool", function () {
                 expect(scene.hasHandleAt(p0, p1)).to.be.true
                 expect(scene.getAnchorHandleCount()).to.deep.equal([2, 1])
                 expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 110 80 130 70 130 70")
-                expect(scene.model.layers[0].data.length).equals(0)
+                expect(scene.model.layers[0].data.length).equals(1)
+                expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
             }
             check()
-            expect(scene.model.layers[0].data.length).equals(0)
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
 
             // drag second point
@@ -325,7 +413,8 @@ describe("PenTool", function () {
             expect(scene.hasHandleAt(p2, p3)).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([2, 3])
             expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 110 80 120 80 130 70")
-            expect(scene.model.layers[0].data.length).equals(0)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
 
             // drag second point again
@@ -340,7 +429,8 @@ describe("PenTool", function () {
                 expect(scene.getAnchorHandleCount()).to.deep.equal([2, 3])
             }
             expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 110 80 125 75 130 70")
-            expect(scene.model.layers[0].data.length).equals(0)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
 
             scene.mouseUp()
@@ -478,7 +568,7 @@ describe("PenTool", function () {
         })
 
         it("curve(point, angle)", function () {
-            const scene = new FigureEditorScene(false)
+            const scene = new FigureEditorScene(true)
 
             // TODO: move this into the scene
             const strokeAndFill = new StrokeAndFillModel()
@@ -499,7 +589,8 @@ describe("PenTool", function () {
             expect(scene.hasAnchorAt(p1)).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([2, 0])
             expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 L 110 80")
-            expect(scene.model.layers[0].data.length).equals(0)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
             expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
 
             // dragging the 2nd anchor converts the line into a curve
@@ -507,11 +598,12 @@ describe("PenTool", function () {
             scene.mouseTo(p2)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p1)).to.be.true
-            expect(scene.hasHandleAt(p1, p2))
-            expect(scene.hasHandleAt(p1, mirrorPoint(p1, p2)))
+            expect(scene.hasHandleAt(p1, p2)).to.be.true
+            expect(scene.hasHandleAt(p1, mirrorPoint(p1, p2))).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([2, 2])
             expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 100 100 90 80 110 80")
-            expect(scene.model.layers[0].data.length).equals(0)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.path.toString()).to.equal('M 100 100')
             expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
 
             // dragging the 2nd anchor again, updates the curve
@@ -519,10 +611,10 @@ describe("PenTool", function () {
             scene.mouseTo(p3)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p1)).to.be.true
-            expect(scene.hasHandleAt(p1, p3))
-            expect(scene.hasHandleAt(p1, mirrorPoint(p1, p3)))
+            expect(scene.hasHandleAt(p1, p3)).to.be.true
+            expect(scene.hasHandleAt(p1, mirrorPoint(p1, p3))).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([2, 2])
-            expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 100 100 70 90 110 80")
+            expect(scene.penTool.path!.path.toString()).to.equal(`M 100 100 C 100 100 ${110-(150-110)} ${80-(70-80)} 110 80`)
             expect(scene.model.layers[0].data.length).equals(0)
             expect(/direct-selection-cursor.svg/.exec(scene.figureeditor.svgView.style.cursor)).to.be.not.null
 
@@ -530,8 +622,8 @@ describe("PenTool", function () {
             scene.mouseUp()
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p1)).to.be.true
-            expect(scene.hasHandleAt(p1, p3))
-            expect(scene.hasHandleAt(p1, mirrorPoint(p1, p3)))
+            expect(scene.hasHandleAt(p1, p3)).to.be.true
+            expect(scene.hasHandleAt(p1, mirrorPoint(p1, p3))).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([2, 2])
             expect(scene.penTool.path!.path.toString()).to.equal("M 100 100 C 100 100 70 90 110 80")
             expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-active.svg")
