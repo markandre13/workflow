@@ -18,16 +18,6 @@
 
 // Quick orientation for myself before going to work:
 
-// Icon: something with splines/beziérs (isograph drawing bezier?)
-// Illustrator uses a nib cursor, despite the fixed line width.
-// Hence I use a technical pena as cursor, like a rapido/iso-graph
-// Pen Tool (P): Create Paths <=== we are here
-//   Anchor
-//   Anchor has two handles
-// Add Anchor Point Tool (+)
-// Delete Anchor Point Tool (-)
-// Anchor Point Tool (Shift+C)
-
 // Similar tools:
 // Curvature Tool (Shift+~): draw lines first, then bend them (isograph picking a curve?)
 // how about combining this with the pen tool by moving add/remove anchor elsewhere?
@@ -42,8 +32,6 @@
 
 // Testing: I want visual unit tests for this!!!
 
-// lines & handles are only drawn for one segment at a time
-
 import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
 import { EditorMouseEvent, Operation } from "../figureeditor"
@@ -54,9 +42,6 @@ import { Point, Rectangle, distancePointToPoint, pointMinusPoint } from "shared/
 // FIXME: cursor: white surrounding for ready, edge, ...
 // FIXME: use (document|body).onmousemove for mouse event outside browser
 //        or https://developer.mozilla.org/en-US/docs/Web/API/Element/setPointerCapture
-// FIXME: draw temporary path as outline, sync intermediate steps with the model
-// FIXME: use the temporary edgeHandle point also to start new curves instead of adding
-//        a new segment? (is that a thing?)
 
 enum Cursor {
     DEFAULT,
@@ -83,9 +68,7 @@ export enum State {
     DOWN_POINT_POINT,
     DOWN_POINT_CURVE,
 
-    UP,
-    DOWN,
-    CLOSE_DOWN,
+    // CLOSE_DOWN,
 }
 
 enum Handle {
@@ -125,7 +108,7 @@ export class PenTool extends Tool {
     }
 
     override mouseEvent(event: EditorMouseEvent) {
-        console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
+        // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
         // console.log(`this.path=${this.path}`)
 
         switch (this.state) {
@@ -261,12 +244,6 @@ export class PenTool extends Tool {
                     } break
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
-                        // this.figure = new Path(this.path!.path) // FIXME: won't work in client/server mode
-                        // if (event.editor.strokeAndFillModel) {
-                        //     this.figure.stroke = event.editor.strokeAndFillModel.stroke
-                        //     this.figure.fill = event.editor.strokeAndFillModel.fill
-                        // }
-                        // event.editor.addFigure(this.figure)
                         const path = this.path!
                         const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
                         if (segment.type !== 'C') {
@@ -289,7 +266,7 @@ export class PenTool extends Tool {
             case State.UP_X_CURVE:
                 switch (event.type) {
                     case "mousedown": {
-                        // previous was a curve, hence this must be a curve too
+                        this.setCursor(event, Cursor.DIRECT)
                         const path = this.path!
                         const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
                         if (segment.type !== 'C') {
@@ -331,11 +308,18 @@ export class PenTool extends Tool {
                                 throw Error("yikes")
                             }
                             const segment0 = path.path.data[path.path.data.length - 2]
-                            if (segment0.type !== 'L' && segment0.type !== 'M') {
-                                throw Error("yikes")
+                            let curveStartPoint
+                            switch(segment0.type) {
+                                case 'M':
+                                case 'L':
+                                    curveStartPoint = { x: segment0.values[0], y: segment0.values[1] }
+                                    break
+                                case 'C':
+                                    curveStartPoint = { x: segment0.values[4], y: segment0.values[5] }
+                                    break
+                                default:
+                                    throw Error("yikes") 
                             }
-                            const curveStartPoint = { x: segment0.values[0], y: segment0.values[1] }
-
                             const anchor = event.editor.mouseDownAt!
                             const forwardHandle = event
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
@@ -390,49 +374,34 @@ export class PenTool extends Tool {
 
                         this.state = State.UP_X_CURVE
                     } break
-                } break
-
-            case State.UP:
-                switch (event.type) {
-                    case "mousedown":
-                        this.setCursor(event, Cursor.DIRECT)
-                        if (this.isFirstAnchor(event)) {
-                            this.path!.close()
-                            this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
-                            this.anchors[0].style.cursor = ""
-                            this.state = State.CLOSE_DOWN
-                        } else {
-                            this.addAnchor(event)
-                            this.path!.line(event)
-                            this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
-                            this.state = State.DOWN
+                    case "mousemove": {        
+                        const path = this.path!
+                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
                         }
-                        break
+                        const anchor = event.editor.mouseDownAt!
+                        const forwardHandle = event
+                        const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                        segment.values[2] = backwardHandle.x
+                        segment.values[3] = backwardHandle.y
+                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                    } break
                 } break
 
-            case State.DOWN:
-                switch (event.type) {
-                    case "mouseup":
-                        this.setCursor(event, Cursor.ACTIVE)
-                        this.state = State.UP
-                        this.figure!.line(event.editor.mouseDownAt!)
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-                        break
-                } break
-            case State.CLOSE_DOWN:
-                switch (event.type) {
-                    case "mouseup":
-                        this.state = State.READY
-                        this.setCursor(event, Cursor.READY)
-                        this.figure!.close()
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-                } break
+            // case State.CLOSE_DOWN:
+            //     switch (event.type) {
+            //         case "mouseup":
+            //             this.state = State.READY
+            //             this.setCursor(event, Cursor.READY)
+            //             this.figure!.close()
+            //             event.editor.model?.modified.trigger({
+            //                 operation: Operation.UPDATE_FIGURES,
+            //                 figures: [this.figure!.id]
+            //             })
+            //     } break
         }
     }
 
