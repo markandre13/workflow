@@ -22,6 +22,8 @@ import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { AbstractPath } from "./AbstractPath"
 
+// import { Intersection, intersectLineLine, intersectCurveLine } from "shared/geometry/Intersection"
+
 import { pointInPolygonWN } from "shared/pointInPolygon"
 
 interface CloseSegment {
@@ -102,6 +104,48 @@ export class Path extends AbstractPath {
         return this.data.length == 0
     }
     contains(point: Point): boolean {
+        // const scanLine = [
+        //     new Point(Number.MIN_VALUE, point.y),
+        //     new Point(Number.MAX_VALUE, point.y)
+        // ]
+        // for(let entry of this.data) {
+        //     let lastPoint!: Point
+        //     let firstPoint!: Point
+        //     const ilist = Array<Intersection>()
+        //     switch(entry.type) {
+        //         case "M":
+        //             firstPoint = lastPoint = {x: entry.values[0], y: entry.values[1]}
+        //             break
+        //         case "L": {
+        //             const line = [
+        //                 lastPoint,
+        //                 {x: entry.values[0], y: entry.values[1]}
+        //             ]
+        //             intersectLineLine(ilist, line, scanLine)
+        //             lastPoint = line[1]
+        //         } break
+        //         case "C": {
+        //             let curve = [
+        //                 lastPoint,
+        //                 {x: entry.values[0], y: entry.values[1]},
+        //                 {x: entry.values[2], y: entry.values[3]},
+        //                 {x: entry.values[4], y: entry.values[5]}
+        //             ]
+        //             intersectCurveLine(ilist, curve, scanLine)
+        //             lastPoint = curve[3]
+        //         } break
+        //         case "Z": {
+        //             if (entry !== this.data[this.data.length-1])
+        //                 throw Error("multiple segments are not implemented yet")
+        //             const line = [
+        //                 lastPoint,
+        //                 firstPoint
+        //             ]
+        //             intersectLineLine(ilist, line, scanLine)
+        //             lastPoint = line[1]
+        //         }
+        //     }
+        // }
         const flat: Point[] = []
         for(let entry of this.data) {
             switch(entry.type) {

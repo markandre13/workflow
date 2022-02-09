@@ -21,77 +21,14 @@ import {
     pointEqualsPoint, signedArea, isZero, isLessEqual,
     intersectsRectLine, lineCrossesRect2
 } from "shared/geometry"
+
+import { Intersection, intersectLineLine, _intersectLineLine } from "shared/geometry/Intersection"
+
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
 import { Point } from "shared/geometry/Point"
 import { Path } from "../paths"
 import { OrderedArray } from "../OrderedArray"
-
-// description of an intersection between path segments
-export class IntersectionPoint {
-    type: string	// 'L'line or 'C'urve, as used in Path // FIXME: enum?
-    src: Array<Point>	// data for L or C
-    u: number		// position of intersection on src within [0, 1]
-    pt: Point		// the actual calculated location of the intersection
-    constructor(type: string, src: Array<Point>, u: number, pt: Point) {
-        this.type = type
-        this.src = src
-        this.u = u
-        this.pt = pt
-    }
-}
-
-export class Intersection {
-    seg0: IntersectionPoint
-    seg1: IntersectionPoint
-
-    constructor(t0: string, s0: Array<Point>, u0: number, p0: Point,
-        t1: string, s1: Array<Point>, u1: number, p1: Point) {
-        this.seg0 = new IntersectionPoint(t0, s0, u0, p0)
-        this.seg1 = new IntersectionPoint(t1, s1, u1, p1)
-    }
-}
-
-export function _intersectLineLine(lineA: Array<Point>, lineB: Array<Point>): Point | undefined {
-    let ax = lineA[1].x - lineA[0].x,
-        ay = lineA[1].y - lineA[0].y,
-        bx = lineB[1].x - lineB[0].x,
-        by = lineB[1].y - lineB[0].y,
-        cross = ax * by - ay * bx
-
-    if (isZero(cross))
-        return undefined
-
-    let
-        dx = lineA[0].x - lineB[0].x,
-        dy = lineA[0].y - lineB[0].y,
-        a = (bx * dy - by * dx) / cross,
-        b = (ax * dy - ay * dx) / cross
-    if (a < 0.0 || a > 1.0 || b < 0.0 || b > 1.0)
-        return undefined
-    return new Point(lineA[0].x + a * ax, lineA[0].y + a * ay)
-}
-
-export function intersectLineLine(ilist: Array<Intersection>, lineA: Array<Point>, lineB: Array<Point>) {
-    let ax = lineA[1].x - lineA[0].x,
-        ay = lineA[1].y - lineA[0].y,
-        bx = lineB[1].x - lineB[0].x,
-        by = lineB[1].y - lineB[0].y,
-        cross = ax * by - ay * bx
-    if (isZero(cross))
-        return
-
-    let
-        dx = lineA[0].x - lineB[0].x,
-        dy = lineA[0].y - lineB[0].y,
-        a = (bx * dy - by * dx) / cross,
-        b = (ax * dy - ay * dx) / cross
-    if (a < 0.0 || a > 1.0 || b < 0.0 || b > 1.0)
-        return
-    let p = new Point(lineA[0].x + a * ax, lineA[0].y + a * ay)
-    ilist.push(new Intersection("L", lineA, a, p,
-        "L", lineB, b, p))
-}
 
 // a path is broken down into sweep events for the sweep algorithm
 export class SweepEvent {
