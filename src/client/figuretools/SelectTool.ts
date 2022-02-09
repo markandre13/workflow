@@ -28,7 +28,10 @@
  *               is applied to the model/send to the server
  ******************************************************************/
 
-import { Point, Rectangle, Matrix, pointMinusPoint, pointMinus } from "shared/geometry"
+import { pointMinusPoint, pointMinus } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "../figures/Figure"
 import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
 import { Tool } from "./Tool"

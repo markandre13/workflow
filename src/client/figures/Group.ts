@@ -16,12 +16,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point, Rectangle, Matrix } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "./Figure"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value     from "shared/workflow_value"
 import { Path } from "../paths/Path"
-import { PathGroup } from "../paths/PathGroup"
 
 export class Group extends Figure implements valuetype.figure.Group {
     childFigures!: Array<Figure>

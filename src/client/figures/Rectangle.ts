@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point } from "shared/geometry"
+import { Point } from "shared/geometry/Point"
 import { AbstractPath, Path } from "../paths"
 import { Shape } from "./Shape"
 import * as valuetype from "shared/workflow_valuetype"

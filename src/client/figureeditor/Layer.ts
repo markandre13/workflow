@@ -18,7 +18,8 @@
 
 import * as value from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
-import { Point, Matrix } from "shared/geometry"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "../figures"
 import { GIOPDecoder } from "corba.js"
 

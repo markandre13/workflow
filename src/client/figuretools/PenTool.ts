@@ -36,7 +36,9 @@ import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
 import { EditorMouseEvent, Operation } from "../figureeditor"
 import { Path } from "../figures/Path"
-import { Point, Rectangle, distancePointToPoint, pointMinusPoint } from "shared/geometry"
+import { distancePointToPoint, pointMinusPoint } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
 
 // FIXME: cursor: remove white border from tip and set center one pixel above tip
 // FIXME: cursor: white surrounding for ready, edge, ...

@@ -4,7 +4,8 @@ use(chaiAlmost())
 import chaiSubset = require("chai-subset")
 use(chaiSubset)
 
-import { Point, Rectangle } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
 import { FigureEditorScene } from "./FigureEditorScene"
 import { Text } from "client/figures/Text"
 import { Tool } from "client/figuretools"

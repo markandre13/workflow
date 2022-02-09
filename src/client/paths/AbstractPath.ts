@@ -16,7 +16,8 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point, Matrix } from "shared/geometry"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 
 export abstract class AbstractPath {
     abstract transform(matrix: Matrix): AbstractPath

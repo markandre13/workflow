@@ -4,7 +4,8 @@ import { FigureEditorScene } from "./FigureEditorScene"
 import { State } from "client/figuretools/PenTool"
 
 import { initializeCORBAValueTypes } from "client/workflow"
-import { Point, pointMinusPoint } from 'shared/geometry'
+import { pointMinusPoint } from 'shared/geometry'
+import { Point } from "shared/geometry/Point"
 
 function mirrorPoint(center: Point, point: Point) {
     return pointMinusPoint(center, pointMinusPoint(point, center))

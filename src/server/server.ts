@@ -28,7 +28,10 @@ import { WsProtocol } from 'corba.js/net/ws'
 import * as skel from "shared/workflow_skel"
 import * as stub from "shared/workflow_stub"
 
-import { Point, Size, Rectangle, Matrix } from "../shared/geometry"
+import { Rectangle } from "../shared/geometry/Rectangle"
+import { Size } from "../shared/geometry/Size"
+import { Point } from "../shared/geometry/Point"
+import { Matrix } from "../shared/geometry/Matrix"
 
 import * as value     from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"

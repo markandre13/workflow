@@ -17,7 +17,7 @@
  */
 
 import { Signal } from "toad.js"
-import { Matrix } from "shared/geometry"
+import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "./figures/Figure"
 import { Layer } from "./figureeditor/Layer"
 import { DrawingModel } from "./figureeditor/DrawingModel"

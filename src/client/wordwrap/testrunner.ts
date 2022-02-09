@@ -17,7 +17,10 @@
  */
 
 import * as value from "shared/workflow_value"
-import { Point, Size, Rectangle, pointEqualsPoint } from "shared/geometry"
+import { pointEqualsPoint } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Size } from "shared/geometry/Size"
+import { Point } from "shared/geometry/Point"
 import { Path } from "../paths/Path"
 import { WordWrap } from "./wordwrap"
 

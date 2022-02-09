@@ -16,7 +16,8 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point, Size } from "shared/geometry"
+import { Size } from "shared/geometry/Size"
+import { Point } from "shared/geometry/Point"
 import { WordSource } from "./wordwrap"
 import { WordBox } from "./WordBox"
 

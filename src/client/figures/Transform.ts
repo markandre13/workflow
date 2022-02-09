@@ -16,7 +16,9 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point, Rectangle, Matrix } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 import { Path } from "client/paths/Path"
 import { Figure } from "./Figure"
 import { Group } from "./Group"

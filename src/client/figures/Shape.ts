@@ -16,7 +16,10 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point, Size, Rectangle, Matrix } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Size } from "shared/geometry/Size"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 import { AttributedFigure } from "./AttributedFigure"
 
 import * as valuetype from "shared/workflow_valuetype"

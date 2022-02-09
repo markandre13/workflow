@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point } from "shared/geometry"
+import { Point } from "shared/geometry/Point"
 import { Path } from "client/paths"
 import { Shape } from "./Shape"
 

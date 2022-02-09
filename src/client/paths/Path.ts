@@ -16,7 +16,10 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point, Rectangle, Matrix, distancePointToLine, isZero } from "shared/geometry"
+import { distancePointToLine, isZero } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 import { AbstractPath } from "./AbstractPath"
 
 import { pointInPolygonWN } from "shared/pointInPolygon"

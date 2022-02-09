@@ -17,7 +17,7 @@
  */
 
 import { Signal } from "toad.js"
-import { Matrix } from "shared/geometry"
+import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "shared/workflow_valuetype"
 import { Layer } from "./Layer"
 import { DrawingEvent } from "./DrawingEvent"

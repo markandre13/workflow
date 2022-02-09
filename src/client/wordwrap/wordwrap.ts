@@ -17,14 +17,15 @@
  */
 
 import {
-    Point, Size, Rectangle, Matrix,
-    pointPlusSize, pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
-    pointMinus, pointEqualsPoint, signedArea, isZero, isLessEqual, distancePointToLine,
+    pointMinusPoint, pointPlusPoint, pointMultiplyNumber,
+    pointEqualsPoint, signedArea, isZero, isLessEqual,
     intersectsRectLine, lineCrossesRect2
 } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Size } from "shared/geometry/Size"
+import { Point } from "shared/geometry/Point"
 import { Path } from "../paths"
 import { OrderedArray } from "../OrderedArray"
-import { TextSource } from "./TextSource"
 
 // description of an intersection between path segments
 export class IntersectionPoint {

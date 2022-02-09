@@ -19,7 +19,7 @@
 import { Text } from "../figures/Text"
 import { Path } from "../paths"
 import { WordBox } from "./WordBox"
-import { Point } from "shared/geometry"
+import { Point } from "shared/geometry/Point"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
 import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"

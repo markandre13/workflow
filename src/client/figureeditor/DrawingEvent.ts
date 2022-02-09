@@ -17,7 +17,7 @@
  */
 
 import { Operation } from "./FigureEditor"
-import { Matrix } from "shared/geometry"
+import { Matrix } from "shared/geometry/Matrix"
 
 export interface DrawingEvent {
     operation: Operation

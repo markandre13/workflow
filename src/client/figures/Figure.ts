@@ -19,7 +19,9 @@
 import * as value  from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
 import { Path, AbstractPath } from "../paths"
-import { Point, Rectangle, Matrix } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 import { GIOPDecoder } from "corba.js"
 
 /**

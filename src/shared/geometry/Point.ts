@@ -16,26 +16,31 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Rectangle } from "shared/geometry/Rectangle"
+import * as value from "../workflow_value"
+import { GIOPDecoder } from "corba.js"
 
-export class WordBox extends Rectangle {
-    word: string
-    endOfLine: boolean  // to discover line breaks
-    endOfSlice: boolean // to discover when to stop drawing selection
-    endOfWrap: boolean  // to discover end of visible words
-    svg: SVGTextElement | undefined
-    ascent = 0
-    constructor(w: number, h: number, word: string) {
-        super(0, 0, w, h)
-        this.word = word
-        this.endOfLine = false
-        this.endOfSlice = false
-        this.endOfWrap = false
+export class Point implements value.Point {
+    x!: number
+    y!: number
+
+    constructor()
+    constructor(point: Partial<Point>)
+    constructor(x: number, y: number)
+    constructor(decoder: GIOPDecoder)
+    constructor(xOrPoint?: number | Partial<Point> | GIOPDecoder, y?: number) {
+        if (xOrPoint instanceof GIOPDecoder) {
+            value.initPoint(this, xOrPoint)
+        }
+        else if (xOrPoint === undefined) {
+            value.initPoint(this)
+        }
+        else if (typeof xOrPoint === "object") {
+            value.initPoint(this, xOrPoint)
+        } else {
+            value.initPoint(this, { x: xOrPoint, y: y! })
+        }
     }
-
-    reset() {
-        this.endOfLine = false
-        this.endOfSlice = false
-        this.endOfWrap = false
+    toString() {
+        return `Point(${this.x}, ${this.y})`
     }
 }

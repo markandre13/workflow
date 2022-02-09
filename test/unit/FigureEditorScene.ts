@@ -24,9 +24,11 @@ import { FigureEditor, KeyCode, Layer } from "client/figureeditor"
 import { Path } from "client/paths"
 
 import {
-    Point, Rectangle, Matrix,
     pointEqualsPoint, pointPlusPoint, pointMinusPoint, pointMinus, distancePointToPoint
 } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 import { EditorMouseEvent } from "client/figureeditor/EditorMouseEvent"
 
 // NOTE: the translation in here is insufficient

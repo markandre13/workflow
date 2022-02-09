@@ -25,7 +25,8 @@
  *               is applied to the model/send to the server
  ******************************************************************/
 
-import { Point, Rectangle } from "shared/geometry"
+ import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
 import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
 import * as figures from "../figures"

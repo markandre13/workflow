@@ -20,7 +20,10 @@ import { ORB } from "corba.js"
 import { WsProtocol } from "corba.js/net/browser"
 
 import * as stub from "shared/workflow_stub"
-import { Point, Size, Rectangle, Matrix } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Size } from "shared/geometry/Size"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 
 import * as figure from "./figures.js"
 

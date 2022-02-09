@@ -2,9 +2,9 @@ import { expect } from "chai"
 import { annotate } from "karma-mocha-html-annotations-reporter"
 
 import * as value from "shared/workflow_value"
-import {
-    Point, Size, Rectangle
-} from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Size } from "shared/geometry/Size"
+import { Point } from "shared/geometry/Point"
 import { Path } from "client/paths/Path"
 
 import { WordWrapTestRunner, Placer } from "client/wordwrap/testrunner"

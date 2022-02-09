@@ -22,7 +22,10 @@ import { expect, use } from '@esm-bundle/chai'
 
 import { initializeCORBAValueTypes } from "client/workflow"
 
-import { Point, Rectangle, Matrix, pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, rotatePointAroundPointBy } from "shared/geometry"
+import { pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, rotatePointAroundPointBy } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 
 import * as figure from "client/figures"
 import { Path as RawPath } from "client/paths/Path"

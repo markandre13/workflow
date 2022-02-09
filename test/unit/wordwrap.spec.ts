@@ -27,7 +27,10 @@
 //
 
 import { expect } from "chai"
-import { Point, Size, Rectangle, pointEqualsPoint, rectangleEqualsRectangle, lineCrossesRect2, lineCrossesLine } from "shared/geometry"
+import { pointEqualsPoint, rectangleEqualsRectangle, lineCrossesRect2, lineCrossesLine } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Size } from "shared/geometry/Size"
+import { Point } from "shared/geometry/Point"
 import { Path } from "client/paths"
 import { WordWrap, WordSource, Slice, SweepEvent, withinSlices, appendEventAsNewSlice, printSlices, validateSlices } from "client/wordwrap/wordwrap"
 import { OrderedArray } from "client/OrderedArray"

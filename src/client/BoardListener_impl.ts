@@ -17,7 +17,7 @@
  */
 
 import { ORB } from "corba.js"
-import { Matrix } from "shared/geometry"
+import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "./figures"
 import { BoardModel } from "./BoardModel"
 import { Operation } from "./figureeditor/FigureEditor"

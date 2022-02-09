@@ -23,7 +23,10 @@ import { EditorMouseEvent } from "../figureeditor/EditorMouseEvent"
 import { EditorKeyboardEvent } from "../figureeditor/EditorKeyboardEvent"
 import { FigureSelectionModel } from "../figureeditor/FigureSelectionModel"
 import { FigureEditor } from "../figureeditor/FigureEditor"
-import { Rectangle, Matrix, pointPlusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual, pointMinusPoint, squaredLength, Point, rotatePointAroundPointBy } from "shared/geometry"
+import { pointPlusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual, pointMinusPoint, squaredLength, rotatePointAroundPointBy } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
+import { Matrix } from "shared/geometry/Matrix"
 
 export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()
