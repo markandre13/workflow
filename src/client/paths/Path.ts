@@ -16,15 +16,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { distancePointToLine, isZero } from "shared/geometry"
+import { distancePointToLine } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { AbstractPath } from "./AbstractPath"
+import { BezPointDistance, bezpoint } from "shared/geometry/bezpoint"
 
-// import { Intersection, intersectLineLine, intersectCurveLine } from "shared/geometry/Intersection"
-
-import { pointInPolygonWN } from "shared/pointInPolygon"
+import { Intersection, intersectLineLine, intersectCurveLine } from "shared/geometry/Intersection"
+// import { pointInPolygonWN } from "shared/pointInPolygon"
 
 interface CloseSegment {
     type: 'Z'
@@ -104,72 +104,59 @@ export class Path extends AbstractPath {
         return this.data.length == 0
     }
     contains(point: Point): boolean {
-        // const scanLine = [
-        //     new Point(Number.MIN_VALUE, point.y),
-        //     new Point(Number.MAX_VALUE, point.y)
-        // ]
-        // for(let entry of this.data) {
-        //     let lastPoint!: Point
-        //     let firstPoint!: Point
-        //     const ilist = Array<Intersection>()
-        //     switch(entry.type) {
-        //         case "M":
-        //             firstPoint = lastPoint = {x: entry.values[0], y: entry.values[1]}
-        //             break
-        //         case "L": {
-        //             const line = [
-        //                 lastPoint,
-        //                 {x: entry.values[0], y: entry.values[1]}
-        //             ]
-        //             intersectLineLine(ilist, line, scanLine)
-        //             lastPoint = line[1]
-        //         } break
-        //         case "C": {
-        //             let curve = [
-        //                 lastPoint,
-        //                 {x: entry.values[0], y: entry.values[1]},
-        //                 {x: entry.values[2], y: entry.values[3]},
-        //                 {x: entry.values[4], y: entry.values[5]}
-        //             ]
-        //             intersectCurveLine(ilist, curve, scanLine)
-        //             lastPoint = curve[3]
-        //         } break
-        //         case "Z": {
-        //             if (entry !== this.data[this.data.length-1])
-        //                 throw Error("multiple segments are not implemented yet")
-        //             const line = [
-        //                 lastPoint,
-        //                 firstPoint
-        //             ]
-        //             intersectLineLine(ilist, line, scanLine)
-        //             lastPoint = line[1]
-        //         }
-        //     }
-        // }
-        const flat: Point[] = []
+        const scanLine = [
+            new Point(Number.MIN_VALUE, point.y),
+            new Point(Number.MAX_VALUE, point.y)
+        ]
+        let intersections = 0
+        let lastPoint!: Point
+        let firstPoint!: Point
         for(let entry of this.data) {
+            const ilist = Array<Intersection>()
+            // console.log(entry)
             switch(entry.type) {
                 case "M":
-                case "L":
-                    flat.push({x: entry.values[0], y: entry.values[1]})
+                    firstPoint = lastPoint = {x: entry.values[0], y: entry.values[1]}
                     break
-                case "C":
-                    throw Error("curves are not implemented yet")
-                case "Z":
-                    if (entry !== this.data[this.data.length-1])
-                        throw Error("multiple segments are not implemented yet")
+                case "L": {
+                    const line = [
+                        lastPoint,
+                        {x: entry.values[0], y: entry.values[1]}
+                    ]
+                    intersectLineLine(ilist, line, scanLine)
+                    lastPoint = line[1]
+                } break
+                case "C": {
+                    if (lastPoint === undefined) {
+                        throw Error("yikes")
+                    }
+                    let curve = [
+                        lastPoint,
+                        {x: entry.values[0], y: entry.values[1]},
+                        {x: entry.values[2], y: entry.values[3]},
+                        {x: entry.values[4], y: entry.values[5]}
+                    ]
+                    intersectCurveLine(ilist, curve, scanLine)
+                    lastPoint = curve[3]
+                } break
+                case "Z": {
+                    const line = [
+                        lastPoint,
+                        firstPoint
+                    ]
+                    intersectLineLine(ilist, line, scanLine)
+                    lastPoint = firstPoint
+                } break
+            }
+            for(let p of ilist) {
+                if (p.seg0.pt.x < point.x) {
+                    ++intersections
+                }
             }
         }
-        flat.push(flat[0])
-        if (pointInPolygonWN(point, flat, flat.length-1))
-            return true
-        for(let i=1; i<flat.length; ++i) {
-            if (isZero(distancePointToLine(point, flat[i-1], flat[i]))) {
-                return true
-            }
-        }
-        return false
+        return (intersections % 2) != 0
     }
+    
     distance(point: Point) {
         let m!: Point, p0!: Point, p1!: Point, d = Number.MAX_VALUE
         for(let entry of this.data) {
@@ -183,9 +170,22 @@ export class Path extends AbstractPath {
                     d = Math.min(distancePointToLine(point, p0, p1), d)
                     break
                 case "C":
-                    throw Error("curves are not implemented yet")
+                    const dist = {} as BezPointDistance
+                    bezpoint(
+                        point.x, point.y,
+                        p1.x, p1.y,
+                        entry.values[0], entry.values[1],
+                        entry.values[2], entry.values[3],
+                        entry.values[4], entry.values[5],
+                        0, 1, dist
+                    )
+                    d = dist.dist
+                    p0 = p1
+                    p1 = {x: entry.values[0], y: entry.values[1]}
+                    break
                 case "Z":
                     d = Math.min(distancePointToLine(point, m, p1), d)
+                    break
             }
         }
         return d;

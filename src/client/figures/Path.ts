@@ -88,7 +88,9 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         if (this.fill !== "none" && this.path.contains(pt)) {
             return -1
         }
-        return this.path.distance(pt)
+        const d = this.path.distance(pt)
+        console.log(`distance of ${pt.x}, ${pt.y} to curve is ${d}`)
+        return d
     }
 
     transform(transform: Matrix): boolean {

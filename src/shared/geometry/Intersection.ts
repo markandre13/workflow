@@ -250,8 +250,10 @@ export function intersectCurveLine(ilist: Array<Intersection>, curve: Point[], l
     for (let i = 0; i < 4; ++i) {
         const x = curve[i].x - lx1,
             y = curve[i].y - ly1
-        rvc[i].x = x * cos - y * sin
-        rvc[i].y = y * cos + x * sin
+        rvc[i] = {
+            x: x * cos - y * sin,
+            y: y * cos + x * sin
+        }
     }
 
     const roots = Array<number>(4)
