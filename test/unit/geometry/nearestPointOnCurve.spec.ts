@@ -1,4 +1,5 @@
 import { nearestPointOnCurve } from "shared/geometry/nearestPointOnCurve"
+import { bezpoint } from "shared/geometry/bezpoint"
 
 describe("geometry", function () {
     it("nearestPointOnCurve", function () {
@@ -21,5 +22,14 @@ describe("geometry", function () {
         /*  Find the closest point */
         const pointOnCurve = nearestPointOnCurve(arbPoint, bezCurve)
         console.log(`pointOnCurve : ${pointOnCurve.x}, ${pointOnCurve.y}`)
+
+        const d = bezpoint(
+            arbPoint.x, arbPoint.y,
+            bezCurve[0].x, bezCurve[0].y,
+            bezCurve[1].x, bezCurve[1].y,
+            bezCurve[2].x, bezCurve[2].y,
+            bezCurve[3].x, bezCurve[3].y
+        )
+        console.log(`${d.point.x}, ${d.point.y}`)
     })
 })

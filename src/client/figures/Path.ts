@@ -89,7 +89,6 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
             return -1
         }
         const d = this.path.distance(pt)
-        console.log(`distance of ${pt.x}, ${pt.y} to curve is ${d}`)
         return d
     }
 

@@ -158,11 +158,11 @@ export class Path extends AbstractPath {
     }
     
     distance(point: Point) {
-        let m!: Point, p0!: Point, p1!: Point, d = Number.MAX_VALUE
+        let startPoint!: Point, p0!: Point, p1!: Point, d = Number.MAX_VALUE
         for(let entry of this.data) {
             switch(entry.type) {
                 case "M":
-                    m = p1 = {x: entry.values[0], y: entry.values[1]}
+                    startPoint = p1 = {x: entry.values[0], y: entry.values[1]}
                     break
                 case "L":
                     p0 = p1
@@ -170,25 +170,24 @@ export class Path extends AbstractPath {
                     d = Math.min(distancePointToLine(point, p0, p1), d)
                     break
                 case "C":
-                    const dist = {} as BezPointDistance
-                    bezpoint(
+                    p0 = p1
+                    p1 = {x: entry.values[4], y: entry.values[5]}
+                    const r = bezpoint(
                         point.x, point.y,
-                        p1.x, p1.y,
+                        p0.x, p0.y,
                         entry.values[0], entry.values[1],
                         entry.values[2], entry.values[3],
-                        entry.values[4], entry.values[5],
-                        0, 1, dist
+                        p1.x, p1.y
                     )
-                    d = dist.dist
-                    p0 = p1
-                    p1 = {x: entry.values[0], y: entry.values[1]}
+                    d = Math.min(r.distance, d)
                     break
                 case "Z":
-                    d = Math.min(distancePointToLine(point, m, p1), d)
+                    d = Math.min(distancePointToLine(point, startPoint, p1), d)
+                    p1 = startPoint
                     break
             }
         }
-        return d;
+        return d
     }
 
     // relativeMove

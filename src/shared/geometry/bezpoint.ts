@@ -1,3 +1,9 @@
+/*
+ * Numerical nearestPointOnCurve()
+ */
+
+import { Point } from "./Point"
+
 function mid(a: number, b: number) {
     return (a + b) / 2.0
 }
@@ -9,7 +15,9 @@ function distance(x: number, y: number, x1: number, y1: number) {
 }
 
 export interface BezPointDistance {
-    dist: number
+    distance: number
+    u: number
+    point: Point
 }
 
 // find the minimal distance and position of curve to point (px, py)
@@ -19,8 +27,7 @@ export function bezpoint(
     x1: number, y1: number,
     x2: number, y2: number,
     x3: number, y3: number,
-    min = 0.0, max = 1.0,
-    dist?: BezPointDistance): number {
+    min = 0.0, max = 1.0): BezPointDistance {
     const vx0 = x1 - x0
     const vx1 = x2 - x1
     const vx2 = x3 - x2
@@ -42,25 +49,31 @@ export function bezpoint(
     if (Math.abs(w0) + Math.abs(w1) + Math.abs(w2) + Math.abs(w3) < 1.0) {
         let mind = distance(px, py, x0, y0)
         let f = 0.0
+        let pt = { x: x0, y: y0 }
+
         let d = distance(px, py, x1, y1)
         if (d < mind) {
             mind = d
             f = 1.0
+            pt = { x: x1, y: y1 }
         }
         d = distance(px, py, x2, y2)
         if (d < mind) {
             mind = d
             f = 2.0
+            pt = { x: x2, y: y2 }
         }
         d = distance(px, py, x3, y3)
         if (d < mind) {
             mind = d
             f = 3.0
+            pt = { x: x3, y: y3 }
         }
-
-        if (dist)
-            dist.dist = mind
-        return min + (max - min) * f / 3.0
+        return {
+            point: pt,
+            distance: mind,
+            u: min + (max - min) * f / 3.0
+        }
     }
 
     const xx = mid(x1, x2)
@@ -75,12 +88,7 @@ export function bezpoint(
     const y21 = mid(yy, y22)
     const cx = mid(x12, x21)
     const cy = mid(y12, y21)
-    //   double d1, d2, t1, t2;
-    const d1 = {} as BezPointDistance, d2 = {} as BezPointDistance
-    const t1 = bezpoint(px, py, x0, y0, x11, y11, x12, y12, cx, cy, min, min + (max - min) / 2.0, d1)
-    const t2 = bezpoint(px, py, cx, cy, x21, y21, x22, y22, x3, y3, min + (max - min) / 2.0, max, d2)
-    if (dist) {
-        dist.dist = (d1.dist < d2.dist) ? d1.dist : d2.dist
-    }
-    return (d1.dist < d2.dist) ? t1 : t2
+    const t1 = bezpoint(px, py, x0, y0, x11, y11, x12, y12, cx, cy, min, min + (max - min) / 2.0)
+    const t2 = bezpoint(px, py, cx, cy, x21, y21, x22, y22, x3, y3, min + (max - min) / 2.0, max)
+    return t1.distance < t2.distance ? t1 : t2
 }
