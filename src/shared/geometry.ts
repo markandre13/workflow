@@ -50,6 +50,13 @@ export function pointMinusPoint(a: Point, b: Point): Point {
     })
 }
 
+export function pointMinusPointAsSize(a: Point, b: Point): Size {
+    return {
+        width: a.x - b.x,
+        height: a.y - b.y
+    }
+}
+
 export function pointMultiplyNumber(a: Point, b: number): Point {
     return new Point({
         x: a.x * b,

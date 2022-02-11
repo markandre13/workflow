@@ -440,7 +440,10 @@ export class PenTool extends Tool {
     }
 
     clear(event: EditorMouseEvent) {
+        this.state = State.READY
         this.anchors = []
+        this._handles = new Array<SVGCircleElement>(3)
+        this.lines = new Array<SVGLineElement>(3)
         if (this.decoration) {
             event.editor.decorationOverlay.removeChild(this.decoration)
         }

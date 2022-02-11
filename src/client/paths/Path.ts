@@ -21,7 +21,9 @@ import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { AbstractPath } from "./AbstractPath"
-import { BezPointDistance, bezpoint } from "shared/geometry/bezpoint"
+import { bezpoint } from "shared/geometry/bezpoint"
+import { curveBounds } from "shared/geometry/curveBounds"
+import { pointPlusSize } from "shared/geometry"
 
 import { Intersection, intersectLineLine, intersectCurveLine } from "shared/geometry/Intersection"
 // import { pointInPolygonWN } from "shared/pointInPolygon"
@@ -32,7 +34,7 @@ interface CloseSegment {
 }
 
 interface DrawSegment {
-    type: 'M'|'L'|'C'
+    type: 'M' | 'L' | 'C'
     values: number[]
 }
 
@@ -40,7 +42,7 @@ type Segment = DrawSegment | CloseSegment
 
 export class Path extends AbstractPath {
     data: Array<Segment>
-    constructor();
+    constructor()
     constructor(path: Path)
     constructor(path: Array<Point>)
     constructor(path?: Path | Array<Point>) {
@@ -78,7 +80,7 @@ export class Path extends AbstractPath {
     override toString() {
         let text = ""
         for (let seg of this.data) {
-            switch(seg.type) {
+            switch (seg.type) {
                 case 'M':
                     text += `M ${seg.values[0]} ${seg.values[1]} `
                     break
@@ -93,7 +95,7 @@ export class Path extends AbstractPath {
                     break
             }
         }
-        return text.substring(0, text.length-1)
+        return text.substring(0, text.length - 1)
     }
 
     clear(): Path {
@@ -111,17 +113,17 @@ export class Path extends AbstractPath {
         let intersections = 0
         let lastPoint!: Point
         let firstPoint!: Point
-        for(let entry of this.data) {
+        for (let entry of this.data) {
             const ilist = Array<Intersection>()
             // console.log(entry)
-            switch(entry.type) {
+            switch (entry.type) {
                 case "M":
-                    firstPoint = lastPoint = {x: entry.values[0], y: entry.values[1]}
+                    firstPoint = lastPoint = { x: entry.values[0], y: entry.values[1] }
                     break
                 case "L": {
                     const line = [
                         lastPoint,
-                        {x: entry.values[0], y: entry.values[1]}
+                        { x: entry.values[0], y: entry.values[1] }
                     ]
                     intersectLineLine(ilist, line, scanLine)
                     lastPoint = line[1]
@@ -132,9 +134,9 @@ export class Path extends AbstractPath {
                     }
                     let curve = [
                         lastPoint,
-                        {x: entry.values[0], y: entry.values[1]},
-                        {x: entry.values[2], y: entry.values[3]},
-                        {x: entry.values[4], y: entry.values[5]}
+                        { x: entry.values[0], y: entry.values[1] },
+                        { x: entry.values[2], y: entry.values[3] },
+                        { x: entry.values[4], y: entry.values[5] }
                     ]
                     intersectCurveLine(ilist, curve, scanLine)
                     lastPoint = curve[3]
@@ -148,7 +150,7 @@ export class Path extends AbstractPath {
                     lastPoint = firstPoint
                 } break
             }
-            for(let p of ilist) {
+            for (let p of ilist) {
                 if (p.seg0.pt.x < point.x) {
                     ++intersections
                 }
@@ -156,22 +158,22 @@ export class Path extends AbstractPath {
         }
         return (intersections % 2) != 0
     }
-    
+
     distance(point: Point) {
         let startPoint!: Point, p0!: Point, p1!: Point, d = Number.MAX_VALUE
-        for(let entry of this.data) {
-            switch(entry.type) {
+        for (let entry of this.data) {
+            switch (entry.type) {
                 case "M":
-                    startPoint = p1 = {x: entry.values[0], y: entry.values[1]}
+                    startPoint = p1 = { x: entry.values[0], y: entry.values[1] }
                     break
                 case "L":
                     p0 = p1
-                    p1 = {x: entry.values[0], y: entry.values[1]}
+                    p1 = { x: entry.values[0], y: entry.values[1] }
                     d = Math.min(distancePointToLine(point, p0, p1), d)
                     break
                 case "C":
                     p0 = p1
-                    p1 = {x: entry.values[4], y: entry.values[5]}
+                    p1 = { x: entry.values[4], y: entry.values[5] }
                     const r = bezpoint(
                         point.x, point.y,
                         p0.x, p0.y,
@@ -212,7 +214,7 @@ export class Path extends AbstractPath {
                     segment.values[4] = pt[0]
                     segment.values[5] = pt[1]
                 }
-                break
+                    break
             }
         }
         return this
@@ -236,7 +238,7 @@ export class Path extends AbstractPath {
         return this
     }
     curve(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number): Path
-    curve(p0: Point, p1: Point, p2: Point): Path;
+    curve(p0: Point, p1: Point, p2: Point): Path
     curve(p0OrX0: Point | number, p1OrY0: Point | number, p2OrX1: Point | number, Y1?: number, X2?: number, Y2?: number): Path {
         if (typeof p0OrX0 === "object" &&
             typeof p1OrY0 === "object" &&
@@ -250,8 +252,7 @@ export class Path extends AbstractPath {
         else if (
             typeof p0OrX0 === "number" &&
             typeof p1OrY0 === "number" &&
-            typeof p2OrX1 === "number")
-        {
+            typeof p2OrX1 === "number") {
             this.data.push({ type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1!, X2!, Y2!] })
         } else {
             throw Error("yikes")
@@ -289,29 +290,41 @@ export class Path extends AbstractPath {
     }
     bounds(): Rectangle {
         let isFirstPoint = true
+        let previousPoint!: Point
         let rectangle = new Rectangle()
         for (let segment of this.data) {
             switch (segment.type) {
                 case 'M':
-                case 'L':
+                    previousPoint = { x: segment.values[0], y: segment.values[1] }
                     if (isFirstPoint) {
                         rectangle.origin.x = segment.values[0]
                         rectangle.origin.y = segment.values[1]
-                        isFirstPoint = false
-                    }
-                    else {
-                        rectangle.expandByPoint(new Point({ x: segment.values[0], y: segment.values[1] }))
+                    } else {
+                        rectangle.expandByPoint(previousPoint)
                     }
                     break
-                case 'C':
-                    // FIXME: add code
+                case 'L':
+                    previousPoint = { x: segment.values[0], y: segment.values[1] }
+                    rectangle.expandByPoint(previousPoint)
                     break
+                case 'C': {
+                    const nextPoint = { x: segment.values[4], y: segment.values[5] }
+                    const bounds = curveBounds([
+                        previousPoint,
+                        { x: segment.values[0], y: segment.values[1] },
+                        { x: segment.values[2], y: segment.values[3] },
+                        nextPoint
+                    ])
+                    rectangle.expandByPoint(bounds.origin)
+                    rectangle.expandByPoint(pointPlusSize(bounds.origin, bounds.size))
+                    previousPoint = nextPoint
+                } break
             }
         }
         return rectangle
     }
 
-    createSVG(stroke="#000", strokeWidth=1, fill="none"): SVGPathElement {
+    createSVG(stroke = "#000", strokeWidth = 1, fill = "none"): SVGPathElement {
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
         svg.setPathData(this.data)
         svg.setAttributeNS("", "stroke-width", String(strokeWidth))
@@ -322,7 +335,7 @@ export class Path extends AbstractPath {
 
     updateSVG(parentSVG: SVGElement, svg?: SVGPathElement): SVGPathElement {
         if (!svg)
-            svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
+            svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
         let svgPath = svg as SVGPathElement
         svgPath.setPathData(this.data)
         return svg
