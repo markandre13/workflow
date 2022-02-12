@@ -21,7 +21,7 @@ export function pointInPolygonCN(P: Point, V: Point[], n: number): boolean {
     for (let i = 0; i < n; i++) {    // edge from V[i] to V[i+1]
         if (((V[i].y <= P.y) && (V[i + 1].y > P.y))     // an upward crossing
             || ((V[i].y > P.y) && (V[i + 1].y <= P.y))) { // a downward crossing
-            // compute  the actual edge-ray intersect x-coordinate
+            // compute the actual edge-ray intersect x-coordinate
             let vt = (P.y - V[i].y) / (V[i + 1].y - V[i].y)
             if (P.x < V[i].x + vt * (V[i + 1].x - V[i].x)) // P.x < intersect
                 ++cn   // a valid crossing of y=P.y right of P.x
@@ -31,12 +31,7 @@ export function pointInPolygonCN(P: Point, V: Point[], n: number): boolean {
 
 }
 
-// isLeft(): tests if a point is Left|On|Right of an infinite line.
-//    Input:  three points P0, P1, and P2
-//    Return: >0 for P2 left of the line through P0 and P1
-//            =0 for P2  on the line
-//            <0 for P2  right of the line
-function isLeft(P0: Point, P1: Point, P2: Point): number {
+export function isLeft(P0: Point, P1: Point, P2: Point): number {
     return (P1.x - P0.x) * (P2.y - P0.y) - (P2.x - P0.x) * (P1.y - P0.y)
 }
 // aka. signedArea
