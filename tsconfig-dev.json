@@ -39,7 +39,8 @@
         // "src/shared/*.ts",
         "test/unit/pentool.spec.ts",
         "test/unit/selecttool.spec.ts",
-        "test/unit/geometry/nearestPointOnCurve.spec.ts"
+        "test/unit/geometry/nearestPointOnCurve.spec.ts",
+        "test/unit/geometry/pointInPolygon.spec.ts"
     ],
     "exclude": [
         "node_modules"
