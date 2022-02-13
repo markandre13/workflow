@@ -326,7 +326,8 @@ export class Path extends AbstractPath {
 
     createSVG(stroke = "#000", strokeWidth = 1, fill = "none"): SVGPathElement {
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
-        svg.setPathData(this.data)
+        // svg.setPathData(this.data)
+        svg.setAttributeNS("", "d", this.toString())
         svg.setAttributeNS("", "stroke-width", String(strokeWidth))
         svg.setAttributeNS("", "stroke", stroke)
         svg.setAttributeNS("", "fill", fill)
@@ -336,8 +337,9 @@ export class Path extends AbstractPath {
     updateSVG(parentSVG: SVGElement, svg?: SVGPathElement): SVGPathElement {
         if (!svg)
             svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
-        let svgPath = svg as SVGPathElement
-        svgPath.setPathData(this.data)
+        // let svgPath = svg as SVGPathElement
+        // svgPath.setPathData(this.data)
+        svg.setAttributeNS("", "d", this.toString())
         return svg
     }
 }

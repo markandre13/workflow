@@ -14,7 +14,7 @@ import { Point, isZero } from "../geometry"
 // see:
 //   https://en.wikipedia.org/wiki/Cubic_function
 //   http://mathworld.wolfram.com/CubicFormula.html
-function gslPolySolveCubic(a: number, b: number, c: number, roots: number[]): number {
+export function gslPolySolveCubic(a: number, b: number, c: number, roots: number[]): number {
     const q = (a * a - 3 * b),
         r = (2 * a * a * a - 9 * a * b + 27 * c),
         Q = q / 9,
@@ -92,7 +92,7 @@ export function solveCubic0(a: number, b: number, c: number, d: number, roots: n
 // Converts from the point coordinates (p1, c1, c2, p2) for one axis to
 // the polynomial coefficients and solves the polynomial for val
 export function solveCubic(v: Point[], coord: boolean, val: number, roots: number[], min: number, max: number): number {
-    let p1, c1, c2, p2, a, b, c
+    let p1, c1, c2, p2
     if (!coord) {
         p1 = v[0].x
         c1 = v[1].x
@@ -104,15 +104,17 @@ export function solveCubic(v: Point[], coord: boolean, val: number, roots: numbe
         c2 = v[2].y
         p2 = v[3].y
     }
-    c = 3 * (c1 - p1),
+    let c = 3 * (c1 - p1),
         b = 3 * (c2 - c1) - c,
         a = p2 - p1 - c - b
 
     // If both a and b are near zero, we should treat the curve as a line in
     // order to find the right solutions in some edge-cases in
     // Curve.getParameterOf()
-    if (isZero(a) && isZero(b))
-        a = b = 0
+    // if (isZero(a) && isZero(b))
+    //     a = b = 0
+    if (isZero(a))
+        a = 1
     const d = p1 - val
 
     //  a=2;b=-4;c=-22;d=24; // this returns 1

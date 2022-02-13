@@ -20,12 +20,18 @@ import { Point } from "./Point"
 import { solveCubic } from "./solveCubic"
 import { isZero, pointMultiplyNumber, pointPlusPoint } from "../geometry"
 
+// cubic bezier
+// b(t) := p0 * (1-t)^3 
+//       + p1 * 3*t*(1-t)^2
+//       + p2 * 3*t^2*(1-t)
+//       + p3 * t^3
+
 /**
  * \param[in] p four points of a cubic bézier curve
  * \param[in] t ∈[0, 1] position on the bézier curve
  * \return point on the curve at t
  */
-function bez2point(p: Point[], t: number): Point {
+export function bez2point(p: Point[], t: number): Point {
     const u = 1 - t, u2 = u * u, t2 = t * t
     return pointPlusPoint(
         pointPlusPoint(
@@ -39,11 +45,30 @@ function bez2point(p: Point[], t: number): Point {
     )
 }
 
-function bez2x(p: Point[], t: number): number {
+// Beziercurves are invariant to affine transformations
+// NURBS are invariant to projective transformations
+
+export function bez2x(curve: Point[], t: number): number {
     const u = 1 - t,
         u2 = u * u,
         t2 = t * t
-    return p[0].x * u2 * u + p[1].x * t * u2 * 3 + p[2].x * t2 * u * 3 + p[3].x * t2 * t
+    return curve[0].x * u2 * u + curve[1].x * t * u2 * 3 + curve[2].x * t2 * u * 3 + curve[3].x * t2 * t
+}
+
+export function bez2y(p: Point[], t: number): number {
+    const t2 = t * t, t3 = t2 * t
+    return p[0].y * (1 - 3 * t + 3 * t2 - t3)
+        + p[1].y * (3 * t - 6 * t2 + 3 * t3)
+        + p[2].y * (3 * t2 - 3 * t3)
+        + p[3].y * t3
+}
+
+export function bez2dy(p: Point[], t: number): number {
+    const t2 = t * t
+    return p[0].y * (- 3 + 6 * t - 2 * t2)
+        + p[1].y * (3 - 12 * t + 9 * t2)
+        + p[2].y * (6 * t - 9 * t2)
+        + p[3].y * 2 * t2
 }
 
 // description of an intersection between path segments
