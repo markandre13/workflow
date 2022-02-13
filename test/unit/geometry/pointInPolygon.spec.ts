@@ -469,12 +469,14 @@ function comment(context: Mocha.Suite, comment: string) {
 const printedTitles = new Set()
 function printTitles(test?: Mocha.Suite): number {
     if (test === undefined)
-        return 0
+        return -1
     const level = printTitles(test.parent) + 1
 
     if (printedTitles.has(test))
         return level
     printedTitles.add(test)
+    if (level === 0)
+        return level
 
     const heading = document.createElement(`h${level}`)
     heading.appendChild(document.createTextNode(test.title))
