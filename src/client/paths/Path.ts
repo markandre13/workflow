@@ -24,9 +24,7 @@ import { AbstractPath } from "./AbstractPath"
 import { bezpoint } from "shared/geometry/bezpoint"
 import { curveBounds } from "shared/geometry/curveBounds"
 import { pointPlusSize } from "shared/geometry"
-
-import { Intersection, intersectLineLine, intersectCurveLine } from "shared/geometry/Intersection"
-// import { pointInPolygonWN } from "shared/pointInPolygon"
+import { pointInPath } from "shared/geometry/pointInPath"
 
 interface CloseSegment {
     type: 'Z'
@@ -106,57 +104,7 @@ export class Path extends AbstractPath {
         return this.data.length == 0
     }
     contains(point: Point): boolean {
-        const scanLine = [
-            new Point(Number.MIN_VALUE, point.y),
-            new Point(Number.MAX_VALUE, point.y)
-        ]
-        let intersections = 0
-        let lastPoint!: Point
-        let firstPoint!: Point
-        for (let entry of this.data) {
-            const ilist = Array<Intersection>()
-            // console.log(entry)
-            switch (entry.type) {
-                case "M":
-                    firstPoint = lastPoint = { x: entry.values[0], y: entry.values[1] }
-                    break
-                case "L": {
-                    const line = [
-                        lastPoint,
-                        { x: entry.values[0], y: entry.values[1] }
-                    ]
-                    intersectLineLine(ilist, line, scanLine)
-                    lastPoint = line[1]
-                } break
-                case "C": {
-                    if (lastPoint === undefined) {
-                        throw Error("yikes")
-                    }
-                    let curve = [
-                        lastPoint,
-                        { x: entry.values[0], y: entry.values[1] },
-                        { x: entry.values[2], y: entry.values[3] },
-                        { x: entry.values[4], y: entry.values[5] }
-                    ]
-                    intersectCurveLine(ilist, curve, scanLine)
-                    lastPoint = curve[3]
-                } break
-                case "Z": {
-                    const line = [
-                        lastPoint,
-                        firstPoint
-                    ]
-                    intersectLineLine(ilist, line, scanLine)
-                    lastPoint = firstPoint
-                } break
-            }
-            for (let p of ilist) {
-                if (p.seg0.pt.x < point.x) {
-                    ++intersections
-                }
-            }
-        }
-        return (intersections % 2) != 0
+        return pointInPath(this, point)
     }
 
     distance(point: Point) {

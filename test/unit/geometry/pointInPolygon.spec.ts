@@ -1,5 +1,5 @@
 import { expect } from '@esm-bundle/chai'
-import { isLeft, intersectCurveX, pointInPath } from "shared/geometry/pointInPolygon"
+import { isLeft, intersectCurveX, pointInPath } from "shared/geometry/pointInPath"
 import { Point } from "shared/geometry/Point"
 import { Path } from "client/paths/Path"
 
