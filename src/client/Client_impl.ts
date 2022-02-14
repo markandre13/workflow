@@ -184,13 +184,13 @@ export class Client_impl extends skel.Client {
         let layer = new Layer()
 
         try {
-            await xdb.deleteDatabase("workflow")
-            await xdb.deleteDatabase("workflow2")
-
             const db = await xdb.openDatabase("workflow2", 1, (event: IDBVersionChangeEvent) => {
-                const db = (event.target as IDBOpenDBRequest) .result
+                const db = (event.target as IDBOpenDBRequest).result
                 if (event.oldVersion < 1) {
+                    console.log(`IndexedDB: update to version 1`)
                     db.createObjectStore("document", {keyPath: "name"})
+                } else {
+                    console.log(`IndexedDB: no update required. on version 1`)
                 }
             })
             const page = await xdb.get(db, "document", "Untitled.wf") as {name: string, content: ArrayBuffer}
@@ -219,6 +219,10 @@ export class Client_impl extends skel.Client {
         catch(error) {
             console.log(`Failed to access workflow's IndexedDB: ${error}`)
             console.log(error)
+            console.log(`Deleting IndexedDB`)
+            await xdb.deleteDatabase("workflow")
+            await xdb.deleteDatabase("workflow2")
+            let layer = new Layer()
         }
 
         model.layers.push(layer)
@@ -230,6 +234,15 @@ export class Client_impl extends skel.Client {
         })
         action("file|import", () => {
             new ImportDrawing(model, this.orb)
+        })
+        action("file|delete", async ()=> {
+            let all: number[] = []
+            for (let figure of model.layers[0].data) {
+                all.push(figure.id)
+            }
+            model.delete(model.layers[0].id, all)
+            await xdb.deleteDatabase("workflow")
+            await xdb.deleteDatabase("workflow2")           
         })
 
         const homeScreen = this.getHomeScreen(model)
