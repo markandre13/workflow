@@ -25,24 +25,24 @@ I usually run all tools in watch mode for best performance. Each of them in a se
 
 ## Coding
 ```
-     npm run dev:compiler
-     npm run dev:server
+     npm run dev:build
+     npm run dev:serve
 ```
 
 ## Testing
 ```
-    npm run dev:compiler
-    npm run test:server
+    npm run dev:build
+    npm run dev:test
 ```
 
 or when focusing on a certain feature
 
 ```
-    npm run dev:compiler
-    npm run test:server --file=build/test/unit/pentool.spec.js
+    npm run dev:build
+    npm run dev:test --file=build/test/unit/pentool.spec.js
 ```
 
-As workflow is developed along with toad.js and corba.js, I sometimes use them via `npm link toad.js corba.js` and also compile them with `npm run dev:compiler`, which will _instantly_ reflect in `dev:server` and `test:server`.
+As workflow is developed along with toad.js and corba.js, I sometimes use them via `npm link toad.js corba.js` and also compile them with `npm run dev:build`, which will _instantly_ reflect in `dev:serve` and `dev:test`.
 
 ## Caveats
 
