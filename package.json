@@ -53,12 +53,12 @@
     "chai-almost": "^1.0.1",
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.6.0",
-    "corba.js": "0.1.2",
+    "corba.js": "0.1.4",
     "mocha": "^9.2.0",
     "rollup": "^2.67.2",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.31.2",
-    "toad.js": "0.0.23",
+    "toad.js": "0.0.24",
     "ttypescript": "^1.5.13",
     "typescript": "^4.5.5"
   }
