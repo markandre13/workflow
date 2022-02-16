@@ -5,6 +5,10 @@
   "author": "Mark-André Hopf <mhopf@mark13.org>",
   "license": "AGPL-3.0",
   "type": "module",
+  "engines" : { 
+    "npm" : ">=8.1.2",
+    "node" : ">=16.10.0"
+  },
   "main": "index.html",
   "repository": {
     "type": "git",
