@@ -26,6 +26,9 @@ import { curveBounds } from "shared/geometry/curveBounds"
 import { pointPlusSize } from "shared/geometry"
 import { pointInPath } from "shared/geometry/pointInPath"
 
+import { GIOPDecoder } from "corba.js"
+import * as value     from "shared/workflow_value"
+
 interface CloseSegment {
     type: 'Z'
     values: undefined

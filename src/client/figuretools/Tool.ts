@@ -32,6 +32,9 @@ export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()
     static cursorPath = "img/cursor/"
 
+    debug = false
+    insideHandle?: number
+
     transformation: Matrix
     boundary: Rectangle
     boundaryTransformation: Matrix
@@ -179,7 +182,7 @@ export class Tool {
         handleDirection = pointMinusPoint(m.transformPoint(handleDirection!), origin)
 
         //
-        // ROTATE
+        // HANDLES FOR ROTATION
         //
         if (handle >= 8) {
             let previous, center
@@ -241,7 +244,7 @@ export class Tool {
         }
 
         //
-        // SCALE
+        // HANDLES FOR SCALING SCALE
         //
         let v = { x: 0, y: 0} // FIXME: pre-store x in an array
         switch(handle % 8) {
@@ -471,13 +474,26 @@ export class Tool {
             const handle = this.getBoundaryHandle(h)
             let svg: SVGElement
             if (h<8) {
-                svg = handle.path.createSVG("rgb(79,128,255)", 1, "#fff")
+                // if (!this.debug) {
+                    svg = handle.path.createSVG("rgb(79,128,255)", 1, "#fff")
+                // } else {
+                //     svg = handle.path.createSVG("#333", 1, "#ccc")
+                // }
             } else {
                 // transparent SVGElement can not be seen but clicked
-                svg = handle.path.createSVG("rgba(0,0,0,0)", 1, "rgba(0,0,0,0)")
-                // svg = handle.path.createSVG("rgb(79,128,255)", 1, "#ff0")
+                // if (!this.debug) {
+                    svg = handle.path.createSVG("rgba(0,0,0,0)", 1, "rgba(0,0,0,0)")
+                // } else {
+                //     svg = handle.path.createSVG("#333", 1, "#ccc")
+                // }
             }
             this.setCursorForHandle(h, handle, svg)
+            svg.onmouseenter = () => { 
+                this.insideHandle = h
+            }
+            svg.onmouseleave = () => {
+                this.insideHandle = undefined
+            }
             this.decoration!.appendChild(svg)
         }
     }

@@ -26,6 +26,7 @@ import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 
 import * as figure from "./figures.js"
+import { Path } from "./figures/Path"
 
 import { Layer } from "./figureeditor/Layer"
 import { BoardModel } from "./BoardModel"
@@ -77,6 +78,7 @@ export function initializeCORBAValueTypes() {
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
     ORB.registerValueType("figure.Circle", figure.Circle)
     ORB.registerValueType("figure.Text", figure.Text)
+    ORB.registerValueType("figure.Path", Path);
     ORB.registerValueType("figure.Group", figure.Group)
     ORB.registerValueType("figure.Transform", figure.Transform)
 

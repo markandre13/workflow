@@ -19,6 +19,7 @@ describe("PenTool", function () {
     
     // the checks the state machine according to doc/pentool-state-diagram.svg
     describe("draw curves one segment at a time (v3)", function () {
+/*
         it("READY", function() {
             const scene = new FigureEditorScene()
             scene.selectPenTool()
@@ -417,7 +418,7 @@ describe("PenTool", function () {
             expect(scene.penTool.figure!.path.toString()).to.equal(`M 100 100 C 110 80 130 130 150 100`)
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
         })
-
+*/
     })
 })
 

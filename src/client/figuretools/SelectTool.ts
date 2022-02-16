@@ -62,6 +62,7 @@ export class SelectTool extends Tool {
 
     constructor() {
         super()
+        this.debug = false
         this.state = SelectToolState.NONE
         this.marqueeOutlines = new Map<Figure, SVGElement>()
         
@@ -122,6 +123,16 @@ export class SelectTool extends Tool {
     }
 
     override mousemove(event: EditorMouseEvent) {
+        // if (this.debug) {
+        //     const debug = document.getElementById("debug")
+        //     const info = this.findHandle(event)
+        //     // also get info about the handle placement
+        //     if (info !== undefined) {
+        //         debug!.innerText = `pos = ${event.x}, ${event.y}, handle = ${info.handle}`
+        //     } else {
+        //         debug!.innerText = `pos = ${event.x}, ${event.y}, handle = none`
+        //     }
+        // }
         if (!event.mouseDown)
             return
         switch(this.state) {
@@ -195,24 +206,37 @@ export class SelectTool extends Tool {
     
     private downHandle(event: EditorMouseEvent): boolean {
         // console.log(`SelectTool.downHandle(): (${event.x}, ${event.y})`)
-        if (Tool.selection.empty())
+        const handle = this.findHandle(event)
+        if (!handle)
             return false
-        for(let handle = 0; handle<16; ++handle) {
-            const handleInfo = this.getBoundaryHandle(handle)
-            if (!handleInfo.path.contains(event))
-                continue
-            this.selectedHandle = handle
-            this.handleStart = event
-            this.transformation.identity()
-            this.oldBoundary = new Rectangle(this.boundary)
-            if (handle >= 8) {
-                this.rotationCenter = this.boundary.center()
-                this.rotationStartDirection = Math.atan2(event.y - this.rotationCenter.y,
-                                                         event.x - this.rotationCenter.x)
-            }
-            return true
+
+        this.selectedHandle = handle
+        this.handleStart = event
+        this.transformation.identity()
+        this.oldBoundary = new Rectangle(this.boundary)
+        if (handle >= 8) {
+            this.rotationCenter = this.boundary.center()
+            this.rotationStartDirection = Math.atan2(event.y - this.rotationCenter.y,
+                                                     event.x - this.rotationCenter.x)
         }
-        return false
+        return true
+    }
+
+    // FIXME: why does handleInfo.path.contains lack the required precission?
+    findHandle(event: EditorMouseEvent) {
+        if (Tool.selection.empty())
+            return undefined
+        return this.insideHandle
+        // for(let handle = 0; handle<16; ++handle) {
+        //     const handleInfo = this.getBoundaryHandle(handle)
+        //     if (handleInfo.path.contains(event)) {
+        //         return {
+        //             handle,
+        //             ...handleInfo
+        //         }
+        //     }
+        // }
+        // return undefined
     }
     
     private moveHandle(event: EditorMouseEvent) {

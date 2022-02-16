@@ -110,6 +110,7 @@ export class PenTool extends Tool {
     }
 
     override mouseEvent(event: EditorMouseEvent) {
+/*
         // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
         // console.log(`this.path=${this.path}`)
 
@@ -405,6 +406,7 @@ export class PenTool extends Tool {
             //             })
             //     } break
         }
+*/
     }
 
     protected prepareEditor(event: EditorMouseEvent) {

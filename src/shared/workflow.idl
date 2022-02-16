@@ -42,7 +42,7 @@ valuetype Matrix {
     public double a, b, c, d, e, f;
 
     // FIXME: declaring operations will make the resulting class 'abstract',
-    // previnting us to use it as an attribute because it can not be
+    // preventing us to use it as an attribute because it can not be
     // instantiated. this is were CORBA's factory would be of help, because
     // it could the used to instantiate the real implementation.
     // or we could use the class registered in the ORB, which is similar to
@@ -122,13 +122,17 @@ module figure {
         public string text;
     };
 
-    valuetype PathSegment {
-        public char type;
-        public sequence<double> data;
+    enum AnchorType {
+        ANCHOR_EDGE,        // 1 point
+        ANCHOR_EDGE_ANGLE,  // 2 point
+        ANCHOR_ANGLE_EDGE,  // 2 points
+        ANCHOR_SMOOTH,      // 2 points
+        ANCHOR_ANGLE_ANGLE  // 3 points
     };
 
     valuetype Path: AttributedFigure {
-        public sequence<PathSegment> segments;
+        private sequence<octet> types; // AnchorType
+        private sequence<double> values;
     };
 
     valuetype Group: Figure {

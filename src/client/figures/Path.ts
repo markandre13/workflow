@@ -23,53 +23,38 @@ import { AbstractPath, Path as RawPath } from "../paths"
 import { AttributedFigure } from "./AttributedFigure"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value     from "shared/workflow_value"
-import { GIOPDecoder } from "corba.js"
-
-export class PathSegment implements value.figure.PathSegment {
-    type!: string
-    data!: number[]
-
-    constructor(init?: Partial<PathSegment>|GIOPDecoder)
-    {
-        value.figure.initPathSegment(this, init)
-    }
-    toString() {
-        return `PathSegment(type: '${this.type}', data: ${this.data})`
-    }
-}
 
 export class Path extends AttributedFigure implements valuetype.figure.Path {
-    segments!: PathSegment[] // TODO: we could also implement RawPath???
-    path: RawPath
-    constructor(init?: Partial<Path> | RawPath) {
+    types!: number[]
+    values!: number[]
+    constructor(init?: Partial<Path>) {
         if (init instanceof RawPath) {
             super()
             value.figure.initPath(this)
-            this.path = new RawPath(init)
         } else {
             super(init)
             value.figure.initPath(this, init)
-            this.path = new RawPath()
         }
-        this.segments = this.path.data as any
     }
 
-    move(point: Point) { this.path.move(point) }
-    line(point: Point) { this.path.line(point) }
-    curve(p0: Point, p1: Point, p2: Point) { this.path.curve(p0, p1, p2) }
-    close() { this.path.close() }
+    // move(point: Point) { this.path.move(point) }
+    // line(point: Point) { this.path.line(point) }
+    // curve(p0: Point, p1: Point, p2: Point) { this.path.curve(p0, p1, p2) }
+    // close() { this.path.close() }
   
     override getPath(): RawPath {
+        throw Error("yikes")
         // TODO: tweak the outline code to do without? yes, because a path will usually be
         // much larger than those figures which create a path on demand
-        return new RawPath(this.path) 
+        // return new RawPath(this.path) 
     }
     override toString() {
-        if (this.matrix===undefined) {
-            return `figure.Path(d="${this.path}")`
-        } else {
-            return `figure.Path(matrix=${this.matrix}, d="${this.path}")`
-        }
+        throw Error("yikes")
+        // if (this.matrix===undefined) {
+        //     return `figure.Path(d="${this.path}")`
+        // } else {
+        //     return `figure.Path(matrix=${this.matrix}, d="${this.path}")`
+        // }
     }
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
@@ -84,25 +69,28 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     }
 
     override distance(pt: Point): number {
+        throw Error("yikes")
         // TODO: consider range/scale?
-        if (this.fill !== "none" && this.path.contains(pt)) {
-            return -1
-        }
-        const d = this.path.distance(pt)
-        return d
+        // if (this.fill !== "none" && this.path.contains(pt)) {
+        //     return -1
+        // }
+        // const d = this.path.distance(pt)
+        // return d
     }
 
     transform(transform: Matrix): boolean {
-        if (transform.isIdentity()) // FIXME: this should never happen
-            return true
-        if (!transform.isOnlyTranslateAndScale())
-            return false
-        this.path.transform(transform)
-        return true
+        throw Error("yikes")
+        // if (transform.isIdentity()) // FIXME: this should never happen
+        //     return true
+        // if (!transform.isOnlyTranslateAndScale())
+        //     return false
+        // this.path.transform(transform)
+        // return true
     }
 
     bounds(): Rectangle {
-        return this.path.bounds()
+        throw Error("yikes")
+        // return this.path.bounds()
     }
 
     getHandlePosition(i: number): Point | undefined {

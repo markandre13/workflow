@@ -28,8 +28,6 @@ import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 
 import * as figure from "client/figures"
-import { Path as RawPath } from "client/paths/Path"
-import { Path } from "client/figures/Path"
 import { Tool, SelectToolState } from "client/figuretools"
 import { FigureEditorScene } from "./FigureEditorScene"
 
@@ -299,6 +297,7 @@ describe("FigureEditor", function() {
                     scene.selectionHasRectangle(r1)
                     scene.outlineHasRectangle(r1)
                 })
+/*
                 // WIP: this did not work because unlike figure.Rectangle, figure.Path returned a reference to
                 // it's own Path, so that modifing the outline changed the figure itself
                 xit("moves paths's outline before mouse is released", () => {
@@ -347,6 +346,7 @@ describe("FigureEditor", function() {
 
                     console.log(`after move: ${scene.model.layers[0].data[0]}`)
                 })
+*/
                 it("moves figure without matrix when mouse is released", () => {
                     // GIVEN
                     let test = new FigureEditorScene()
