@@ -498,8 +498,9 @@ export class FigureEditor extends ModelView<DrawingModel> {
             y: this.scrollView.offsetHeight / this.zoom
         })
         // include all figures
-        for (let item of this.model.layers[0]!.data)
-            bounds.expandByRectangle(item.bounds())
+        for (let figure of this.model.layers[0]!.data) {
+            bounds.expandByRectangle(figure.bounds())
+        }
         // include visible areas top, left corner
         bounds.expandByPoint({
             x: this.bounds.origin.x + this.scrollView.scrollLeft,

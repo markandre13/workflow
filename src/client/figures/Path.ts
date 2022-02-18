@@ -55,11 +55,22 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         this.values.push(point.x)
         this.values.push(point.y)
     }
-    // curve(p0: Point, p1: Point, p2: Point) { this.path.curve(p0, p1, p2) }
+    curve(p0: Point, p1: Point, p2: Point) {
+        // FIXME: this only works on the initial point
+        this.types[this.types.length-1] = figure.AnchorType.ANCHOR_EDGE_ANGLE
+        this.values.push(p0.x)
+        this.values.push(p0.y)
+        this.types.push(figure.AnchorType.ANCHOR_ANGLE_EDGE)
+        this.values.push(p1.x)
+        this.values.push(p1.y)
+        this.values.push(p2.x)
+        this.values.push(p2.y)
+    }
     // close() { this.path.close() }
   
     override getPath(): RawPath {
         const path = new RawPath()
+        let prevType!: figure.AnchorType
         let idxValue = 0
         for(let idxType = 0; idxType < this.types.length; ++idxType) {
             switch(this.types[idxType]) {
@@ -73,12 +84,21 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                 case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                     break
                 case figure.AnchorType.ANCHOR_ANGLE_EDGE:
+                    if (idxType === 1 && prevType === figure.AnchorType.ANCHOR_EDGE_ANGLE) {
+                        path.move(this.values[idxValue++], this.values[idxValue++])
+                        path.curve(
+                            this.values[idxValue++], this.values[idxValue++],
+                            this.values[idxValue++], this.values[idxValue++],
+                            this.values[idxValue++], this.values[idxValue++],                           
+                        )
+                    }
                     break
                 case figure.AnchorType.ANCHOR_SMOOTH:
                     break
                 case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
                     break
-                }
+            }
+            prevType = this.types[idxType]
         }
         return path
         // TODO: tweak the outline code to do without? yes, because a path will usually be
@@ -105,14 +125,20 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
 
     // TODO: why have a distance method when the RawPath can be used for that?
     override distance(pt: Point): number {
-        throw Error("yikes")
+        const path = this.getPath() // FIXME: slow
         // TODO: consider range/scale?
-        // if (this.fill !== "none" && this.path.contains(pt)) {
-        //     return -1
-        // }
-        // const d = this.path.distance(pt)
-        // return d
+        if (this.fill !== "none" && path.contains(pt)) {
+            return -1
+        }
+        return this.distance(pt)
     }
+
+    // TODO: why have a distance method when the RawPath can be used for that?
+    bounds(): Rectangle {
+        const path = this.getPath() // FIXME: slow
+        return path.bounds()
+    }
+
 
     transform(transform: Matrix): boolean {
         throw Error("yikes")
@@ -122,11 +148,6 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         //     return false
         // this.path.transform(transform)
         // return true
-    }
-
-    bounds(): Rectangle {
-        throw Error("yikes")
-        // return this.path.bounds()
     }
 
     getHandlePosition(i: number): Point | undefined {

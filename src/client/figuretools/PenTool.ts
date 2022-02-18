@@ -114,7 +114,7 @@ export class PenTool extends Tool {
     }
 
     override mouseEvent(event: EditorMouseEvent) {
-        // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
+        console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
         // console.log(`this.path=${this.path}`)
 
         switch (this.state) {
@@ -133,7 +133,6 @@ export class PenTool extends Tool {
 
             case State.DOWN_POINT:
                 switch (event.type) {
-  /*
                     case "mousemove": {
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
                             const anchor = event.editor.mouseDownAt!
@@ -145,24 +144,22 @@ export class PenTool extends Tool {
                             this.state = State.DOWN_CURVE
                         }
                     } break
-*/
                     case "mouseup":
                         this.setCursor(event, Cursor.ACTIVE)
                         this.state = State.UP_POINT
                         break
                 } break
-/*
+
             case State.DOWN_CURVE:
                 switch (event.type) {
                     case "mousemove": {
-                        // if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
                         const anchor = event.editor.mouseDownAt!
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                         const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1]
+                        const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
@@ -182,13 +179,13 @@ export class PenTool extends Tool {
                         this.addAnchor(event)
                         this.updateHandle(Handle.CURRENT_BACKWARD)
                         const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1]
+                        const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
                         segment.values[2] = segment.values[4] = event.x
                         segment.values[3] = segment.values[5] = event.y
-                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.updateSVG(event)
                         this.state = State.DOWN_CURVE_POINT
                     } break
                 } break
@@ -203,20 +200,21 @@ export class PenTool extends Tool {
                             this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                             const path = this.path!
-                            const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                            const segment = path.data[path.data.length - 1]
                             if (segment.type !== 'C') {
                                 throw Error("yikes")
                             }
                             segment.values[2] = backwardHandle.x
                             segment.values[3] = backwardHandle.y
-                            this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                            this.updateSVG(event)
                             this.state = State.DOWN_CURVE_CURVE
                         }
                     } break
+
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
                         const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
@@ -242,18 +240,19 @@ export class PenTool extends Tool {
                         this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                         const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
                         segment.values[2] = backwardHandle.x
                         segment.values[3] = backwardHandle.y
-                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.updateSVG(event)
                     } break
+
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
                         const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
@@ -276,7 +275,7 @@ export class PenTool extends Tool {
                     case "mousedown": {
                         this.setCursor(event, Cursor.DIRECT)
                         const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
@@ -290,11 +289,11 @@ export class PenTool extends Tool {
 
                         this.addAnchor(event)
                         this.path!.curve(h0, event, event)
-                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.updateSVG(event)
                         this.state = State.DOWN_CURVE_POINT
                     } break
                 } break
-*/
+
             case State.UP_POINT:
                 switch (event.type) {
                     case "mousedown":
@@ -581,8 +580,6 @@ export class PenTool extends Tool {
     }
 
     updateSVG(event: EditorMouseEvent) {
-        console.log(`PenTool.updateSVG`)
         this.path?.updateSVG(event.editor.decorationOverlay, this.svg as SVGPathElement)
-        // this.path!.updateSVG(this.path!, event.editor.decorationOverlay, this.svg)
     }
 }
