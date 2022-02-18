@@ -29,7 +29,7 @@ import { Matrix } from "shared/geometry/Matrix"
 
 import * as figure from "client/figures"
 import { Tool, SelectToolState } from "client/figuretools"
-import { FigureEditorScene } from "./FigureEditorScene"
+import { FigureEditorScene } from "../FigureEditorScene"
 
 describe("FigureEditor", function() {
     this.beforeAll(async function() {

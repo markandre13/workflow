@@ -35,10 +35,13 @@
 import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
 import { EditorMouseEvent, Operation } from "../figureeditor"
+import { Path as RawPath } from "../paths/Path"
 import { Path } from "../figures/Path"
 import { distancePointToPoint, pointMinusPoint } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
+
+import { figure } from "shared/workflow"
 
 // FIXME: cursor: remove white border from tip and set center one pixel above tip
 // FIXME: cursor: white surrounding for ready, edge, ...
@@ -84,10 +87,11 @@ function mirrorPoint(center: Point, point: Point) {
 }
 
 export class PenTool extends Tool {
-    svg?: SVGElement
-    path?: Path
-    figure?: Path
     state = State.READY
+
+    svg?: SVGElement
+    path?: RawPath // the outline during editing
+    figure?: Path // the figure we create
 
     anchors: SVGRectElement[] = []
     _handles = new Array<SVGCircleElement>(3)
@@ -110,7 +114,6 @@ export class PenTool extends Tool {
     }
 
     override mouseEvent(event: EditorMouseEvent) {
-/*
         // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
         // console.log(`this.path=${this.path}`)
 
@@ -123,13 +126,14 @@ export class PenTool extends Tool {
                         // start with a single anchor rectangle [] where the pointer went down
                         this.addAnchor(event)
                         this.path!.move(event)
-                        this.figure?.move(event)
+                        this.figure!.move(event)
                         this.state = State.DOWN_POINT
                         break
                 } break
 
             case State.DOWN_POINT:
                 switch (event.type) {
+  /*
                     case "mousemove": {
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
                             const anchor = event.editor.mouseDownAt!
@@ -141,12 +145,13 @@ export class PenTool extends Tool {
                             this.state = State.DOWN_CURVE
                         }
                     } break
+*/
                     case "mouseup":
                         this.setCursor(event, Cursor.ACTIVE)
                         this.state = State.UP_POINT
                         break
                 } break
-
+/*
             case State.DOWN_CURVE:
                 switch (event.type) {
                     case "mousemove": {
@@ -289,20 +294,21 @@ export class PenTool extends Tool {
                         this.state = State.DOWN_CURVE_POINT
                     } break
                 } break
-
+*/
             case State.UP_POINT:
                 switch (event.type) {
                     case "mousedown":
                         this.setCursor(event, Cursor.DIRECT)
                         this.addAnchor(event)
                         this.path!.line(event)
-                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.updateSVG(event)
                         this.state = State.DOWN_POINT_POINT
                         break
                 } break
 
             case State.DOWN_POINT_POINT:
                 switch (event.type) {
+/*
                     case "mousemove": {
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
                             const path = this.path!
@@ -338,10 +344,11 @@ export class PenTool extends Tool {
                             this.state = State.DOWN_POINT_CURVE
                         }
                     } break
+*/
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
                         const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1]
+                        const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'L') {
                             throw Error("yikes")
                         }
@@ -356,7 +363,8 @@ export class PenTool extends Tool {
                         this.state = State.UP_POINT
                     } break
                 } break
-            case State.DOWN_POINT_CURVE:
+/*
+                case State.DOWN_POINT_CURVE:
                 switch (event.type) {
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
@@ -405,8 +413,8 @@ export class PenTool extends Tool {
             //                 figures: [this.figure!.id]
             //             })
             //     } break
-        }
 */
+        }
     }
 
     protected prepareEditor(event: EditorMouseEvent) {
@@ -417,20 +425,9 @@ export class PenTool extends Tool {
         this.updateBoundary() // FIXME: side effect
         event.editor.decorationOverlay.appendChild(this.decoration)
 
-        // start the new path with a single line segment
-        this.path = new Path()
-        this.path.stroke = "#4f80ff"
-        this.path.fill = "none"
-        // this.path.move(event)
-        // this.path.line(event)
-
-        // FIXME: these two lines we're going to change as follows:
-        // move it into a separate function, which only puts the last pathsegment similar to Adobe Illustrator
-        // on the decorationOverlay
-        const path = this.path.getPath()
-        this.svg = this.path.updateSVG(path, event.editor.decorationOverlay)
-
-        // this.setOutlineColors(this.svg) 
+        this.path = new RawPath()
+        this.svg = this.path.createSVG()
+        this.setOutlineColors(this.svg) 
         this.decoration.appendChild(this.svg)
 
         this.figure = new Path() // FIXME: won't work in client/server mode
@@ -581,5 +578,11 @@ export class PenTool extends Tool {
         line.setAttributeNS("", "y2", `${p1.y}`)
         line.setAttributeNS("", "stroke", `rgb(79,128,255)`)
         return line
+    }
+
+    updateSVG(event: EditorMouseEvent) {
+        console.log(`PenTool.updateSVG`)
+        this.path?.updateSVG(event.editor.decorationOverlay, this.svg as SVGPathElement)
+        // this.path!.updateSVG(this.path!, event.editor.decorationOverlay, this.svg)
     }
 }

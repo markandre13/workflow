@@ -21,6 +21,7 @@ import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { AbstractPath, Path as RawPath } from "../paths"
 import { AttributedFigure } from "./AttributedFigure"
+import { figure } from "shared/workflow"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value     from "shared/workflow_value"
 
@@ -37,37 +38,72 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         }
     }
 
-    // move(point: Point) { this.path.move(point) }
-    // line(point: Point) { this.path.line(point) }
+    // operations for PenTool
+    // add an anchor plus method so change that anchor?
+    // addAnchor(x, y)
+    // smoothLastAnchor(...)
+    // edgeToSmooth // that's symmetric
+    // lineTo
+
+    move(point: Point) {
+        this.types.push(figure.AnchorType.ANCHOR_EDGE)
+        this.values.push(point.x)
+        this.values.push(point.y)
+    }
+    line(point: Point) {
+        this.types.push(figure.AnchorType.ANCHOR_EDGE)
+        this.values.push(point.x)
+        this.values.push(point.y)
+    }
     // curve(p0: Point, p1: Point, p2: Point) { this.path.curve(p0, p1, p2) }
     // close() { this.path.close() }
   
     override getPath(): RawPath {
-        throw Error("yikes")
+        const path = new RawPath()
+        let idxValue = 0
+        for(let idxType = 0; idxType < this.types.length; ++idxType) {
+            switch(this.types[idxType]) {
+                case figure.AnchorType.ANCHOR_EDGE:
+                    if (idxType === 0) {
+                        path.move(this.values[idxValue++], this.values[idxValue++])
+                    } else {
+                        path.line(this.values[idxValue++], this.values[idxValue++])
+                    }
+                    break
+                case figure.AnchorType.ANCHOR_EDGE_ANGLE:
+                    break
+                case figure.AnchorType.ANCHOR_ANGLE_EDGE:
+                    break
+                case figure.AnchorType.ANCHOR_SMOOTH:
+                    break
+                case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
+                    break
+                }
+        }
+        return path
         // TODO: tweak the outline code to do without? yes, because a path will usually be
         // much larger than those figures which create a path on demand
         // return new RawPath(this.path) 
     }
     override toString() {
-        throw Error("yikes")
-        // if (this.matrix===undefined) {
-        //     return `figure.Path(d="${this.path}")`
-        // } else {
-        //     return `figure.Path(matrix=${this.matrix}, d="${this.path}")`
-        // }
+        const path = this.getPath()
+        if (this.matrix===undefined) {
+            return `figure.Path(d="${path}")`
+        } else {
+            return `figure.Path(matrix=${this.matrix}, d="${path}")`
+        }
     }
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
             svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
-
-        const svgPath = svg as SVGPathElement
-        svgPath.setPathData((path as RawPath).data)
+        svg.setAttributeNS("", "d", this.getPath().toString())
         svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
         svg.setAttributeNS("", "stroke", this.stroke)
         svg.setAttributeNS("", "fill", this.fill)
         return svg
     }
 
+    // TODO: why have a distance method when the RawPath can be used for that?
     override distance(pt: Point): number {
         throw Error("yikes")
         // TODO: consider range/scale?
@@ -120,5 +156,33 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         // else {
         //     this.size.height += pt.y - (this.origin.y + this.size.height)
         // }
+    }
+    toInternalString() {
+        let d = ""
+        let idxValue = 0
+        for(let idxType = 0; idxType < this.types.length; ++idxType) {
+            switch(this.types[idxType]) {
+                case figure.AnchorType.ANCHOR_EDGE:
+                    d += `E ${this.values[idxValue++]} ${this.values[idxValue++]} `
+                    break
+                case figure.AnchorType.ANCHOR_EDGE_ANGLE:
+                    d += `EA ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
+                    break
+                case figure.AnchorType.ANCHOR_ANGLE_EDGE:
+                    d += `AE ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
+                    break
+                case figure.AnchorType.ANCHOR_SMOOTH:
+                    d += ` S ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
+                    break
+                case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
+                    d += `AA ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
+                    break
+                }
+        }
+        return d.trimEnd()
+    }
+
+    toPathString() {
+        return this.getPath().toString()
     }
 }

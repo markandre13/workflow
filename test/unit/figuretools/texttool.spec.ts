@@ -6,7 +6,7 @@ use(chaiSubset)
 
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
-import { FigureEditorScene } from "./FigureEditorScene"
+import { FigureEditorScene } from "../FigureEditorScene"
 import { Text } from "client/figures/Text"
 import { Tool } from "client/figuretools"
 
