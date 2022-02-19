@@ -4,12 +4,8 @@ import { FigureEditorScene } from "../FigureEditorScene"
 import { State } from "client/figuretools/PenTool"
 
 import { initializeCORBAValueTypes } from "client/workflow"
-import { pointMinusPoint } from 'shared/geometry'
+import { pointMinusPoint, mirrorPoint } from 'shared/geometry'
 import { Point } from "shared/geometry/Point"
-
-function mirrorPoint(center: Point, point: Point) {
-    return pointMinusPoint(center, pointMinusPoint(point, center))
-}
 
 describe("PenTool", function () {
     this.beforeAll(async function () {
@@ -382,9 +378,9 @@ describe("PenTool", function () {
             //                                                 p0        p1     m(p2,p3)p2        p3     m(p4,p5)p4
             expect(scene.penTool.path!.toString()).to.equal(`M 100 100 C 110 80 130 130 150 100 C 170 70 180 140 200 100`)
             expect(scene.model.layers[0].data.length).equals(1)
-            expect(scene.penTool.figure!.toInternalString()).to.equal(`EA 100 100 110 80 AE 130 130 150 100`)
-            expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 130 130 150 100`)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.penTool.figure!.toInternalString()).to.equal(`EA 100 100 110 80 AE 130 130 150 100 S 180 140 200 100`)
+            expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 130 130 150 100 C 170 70 180 140 200 100`)
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-active.svg")
         })
 
         //

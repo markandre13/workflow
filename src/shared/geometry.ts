@@ -50,6 +50,10 @@ export function pointMinusPoint(a: Point, b: Point): Point {
     })
 }
 
+export function mirrorPoint(center: Point, point: Point) {
+    return pointMinusPoint(center, pointMinusPoint(point, center))
+}
+
 export function pointMinusPointAsSize(a: Point, b: Point): Size {
     return {
         width: a.x - b.x,
