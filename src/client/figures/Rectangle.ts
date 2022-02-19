@@ -43,9 +43,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
             svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
-        let svgPath = svg as SVGPathElement
-        let p = path as Path
-        svgPath.setPathData(p.data)
+        svg.setAttributeNS("", "d", (path as Path).toString())
         svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
         svg.setAttributeNS("", "stroke", this.stroke)
         svg.setAttributeNS("", "fill", this.fill)

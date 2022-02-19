@@ -136,7 +136,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
         if (!svg)
             svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
-        svg.setAttributeNS("", "d", this.getPath().toString())
+        svg.setAttributeNS("", "d", (path as RawPath).toString())
         svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
         svg.setAttributeNS("", "stroke", this.stroke)
         svg.setAttributeNS("", "fill", this.fill)
@@ -159,15 +159,17 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         return path.bounds()
     }
 
-
     transform(transform: Matrix): boolean {
-        throw Error("yikes")
-        // if (transform.isIdentity()) // FIXME: this should never happen
-        //     return true
-        // if (!transform.isOnlyTranslateAndScale())
-        //     return false
-        // this.path.transform(transform)
-        // return true
+        if (transform.isIdentity()) // FIXME: this should never happen
+            return true
+        if (!transform.isOnlyTranslateAndScale())
+            return false
+        let idx = 0
+        while(idx<this.values.length) {
+            [this.values[idx], this.values[idx+1]] = transform.transformArrayPoint([this.values[idx], this.values[idx+1]])
+            idx += 2
+        }
+        return true
     }
 
     getHandlePosition(i: number): Point | undefined {
