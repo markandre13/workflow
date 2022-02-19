@@ -150,7 +150,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         if (this.fill !== "none" && path.contains(pt)) {
             return -1
         }
-        return this.distance(pt)
+        return path.distance(pt)
     }
 
     // TODO: why have a distance method when the RawPath can be used for that?
