@@ -203,7 +203,7 @@ export class Path extends AbstractPath {
             typeof p2OrX1 === "number") {
             this.data.push({ type: 'C', values: [p0OrX0, p1OrY0, p2OrX1, Y1!, X2!, Y2!] })
         } else {
-            throw Error("yikes")
+            throw Error(`yikes: curve(${p0OrX0}, ${p1OrY0},${p2OrX1}, ${Y1}, ${X2}, ${Y2})`)
         }
         return this
     }

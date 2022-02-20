@@ -37,6 +37,7 @@
         // "src/client/views/**/*.ts",
         // "src/client/views/**/*.tsx",
         // "src/shared/*.ts",
+        "test/unit/figures/path.spec.ts",
         "test/unit/figuretools/pentool.spec.ts",
         "test/unit/figuretools/selecttool.spec.ts",
         "test/unit/geometry/nearestPointOnCurve.spec.ts",
