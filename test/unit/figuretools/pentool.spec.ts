@@ -175,7 +175,7 @@ describe("PenTool", function () {
             expect(scene.penTool.path!.toString()).to.equal('M 100 100 C 110 80 0 0 0 0')
             expect(scene.model.layers[0].data.length).equals(1)
             expect(scene.penTool.figure!.toPathString()).to.equal('M 100 100')
-            expect(scene.penTool.figure!.toInternalString()).to.equal('E 100 100')
+            expect(scene.penTool.figure!.toInternalString()).to.equal('EA 100 100 110 80')
             expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-active.svg")
         })
 
@@ -200,7 +200,7 @@ describe("PenTool", function () {
             expect(scene.penTool.path!.toString()).to.equal('M 100 100 C 110 80 150 100 150 100')
             expect(scene.model.layers[0].data.length).equals(1)
             expect(scene.penTool.figure!.toPathString()).to.equal('M 100 100')
-            expect(scene.penTool.figure!.toInternalString()).to.equal('E 100 100')
+            expect(scene.penTool.figure!.toInternalString()).to.equal('EA 100 100 110 80')
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
         })
 
@@ -231,7 +231,7 @@ describe("PenTool", function () {
             expect(scene.penTool.path!.toString()).to.equal(`M 100 100 C 110 80 ${m.x} ${m.y} 150 100`)
             expect(scene.model.layers[0].data.length).equals(1)
             expect(scene.penTool.figure!.toPathString()).to.equal('M 100 100')
-            expect(scene.penTool.figure!.toInternalString()).to.equal('E 100 100')
+            expect(scene.penTool.figure!.toInternalString()).to.equal('EA 100 100 110 80')
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
         })
 
@@ -264,7 +264,7 @@ describe("PenTool", function () {
             expect(scene.penTool.path!.toString()).to.equal(`M 100 100 C 110 80 ${m.x} ${m.y} 150 100`)
             expect(scene.model.layers[0].data.length).equals(1)
             expect(scene.penTool.figure!.toPathString()).to.equal('M 100 100')
-            expect(scene.penTool.figure!.toInternalString()).to.equal('E 100 100')
+            expect(scene.penTool.figure!.toInternalString()).to.equal('EA 100 100 110 80')
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
         })
 
@@ -334,7 +334,7 @@ describe("PenTool", function () {
         })
 
         // curve after curve
-        it.only("UP_X_CURVE --down--> DOWN_CURVE_POINT --move--> DOWN_CURVE_CURVE --up--> UP_X_CURVE", function() {
+        it("UP_X_CURVE --down--> DOWN_CURVE_POINT --move--> DOWN_CURVE_CURVE --up--> UP_X_CURVE", function() {
             const scene = new FigureEditorScene()
             scene.selectPenTool()
 

@@ -114,7 +114,7 @@ export class PenTool extends Tool {
     }
 
     override mouseEvent(event: EditorMouseEvent) {
-        console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
+        // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
         // console.log(`this.path=${this.path}`)
 
         switch (this.state) {
@@ -126,7 +126,7 @@ export class PenTool extends Tool {
                         // start with a single anchor rectangle [] where the pointer went down
                         this.addAnchor(event)
                         this.path!.move(event)
-                        this.figure!.move(event)
+                        this.figure!.addEdge(event)
                         this.state = State.DOWN_POINT
                         break
                 } break
@@ -147,6 +147,7 @@ export class PenTool extends Tool {
                     case "mouseup":
                         this.setCursor(event, Cursor.ACTIVE)
                         this.state = State.UP_POINT
+                        // this.figure!.addEdge(event.editor.mouseDownAt!)
                         break
                 } break
 
@@ -168,6 +169,18 @@ export class PenTool extends Tool {
                     } break
                     case "mouseup": {
                         this.state = State.UP_CURVE
+                        const path = this.path!
+                        const segment = path.data[path.data.length - 1]!
+                        if (segment.type !== 'C') {
+                            throw Error("yikes")
+                        }
+                        console.log(`DOWN_CURVE --> mouseup`)
+                        console.log(JSON.stringify(segment))
+                        this.figure!.changeEdgeToEdgeAngle(event)
+                        // this.figure!.addSmooth(
+                        //     {x: segment.values![0], y: segment.values![0]},
+                        //     {x: segment.values![0], y: segment.values![0]},
+                        // )
                         this.setCursor(event, Cursor.ACTIVE)
                     } break
                 } break
@@ -218,11 +231,11 @@ export class PenTool extends Tool {
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
-                        this.figure!.curve(
-                            { x: segment.values[0], y: segment.values[1] },
-                            { x: segment.values[2], y: segment.values[3] },
-                            { x: segment.values[4], y: segment.values[5] }
-                        )
+                        // this.figure!.curve(
+                        //     { x: segment.values[0], y: segment.values[1] },
+                        //     { x: segment.values[2], y: segment.values[3] },
+                        //     { x: segment.values[4], y: segment.values[5] }
+                        // )
                         event.editor.model?.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
@@ -256,8 +269,7 @@ export class PenTool extends Tool {
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
-                        this.figure!.curve(
-                            { x: segment.values[0], y: segment.values[1] },
+                        this.figure!.addAngleEdge(
                             { x: segment.values[2], y: segment.values[3] },
                             { x: segment.values[4], y: segment.values[5] }
                         )
@@ -351,9 +363,10 @@ export class PenTool extends Tool {
                         if (segment.type !== 'L') {
                             throw Error("yikes")
                         }
-                        this.figure!.line(
-                            { x: segment.values[0], y: segment.values[1] },
-                        )
+                        // this.figure!.line(
+                        //     { x: segment.values[0], y: segment.values[1] },
+                        // )
+                        this.figure!.addEdge({ x: segment.values[0], y: segment.values[1] })
                         event.editor.model?.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]

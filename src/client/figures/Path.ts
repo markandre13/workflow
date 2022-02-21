@@ -46,36 +46,36 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     // edgeToSmooth // that's symmetric
     // lineTo
 
-    move(point: Point) {
-        this.types.push(figure.AnchorType.ANCHOR_EDGE)
-        this.values.push(point.x)
-        this.values.push(point.y)
-    }
-    line(point: Point) {
-        this.types.push(figure.AnchorType.ANCHOR_EDGE)
-        this.values.push(point.x)
-        this.values.push(point.y)
-    }
-    curve(p0: Point, p1: Point, p2: Point) {
-        if (this.types.length === 1) {
-            // FIXME: this only works on the initial point
-            this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_EDGE_ANGLE
-            this.values.push(p0.x)
-            this.values.push(p0.y)
-            this.types.push(figure.AnchorType.ANCHOR_ANGLE_EDGE)
-            this.values.push(p1.x)
-            this.values.push(p1.y)
-            this.values.push(p2.x)
-            this.values.push(p2.y)
-        } else {
-            // assert?
-            this.types.push(figure.AnchorType.ANCHOR_SMOOTH)
-            this.values.push(p1.x)
-            this.values.push(p1.y)
-            this.values.push(p2.x)
-            this.values.push(p2.y)
-        }
-    }
+    // move(point: Point) {
+    //     this.types.push(figure.AnchorType.ANCHOR_EDGE)
+    //     this.values.push(point.x)
+    //     this.values.push(point.y)
+    // }
+    // line(point: Point) {
+    //     this.types.push(figure.AnchorType.ANCHOR_EDGE)
+    //     this.values.push(point.x)
+    //     this.values.push(point.y)
+    // }
+    // curve(p0: Point, p1: Point, p2: Point) {
+    //     if (this.types.length === 1) {
+    //         // FIXME: this only works on the initial point
+    //         this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_EDGE_ANGLE
+    //         this.values.push(p0.x)
+    //         this.values.push(p0.y)
+    //         this.types.push(figure.AnchorType.ANCHOR_ANGLE_EDGE)
+    //         this.values.push(p1.x)
+    //         this.values.push(p1.y)
+    //         this.values.push(p2.x)
+    //         this.values.push(p2.y)
+    //     } else {
+    //         // assert?
+    //         this.types.push(figure.AnchorType.ANCHOR_SMOOTH)
+    //         this.values.push(p1.x)
+    //         this.values.push(p1.y)
+    //         this.values.push(p2.x)
+    //         this.values.push(p2.y)
+    //     }
+    // }
     // close() { this.path.close() }
 
     //
@@ -84,6 +84,16 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
 
     addEdge(p0: Point) {
         this.types.push(figure.AnchorType.ANCHOR_EDGE)
+        this.values.push(p0.x)
+        this.values.push(p0.y)
+    }
+    changeEdgeToEdgeAngle(p0: Point) {
+        if (this.types.length === 0)
+            throw Error(`figure.Path.changeEdgeToEdgeAngle(): figure is empty`)
+        if (this.types[this.types.length-1] !== figure.AnchorType.ANCHOR_EDGE) {
+            throw Error(`figure.Path.changeEdgeToEdgeAngle(): last anchor is not an edge`)
+        }
+        this.types[this.types.length-1] = figure.AnchorType.ANCHOR_EDGE_ANGLE
         this.values.push(p0.x)
         this.values.push(p0.y)
     }
@@ -201,8 +211,11 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                             path.curve(p0, m, p1)
                             idxValue += 4
                         } break
+                        case figure.AnchorType.ANCHOR_EDGE:
+                        case figure.AnchorType.ANCHOR_ANGLE_EDGE:
+                            throw Error(`yikes 3: invalid ANCHOR_*_EDGE -> ANCHOR_SMOOTH in ${this.toInternalString()}`)
                         default:
-                            throw Error("yikes 3")
+                            throw Error(`yikes 3: ${figure.AnchorType[prevType!]} -> ANCHOR_SMOOTH in ${this.toInternalString()}`)
                     }
                     break
                 case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
