@@ -207,7 +207,7 @@ export class SelectTool extends Tool {
     private downHandle(event: EditorMouseEvent): boolean {
         // console.log(`SelectTool.downHandle(): (${event.x}, ${event.y})`)
         const handle = this.findHandle(event)
-        if (!handle)
+        if (handle === undefined)
             return false
 
         this.selectedHandle = handle
