@@ -130,7 +130,7 @@ export function validateSlices(slices: Array<Slice>) {
         for (let i = 0; i < slice.left.length; ++i) {
             if (slice.left[i].p[0].y > slice.left[i].p[1].y) {
                 okay = false
-                console.log(`!!!!! slice ${sliceIndex}, left ${i}: edge doesn't point downX`)
+                console.log(`!!!!! slice ${sliceIndex}, left ${i}: edge doesn't point down`)
                 printSlices(slices, true)
                 throw Error()
             }

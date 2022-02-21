@@ -147,7 +147,6 @@ export class PenTool extends Tool {
                     case "mouseup":
                         this.setCursor(event, Cursor.ACTIVE)
                         this.state = State.UP_POINT
-                        // this.figure!.addEdge(event.editor.mouseDownAt!)
                         break
                 } break
 
@@ -174,13 +173,7 @@ export class PenTool extends Tool {
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
-                        console.log(`DOWN_CURVE --> mouseup`)
-                        console.log(JSON.stringify(segment))
                         this.figure!.changeEdgeToEdgeAngle(event)
-                        // this.figure!.addSmooth(
-                        //     {x: segment.values![0], y: segment.values![0]},
-                        //     {x: segment.values![0], y: segment.values![0]},
-                        // )
                         this.setCursor(event, Cursor.ACTIVE)
                     } break
                 } break
@@ -269,6 +262,7 @@ export class PenTool extends Tool {
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
+                        this.figure!.changeAngleEdgeToSmooth()
                         this.figure!.addAngleEdge(
                             { x: segment.values[2], y: segment.values[3] },
                             { x: segment.values[4], y: segment.values[5] }
