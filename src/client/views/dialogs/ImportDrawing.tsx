@@ -19,12 +19,12 @@ export class ImportDrawing extends Dialog {
                 // console.log(`file: "${file.name}", size ${file.size} bytes`)
                 const content = await file.arrayBuffer()
                 // console.log(content)
-                const data = orb.deserialize(content)
+                const loadedLayer = orb.deserialize(content)
 
                 // this is a very nasty hack!
                 const layer = model.layers[0]
                 model.delete(layer.id, layer.data.map((f)=>f.id))
-                layer.data = data
+                layer.data = loadedLayer.data
                 model.modified.trigger(undefined as any)
 
                 this.close()

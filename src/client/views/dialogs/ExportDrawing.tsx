@@ -19,7 +19,7 @@ export class ExportDrawing extends Dialog {
                 <Button action={this.close}>Cancel</Button>
                 <Button action={() => {
                     download.download = filenameModel.value
-                    download.href = URL.createObjectURL(new Blob([orb.serialize(layer.data)]))
+                    download.href = URL.createObjectURL(new Blob([orb.serialize(layer)]))
                     download.dispatchEvent(new MouseEvent("click"))
                     this.close()
                 }}>Export</Button>
