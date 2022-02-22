@@ -216,7 +216,6 @@ export class PenTool extends Tool {
                             this.state = State.DOWN_CURVE_CURVE
                         }
                     } break
-
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
                         const path = this.path!
@@ -224,11 +223,11 @@ export class PenTool extends Tool {
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
-                        // this.figure!.curve(
-                        //     { x: segment.values[0], y: segment.values[1] },
-                        //     { x: segment.values[2], y: segment.values[3] },
-                        //     { x: segment.values[4], y: segment.values[5] }
-                        // )
+                        this.figure?.changeAngleEdgeToSmooth()
+                        this.figure!.addAngleEdge(
+                            { x: segment.values[2], y: segment.values[3] },
+                            { x: segment.values[4], y: segment.values[5] }
+                        )
                         event.editor.model?.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
@@ -313,17 +312,16 @@ export class PenTool extends Tool {
 
             case State.DOWN_POINT_POINT:
                 switch (event.type) {
-/*
                     case "mousemove": {
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
                             const path = this.path!
-                            const segment = path.path.data[path.path.data.length - 1]
+                            const segment = path.data[path.data.length - 1]
                             if (segment.type !== 'L') {
                                 throw Error("yikes")
                             }
-                            const segment0 = path.path.data[path.path.data.length - 2]
+                            const segment0 = path.data[path.data.length - 2]
                             let curveStartPoint
-                            switch(segment0.type) {
+                            switch (segment0.type) {
                                 case 'M':
                                 case 'L':
                                     curveStartPoint = { x: segment0.values[0], y: segment0.values[1] }
@@ -332,7 +330,7 @@ export class PenTool extends Tool {
                                     curveStartPoint = { x: segment0.values[4], y: segment0.values[5] }
                                     break
                                 default:
-                                    throw Error("yikes") 
+                                    throw Error("yikes")
                             }
                             const anchor = event.editor.mouseDownAt!
                             const forwardHandle = event
@@ -343,13 +341,12 @@ export class PenTool extends Tool {
                                 backwardHandle.x, backwardHandle.y,
                                 anchor.x, anchor.y
                             ]
-                            this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                            this.updateSVG(event)
                             this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                             this.state = State.DOWN_POINT_CURVE
                         }
                     } break
-*/
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
                         const path = this.path!
@@ -369,31 +366,29 @@ export class PenTool extends Tool {
                         this.state = State.UP_POINT
                     } break
                 } break
-/*
-                case State.DOWN_POINT_CURVE:
+
+            case State.DOWN_POINT_CURVE:
                 switch (event.type) {
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
                         const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1]
+                        const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
-                        this.figure!.curve(
-                            { x: segment.values[0], y: segment.values[1] },
+                         this.figure?.addAngleEdge(
                             { x: segment.values[2], y: segment.values[3] },
-                            { x: segment.values[4], y: segment.values[5] },
+                            { x: segment.values[4], y: segment.values[5] }
                         )
                         event.editor.model?.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
-
                         this.state = State.UP_X_CURVE
                     } break
-                    case "mousemove": {        
+                    case "mousemove": {
                         const path = this.path!
-                        const segment = path.path.data[path.path.data.length - 1] // FIXME: why not have a current segment variable?
+                        const segment = path.data[path.data.length - 1] // FIXME: why not have a current segment variable?
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
@@ -402,7 +397,7 @@ export class PenTool extends Tool {
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         segment.values[2] = backwardHandle.x
                         segment.values[3] = backwardHandle.y
-                        this.path!.updateSVG(this.path!.getPath(), event.editor.decorationOverlay, this.svg)
+                        this.updateSVG(event)
                         this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                     } break
@@ -419,7 +414,6 @@ export class PenTool extends Tool {
             //                 figures: [this.figure!.id]
             //             })
             //     } break
-*/
         }
     }
 
@@ -433,7 +427,7 @@ export class PenTool extends Tool {
 
         this.path = new RawPath()
         this.svg = this.path.createSVG()
-        this.setOutlineColors(this.svg) 
+        this.setOutlineColors(this.svg)
         this.decoration.appendChild(this.svg)
 
         this.figure = new Path() // FIXME: won't work in client/server mode
