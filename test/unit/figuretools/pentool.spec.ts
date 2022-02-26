@@ -363,11 +363,11 @@ describe("PenTool", function () {
             expect(scene.getAnchorHandleCount()).to.deep.equal([3, 1])
             expect(scene.penTool.path!.toString()).to.equal(`M 100 100 C 110 80 130 130 150 100 C 170 70 200 100 200 100`)
             expect(scene.model.layers[0].data.length).equals(1)
-            expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 130 130 150 100 C 170 70 200 100 200 100`)
             expect(scene.penTool.figure!.toInternalString()).to.equal(
                 `EA ${p0.x} ${p0.y} ${p1.x} ${p1.y} S ${m.x} ${m.y} ${p2.x} ${p2.y} E ${p4.x} ${p4.y}`
             )
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-ready.svg")
+            expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 130 130 150 100 C 170 70 200 100 200 100`)
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-active.svg")
         })
 
         // curve after curve
@@ -559,6 +559,40 @@ describe("PenTool", function () {
             expect(scene.penTool.figure!.toInternalString()).to.equal('EA 100 100 110 80 AE 150 100 150 100')
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
         })
+
+/*
+
+UP_X_CURVE
+AE 350.5 104.5 300.5 128.5
+
+DOWN_CURVE_POINT
+
+UP_X_CURVE --down--> DOWN_CURVE_POINT --up--> U_POINT
+
+[Log] PenTool.mouseEvent(): state=UP_X_CURVE, type=mousemove (PenTool.js, line 93)
+[Log] EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5 E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
+[Log] PenTool.mouseEvent(): state=UP_X_CURVE, type=mousemove (PenTool.js, line 93)
+[Log] EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5 E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
+[Log] PenTool.mouseEvent(): state=UP_X_CURVE, type=mousemove (PenTool.js, line 93)
+[Log] EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5 E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
+[Log] PenTool.mouseEvent(): state=UP_X_CURVE, type=mousedown (PenTool.js, line 93)
+[Log] EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5 E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
+
+[Log] PenTool.mouseEvent(): state=DOWN_CURVE_POINT, type=mouseup (PenTool.js, line 93)
+[Log]                                                             EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5
+      E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
+[Log] SAVE (Client_impl.js, line 181)
+[Error] Error: yikes 3: invalid ANCHOR_*_EDGE -> ANCHOR_SMOOTH in EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5
+      E 422.5 210.5 E 344.5 198.5 S  350.5 104.5 300.5 128.5 AE 335.5 240.5 335.5 240.5
+                                  ^
+                                  | are we sure that this is invalid?
+	getPath (Path.js:232:122)
+	updateView (FigureEditor.js:285)
+	trigger (Signal.js:45)
+	mouseEvent (PenTool.js:214)
+	mouseUp (FigureEditor.js:474)
+	mouseUp
+*/
 
     })
 })

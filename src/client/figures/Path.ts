@@ -103,6 +103,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         if (this.types.length === 0)
             throw Error(`figure.Path.changeAngleEdgeToSmooth(): figure is empty`)
         if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_ANGLE_EDGE) {
+            // return
             throw Error(`figure.Path.changeAngleEdgeToSmooth(): last anchor is not an angle-edge ${figure.AnchorType[this.types[this.types.length - 1]]}`)
         }
         this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_SMOOTH
@@ -195,8 +196,27 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                                 this.values[idxValue], this.values[idxValue + 1])
                             idxValue += 4
                             break
-                        // EDGE_ANGLE_ANGLE?
-                        // EDGE_ANGLE_SMOOTH?
+                        case figure.AnchorType.ANCHOR_ANGLE_EDGE: {
+                            path.line(this.values[idxValue++], this.values[idxValue++])
+                            idxValue += 2                         
+                        } break
+                        case figure.AnchorType.ANCHOR_ANGLE_ANGLE: {
+                            path.curve(
+                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[idxValue], this.values[idxValue + 1],
+                                this.values[idxValue], this.values[idxValue + 1])
+                            idxValue += 4
+                        } break
+                        case figure.AnchorType.ANCHOR_SMOOTH: {
+                            const p0 = { x: this.values[idxValue - 4], y: this.values[idxValue - 3] }
+                            const p1 = { x: this.values[idxValue - 2], y: this.values[idxValue - 1] }
+                            const m = mirrorPoint(p1, p0)
+                            path.curve(
+                                m.x, m.y,
+                                this.values[idxValue], this.values[idxValue + 1],
+                                this.values[idxValue], this.values[idxValue + 1])
+                            idxValue += 4
+                        } break
                         default:
                             throw Error("yikes 1")
                     }
@@ -256,9 +276,20 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                                 this.values[idxValue++], this.values[idxValue++]
                             )
                         } break
-                        case figure.AnchorType.ANCHOR_EDGE:
-                        case figure.AnchorType.ANCHOR_ANGLE_EDGE:
-                            throw Error(`yikes 3: invalid ANCHOR_*_EDGE -> ANCHOR_SMOOTH in ${this.toInternalString()}`)
+                        case figure.AnchorType.ANCHOR_EDGE: {
+                            path.curve(
+                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[idxValue++], this.values[idxValue++],
+                                this.values[idxValue++], this.values[idxValue++]
+                            )
+                        } break
+                        case figure.AnchorType.ANCHOR_ANGLE_EDGE: {
+                            path.curve(
+                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[idxValue++], this.values[idxValue++],
+                                this.values[idxValue++], this.values[idxValue++]
+                            )
+                        } break
                         default:
                             throw Error(`yikes 3: ${figure.AnchorType[prevType!]} -> ANCHOR_SMOOTH in ${this.toInternalString()}`)
                     }
@@ -274,6 +305,33 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                             )
                             idxValue += 6
                             break
+                        case figure.AnchorType.ANCHOR_ANGLE_EDGE: {
+                            path.curve(
+                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[idxValue], this.values[idxValue + 1],
+                                this.values[idxValue + 2], this.values[idxValue + 3]
+                            )
+                            idxValue += 6    
+                        } break
+                        case figure.AnchorType.ANCHOR_ANGLE_ANGLE: {
+                            path.curve(
+                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[idxValue], this.values[idxValue + 1],
+                                this.values[idxValue + 2], this.values[idxValue + 3]
+                            )
+                            idxValue += 6    
+                        } break
+                        case figure.AnchorType.ANCHOR_SMOOTH: {
+                            const p0 = { x: this.values[idxValue - 4], y: this.values[idxValue - 3] }
+                            const p1 = { x: this.values[idxValue - 2], y: this.values[idxValue - 1] }
+                            const m = mirrorPoint(p1, p0)
+                            path.curve(
+                                m.x, m.y,
+                                this.values[idxValue], this.values[idxValue + 1],
+                                this.values[idxValue + 2], this.values[idxValue + 3]
+                            )
+                            idxValue += 6    
+                        } break
                         default:
                             throw Error("yikes 4")
                     }

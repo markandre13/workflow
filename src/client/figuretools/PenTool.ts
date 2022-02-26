@@ -113,9 +113,14 @@ export class PenTool extends Tool {
         this.setCursor(event, Cursor.DEFAULT)
     }
 
+    wasMove = false
+
     override mouseEvent(event: EditorMouseEvent) {
-        // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
-        // console.log(`this.path=${this.path}`)
+        if (!this.wasMove || event.type !== "mousemove") {
+            // console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
+        }
+        this.wasMove = event.type === "mousemove"
+        // console.log(this.figure?.toInternalString())
 
         switch (this.state) {
             case State.READY:
@@ -217,17 +222,27 @@ export class PenTool extends Tool {
                         }
                     } break
                     case "mouseup": {
+                        console.log("DOWN_CURVE_POINT --up-->")
                         this.setCursor(event, Cursor.ACTIVE)
                         const path = this.path!
                         const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
-                        this.figure?.changeAngleEdgeToSmooth()
-                        this.figure!.addAngleEdge(
-                            { x: segment.values[2], y: segment.values[3] },
-                            { x: segment.values[4], y: segment.values[5] }
-                        )
+                        console.log(`    before: ${this.figure?.toInternalString()}`)
+                        if (this.figure!.types[this.figure!.types.length - 1] === figure.AnchorType.ANCHOR_ANGLE_EDGE) {
+                            this.figure!.changeAngleEdgeToSmooth()
+                            console.log(`    step 1b.1: ${this.figure?.toInternalString()}`)
+                            this.figure!.addEdge(
+                                { x: segment.values[4], y: segment.values[5] }
+                            )
+                        } else {
+                            this.figure!.addAngleEdge(
+                                { x: segment.values[2], y: segment.values[3] },
+                                { x: segment.values[4], y: segment.values[5] }
+                            )
+                        }
+                        console.log(`    step 2: ${this.figure?.toInternalString()}`)
                         event.editor.model?.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
