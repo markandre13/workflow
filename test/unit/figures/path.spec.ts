@@ -30,230 +30,297 @@ describe("figures", function () {
         const p4 = { x: 90, y: 100 }
         const p5 = { x: 110, y: 120 }
         const p6 = { x: 130, y: 140 }
+        const p9 = { x: 210, y: 220 }
         describe("create SVG Path", function () {
-            describe("first anchor", function() {
-                it("E -> M", function () {
+            describe("first anchor", function () {
+                it("E ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     expect(path.toPathString()).to.equal("M 10 20")
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal("M 10 20 L 210 220")
                 })
-                it("AE -> M", function () {
+                it("AE ...", function () {
                     const path = new Path()
                     path.addAngleEdge(p0, p1)
                     expect(path.toPathString()).to.equal("M 30 40")
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal("M 30 40 L 210 220")
                 })
-                it("EA -> M", function () {
+                it("EA ...", function () {
                     const path = new Path()
                     path.addEdgeAngle(p0, p1)
                     expect(path.toPathString()).to.equal("M 10 20")
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal("M 10 20 C 30 40 210 220 210 220")
                 })
-                it("AA -> M", function () {
+                it("AA ...", function () {
                     const path = new Path()
                     path.addAngleAngle(p0, p1, p2)
                     expect(path.toPathString()).to.equal("M 30 40")
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal("M 30 40 C 50 60 210 220 210 220")
                 })
-                it("S -> M", function () {
+                it("S ...", function () {
                     const path = new Path()
                     path.addSmooth(p0, p1)
                     expect(path.toPathString()).to.equal("M 30 40")
+                    path.addEdge(p9)
+                    const m = mirrorPoint(p1, p0)
+                    expect(path.toPathString()).to.equal(`M 30 40 C ${m.x} ${m.y} 210 220 210 220`)
                 })
             })
 
-            // FIXME: add a final E to check that the pointer is incremented correctly... maybe by adding a final edge and checking toPathString again
-            describe("succesive anchors", function() {
+            describe("in between anchors", function () {
 
-                it("E E E -> M L L", function() {
+                it("... E E ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdge(p1)
                     path.addEdge(p2)
                     expect(path.toPathString()).to.equal("M 10 20 L 30 40 L 50 60")
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal("M 10 20 L 30 40 L 50 60 L 210 220")
                 })
-                it("E EA E -> M L C", function() {
+                it("... EA E ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdgeAngle(p1, p2)
                     path.addEdge(p3)
                     expect(path.toPathString()).to.equal("M 10 20 L 30 40 C 50 60 70 80 70 80")
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal("M 10 20 L 30 40 C 50 60 70 80 70 80 L 210 220")
                 })
-                it("E AE E -> M C L", function() {
+                it("... AE E ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleEdge(p1, p2)
                     path.addEdge(p3)
                     expect(path.toPathString()).to.equal("M 10 20 C 10 20 30 40 50 60 L 70 80")
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal("M 10 20 C 10 20 30 40 50 60 L 70 80 L 210 220")
                 })
-                it("E AA E -> M C C", function() {
+                it("... AA E ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleAngle(p1, p2, p3)
                     path.addEdge(p4)
                     expect(path.toPathString()).to.equal("M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 90 100")
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal("M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 90 100 L 210 220")
                 })
-                it("E S E -> M C C", function() {
+                it("... S E ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addSmooth(p1, p2)
                     path.addEdge(p3)
                     const m = mirrorPoint(p2, p1)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m.x} ${m.y} 70 80 70 80`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m.x} ${m.y} 70 80 70 80 L 210 220`)
                 })
 
                 /////////////////////////////
 
-                it("E E AE -> M L C", function() {
+                it("... E AE ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdge(p1)
                     path.addAngleEdge(p2, p3)
                     expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 30 40 50 60 70 80`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 30 40 50 60 70 80 L 210 220`)
                 })
-                it("E EA AE -> M L C", function() {
+                it("... EA AE ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdgeAngle(p1, p2)
                     path.addAngleEdge(p3, p4)
                     expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 50 60 70 80 90 100`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 50 60 70 80 90 100 L 210 220`)
                 })
-                it("E AE AE -> M C C", function() {
+                it("... AE AE ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleEdge(p1, p2)
                     path.addAngleEdge(p3, p4)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 50 60 70 80 90 100`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 50 60 70 80 90 100 L 210 220`)
                 })
-                it("E AA AE -> M C C", function() {
+                it("... AA AE ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleAngle(p1, p2, p3)
                     path.addAngleEdge(p4, p5)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 110 120`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 110 120 L 210 220`)
                 })
-                it("E S AE -> M C C", function() {
+                it("... S AE ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addSmooth(p1, p2)
                     path.addAngleEdge(p3, p4)
                     const m = mirrorPoint(p2, p1)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m.x} ${m.y} 70 80 90 100`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m.x} ${m.y} 70 80 90 100 L 210 220`)
                 })
 
                 /////////////////////////////
 
-                it("E E EA -> M L L", function() {
+                it("... E EA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdge(p1)
                     path.addEdgeAngle(p2, p3)
                     expect(path.toPathString()).to.equal(`M 10 20 L 30 40 L 50 60`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 L 30 40 L 50 60 C 70 80 210 220 210 220`)
                 })
-                it("E EA EA -> M L C", function() {
+                it("... EA EA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdgeAngle(p1, p2)
                     path.addEdgeAngle(p3, p4)
                     expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 50 60 70 80 70 80`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 50 60 70 80 70 80 C 90 100 210 220 210 220`)
                 })
-                it("E AE EA -> M C L", function() {
+                it("... AE EA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleEdge(p1, p2)
                     path.addEdgeAngle(p3, p4)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 L 70 80`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 L 70 80 C 90 100 210 220 210 220`)
                 })
-                it("E AA EA -> M C C", function() {
+                it("... AA EA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleAngle(p1, p2, p3)
                     path.addEdgeAngle(p4, p5)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 90 100`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 90 100 C 110 120 210 220 210 220`)
                 })
-                it("E S EA -> M C C", function() {
+                it("... S EA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addSmooth(p1, p2)
                     path.addEdgeAngle(p3, p4)
                     const m = mirrorPoint(p2, p1)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m.x} ${m.y} 70 80 70 80`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m.x} ${m.y} 70 80 70 80 C 90 100 210 220 210 220`)
                 })
 
                 /////////////////////////////
 
-                it("E E AA -> M L C", function() {
+                it("... E AA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdge(p1)
                     path.addAngleAngle(p2, p3, p4)
                     expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 30 40 50 60 70 80`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 30 40 50 60 70 80 C 90 100 210 220 210 220`)
                 })
-                it("E EA AA -> M L C", function() {
+                it("... EA AA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdgeAngle(p1, p2)
                     path.addAngleAngle(p3, p4, p5)
                     expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 50 60 70 80 90 100`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 50 60 70 80 90 100 C 110 120 210 220 210 220`)
                 })
-                it("E AE AA -> M C C", function() {
+                it("... AE AA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleEdge(p1, p2)
                     path.addAngleAngle(p3, p4, p5)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 50 60 70 80 90 100`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 50 60 70 80 90 100 C 110 120 210 220 210 220`)
                 })
-                it("E AA AA -> M C C", function() {
+                it("... AA AA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleAngle(p1, p2, p3)
                     path.addAngleAngle(p4, p5, p6)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 110 120`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 110 120 C 130 140 210 220 210 220`)
                 })
-                it("E S AA -> M C C", function() {
+                it("... S AA ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addSmooth(p1, p2)
                     path.addAngleAngle(p3, p4, p5)
                     const m = mirrorPoint(p2, p1)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m.x} ${m.y} 70 80 90 100`)
+                    path.addEdge(p9)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m.x} ${m.y} 70 80 90 100 C 110 120 210 220 210 220`)
                 })
 
                 /////////////////////////////
 
-                it("E E S -> M L C", function() {
+                it("... E S ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdge(p1)
                     path.addSmooth(p2, p3)
                     expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 30 40 50 60 70 80`)
+                    path.addEdge(p9)
+                    const m = mirrorPoint(p3, p2)
+                    expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 30 40 50 60 70 80 C ${m.x} ${m.y} 210 220 210 220`)
                 })
-                it("E EA S -> M L C", function() { 
+                it("... EA S ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addEdgeAngle(p1, p2)
                     path.addSmooth(p3, p4)
                     expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 50 60 70 80 90 100`)
+                    path.addEdge(p9)
+                    const m = mirrorPoint(p4, p3)
+                    expect(path.toPathString()).to.equal(`M 10 20 L 30 40 C 50 60 70 80 90 100 C ${m.x} ${m.y} 210 220 210 220`)
                 })
-                it("E AE S -> M C C", function() {
+                it("... AE S ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleEdge(p1, p2)
                     path.addSmooth(p3, p4)
                     expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 50 60 70 80 90 100`)
+                    path.addEdge(p9)
+                    const m = mirrorPoint(p4, p3)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 50 60 70 80 90 100 C ${m.x} ${m.y} 210 220 210 220`)
                 })
-                it("E AA S -> M C C", function() {
+                it("... AA S ...", function () { 
                     const path = new Path()
                     path.addEdge(p0)
                     path.addAngleAngle(p1, p2, p3)
                     path.addSmooth(p4, p5)
-                    const m = mirrorPoint(p4, p5)
-                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 70 80 ${m.x} ${m.y} 90 100`)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 110 120`)
+                    path.addEdge(p9)
+                    // console.log(path.toInternalString())
+                    const m = mirrorPoint(p5, p4)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C 70 80 90 100 110 120 C ${m.x} ${m.y} 210 220 210 220`)
                 })
-                it("E S S -> M C C", function() {
+                it("... S S ...", function () {
                     const path = new Path()
                     path.addEdge(p0)
                     path.addSmooth(p1, p2)
                     path.addSmooth(p3, p4)
-                    const m = mirrorPoint(p2, p1)
-                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m.x} ${m.y} 70 80 90 100`)
+                    const m0 = mirrorPoint(p2, p1)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m0.x} ${m0.y} 70 80 90 100`)
+                    path.addEdge(p9)
+                    const m1 = mirrorPoint(p4, p3)
+                    expect(path.toPathString()).to.equal(`M 10 20 C 10 20 30 40 50 60 C ${m0.x} ${m0.y} 70 80 90 100 C ${m1.x} ${m1.y} 210 220 210 220`)
+
                 })
             })
         })
