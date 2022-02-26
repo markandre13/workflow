@@ -223,6 +223,10 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                     break
                 case figure.AnchorType.ANCHOR_ANGLE_EDGE:
                     switch (prevType) {
+                        case undefined:
+                            idxValue += 2
+                            path.move(this.values[idxValue++], this.values[idxValue++])
+                            break
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                         case figure.AnchorType.ANCHOR_EDGE:
                         case figure.AnchorType.ANCHOR_ANGLE_EDGE:
@@ -250,6 +254,10 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                 case figure.AnchorType.ANCHOR_SMOOTH:
                     // like svg:path's S: mirror the previous curves last handle on the previous curve's last anchor
                     switch (prevType) {
+                        case undefined:
+                            idxValue += 2
+                            path.move(this.values[idxValue++], this.values[idxValue++])
+                            break
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
                             path.curve(
                                 this.values[idxValue - 2], this.values[idxValue - 1],
@@ -296,6 +304,11 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                     break
                 case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
                     switch (prevType) {
+                        case undefined:
+                            idxValue += 2
+                            path.move(this.values[idxValue++], this.values[idxValue++])
+                            idxValue += 2
+                            break
                         case figure.AnchorType.ANCHOR_EDGE:
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                             path.curve(
