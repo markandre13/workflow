@@ -39,47 +39,8 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         }
     }
 
-    // operations for PenTool
-    // add an anchor plus method so change that anchor?
-    // addAnchor(x, y)
-    // smoothLastAnchor(...)
-    // edgeToSmooth // that's symmetric
-    // lineTo
-
-    // move(point: Point) {
-    //     this.types.push(figure.AnchorType.ANCHOR_EDGE)
-    //     this.values.push(point.x)
-    //     this.values.push(point.y)
-    // }
-    // line(point: Point) {
-    //     this.types.push(figure.AnchorType.ANCHOR_EDGE)
-    //     this.values.push(point.x)
-    //     this.values.push(point.y)
-    // }
-    // curve(p0: Point, p1: Point, p2: Point) {
-    //     if (this.types.length === 1) {
-    //         // FIXME: this only works on the initial point
-    //         this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_EDGE_ANGLE
-    //         this.values.push(p0.x)
-    //         this.values.push(p0.y)
-    //         this.types.push(figure.AnchorType.ANCHOR_ANGLE_EDGE)
-    //         this.values.push(p1.x)
-    //         this.values.push(p1.y)
-    //         this.values.push(p2.x)
-    //         this.values.push(p2.y)
-    //     } else {
-    //         // assert?
-    //         this.types.push(figure.AnchorType.ANCHOR_SMOOTH)
-    //         this.values.push(p1.x)
-    //         this.values.push(p1.y)
-    //         this.values.push(p2.x)
-    //         this.values.push(p2.y)
-    //     }
-    // }
-    // close() { this.path.close() }
-
     //
-    // new style methods
+    // Add and edit anchors
     //
 
     addEdge(p0: Point) {
@@ -139,6 +100,9 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         this.values.push(p2.x)
         this.values.push(p2.y)
     }
+    addClose() {
+        this.types.push(figure.AnchorType.CLOSE)
+    }
 
     override getPath(): RawPath {
         const path = new RawPath()
@@ -146,7 +110,15 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         let idxValue = 0
         for (let idxType = 0; idxType < this.types.length; ++idxType) {
             // console.log(`getPath(): type=${figure.AnchorType[this.types[idxType]]}, idxType=${idxType}, idxValue=${idxValue}`)
-            switch (this.types[idxType]) {
+
+            let prevValue = idxValue
+            let type = this.types[idxType]
+            if (type === figure.AnchorType.CLOSE) {
+                idxValue = 0
+                type = this.types[0]
+            }
+
+            switch (type) {
                 case figure.AnchorType.ANCHOR_EDGE:
                     switch (prevType) {
                         case undefined:
@@ -155,15 +127,15 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue], this.values[idxValue + 1],
                                 this.values[idxValue], this.values[idxValue + 1]
                             )
                             idxValue += 2
                             break
                         case figure.AnchorType.ANCHOR_SMOOTH: {
-                            const p0 = { x: this.values[idxValue - 4], y: this.values[idxValue - 3] }
-                            const p1 = { x: this.values[idxValue - 2], y: this.values[idxValue - 1] }
+                            const p0 = { x: this.values[prevValue - 4], y: this.values[prevValue - 3] }
+                            const p1 = { x: this.values[prevValue - 2], y: this.values[prevValue - 1] }
                             const m = mirrorPoint(p1, p0)
                             path.curve(
                                 m.x, m.y,
@@ -192,7 +164,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                             break
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue], this.values[idxValue + 1],
                                 this.values[idxValue], this.values[idxValue + 1])
                             idxValue += 4
@@ -203,14 +175,14 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                         } break
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE: {
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue], this.values[idxValue + 1],
                                 this.values[idxValue], this.values[idxValue + 1])
                             idxValue += 4
                         } break
                         case figure.AnchorType.ANCHOR_SMOOTH: {
-                            const p0 = { x: this.values[idxValue - 4], y: this.values[idxValue - 3] }
-                            const p1 = { x: this.values[idxValue - 2], y: this.values[idxValue - 1] }
+                            const p0 = { x: this.values[prevValue - 4], y: this.values[prevValue - 3] }
+                            const p1 = { x: this.values[prevValue - 2], y: this.values[prevValue - 1] }
                             const m = mirrorPoint(p1, p0)
                             path.curve(
                                 m.x, m.y,
@@ -233,14 +205,14 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                         case figure.AnchorType.ANCHOR_ANGLE_EDGE:
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue++], this.values[idxValue++],
                                 this.values[idxValue++], this.values[idxValue++],
                             )
                             break
                         case figure.AnchorType.ANCHOR_SMOOTH: {
-                            const p0 = { x: this.values[idxValue - 4], y: this.values[idxValue - 3] }
-                            const p1 = { x: this.values[idxValue - 2], y: this.values[idxValue - 1] }
+                            const p0 = { x: this.values[prevValue - 4], y: this.values[prevValue - 3] }
+                            const p1 = { x: this.values[prevValue - 2], y: this.values[prevValue - 1] }
                             const m = mirrorPoint(p1, p0)
                             path.curve(
                                 m.x, m.y,
@@ -261,36 +233,36 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                             break
                         case figure.AnchorType.ANCHOR_EDGE: {
                                 path.curve(
-                                    this.values[idxValue - 2], this.values[idxValue - 1],
+                                    this.values[prevValue - 2], this.values[prevValue - 1],
                                     this.values[idxValue++], this.values[idxValue++],
                                     this.values[idxValue++], this.values[idxValue++]
                                 )
                             } break   
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue++], this.values[idxValue++],
                                 this.values[idxValue++], this.values[idxValue++],
                             )
                         } break
                         case figure.AnchorType.ANCHOR_ANGLE_EDGE: {
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue++], this.values[idxValue++],
                                 this.values[idxValue++], this.values[idxValue++]
                             )
                         } break
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE: {
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue++], this.values[idxValue++],
                                 this.values[idxValue++], this.values[idxValue++],
                             )
                             // idxValue += 2
                         } break
                         case figure.AnchorType.ANCHOR_SMOOTH: {
-                            const p0 = { x: this.values[idxValue - 4], y: this.values[idxValue - 3] }
-                            const p1 = { x: this.values[idxValue - 2], y: this.values[idxValue - 1] }
+                            const p0 = { x: this.values[prevValue - 4], y: this.values[prevValue - 3] }
+                            const p1 = { x: this.values[prevValue - 2], y: this.values[prevValue - 1] }
                             const m = mirrorPoint(p1, p0)
                             path.curve(
                                 m.x, m.y,
@@ -312,7 +284,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                         case figure.AnchorType.ANCHOR_EDGE:
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue], this.values[idxValue + 1],
                                 this.values[idxValue + 2], this.values[idxValue + 3]
                             )
@@ -320,7 +292,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                             break
                         case figure.AnchorType.ANCHOR_ANGLE_EDGE: {
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue], this.values[idxValue + 1],
                                 this.values[idxValue + 2], this.values[idxValue + 3]
                             )
@@ -328,15 +300,15 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                         } break
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE: {
                             path.curve(
-                                this.values[idxValue - 2], this.values[idxValue - 1],
+                                this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue], this.values[idxValue + 1],
                                 this.values[idxValue + 2], this.values[idxValue + 3]
                             )
                             idxValue += 6    
                         } break
                         case figure.AnchorType.ANCHOR_SMOOTH: {
-                            const p0 = { x: this.values[idxValue - 4], y: this.values[idxValue - 3] }
-                            const p1 = { x: this.values[idxValue - 2], y: this.values[idxValue - 1] }
+                            const p0 = { x: this.values[prevValue - 4], y: this.values[prevValue - 3] }
+                            const p1 = { x: this.values[prevValue - 2], y: this.values[prevValue - 1] }
                             const m = mirrorPoint(p1, p0)
                             path.curve(
                                 m.x, m.y,
@@ -350,7 +322,10 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                     }
                     break
             }
-            prevType = this.types[idxType]
+            prevType = type
+            if (this.types[idxType] === figure.AnchorType.CLOSE) {
+                path.close()
+            }
         }
         return path
     }
