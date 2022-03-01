@@ -73,7 +73,8 @@ export enum State {
     DOWN_POINT_POINT,
     DOWN_POINT_CURVE,
 
-    // CLOSE_DOWN,
+    DOWN_CLOSE,
+    DOWN_CURVE_CLOSE
 }
 
 enum Handle {
@@ -222,17 +223,14 @@ export class PenTool extends Tool {
                         }
                     } break
                     case "mouseup": {
-                        console.log("DOWN_CURVE_POINT --up-->")
                         this.setCursor(event, Cursor.ACTIVE)
                         const path = this.path!
                         const segment = path.data[path.data.length - 1]
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
-                        console.log(`    before: ${this.figure?.toInternalString()}`)
                         if (this.figure!.types[this.figure!.types.length - 1] === figure.AnchorType.ANCHOR_ANGLE_EDGE) {
                             this.figure!.changeAngleEdgeToSmooth()
-                            console.log(`    step 1b.1: ${this.figure?.toInternalString()}`)
                             this.figure!.addEdge(
                                 { x: segment.values[4], y: segment.values[5] }
                             )
@@ -242,7 +240,6 @@ export class PenTool extends Tool {
                                 { x: segment.values[4], y: segment.values[5] }
                             )
                         }
-                        console.log(`    step 2: ${this.figure?.toInternalString()}`)
                         event.editor.model?.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
@@ -302,6 +299,12 @@ export class PenTool extends Tool {
                         let h0 = { x: segment.values[2], y: segment.values[3] }
                         const a0 = { x: segment.values[4], y: segment.values[5] }
                         h0 = mirrorPoint(a0, h0)
+                        if (this.isFirstAnchor(event)) {
+                            this.state = State.DOWN_CLOSE
+                            this.path!.curve(h0, event, event)
+                            this.updateSVG(event)   
+                            break
+                        }                       
 
                         this.updateHandle(Handle.PREVIOUS_FORWARD, a0, h0)
                         this.updateHandle(Handle.CURRENT_BACKWARD)
@@ -418,17 +421,18 @@ export class PenTool extends Tool {
                     } break
                 } break
 
-            // case State.CLOSE_DOWN:
-            //     switch (event.type) {
-            //         case "mouseup":
-            //             this.state = State.READY
-            //             this.setCursor(event, Cursor.READY)
-            //             this.figure!.close()
-            //             event.editor.model?.modified.trigger({
-            //                 operation: Operation.UPDATE_FIGURES,
-            //                 figures: [this.figure!.id]
-            //             })
-            //     } break
+                case State.DOWN_CLOSE:
+                    switch (event.type) {
+                        case "mouseup":
+                            this.state = State.READY
+                            this.setCursor(event, Cursor.READY)
+                            this.figure!.changeAngleEdgeToSmooth()
+                            this.figure!.addClose()
+                            event.editor.model?.modified.trigger({
+                                operation: Operation.UPDATE_FIGURES,
+                                figures: [this.figure!.id]
+                            })
+                    } break
         }
     }
 

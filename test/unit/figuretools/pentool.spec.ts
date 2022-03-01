@@ -6,6 +6,8 @@ import { State } from "client/figuretools/PenTool"
 import { initializeCORBAValueTypes } from "client/workflow"
 import { mirrorPoint } from 'shared/geometry'
 
+it("\x07") // beep
+
 describe("PenTool", function () {
     this.beforeAll(async function () {
         initializeCORBAValueTypes()
@@ -560,40 +562,80 @@ describe("PenTool", function () {
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
         })
 
-/*
+        it("UP_X_CURVE --down--> DOWN_CLOSE", function() {
+            const scene = new FigureEditorScene()
+            scene.selectPenTool()
 
-UP_X_CURVE
-AE 350.5 104.5 300.5 128.5
+            const p0 = { x: 100, y: 100 }
+            const p1 = { x: 110, y: 80 }
+            const p2 = { x: 200, y: 110 }
+            const p3 = { x: 220, y: 130 }
 
-DOWN_CURVE_POINT
+            scene.mouseDownAt(p0)
+            scene.mouseTo(p1)
+            scene.mouseUp()
 
-UP_X_CURVE --down--> DOWN_CURVE_POINT --up--> U_POINT
+            scene.mouseDownAt(p2)
+            scene.mouseTo(p3)
+            scene.mouseUp()
 
-[Log] PenTool.mouseEvent(): state=UP_X_CURVE, type=mousemove (PenTool.js, line 93)
-[Log] EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5 E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
-[Log] PenTool.mouseEvent(): state=UP_X_CURVE, type=mousemove (PenTool.js, line 93)
-[Log] EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5 E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
-[Log] PenTool.mouseEvent(): state=UP_X_CURVE, type=mousemove (PenTool.js, line 93)
-[Log] EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5 E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
-[Log] PenTool.mouseEvent(): state=UP_X_CURVE, type=mousedown (PenTool.js, line 93)
-[Log] EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5 E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
+            expect(scene.penTool.state).to.equal(State.UP_X_CURVE)
 
-[Log] PenTool.mouseEvent(): state=DOWN_CURVE_POINT, type=mouseup (PenTool.js, line 93)
-[Log]                                                             EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5
-      E 422.5 210.5 E 344.5 198.5 AE 350.5 104.5 300.5 128.5 (PenTool.js, line 94)
-[Log] SAVE (Client_impl.js, line 181)
-[Error] Error: yikes 3: invalid ANCHOR_*_EDGE -> ANCHOR_SMOOTH in EA 144.5 255.5 179.5 180.5 S 223.5 148.5 290.5 263.5 AE 441.5 305.5 441.5 305.5
-      E 422.5 210.5 E 344.5 198.5 S  350.5 104.5 300.5 128.5 AE 335.5 240.5 335.5 240.5
-                                  ^
-                                  | are we sure that this is invalid?
-	getPath (Path.js:232:122)
-	updateView (FigureEditor.js:285)
-	trigger (Signal.js:45)
-	mouseEvent (PenTool.js:214)
-	mouseUp (FigureEditor.js:474)
-	mouseUp
-*/
+            scene.mouseDownAt(p0)
+            expect(scene.penTool.state).to.equal(State.DOWN_CLOSE)
 
+            // special situation, only one curve, all handles are unchanged
+            expect(scene.hasAnchorAt(p0)).to.be.true
+            expect(scene.hasAnchorAt(p2)).to.be.true
+            expect(scene.hasHandleAt(p0, p1)).to.be.true
+            expect(scene.hasHandleAt(p2, p3)).to.be.true
+            const m = mirrorPoint(p2, p3)
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([2, 3])
+
+            expect(scene.penTool.path!.toString()).to.equal(`M 100 100 C 110 80 ${m.x} ${m.y} 200 110 C 220 130 100 100 100 100`)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.toInternalString()).to.equal(`EA 100 100 110 80 AE ${m.x} ${m.y} 200 110`)
+            expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 ${m.x} ${m.y} 200 110`)
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+        })
+
+        it("DOWN_CLOSE --up--> READY", function() {
+            const scene = new FigureEditorScene()
+            scene.selectPenTool()
+
+            const p0 = { x: 100, y: 100 }
+            const p1 = { x: 110, y: 80 }
+            const p2 = { x: 200, y: 110 }
+            const p3 = { x: 220, y: 130 }
+
+            scene.mouseDownAt(p0)
+            scene.mouseTo(p1)
+            scene.mouseUp()
+
+            scene.mouseDownAt(p2)
+            scene.mouseTo(p3)
+            scene.mouseUp()
+
+            scene.mouseDownAt(p0)
+            scene.mouseUp()
+            expect(scene.penTool.state).to.equal(State.READY)
+
+            // special situation, only one curve, all handles are unchanged
+            expect(scene.hasAnchorAt(p0)).to.be.true
+            expect(scene.hasAnchorAt(p2)).to.be.true
+            expect(scene.hasHandleAt(p0, p1)).to.be.true
+            expect(scene.hasHandleAt(p2, p3)).to.be.true
+            const m = mirrorPoint(p2, p3)
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([2, 3])
+
+            expect(scene.penTool.path!.toString()).to.equal(`M 100 100 C 110 80 ${m.x} ${m.y} 200 110 C 220 130 100 100 100 100`)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.toInternalString()).to.equal(`EA 100 100 110 80 S ${m.x} ${m.y} 200 110 Z`)
+            expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 ${m.x} ${m.y} 200 110 C 220 130 100 100 100 100 Z`)
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-ready")
+        })
     })
 })
 
