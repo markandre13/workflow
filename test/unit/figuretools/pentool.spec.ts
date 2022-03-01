@@ -636,6 +636,46 @@ describe("PenTool", function () {
             expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 ${m.x} ${m.y} 200 110 C 220 130 100 100 100 100 Z`)
             expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-ready")
         })
+
+        it("DOWN_CLOSE --move--> DOWN_CURVE_CLOSE", function() {
+            const scene = new FigureEditorScene()
+            scene.selectPenTool()
+
+            const p0 = { x: 100, y: 100 }
+            const p1 = { x: 110, y: 80 }
+            const p2 = { x: 200, y: 110 }
+            const p3 = { x: 220, y: 130 }
+            const p4 = { x: 95,  y: 110 }
+
+            scene.mouseDownAt(p0)
+            scene.mouseTo(p1)
+            scene.mouseUp()
+
+            scene.mouseDownAt(p2)
+            scene.mouseTo(p3)
+            scene.mouseUp()
+
+            scene.mouseDownAt(p0)
+            scene.mouseTo(p4)
+            expect(scene.penTool.state).to.equal(State.DOWN_CURVE_CLOSE)
+
+            // // special situation, only one curve, all handles are unchanged
+            expect(scene.hasAnchorAt(p0)).to.be.true
+            expect(scene.hasAnchorAt(p2)).to.be.true
+            // expect(scene.hasHandleAt(p0, {x: 90, y: 80})).to.be.true
+            // expect(scene.hasHandleAt(p0, {x: 105, y: 90})).to.be.true
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
+            expect(scene.hasHandleAt(p2, p3)).to.be.true
+            // expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([2, 4])
+
+            const m = mirrorPoint(p2, p3)
+            expect(scene.penTool.path!.toString()).to.equal(`M 100 100 C 90 120 180 90 200 110 C 220 130 105 90 100 100`)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.toInternalString()).to.equal(`EA 100 100 110 80 AE 180 90 200 110`)
+            expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 180 90 200 110`)
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+        })
     })
 })
 

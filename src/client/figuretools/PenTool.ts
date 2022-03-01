@@ -37,7 +37,7 @@ import { Figure } from "../figures/Figure"
 import { EditorMouseEvent, Operation } from "../figureeditor"
 import { Path as RawPath } from "../paths/Path"
 import { Path } from "../figures/Path"
-import { distancePointToPoint, pointMinusPoint } from "shared/geometry"
+import { distancePointToPoint, pointMinusPoint, pointPlusPoint, pointMultiplyNumber } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 
@@ -80,7 +80,8 @@ export enum State {
 enum Handle {
     PREVIOUS_FORWARD,
     CURRENT_BACKWARD,
-    CURRENT_FORWARD
+    CURRENT_FORWARD,
+    NEXT_BACKWARD
 }
 
 function mirrorPoint(center: Point, point: Point) {
@@ -95,8 +96,8 @@ export class PenTool extends Tool {
     figure?: Path // the figure we create
 
     anchors: SVGRectElement[] = []
-    _handles = new Array<SVGCircleElement>(3)
-    lines = new Array<SVGLineElement>(3)
+    _handles = new Array<SVGCircleElement>(4)
+    lines = new Array<SVGLineElement>(4)
 
     edgeHandle?: Point
 
@@ -302,9 +303,9 @@ export class PenTool extends Tool {
                         if (this.isFirstAnchor(event)) {
                             this.state = State.DOWN_CLOSE
                             this.path!.curve(h0, event, event)
-                            this.updateSVG(event)   
+                            this.updateSVG(event)
                             break
-                        }                       
+                        }
 
                         this.updateHandle(Handle.PREVIOUS_FORWARD, a0, h0)
                         this.updateHandle(Handle.CURRENT_BACKWARD)
@@ -394,7 +395,7 @@ export class PenTool extends Tool {
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
-                         this.figure?.addAngleEdge(
+                        this.figure?.addAngleEdge(
                             { x: segment.values[2], y: segment.values[3] },
                             { x: segment.values[4], y: segment.values[5] }
                         )
@@ -421,18 +422,128 @@ export class PenTool extends Tool {
                     } break
                 } break
 
-                case State.DOWN_CLOSE:
-                    switch (event.type) {
-                        case "mouseup":
-                            this.state = State.READY
-                            this.setCursor(event, Cursor.READY)
-                            this.figure!.changeAngleEdgeToSmooth()
-                            this.figure!.addClose()
-                            event.editor.model?.modified.trigger({
-                                operation: Operation.UPDATE_FIGURES,
-                                figures: [this.figure!.id]
-                            })
+            case State.DOWN_CLOSE:
+                switch (event.type) {
+                    case "mouseup":
+                        this.state = State.READY
+                        this.setCursor(event, Cursor.READY)
+                        this.figure!.changeAngleEdgeToSmooth()
+                        this.figure!.addClose()
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                        break
+                    case "mousemove":
+                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                            this.state = State.DOWN_CURVE_CLOSE
+                            if (this.figure!.types[0] !== figure.AnchorType.ANCHOR_EDGE_ANGLE) {
+                                throw Error("yikes")
+                            }
+                            const virtualforwardHandle = event
+                            const anchor = {x: this.figure!.values[0], y: this.figure!.values[1]}
+                            let forwardHandle = {x: this.figure!.values[2], y: this.figure!.values[3]}
+                            const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
+                            const d0 = distancePointToPoint(anchor, backwardHandle)
+                            const d1 = distancePointToPoint(anchor, forwardHandle)
+
+                            const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1/d0)
+                            forwardHandle = pointPlusPoint(anchor, d)
+
+                            const path = this.path!
+                            const segmentHead = path.data[1]
+                            const segmentTail = path.data[path.data.length - 1]
+                            if (segmentHead.type !== 'C') {
+                                throw Error("yikes")
+                            }
+                            if (segmentTail.type !== 'C') {
+                                throw Error("yikes")
+                            }
+                            segmentHead.values[0] = forwardHandle.x
+                            segmentHead.values[1] = forwardHandle.y
+                            segmentTail.values[2] = backwardHandle.x
+                            segmentTail.values[3] = backwardHandle.y
+
+                            const v0 = path.data[path.data.length - 2].values!
+                            const v2 = segmentHead.values
+
+                            this.updateSVG(event)
+                            this.updateHandle(Handle.PREVIOUS_FORWARD,
+                                {x: v0[v0.length-2], y: v0[v0.length-1]},
+                                {x: segmentTail.values[0], y: segmentTail.values[1]}
+                            )
+                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                            this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                            this.updateHandle(Handle.NEXT_BACKWARD,
+                                {x: v2[v2.length-2], y: v2[v2.length-1]},
+                                {x: v2[v2.length-4], y: v2[v2.length-3]}
+                            )
+                        }
+                        break
+                } break
+            case State.DOWN_CURVE_CLOSE:
+                switch (event.type) {
+                    case "mousemove": {
+                        if (this.figure!.types[0] !== figure.AnchorType.ANCHOR_EDGE_ANGLE) {
+                            throw Error("yikes")
+                        }
+                        const virtualforwardHandle = event
+                        const anchor = {x: this.figure!.values[0], y: this.figure!.values[1]}
+                        let forwardHandle = {x: this.figure!.values[2], y: this.figure!.values[3]}
+                        const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
+                        const d0 = distancePointToPoint(anchor, backwardHandle)
+                        const d1 = distancePointToPoint(anchor, forwardHandle)
+
+                        const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1/d0)
+                        forwardHandle = pointPlusPoint(anchor, d)
+
+                        const path = this.path!
+                        const segmentHead = path.data[1]
+                        const segmentTail = path.data[path.data.length - 1]
+                        if (segmentHead.type !== 'C') {
+                            throw Error("yikes")
+                        }
+                        if (segmentTail.type !== 'C') {
+                            throw Error("yikes")
+                        }
+                        segmentHead.values[0] = forwardHandle.x
+                        segmentHead.values[1] = forwardHandle.y
+                        segmentTail.values[2] = backwardHandle.x
+                        segmentTail.values[3] = backwardHandle.y
+
+                        const v0 = path.data[path.data.length - 2].values!
+                        const v2 = segmentHead.values
+
+                        this.updateSVG(event)
+                        this.updateHandle(Handle.PREVIOUS_FORWARD,
+                            {x: v0[v0.length-2], y: v0[v0.length-1]},
+                            {x: segmentTail.values[0], y: segmentTail.values[1]}
+                        )
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                        this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                        this.updateHandle(Handle.NEXT_BACKWARD,
+                            {x: v2[v2.length-2], y: v2[v2.length-1]},
+                            {x: v2[v2.length-4], y: v2[v2.length-3]}
+                        )
                     } break
+                    case "mouseup": {
+                        this.state = State.READY
+                        this.setCursor(event, Cursor.READY)
+                        const path = this.path!
+                        const segmentHead = path.data[1]
+                        const segmentTail = path.data[path.data.length - 1]
+                        this.figure!.changeAngleEdgeToSmooth()
+                        this.figure!.changeX(0,
+                            {x: segmentTail.values![2], y:segmentTail.values![3]},
+                            {x: segmentHead.values![0], y:segmentHead.values![1]}
+                        )
+                        this.figure!.addClose()
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                    } break   
+                }
         }
     }
 
@@ -460,8 +571,8 @@ export class PenTool extends Tool {
     clear(event: EditorMouseEvent) {
         this.state = State.READY
         this.anchors = []
-        this._handles = new Array<SVGCircleElement>(3)
-        this.lines = new Array<SVGLineElement>(3)
+        this._handles = new Array<SVGCircleElement>(4)
+        this.lines = new Array<SVGLineElement>(4)
         if (this.decoration) {
             event.editor.decorationOverlay.removeChild(this.decoration)
         }

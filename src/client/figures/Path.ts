@@ -59,7 +59,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         this.values.push(p0.y)
     }
     changeAngleEdgeToSmooth() {
-        if (this.types.length === 1)
+        if (this.types.length === 1) // FIXME: hack not reflected in method name
             return
         if (this.types.length === 0)
             throw Error(`figure.Path.changeAngleEdgeToSmooth(): figure is empty`)
@@ -68,6 +68,21 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
             throw Error(`figure.Path.changeAngleEdgeToSmooth(): last anchor is not an angle-edge ${figure.AnchorType[this.types[this.types.length - 1]]}`)
         }
         this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_SYMMETRIC
+    }
+    changeX(index: number, p0: Point, p1: Point) {
+        if (index !== 0) {
+            throw Error("figure.Path.changeEdgeAngleToAngleAngle(): index !== 0 not implemented yet")
+        }
+        if (this.types.length === 0) {
+            throw Error(`figure.Path.changeEdgeAngleToAngleAngle(): figure is empty`)
+        }
+        if (this.types[index] !== figure.AnchorType.ANCHOR_EDGE_ANGLE) {
+            throw Error(`figure.Path.changeEdgeAngleToAngleAngle(): anchor is not edge-angle ${figure.AnchorType[this.types[index]]}`)
+        }
+        this.types[index] = figure.AnchorType.ANCHOR_ANGLE_ANGLE
+        this.values = [p0.x, p0.y].concat(this.values)
+        this.values[4] = p1.x
+        this.values[5] = p1.y
     }
     addEdgeAngle(p0: Point, p1: Point) {
         this.types.push(figure.AnchorType.ANCHOR_EDGE_ANGLE)
