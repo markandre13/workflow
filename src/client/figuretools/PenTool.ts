@@ -439,10 +439,8 @@ export class PenTool extends Tool {
                             this.state = State.DOWN_CURVE_CLOSE_CURVE
                             switch (this.figure!.types[0]) {
                                 case figure.AnchorType.ANCHOR_EDGE: {
-                                    // throw Error(`DOWN_CURVE_CLOSE --move--> not implemented 1st anchor of ${figure.AnchorType[this.figure!.types[0]]}`)
                                     const virtualforwardHandle = event
                                     const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                                    let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
                                     const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
                                     const path = this.path!
                                     const segmentTail = path.data[path.data.length - 1]
@@ -547,22 +545,31 @@ export class PenTool extends Tool {
                         )
                     } break
                     case "mouseup": {
-                        this.state = State.READY
-                        this.setCursor(event, Cursor.READY)
-                        const path = this.path!
-                        const segmentHead = path.data[1]
-                        const segmentTail = path.data[path.data.length - 1]
-                        this.figure!.changeAngleEdgeToSymmetric()
-                        this.figure!.changeEdgeAngleToSmooth(0,
-                            { x: segmentTail.values![2], y: segmentTail.values![3] },
-                            { x: segmentHead.values![0], y: segmentHead.values![1] }
-                        )
-                        this.figure!.addClose()
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-                    } break
+                        switch (this.figure!.types[0]) {
+                            case figure.AnchorType.ANCHOR_EDGE: {
+                                throw Error(`DOWN_CURVE_CLOSE_CURVE --up--> not implemented 1st anchor of ${figure.AnchorType[this.figure!.types[0]]}`)
+                            } break
+                            case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
+                                this.state = State.READY
+                                this.setCursor(event, Cursor.READY)
+                                const path = this.path!
+                                const segmentHead = path.data[1]
+                                const segmentTail = path.data[path.data.length - 1]
+                                this.figure!.changeAngleEdgeToSymmetric()
+                                this.figure!.changeEdgeAngleToSmooth(0,
+                                    { x: segmentTail.values![2], y: segmentTail.values![3] },
+                                    { x: segmentHead.values![0], y: segmentHead.values![1] }
+                                )
+                                this.figure!.addClose()
+                                event.editor.model?.modified.trigger({
+                                    operation: Operation.UPDATE_FIGURES,
+                                    figures: [this.figure!.id]
+                                })
+                            } break
+                            default:
+                                throw Error(`DOWN_CURVE_CLOSE_CURVE --up--> not implemented 1st anchor of ${figure.AnchorType[this.figure!.types[0]]}`)
+                        }
+                    }
                 }
         }
     }
