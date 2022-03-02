@@ -562,7 +562,7 @@ describe("PenTool", function () {
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
         })
 
-        it("UP_X_CURVE --down--> DOWN_CLOSE", function() {
+        it("UP_X_CURVE --down--> DOWN_CURVE_CLOSE", function() {
             const scene = new FigureEditorScene()
             scene.selectPenTool()
 
@@ -582,7 +582,7 @@ describe("PenTool", function () {
             expect(scene.penTool.state).to.equal(State.UP_X_CURVE)
 
             scene.mouseDownAt(p0)
-            expect(scene.penTool.state).to.equal(State.DOWN_CLOSE)
+            expect(scene.penTool.state).to.equal(State.DOWN_CURVE_CLOSE)
 
             // special situation, only one curve, all handles are unchanged
             expect(scene.hasAnchorAt(p0)).to.be.true
@@ -600,7 +600,7 @@ describe("PenTool", function () {
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
         })
 
-        it("DOWN_CLOSE --up--> READY", function() {
+        it("DOWN_CURVE_CLOSE --up--> READY", function() {
             const scene = new FigureEditorScene()
             scene.selectPenTool()
 
@@ -621,7 +621,6 @@ describe("PenTool", function () {
             scene.mouseUp()
             expect(scene.penTool.state).to.equal(State.READY)
 
-            // special situation, only one curve, all handles are unchanged
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p2)).to.be.true
             expect(scene.hasHandleAt(p0, p1)).to.be.true
@@ -637,7 +636,7 @@ describe("PenTool", function () {
             expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-ready")
         })
 
-        it("DOWN_CLOSE --move--> DOWN_CURVE_CLOSE", function() {
+        it("DOWN_CURVE_CLOSE --move--> DOWN_CURVE_CLOSE_CURVE", function() {
             const scene = new FigureEditorScene()
             scene.selectPenTool()
 
@@ -657,16 +656,14 @@ describe("PenTool", function () {
 
             scene.mouseDownAt(p0)
             scene.mouseTo(p4)
-            expect(scene.penTool.state).to.equal(State.DOWN_CURVE_CLOSE)
+            expect(scene.penTool.state).to.equal(State.DOWN_CURVE_CLOSE_CURVE)
 
-            // // special situation, only one curve, all handles are unchanged
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p2)).to.be.true
-            // expect(scene.hasHandleAt(p0, {x: 90, y: 80})).to.be.true
-            // expect(scene.hasHandleAt(p0, {x: 105, y: 90})).to.be.true
+            expect(scene.hasHandleAt(p0, {x: 105, y: 90})).to.be.true
             expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
             expect(scene.hasHandleAt(p2, p3)).to.be.true
-            // expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([2, 4])
 
             const m = mirrorPoint(p2, p3)
@@ -675,6 +672,87 @@ describe("PenTool", function () {
             expect(scene.penTool.figure!.toInternalString()).to.equal(`EA 100 100 110 80 AE 180 90 200 110`)
             expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 180 90 200 110`)
             expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+        })
+
+        it("DOWN_CURVE_CLOSE_CURVE --move--> DOWN_CURVE_CLOSE_CURVE", function() {
+            const scene = new FigureEditorScene()
+            scene.selectPenTool()
+
+            const p0 = { x: 100, y: 100 }
+            const p1 = { x: 110, y: 80 }
+            const p2 = { x: 200, y: 110 }
+            const p3 = { x: 220, y: 130 }
+            const p4 = { x: 75,  y: 125 }
+            const p5 = { x: 95,  y: 110 }
+
+            scene.mouseDownAt(p0)
+            scene.mouseTo(p1)
+            scene.mouseUp()
+
+            scene.mouseDownAt(p2)
+            scene.mouseTo(p3)
+            scene.mouseUp()
+
+            scene.mouseDownAt(p0)
+            scene.mouseTo(p4)
+            scene.mouseTo(p5)
+            expect(scene.penTool.state).to.equal(State.DOWN_CURVE_CLOSE_CURVE)
+
+            expect(scene.hasAnchorAt(p0)).to.be.true
+            expect(scene.hasAnchorAt(p2)).to.be.true
+            expect(scene.hasHandleAt(p0, {x: 105, y: 90})).to.be.true
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
+            expect(scene.hasHandleAt(p2, p3)).to.be.true
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([2, 4])
+
+            const m = mirrorPoint(p2, p3)
+            expect(scene.penTool.path!.toString()).to.equal(`M 100 100 C 90 120 ${m.x} ${m.y} 200 110 C 220 130 105 90 100 100`)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.toInternalString()).to.equal(`EA 100 100 110 80 AE ${m.x} ${m.y} 200 110`)
+            expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 110 80 ${m.x} ${m.y} 200 110`)
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+        })
+
+        it("DOWN_CURVE_CLOSE_CURVE --up--> READY", function() {
+            const scene = new FigureEditorScene()
+            scene.selectPenTool()
+
+            const p0 = { x: 100, y: 100 }
+            const p1 = { x: 110, y: 80 }
+            const p2 = { x: 200, y: 110 }
+            const p3 = { x: 220, y: 130 }
+            const p4 = { x: 75,  y: 125 }
+            const p5 = { x: 95,  y: 110 }
+
+            scene.mouseDownAt(p0)
+            scene.mouseTo(p1)
+            scene.mouseUp()
+
+            scene.mouseDownAt(p2)
+            scene.mouseTo(p3)
+            scene.mouseUp()
+
+            scene.mouseDownAt(p0)
+            scene.mouseTo(p4)
+            scene.mouseTo(p5)
+            scene.mouseUp()
+            expect(scene.penTool.state).to.equal(State.READY)
+
+            expect(scene.hasAnchorAt(p0)).to.be.true
+            expect(scene.hasAnchorAt(p2)).to.be.true
+            expect(scene.hasHandleAt(p0, {x: 105, y: 90})).to.be.true
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
+            expect(scene.hasHandleAt(p2, p3)).to.be.true
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p3))).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([2, 4])
+
+            const m = mirrorPoint(p2, p3)
+            expect(scene.penTool.path!.toString()).to.equal(`M 100 100 C 90 120 ${m.x} ${m.y} 200 110 C 220 130 105 90 100 100`)
+            expect(scene.model.layers[0].data.length).equals(1)
+            expect(scene.penTool.figure!.toInternalString()).to.equal(`SM 105 90 100 100 90 120 S ${m.x} ${m.y} 200 110 Z`)
+            expect(scene.penTool.figure!.toPathString()).to.equal(`M 100 100 C 90 120 ${m.x} ${m.y} 200 110 C 220 130 105 90 100 100 Z`)
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-ready.svg")
         })
     })
 })

@@ -73,8 +73,8 @@ export enum State {
     DOWN_POINT_POINT,
     DOWN_POINT_CURVE,
 
-    DOWN_CLOSE,
-    DOWN_CURVE_CLOSE
+    DOWN_CURVE_CLOSE,
+    DOWN_CURVE_CLOSE_CURVE
 }
 
 enum Handle {
@@ -231,7 +231,7 @@ export class PenTool extends Tool {
                             throw Error("yikes")
                         }
                         if (this.figure!.types[this.figure!.types.length - 1] === figure.AnchorType.ANCHOR_ANGLE_EDGE) {
-                            this.figure!.changeAngleEdgeToSmooth()
+                            this.figure!.changeAngleEdgeToSymmetric()
                             this.figure!.addEdge(
                                 { x: segment.values[4], y: segment.values[5] }
                             )
@@ -274,7 +274,7 @@ export class PenTool extends Tool {
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
-                        this.figure!.changeAngleEdgeToSmooth()
+                        this.figure!.changeAngleEdgeToSymmetric()
                         this.figure!.addAngleEdge(
                             { x: segment.values[2], y: segment.values[3] },
                             { x: segment.values[4], y: segment.values[5] }
@@ -301,7 +301,7 @@ export class PenTool extends Tool {
                         const a0 = { x: segment.values[4], y: segment.values[5] }
                         h0 = mirrorPoint(a0, h0)
                         if (this.isFirstAnchor(event)) {
-                            this.state = State.DOWN_CLOSE
+                            this.state = State.DOWN_CURVE_CLOSE
                             this.path!.curve(h0, event, event)
                             this.updateSVG(event)
                             break
@@ -422,12 +422,12 @@ export class PenTool extends Tool {
                     } break
                 } break
 
-            case State.DOWN_CLOSE:
+            case State.DOWN_CURVE_CLOSE:
                 switch (event.type) {
                     case "mouseup":
                         this.state = State.READY
                         this.setCursor(event, Cursor.READY)
-                        this.figure!.changeAngleEdgeToSmooth()
+                        this.figure!.changeAngleEdgeToSymmetric()
                         this.figure!.addClose()
                         event.editor.model?.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
@@ -436,7 +436,7 @@ export class PenTool extends Tool {
                         break
                     case "mousemove":
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
-                            this.state = State.DOWN_CURVE_CLOSE
+                            this.state = State.DOWN_CURVE_CLOSE_CURVE
                             if (this.figure!.types[0] !== figure.AnchorType.ANCHOR_EDGE_ANGLE) {
                                 throw Error("yikes")
                             }
@@ -481,7 +481,7 @@ export class PenTool extends Tool {
                         }
                         break
                 } break
-            case State.DOWN_CURVE_CLOSE:
+            case State.DOWN_CURVE_CLOSE_CURVE:
                 switch (event.type) {
                     case "mousemove": {
                         if (this.figure!.types[0] !== figure.AnchorType.ANCHOR_EDGE_ANGLE) {
@@ -532,8 +532,8 @@ export class PenTool extends Tool {
                         const path = this.path!
                         const segmentHead = path.data[1]
                         const segmentTail = path.data[path.data.length - 1]
-                        this.figure!.changeAngleEdgeToSmooth()
-                        this.figure!.changeX(0,
+                        this.figure!.changeAngleEdgeToSymmetric()
+                        this.figure!.changeEdgeAngleToSmooth(0,
                             {x: segmentTail.values![2], y:segmentTail.values![3]},
                             {x: segmentHead.values![0], y:segmentHead.values![1]}
                         )
