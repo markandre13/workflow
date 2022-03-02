@@ -74,7 +74,10 @@ export enum State {
     DOWN_POINT_CURVE,
 
     DOWN_CURVE_CLOSE,
-    DOWN_CURVE_CLOSE_CURVE
+    DOWN_CURVE_CLOSE_CURVE,
+
+    DOWN_POINT_CLOSE,
+    DOWN_POINT_CLOSE_CURVE
 }
 
 enum Handle {
@@ -322,10 +325,16 @@ export class PenTool extends Tool {
                 switch (event.type) {
                     case "mousedown":
                         this.setCursor(event, Cursor.DIRECT)
-                        this.addAnchor(event)
-                        this.path!.line(event)
-                        this.updateSVG(event)
-                        this.state = State.DOWN_POINT_POINT
+                        if (this.isFirstAnchor(event)) {
+                            this.state = State.DOWN_POINT_CLOSE
+                            this.path!.line(event)
+                            this.updateSVG(event)
+                        } else {
+                            this.addAnchor(event)
+                            this.path!.line(event)
+                            this.updateSVG(event)
+                            this.state = State.DOWN_POINT_POINT
+                        }
                         break
                 } break
 
@@ -505,18 +514,18 @@ export class PenTool extends Tool {
                         switch (this.figure!.types[0]) {
                             case figure.AnchorType.ANCHOR_EDGE: {
                                 const virtualforwardHandle = event
-                                    const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                                    const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
-                                    const path = this.path!
-                                    const segmentTail = path.data[path.data.length - 1]
-                                    if (segmentTail.type !== 'C') {
-                                        throw Error("yikes")
-                                    }
-                                    segmentTail.values[2] = backwardHandle.x
-                                    segmentTail.values[3] = backwardHandle.y
-                                    this.updateSVG(event)
-                                    // HACK: keep PREVIOUS_FORWARD, CURRENT_BACKWARD and use CURRENT_FORWARD as CURRENT_BACKWARD
-                                    this.updateHandle(Handle.CURRENT_FORWARD, anchor, backwardHandle)
+                                const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
+                                const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
+                                const path = this.path!
+                                const segmentTail = path.data[path.data.length - 1]
+                                if (segmentTail.type !== 'C') {
+                                    throw Error("yikes")
+                                }
+                                segmentTail.values[2] = backwardHandle.x
+                                segmentTail.values[3] = backwardHandle.y
+                                this.updateSVG(event)
+                                // HACK: keep PREVIOUS_FORWARD, CURRENT_BACKWARD and use CURRENT_FORWARD as CURRENT_BACKWARD
+                                this.updateHandle(Handle.CURRENT_FORWARD, anchor, backwardHandle)
                             } break
                             case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
                                 const virtualforwardHandle = event
@@ -574,7 +583,7 @@ export class PenTool extends Tool {
                                 this.figure!.changeAngleEdgeToSymmetric()
                                 this.figure!.changeEdgeToAngleEdge(0,
                                     { x: segmentTail.values![2], y: segmentTail.values![3] }
-                                    )
+                                )
                                 this.figure!.addClose()
                                 event.editor.model?.modified.trigger({
                                     operation: Operation.UPDATE_FIGURES,
@@ -600,7 +609,80 @@ export class PenTool extends Tool {
                                 throw Error(`DOWN_CURVE_CLOSE_CURVE --up--> not implemented 1st anchor of ${figure.AnchorType[this.figure!.types[0]]}`)
                         }
                     }
+                } break
+            case State.DOWN_POINT_CLOSE:
+                switch (event.type) {
+                    case "mousemove": {
+                        // this is copy'n pasted from DOWN_POINT_POINT
+                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                            const path = this.path!
+                            const segment = path.data[path.data.length - 1]
+                            if (segment.type !== 'L') {
+                                throw Error("yikes")
+                            }
+                            const segment0 = path.data[path.data.length - 2]
+                            let curveStartPoint
+                            switch (segment0.type) {
+                                case 'M':
+                                case 'L':
+                                    curveStartPoint = { x: segment0.values[0], y: segment0.values[1] }
+                                    break
+                                case 'C':
+                                    curveStartPoint = { x: segment0.values[4], y: segment0.values[5] }
+                                    break
+                                default:
+                                    throw Error("yikes")
+                            }
+                            const anchor = event.editor.mouseDownAt!
+                            const forwardHandle = event
+                            const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                            segment.type = 'C'
+                            segment.values = [
+                                curveStartPoint.x, curveStartPoint.y,
+                                backwardHandle.x, backwardHandle.y,
+                                anchor.x, anchor.y
+                            ]
+                            this.updateSVG(event)
+                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                            this.state = State.DOWN_POINT_CLOSE_CURVE
+                        }
+                    } break
+                    case "mouseup": {
+                        throw Error("yikes")
+                    } break
+                } break
+            case State.DOWN_POINT_CLOSE_CURVE:
+                switch (event.type) {
+                    case "mouseup": {
+                        this.state = State.READY
+                        this.setCursor(event, Cursor.READY)
+                        const path = this.path!
+                        const segment = path.data[path.data.length - 1]
+                        this.figure!.changeEdgeToAngleEdge(0, 
+                            {x: segment.values![2], y: segment.values![3]}
+                        )
+                        this.figure!.addClose()
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                    } break
+                    case "mousemove": {
+                        const path = this.path!
+                            const segment = path.data[path.data.length - 1]
+                            if (segment.type !== 'C') {
+                                throw Error("yikes")
+                            }
+                            const anchor = event.editor.mouseDownAt!
+                            const forwardHandle = event
+                            const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                            segment.values[2] = backwardHandle.x
+                            segment.values[3] = backwardHandle.y
+                            this.updateSVG(event)
+                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                    } break
                 }
+                break
         }
     }
 
