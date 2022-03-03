@@ -5,7 +5,7 @@
 * [Pure ESM Module](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) toolchain
 * [Web Test Runner](https://modern-web.dev/docs/test-runner/overview/) for test execution 
 
-  Run's ESM files in a browser using [Mocha](https://mochajs.org))
+  Runs ESM files in a browser using [Mocha](https://mochajs.org))
 
 * [Web Test Server](https://modern-web.dev/docs/dev-server/overview/) for running the application during development
 
