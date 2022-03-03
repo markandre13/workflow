@@ -79,7 +79,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         if (this.types[index] !== figure.AnchorType.ANCHOR_EDGE_ANGLE) {
             throw Error(`figure.Path.changeEdgeAngleToAngleAngle(): anchor is not edge-angle ${figure.AnchorType[this.types[index]]}`)
         }
-        this.types[index] = figure.AnchorType.ANCHOR_SMOOTH
+        this.types[index] = figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE
         this.values = [p0.x, p0.y].concat(this.values)
         this.values[4] = p1.x
         this.values[5] = p1.y
@@ -92,11 +92,25 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
             throw Error(`figure.Path.changeEdgeAngleToAngleAngle(): figure is empty`)
         }
         if (this.types[index] !== figure.AnchorType.ANCHOR_EDGE) {
-            throw Error(`figure.Path.changeEdgeAngleToAngleAngle(): anchor is not edge-angle ${figure.AnchorType[this.types[index]]}`)
+            throw Error(`figure.Path.changeEdgeAngleToAngleAngle(): anchor is not edge ${figure.AnchorType[this.types[index]]}`)
         }
         this.types[index] = figure.AnchorType.ANCHOR_ANGLE_EDGE
         this.values = [p0.x, p0.y].concat(this.values)
     }
+    changeEdgeAngleToAngleAngle(index: number, p0: Point) {
+        if (index !== 0) {
+            throw Error("figure.Path.changeEdgeAngleToAngleAngle(): index !== 0 not implemented yet")
+        }
+        if (this.types.length === 0) {
+            throw Error(`figure.Path.changeEdgeAngleToAngleAngle(): figure is empty`)
+        }
+        if (this.types[index] !== figure.AnchorType.ANCHOR_EDGE_ANGLE) {
+            throw Error(`figure.Path.changeEdgeAngleToAngleAngle(): anchor is not edge-angle ${figure.AnchorType[this.types[index]]}`)
+        }
+        this.types[index] = figure.AnchorType.ANCHOR_ANGLE_ANGLE
+        this.values = [p0.x, p0.y].concat(this.values)
+    }
+
     addEdgeAngle(p0: Point, p1: Point) {
         this.types.push(figure.AnchorType.ANCHOR_EDGE_ANGLE)
         this.values.push(p0.x)
@@ -157,7 +171,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                             break
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
-                        case figure.AnchorType.ANCHOR_SMOOTH:
+                        case figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
                             path.curve(
                                 this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue], this.values[idxValue + 1],
@@ -193,7 +207,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                             break
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
-                        case figure.AnchorType.ANCHOR_SMOOTH: {
+                        case figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE: {
                             path.curve(
                                 this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue], this.values[idxValue + 1],
@@ -224,7 +238,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                         case figure.AnchorType.ANCHOR_EDGE:
                         case figure.AnchorType.ANCHOR_ANGLE_EDGE:
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
-                        case figure.AnchorType.ANCHOR_SMOOTH:
+                        case figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
                             path.curve(
                                 this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue++], this.values[idxValue++],
@@ -256,7 +270,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                         case figure.AnchorType.ANCHOR_ANGLE_EDGE:
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
-                        case figure.AnchorType.ANCHOR_SMOOTH: {
+                        case figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE: {
                             path.curve(
                                 this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue++], this.values[idxValue++],
@@ -278,7 +292,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                     }
                     break
                 case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
-                case figure.AnchorType.ANCHOR_SMOOTH:
+                case figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
                     switch (prevType) {
                         case undefined:
                             idxValue += 2
@@ -289,7 +303,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                         case figure.AnchorType.ANCHOR_EDGE_ANGLE:
                         case figure.AnchorType.ANCHOR_ANGLE_EDGE:
                         case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
-                        case figure.AnchorType.ANCHOR_SMOOTH: {
+                        case figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE: {
                             path.curve(
                                 this.values[prevValue - 2], this.values[prevValue - 1],
                                 this.values[idxValue], this.values[idxValue + 1],
@@ -412,7 +426,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                 case figure.AnchorType.ANCHOR_SYMMETRIC:
                     d += `S ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
                     break
-                case figure.AnchorType.ANCHOR_SMOOTH:
+                case figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
                     d += `SM ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
                     break   
                 case figure.AnchorType.ANCHOR_ANGLE_ANGLE:

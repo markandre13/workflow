@@ -127,7 +127,7 @@ module figure {
         ANCHOR_EDGE_ANGLE,  // handle after anchor (2 points)
         ANCHOR_ANGLE_EDGE,  // handle before anchor (2 points)
         ANCHOR_SYMMETRIC,   // handle before anchor and mirrored at anchor for handle after anchor (2 points)
-        ANCHOR_SMOOTH,      // handle before and after anchor are on a straight line (3 points)
+        ANCHOR_SMOOTH_ANGLE_ANGLE, // handle before and after anchor are on a straight line (3 points)
         ANCHOR_ANGLE_ANGLE, // handle before and after anchor (3 points)
         CLOSE               // close path (0 points)
         // PRESSURE = 32,      // anchor has pressure information (one value)
