@@ -234,11 +234,27 @@ export class PenTool extends Tool {
                         if (segment.type !== 'C') {
                             throw Error("yikes")
                         }
+                        switch(this.figure!.types[this.figure!.types.length - 1]) {
+                            case figure.AnchorType.ANCHOR_ANGLE_EDGE:
+                                this.figure!.changeAngleEdgeToSymmetric()
+                                this.figure!.addEdge(
+                                    { x: segment.values[4], y: segment.values[5] }
+                                )       
+                                break
+                            case figure.AnchorType.ANCHOR_EDGE_ANGLE:                               
+                                this.figure!.addEdge(
+                                    { x: segment.values[4], y: segment.values[5] }
+                                )     
+                                break
+                            default:
+                                throw Error("yahoo!")
+                        }
+
                         // if (this.figure!.types[this.figure!.types.length - 1] === figure.AnchorType.ANCHOR_ANGLE_EDGE) {
                         //     this.figure!.changeAngleEdgeToSymmetric()
-                        this.figure!.addEdge(
-                            { x: segment.values[4], y: segment.values[5] }
-                        )
+                        // this.figure!.addEdge(
+                        //     { x: segment.values[4], y: segment.values[5] }
+                        // )
                         // } else {
                         //     this.figure!.addAngleEdge(
                         //         { x: segment.values[2], y: segment.values[3] },
@@ -616,11 +632,63 @@ export class PenTool extends Tool {
                     case "mousemove": {
                         // this is copy'n pasted from DOWN_POINT_POINT
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
-                            console.log(`DOWN_POINT_CLOSE: 1st anchor ${figure.AnchorType[this.figure!.types[0]]}`)
                             const path = this.path!
                             switch (this.figure!.types[0]) {
                                 case figure.AnchorType.ANCHOR_EDGE:
-                                    throw Error("yikes")
+                                    const segmentHead = path.data[1]
+                                    if (segmentHead.type !== 'L') {
+                                        throw Error("yikes")
+                                    }
+                                    switch(this.figure!.types[this.figure!.types.length-1]) {
+                                        case figure.AnchorType.ANCHOR_EDGE: {
+                                            const segmentTail = path.data[path.data.length - 1]
+                                            if (segmentTail.type !== 'L') {
+                                                throw Error("yikes")
+                                            }
+
+                                            const segmentPrevTail = path.data[path.data.length - 2]
+                                            let curveStartPoint
+                                            switch (segmentPrevTail.type) {
+                                                case 'M':
+                                                case 'L':
+                                                    curveStartPoint = { x: segmentPrevTail.values[0], y: segmentPrevTail.values[1] }
+                                                    break
+                                                case 'C':
+                                                    curveStartPoint = { x: segmentPrevTail.values[4], y: segmentPrevTail.values[5] }
+                                                    break
+                                                default:
+                                                    throw Error("yikes")
+                                            }
+
+                                            const virtualforwardHandle = event
+                                            const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
+                                            // let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
+                                            const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
+                                            // const d0 = distancePointToPoint(anchor, backwardHandle)
+                                            // const d1 = distancePointToPoint(anchor, forwardHandle)
+
+                                            // const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
+                                            // forwardHandle = pointPlusPoint(anchor, d)
+
+                                            segmentTail.type = 'C'
+                                            segmentTail.values = [
+                                                curveStartPoint.x, curveStartPoint.y,
+                                                backwardHandle.x, backwardHandle.y,
+                                                anchor.x, anchor.y
+                                            ]
+
+                                            // segmentHead.values[0] = forwardHandle.x
+                                            // segmentHead.values[1] = forwardHandle.y
+
+                                            this.updateSVG(event)
+                                            this.updateHandle(Handle.PREVIOUS_FORWARD)
+                                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                                            this.updateHandle(Handle.CURRENT_FORWARD)
+                                            // this.updateHandle(Handle.NEXT_BACKWARD)
+                                        } break
+                                        default:
+                                            throw Error(`yikes ${figure.AnchorType[this.figure!.types[this.figure!.types.length-1]]}`)
+                                    } break
                                 case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
                                     // 1st anchor has an angle, hence this is going to be a smooth aa
                                     const segmentHead = path.data[1]
@@ -634,7 +702,6 @@ export class PenTool extends Tool {
                                             if (segmentTail.type !== 'L') {
                                                 throw Error("yikes")
                                             }
-
 
                                             const segmentPrevTail = path.data[path.data.length - 2]
                                             let curveStartPoint
@@ -685,7 +752,13 @@ export class PenTool extends Tool {
                         }
                     } break
                     case "mouseup": {
-                        throw Error("yikes")
+                        this.state = State.READY
+                        this.setCursor(event, Cursor.READY)
+                        this.figure!.addClose()
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
                     } break
                 } break
             case State.DOWN_POINT_CLOSE_CURVE:
@@ -695,7 +768,6 @@ export class PenTool extends Tool {
                         this.setCursor(event, Cursor.READY)
                         const path = this.path!
                         const segment = path.data[path.data.length - 1]
-                        console.log(`DOWN_POINT_CLOSE_CURVE: 1st anchor ${figure.AnchorType[this.figure!.types[0]]}`)
                         switch (this.figure!.types[0]) {
                             case figure.AnchorType.ANCHOR_EDGE:
                                 this.figure!.changeEdgeToAngleEdge(0,
