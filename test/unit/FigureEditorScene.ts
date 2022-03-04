@@ -29,7 +29,7 @@ import {
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
-import { EditorMouseEvent } from "client/figureeditor/EditorMouseEvent"
+import { EditorPointerEvent } from "client/figureeditor/EditorPointerEvent"
 
 // NOTE: the translation in here is insufficient
 // we could also track the modifier keys and emulate keyup events, etc.
@@ -301,28 +301,92 @@ export class FigureEditorScene {
         this.mousePosition = new Point(point)
         this.figureeditor.mouseIsDown = true
         this.figureeditor.mouseDownAt = point
-        this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, point, { shiftKey: shift }, "mousedown"))
+        this.figureeditor.tool!.pointerEvent({
+            x: this.mousePosition.x,
+            y: this.mousePosition.y,
+            editor: this.figureeditor,
+            type: "down",
+            pointerDown: true,
+            shiftKey: shift,
+            altKey: false,
+            metaKey: false,
+            ctrlKey: false,
+            pointerId: 0,
+            pointerType: "mouse",
+            pressure: 1,
+            tiltX: 0,
+            tiltY: 0,
+            twist: 0
+        })
     }
 
     mouseTo(point: Point, shift = true) {
         if (this.verbose)
             console.log(`### MOVE MOUSE TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
-        this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }, "mousemove"))
+        this.figureeditor.tool!.pointerEvent({
+            x: this.mousePosition.x,
+            y: this.mousePosition.y,
+            editor: this.figureeditor,
+            type: "move",
+            pointerDown: true,
+            shiftKey: shift,
+            altKey: false,
+            metaKey: false,
+            ctrlKey: false,
+            pointerId: 0,
+            pointerType: "mouse",
+            pressure: 1,
+            tiltX: 0,
+            tiltY: 0,
+            twist: 0
+        })
     }
 
     moveMouseBy(translation: Point, shift = true): void {
         if (this.verbose)
             console.log(`### MOVE MOUSE BY ${translation.x}, ${translation.y}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
-        this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }, "mousemove"))
+        this.figureeditor.tool!.pointerEvent({
+            x: this.mousePosition.x,
+            y: this.mousePosition.y,
+            editor: this.figureeditor,
+            type: "move",
+            pointerDown: true,
+            shiftKey: shift,
+            altKey: false,
+            metaKey: false,
+            ctrlKey: false,
+            pointerId: 0,
+            pointerType: "mouse",
+            pressure: 1,
+            tiltX: 0,
+            tiltY: 0,
+            twist: 0
+        })
     }
 
     mouseUp(shift = true): void {
         if (this.verbose)
             console.log(`### MOUSE UP`)
         this.figureeditor.mouseIsDown = false
-        this.figureeditor.tool!.mouseEvent(new EditorMouseEvent(this.figureeditor, this.mousePosition, { shiftKey: shift }, "mouseup"))
+        this.figureeditor.tool!.pointerEvent({
+            x: this.mousePosition.x,
+            y: this.mousePosition.y,
+            editor: this.figureeditor,
+            type: "up",
+            pointerDown: true,
+            shiftKey: shift,
+            altKey: false,
+            metaKey: false,
+            ctrlKey: false,
+            pointerId: 0,
+            pointerType: "mouse",
+            pressure: 1,
+            tiltX: 0,
+            tiltY: 0,
+            twist: 0
+        })
     }
 
     mouseClickAt(point: Point, shift = false): void {

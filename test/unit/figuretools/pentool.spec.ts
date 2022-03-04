@@ -120,6 +120,8 @@ describe("PenTool", function () {
             expect(scene.hasHandleAt(p3, p5)).to.be.true
             expect(scene.hasHandleAt(p3, m5)).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([2, 3])
+
+            expect(scene.penTool.figure?.toInternalString()).to.equal(`EA ${p(p0)} ${p(p2)} S ${p(m5)} ${p(p3)}`)
         })
 
         it("drag close on edge", function() {
@@ -243,6 +245,8 @@ describe("PenTool", function () {
             expect(scene.hasHandleAt(p0, m5)).to.be.true
             expect(scene.hasHandleAt(p0, m1)).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+
+            expect(scene.penTool.figure?.toInternalString()).to.equal(`SM ${p(m5)} ${p(p0)} ${p(m1)} E ${p(p2)} E ${p(p3)} Z`)
         })
     })
 })

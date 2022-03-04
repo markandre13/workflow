@@ -22,7 +22,7 @@ import { WordBox } from "./WordBox"
 import { Point } from "shared/geometry/Point"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
-import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
+import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent } from "../figureeditor"
 
 // FIXME: this class quickly turned into an TextEditor, merge it into TextTool
 export class TextEditor {
@@ -84,7 +84,7 @@ export class TextEditor {
         this.selectionOffsetWord = null
     }
 
-    mousedown(e: EditorMouseEvent) {
+    mousedown(e: EditorPointerEvent) {
         this.offsetWord = 0
         this.offsetChar = 0
         if (this.goNearY(e.y)) {
@@ -95,7 +95,7 @@ export class TextEditor {
         this.updateCursor()
     }
 
-    mousemove(e: EditorMouseEvent) {
+    mousemove(e: EditorPointerEvent) {
         this.offsetWord = 0
         this.offsetChar = 0
         if (this.goNearY(e.y)) {

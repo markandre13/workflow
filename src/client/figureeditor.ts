@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export * from "./figureeditor/EditorMouseEvent"
+export * from "./figureeditor/EditorPointerEvent"
 export * from "./figureeditor/EditorKeyboardEvent"
 export * from "./figureeditor/FigureEditor"
 export * from "./figureeditor/FigureSelectionModel"

@@ -19,16 +19,18 @@
 import { Point } from "../../shared/geometry/Point"
 import { FigureEditor } from "./FigureEditor"
 
-export class EditorMouseEvent extends Point {
+export interface EditorPointerEvent extends Point {
     editor: FigureEditor
-    type: "mousedown" | "mousemove" | "mouseup"
-    mouseDown: boolean
+    type: "down" | "move" | "up"
+    pointerDown: boolean
     shiftKey: boolean
-    constructor(editor: FigureEditor, point: Point, opt: any = undefined, type: "mousedown" | "mousemove" | "mouseup") {
-        super(point)
-        this.editor = editor
-        this.type = type
-        this.mouseDown = (opt || opt.mouseDown) ? true : false
-        this.shiftKey = (opt || opt.shiftKey) ? true : false
-    }
+    altKey: boolean
+    metaKey: boolean
+    ctrlKey: boolean
+    pointerId: number
+    pointerType: string // "pen", "touch", "mouse", ...
+    pressure: number // 0 to 1
+    tiltX: number // -90 to 90
+    tiltY: number // -90 to 90
+    twist: number // roration 0 to 359
 }

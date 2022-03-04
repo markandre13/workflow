@@ -33,7 +33,7 @@ import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "../figures/Figure"
-import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent } from "../figureeditor"
+import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent } from "../figureeditor"
 import { Tool } from "./Tool"
 
 export enum SelectToolState {
@@ -46,8 +46,8 @@ export enum SelectToolState {
 export class SelectTool extends Tool {
     state: SelectToolState
 
-    mouseDownAt?: Point
-    mouseLastAt?: Point
+    pointerDownAt?: Point
+    pointerLastAt?: Point
 
     marqueeRectangle?: Rectangle
     svgMarquee?: SVGElement
@@ -73,23 +73,23 @@ export class SelectTool extends Tool {
         this.rotationStartDirection = 0
     }
     
-    override activate(event: EditorMouseEvent) {
-        event.editor.svgView.style.cursor = "default"
+    override activate(editor: FigureEditor) {
+        editor.svgView.style.cursor = "default"
         Tool.selection.modified.add( () => {
-            this.updateOutlineAndDecorationOfSelection(event.editor)
+            this.updateOutlineAndDecorationOfSelection(editor)
         }, this)
         Tool.selection.modified.trigger()
     }
     
-    override deactivate(event: EditorMouseEvent) {
+    override deactivate(editor: FigureEditor) {
         Tool.selection.modified.remove(this)
-        this.removeOutlines(event.editor)
-        this.removeDecoration(event.editor)
+        this.removeOutlines(editor)
+        this.removeDecoration(editor)
     }
 
-    override mousedown(event: EditorMouseEvent) {
-        this.mouseDownAt = event
-        this.mouseLastAt = event
+    override pointerdown(event: EditorPointerEvent) {
+        this.pointerDownAt = event
+        this.pointerLastAt = event
 
         if (this.downHandle(event)) {
             this.state = SelectToolState.MOVE_HANDLE
@@ -122,7 +122,7 @@ export class SelectTool extends Tool {
         Tool.selection.modified.unlock()
     }
 
-    override mousemove(event: EditorMouseEvent) {
+    override pointermove(event: EditorPointerEvent) {
         // if (this.debug) {
         //     const debug = document.getElementById("debug")
         //     const info = this.findHandle(event)
@@ -133,7 +133,7 @@ export class SelectTool extends Tool {
         //         debug!.innerText = `pos = ${event.x}, ${event.y}, handle = none`
         //     }
         // }
-        if (!event.mouseDown)
+        if (!event.pointerDown)
             return
         switch(this.state) {
             case SelectToolState.MOVE_HANDLE:
@@ -148,7 +148,7 @@ export class SelectTool extends Tool {
         }
     }
 
-    override mouseup(event: EditorMouseEvent) {
+    override pointerup(event: EditorPointerEvent) {
         switch(this.state) {
             case SelectToolState.DRAG_MARQUEE:
                 this.stopMarquee(event)
@@ -184,18 +184,18 @@ export class SelectTool extends Tool {
      *                                                                 *
      *******************************************************************/
     
-    private moveSelection(event: EditorMouseEvent) {
-        let moveAbsolute = pointMinusPoint(event, this.mouseDownAt!)
+    private moveSelection(event: EditorPointerEvent) {
+        let moveAbsolute = pointMinusPoint(event, this.pointerDownAt!)
         this.transformation.identity()
         this.transformation.translate(moveAbsolute)        
         this.updateOutlineAndDecorationOfSelection(event.editor)
         // this.mouseLastAt = event
     }
     
-    private stopMove(event: EditorMouseEvent) {
+    private stopMove(event: EditorPointerEvent) {
         this.moveSelection(event)
         event.editor.transformSelection(this.transformation)
-        this.mouseDownAt = undefined
+        this.pointerDownAt = undefined
     }
          
     /*******************************************************************
@@ -204,7 +204,7 @@ export class SelectTool extends Tool {
      *                                                                 *
      *******************************************************************/
     
-    private downHandle(event: EditorMouseEvent): boolean {
+    private downHandle(event: EditorPointerEvent): boolean {
         // console.log(`SelectTool.downHandle(): (${event.x}, ${event.y})`)
         const handle = this.findHandle(event)
         if (handle === undefined)
@@ -223,7 +223,7 @@ export class SelectTool extends Tool {
     }
 
     // FIXME: why does handleInfo.path.contains lack the required precission?
-    findHandle(event: EditorMouseEvent) {
+    findHandle(event: EditorPointerEvent) {
         if (Tool.selection.empty())
             return undefined
         return this.insideHandle
@@ -239,14 +239,14 @@ export class SelectTool extends Tool {
         // return undefined
     }
     
-    private moveHandle(event: EditorMouseEvent) {
+    private moveHandle(event: EditorPointerEvent) {
         if (this.selectedHandle < 8)
             this.moveHandle2Scale(event)
         else
             this.moveHandle2Rotate(event)
     }
     
-    private moveHandle2Scale(event: EditorMouseEvent) {
+    private moveHandle2Scale(event: EditorPointerEvent) {
         // console.log(`SelectTool.moveHandle2Scale()`)
 
         // new boundary = (x0,y0)-(x1,y1), old boundary = (ox0,oy0)-(ox1,oy1)
@@ -314,7 +314,7 @@ export class SelectTool extends Tool {
         this.updateOutlineAndDecorationOfSelection(event.editor)
     }
     
-    private moveHandle2Rotate(event: EditorMouseEvent) {
+    private moveHandle2Rotate(event: EditorPointerEvent) {
         // console.log(`moveHandle2Rotate`)
         let rotd = Math.atan2(event.y - this.rotationCenter.y, event.x - this.rotationCenter.x)
         rotd -= this.rotationStartDirection
@@ -333,7 +333,7 @@ export class SelectTool extends Tool {
         this.updateOutlineAndDecorationOfSelection(event.editor)
     }
     
-    private stopHandle(event: EditorMouseEvent) {
+    private stopHandle(event: EditorPointerEvent) {
         // console.log(`stopHandle`)
         this.state = SelectToolState.NONE
         // console.log("SelectTool.stopHandle() -> editor.transformSelection()")
@@ -354,7 +354,7 @@ export class SelectTool extends Tool {
      *                                                                 *
      *******************************************************************/
 
-    private dragMarquee(event: EditorMouseEvent) {
+    private dragMarquee(event: EditorPointerEvent) {
         if (this.svgMarquee === undefined)
             this.createMarquee(event.editor)
         this.updateMarquee(event)
@@ -362,7 +362,7 @@ export class SelectTool extends Tool {
         this.createMarqueeOutlines(event.editor)
     }
   
-    private stopMarquee(event: EditorMouseEvent) {
+    private stopMarquee(event: EditorPointerEvent) {
 
         Tool.selection.modified.lock()
         this.copyMarqueeToSelection()
@@ -370,7 +370,7 @@ export class SelectTool extends Tool {
         this.removeMarqueeOutlines(event.editor)
         Tool.selection.modified.unlock()
 
-        this.mouseDownAt = undefined
+        this.pointerDownAt = undefined
     }
 
     private createMarquee(editor: FigureEditor) {
@@ -395,8 +395,8 @@ export class SelectTool extends Tool {
         }
     }
   
-    private updateMarquee(event: EditorMouseEvent) {
-        let x0=this.mouseDownAt!.x, y0=this.mouseDownAt!.y, x1=event.x, y1=event.y
+    private updateMarquee(event: EditorPointerEvent) {
+        let x0=this.pointerDownAt!.x, y0=this.pointerDownAt!.y, x1=event.x, y1=event.y
         if (x1<x0) [x0,x1] = [x1,x0]
         if (y1<y0) [y0,y1] = [y1,y0]
         this.marqueeRectangle = new Rectangle({origin: { x: x0, y: y0 }, size: { width: x1-x0, height: y1-y0 }})

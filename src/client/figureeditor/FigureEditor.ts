@@ -30,7 +30,7 @@ import { StrokeAndFillModel } from "client/views/widgets/strokeandfill"
 import { ToolModel } from "client/figuretools/ToolModel"
 import { Layer } from "./Layer"
 import { DrawingModel } from "./DrawingModel"
-import { EditorMouseEvent } from "./EditorMouseEvent"
+import { EditorPointerEvent } from "./EditorPointerEvent"
 import { EditorKeyboardEvent } from "./EditorKeyboardEvent"
 import { Group } from "client/figures/Group"
 import { DrawingEvent } from "./DrawingEvent"
@@ -188,9 +188,9 @@ export class FigureEditor extends ModelView<DrawingModel> {
         this.scrollView = document.createElement("div")
         this.scrollView.classList.add("stretch")
         this.scrollView.classList.add("scrollView")
-        this.scrollView.addEventListener("mousedown", this.mouseDown)
-        this.scrollView.addEventListener("mousemove", this.mouseMove)
-        this.scrollView.addEventListener("mouseup", this.mouseUp)
+        this.scrollView.addEventListener("pointerdown", this.pointerDown)
+        this.scrollView.addEventListener("pointermove", this.pointerMove)
+        this.scrollView.addEventListener("pointerup", this.pointerUp)
 
         this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg")
 
@@ -231,11 +231,11 @@ export class FigureEditor extends ModelView<DrawingModel> {
         if (tool == this.tool)
             return
         if (this.tool) {
-            this.tool.deactivate(this.createEditorMouseEvent())
+            this.tool.deactivate(this)
         }
         this.tool = tool
         if (this.tool)
-            this.tool.activate(this.createEditorMouseEvent())
+            this.tool.activate(this)
     }
 
     override setModel(model?: DrawingModel | ToolModel | StrokeAndFillModel): void {
@@ -558,55 +558,74 @@ export class FigureEditor extends ModelView<DrawingModel> {
     }
 
     //
-    // MOUSE
+    // POINTER
     //
 
-    @bind mouseDown(mouseEvent: MouseEvent) {
-        // console.log(`FigureEditor.mouseDown()`)
+    @bind pointerDown(pointerEvent: PointerEvent) {
+        // console.log(`FigureEditor.pointerDown()`)
         // console.log(this.tool)
         // console.log(this.selectedLayer)
 
         this.inputCatcher.focus({ preventScroll: true })
-        mouseEvent.preventDefault()
+        pointerEvent.preventDefault()
 
         this.mouseIsDown = true
         if (this.tool && this.selectedLayer) {
-            const editorEvent = this.createEditorMouseEvent(mouseEvent)
+            const editorEvent = this.createEditorPointerEvent(pointerEvent)
             this.mouseDownAt = editorEvent
-            this.tool.mouseEvent(editorEvent)
+            this.tool.pointerEvent(editorEvent)
         }
     }
 
-    @bind mouseMove(mouseEvent: MouseEvent) {
-        mouseEvent.preventDefault()
+    @bind pointerMove(pointerEvent: PointerEvent) {
+        pointerEvent.preventDefault()
         if (this.tool && this.selectedLayer)
-            this.tool.mouseEvent(this.createEditorMouseEvent(mouseEvent))
+            this.tool.pointerEvent(this.createEditorPointerEvent(pointerEvent))
     }
 
-    @bind mouseUp(mouseEvent: MouseEvent) {
-        mouseEvent.preventDefault()
+    @bind pointerUp(pointerEvent: PointerEvent) {
+        pointerEvent.preventDefault()
         this.mouseIsDown = false
         if (this.tool && this.selectedLayer)
-            this.tool.mouseEvent(this.createEditorMouseEvent(mouseEvent))
+            this.tool.pointerEvent(this.createEditorPointerEvent(pointerEvent))
     }
 
-    protected createEditorMouseEvent(mouseEvent?: MouseEvent): EditorMouseEvent {
-        if (mouseEvent === undefined) {
-            // FIXME: what is this????
-            return { editor: this, x: 0, y: 0, shiftKey: false, mouseDown: false, type: "mousemove"}
+    protected createEditorPointerEvent(event: PointerEvent): EditorPointerEvent {
+        let type: "move" | "down" | "up"
+        switch(event.type) {
+            case "pointermove":
+                type = "move"
+                break
+            case "pointerdown":
+                type = "down"
+                break
+            case "pointerup":
+                type = "up"
+                break
+            default:
+                throw Error(`FigureEditor.createEditorPointerEvent(): unexpected event type '${event.type}'`)
         }
         // (e.clientX-r.left, e.clientY-r.top) begins at the upper left corner of the editor window
         //                                     scrolling and origin are ignored
         let r = this.scrollView.getBoundingClientRect()
-        let x = (mouseEvent.clientX + 0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x) / this.zoom
-        let y = (mouseEvent.clientY + 0.5 - r.top + this.scrollView.scrollTop + this.bounds.origin.y) / this.zoom
+        let x = (event.clientX + 0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x) / this.zoom
+        let y = (event.clientY + 0.5 - r.top + this.scrollView.scrollTop + this.bounds.origin.y) / this.zoom
         return { 
             editor: this,
             x: x,
             y: y,
-            shiftKey: mouseEvent.shiftKey,
-            mouseDown: this.mouseIsDown,
-            type: mouseEvent.type as any
+            shiftKey: event.shiftKey,
+            altKey: event.altKey,
+            metaKey: event.metaKey,
+            ctrlKey: event.ctrlKey,
+            pressure: event.pressure,
+            tiltX: event.tiltX,
+            tiltY: event.tiltY,
+            twist: event.twist,
+            pointerId: event.pointerId,
+            pointerType: event.pointerType,
+            pointerDown: this.mouseIsDown,
+            type: type
         }
     }
 

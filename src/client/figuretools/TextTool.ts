@@ -27,7 +27,7 @@
 
  import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
-import { FigureEditor, EditorMouseEvent, EditorKeyboardEvent, Operation } from "../figureeditor"
+import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
 import * as figures from "../figures"
 import { TextEditor } from "client/wordwrap/TextEditor"
@@ -63,19 +63,19 @@ export class TextTool extends Tool {
         this.currentCursor = TextCursorType.NONE
     }
 
-    override activate(event: EditorMouseEvent) {
+    override activate(editor: FigureEditor) {
         this.state = TextToolState.NONE
     }
 
-    override deactivate(event: EditorMouseEvent) {
-        this.stopEdit(event)
-        this.setCursor(TextCursorType.NONE, event.editor.svgView)
-        event.editor.svgView.style.cursor = "default"
-        this.removeOutlines(event.editor)
-        this.removeDecoration(event.editor)
+    override deactivate(editor: FigureEditor) {
+        this.stopEdit(editor)
+        this.setCursor(TextCursorType.NONE, editor.svgView)
+        editor.svgView.style.cursor = "default"
+        this.removeOutlines(editor)
+        this.removeDecoration(editor)
     }
 
-    override mousedown(event: EditorMouseEvent) {
+    override pointerdown(event: EditorPointerEvent) {
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         if (figure === undefined) {
             this.state = TextToolState.AREA
@@ -84,7 +84,7 @@ export class TextTool extends Tool {
             if (figure instanceof figures.Text) {
                 this.figure = figure
                 this.state = TextToolState.EDIT
-                this.startEdit(event)
+                this.startEdit(event.editor)
                 this.texteditor!.mousedown(event)
                 Tool.selection.set(figure)
                 this.updateDecorationOfSelection(event.editor)
@@ -94,7 +94,7 @@ export class TextTool extends Tool {
         }
     }
 
-    override mousemove(event: EditorMouseEvent) {
+    override pointermove(event: EditorPointerEvent) {
         switch (this.state) {
             case TextToolState.EDIT:
                 if (event.editor.mouseIsDown) {
@@ -110,13 +110,13 @@ export class TextTool extends Tool {
         }
     }
 
-    override mouseup(event: EditorMouseEvent) {
+    override pointerup(event: EditorPointerEvent) {
         switch (this.state) {
             case TextToolState.AREA:
                 this.stopDrawTextArea(event)
                 this.createTextArea(event)
                 this.state = TextToolState.EDIT
-                this.startEdit(event)
+                this.startEdit(event.editor)
                 break
         }
     }
@@ -165,7 +165,7 @@ export class TextTool extends Tool {
         }
     }
 
-    protected setCursorBasedOnFigureBelowMouse(event: EditorMouseEvent) {
+    protected setCursorBasedOnFigureBelowMouse(event: EditorPointerEvent) {
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         // console.log(`at ${event.x},${event.y} found ${figure}`)
         if (figure === undefined) {
@@ -183,17 +183,17 @@ export class TextTool extends Tool {
     // Edit
     //
 
-    startEdit(event: EditorMouseEvent) {
-        this.stopEdit(event)
-        this.texteditor = new TextEditor(event.editor, this.figure)
+    startEdit(editor: FigureEditor) {
+        this.stopEdit(editor)
+        this.texteditor = new TextEditor(editor, this.figure)
     }
 
-    stopEdit(event: EditorMouseEvent) {
+    stopEdit(editor: FigureEditor) {
         if (this.texteditor === undefined)
             return
         this.texteditor.stop()
         this.texteditor = undefined
-        event.editor.model?.modified.trigger({
+        editor.model?.modified.trigger({
             operation: Operation.UPDATE_FIGURES,
             figures: [this.figure.id]
         })
@@ -203,7 +203,7 @@ export class TextTool extends Tool {
     // TextArea
     //
 
-    protected startDrawTextArea(event: EditorMouseEvent) {
+    protected startDrawTextArea(event: EditorPointerEvent) {
         this.mouseDownAt = event
         // create text area
         this.defs = document.createElementNS("http://www.w3.org/2000/svg", "defs")
@@ -222,7 +222,7 @@ export class TextTool extends Tool {
         event.editor.decorationOverlay.appendChild(this.svgRect)
     }
 
-    protected resizeDrawTextArea(event: EditorMouseEvent) {
+    protected resizeDrawTextArea(event: EditorPointerEvent) {
         let x0 = this.mouseDownAt!.x, y0 = this.mouseDownAt!.y, x1 = event.x, y1 = event.y
         if (x1 < x0) [x0, x1] = [x1, x0]
         if (y1 < y0) [y0, y1] = [y1, y0]
@@ -232,12 +232,12 @@ export class TextTool extends Tool {
         this.svgRect!.setAttributeNS("", "height", `${Math.round(y1 - y0)}`)
     }
 
-    protected stopDrawTextArea(event: EditorMouseEvent) {
+    protected stopDrawTextArea(event: EditorPointerEvent) {
         event.editor.decorationOverlay.removeChild(this.svgRect)
         event.editor.svgView.removeChild(this.defs)
     }
 
-    protected createTextArea(event: EditorMouseEvent) {
+    protected createTextArea(event: EditorPointerEvent) {
         let x0 = this.mouseDownAt!.x,
             y0 = this.mouseDownAt!.y,
             x1 = event.x,

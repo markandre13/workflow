@@ -18,7 +18,7 @@
 
 import { Tool } from "./Tool"
 import { Shape } from "../figures/Shape"
-import { EditorMouseEvent } from "../figureeditor"
+import { EditorPointerEvent } from "../figureeditor"
 
 /**
  * Create Shapes, eg. Rectangle, Circle, ...
@@ -33,11 +33,11 @@ export class ShapeTool extends Tool {
         this.creator = creator
     }
 
-    override activate(event: EditorMouseEvent) {
+    override activate(editor: FigureEditor) {
         Tool.selection.clear()
     }
 
-    override mousedown(event: EditorMouseEvent) {
+    override pointerdown(event: EditorPointerEvent) {
         this.shape = new this.creator()
         this.shape.setHandlePosition(0, event)
         this.shape.setHandlePosition(2, event)
@@ -52,8 +52,8 @@ export class ShapeTool extends Tool {
         event.editor.decorationOverlay.appendChild(this.svg)
     }
 
-    override mousemove(event: EditorMouseEvent) {
-        if (!event.mouseDown) {
+    override pointermove(event: EditorPointerEvent) {
+        if (!event.pointerDown) {
             return
         }
         let shape = this.shape!
@@ -62,7 +62,7 @@ export class ShapeTool extends Tool {
         shape.updateSVG(path, event.editor.decorationOverlay, this.svg)
     }
 
-    override mouseup(event: EditorMouseEvent) {
+    override pointerup(event: EditorPointerEvent) {
         let shape = this.shape!
 
         shape.setHandlePosition(2, event)

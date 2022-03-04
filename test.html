@@ -1,0 +1,118 @@
+<html>
+
+<head>
+    <script>
+        function x(e) {
+            console.log(`alt:${e.altKey}, ctrl:${e.ctrlKey}, meta:${e.metaKey}, shift:${e.shiftKey}`)
+        }
+        // safari : 5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.3 Safari/605.1.15
+        // chrome : 5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36
+        // edge   : 5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.62
+        // firefox: 5.0 (Macintosh)
+        console.log(navigator.appVersion)
+
+        // userAgent 
+        // Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.3 Safari/605.1.15
+
+        console.log(navigator.appName) // "Netscape"
+        console.log(navigator.appCodeName) // "Mozilla"
+        console.log(navigator.platform) // MacIntel
+        console.log(navigator)
+    </script>
+</head>
+
+<!--
+    PointerEvent
+    altKey (mac: option, opt, ⌥)
+    metaKey (mac: command, cmd, ⌘, windows: windows key, ⊞  (AltGr, right Alt key)) ⇪⇧
+    shiftKey: 
+    ctrlKey
+    pointerId
+    pointerType (pen, touch, mouse, ...)
+    pressure (0-1)
+    tangentialPressure
+    tiltX, tiltY (-90 to 90)
+    twist (rotation, 0-359)
+
+    PointerEvent.getCoalescedEvents() (not safari) 
+-->
+
+<body onpointermove="x(event)">
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 12px;
+            background-color: #323232;
+            color: #909090;
+        }
+        kbd {
+            color: #fff;
+            font-family: sans-serif;
+            border: 1px solid #fff;
+            border-radius: 3px;
+            font-size: 12px;
+            /* padding: 0px 4px 0px 4px; */
+            /* margin: 0; */
+            /* text-align: center; */
+        }
+        .action {
+            color: #fff;
+        }
+    </style>
+    <div>
+        altKey (mac: option, opt, ⌥)
+    </div>
+    <div>
+        metaKey (mac: command, cmd, ⌘ / win: windows key, ⊞ (AltGr, right Alt key)), ❖  ⌫␣⇥⇤⇪
+    </div>
+    <div>
+        pen tool: start new path: <span class="action">click</span>: start with line, <span class="action">drag</span>: start with curve.
+    </div>
+    <div>
+        also: add cursor to continue, add/remove anchors, ...
+        <span class="action">click</span> or <span class="action">drag</span>: start new path.
+        <kbd>⌥</kbd>+<span class="action">drag</span>: edge.
+        <kbd>ctrl</kbd>+<span class="action">drag</span>: straight line
+        <kbd>⇧</kbd>+<span class="action">drag</span>: snap to 45°.
+        <kbd>⌘</kbd> edit tool
+        <kbd>↩</kbd> finish path
+    </div>
+    <div>
+        shiftKey: ⇧
+    </div>
+    <div>
+        ctrlKey: ctrl
+    </div>
+    <div>
+        return (on alphanum) ⏎ ↵ ↩
+    </div>
+    <div>
+        enter: ⌅ (on num pad)
+    </div>
+    <div>
+        ⎋ Esc
+    </div>
+    <div>
+        mouse ◰ ◫ ◳ 
+    </div>
+    <div>
+        menu key ≣
+    </div>
+    ←→
+
+    <!--
+        <svg style="background-color: linen; width: 640; height: 480;">
+            <path d="M 0 0 L 640 480" stroke="#00f"/>
+            <path d="M 0 240
+                     C 100 0 200 0 300 240
+                     C 400 480 500 480 600 240       
+            " stroke="#f80" fill="none"/>
+            <path d="M 0 240
+                     C 100 0 200 0 300 240
+                     S 500 480 600 240       
+            " stroke="#800" fill="none"/>
+-->
+    </svg>
+</body>
+
+</html>

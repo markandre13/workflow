@@ -19,7 +19,7 @@
 import { AbstractPath } from "../paths/AbstractPath"
 import { Path } from "../paths/Path"
 import { Figure } from "../figures/Figure"
-import { EditorMouseEvent } from "../figureeditor/EditorMouseEvent"
+import { EditorPointerEvent } from "../figureeditor/EditorPointerEvent"
 import { EditorKeyboardEvent } from "../figureeditor/EditorKeyboardEvent"
 import { FigureSelectionModel } from "../figureeditor/FigureSelectionModel"
 import { FigureEditor } from "../figureeditor/FigureEditor"
@@ -43,19 +43,19 @@ export class Tool {
     outline: SVGGElement | undefined
     decoration: SVGGElement | undefined
 
-    activate(event: EditorMouseEvent) {}
-    deactivate(event: EditorMouseEvent) {}
+    activate(editor: FigureEditor) {}
+    deactivate(editor: FigureEditor) {}
 
-    mouseEvent(event: EditorMouseEvent) {
+    pointerEvent(event: EditorPointerEvent) {
         switch(event.type) {
-            case "mousedown": return this.mousedown(event);
-            case "mousemove": return this.mousemove(event);
-            case "mouseup": return this.mouseup(event);
+            case "down": return this.pointerdown(event);
+            case "move": return this.pointermove(event);
+            case "up": return this.pointerup(event);
         }
     }
-    mousedown(event: EditorMouseEvent) {}
-    mousemove(event: EditorMouseEvent) {}
-    mouseup(event: EditorMouseEvent) {}
+    pointerdown(event: EditorPointerEvent) {}
+    pointermove(event: EditorPointerEvent) {}
+    pointerup(event: EditorPointerEvent) {}
 
     keydown(event: EditorKeyboardEvent) {}
     clipboard(editor: FigureEditor, event: ClipboardEvent) {}
