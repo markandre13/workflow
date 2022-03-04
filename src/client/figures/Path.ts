@@ -48,6 +48,29 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         this.values.push(p0.x)
         this.values.push(p0.y)
     }
+    changeEdgeToSymmetric(backwardHandle: Point) {
+        if (this.types.length === 0)
+            throw Error(`figure.Path.changeEdgeToEdgeAngle(): figure is empty`)
+        if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_EDGE) {
+            throw Error(`figure.Path.changeEdgeToEdgeAngle(): last anchor is not an edge`)
+        }
+        this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_SYMMETRIC
+        const x = this.values[this.values.length-2]
+        const y = this.values[this.values.length-1]
+        this.values[this.values.length-2] = backwardHandle.x
+        this.values[this.values.length-1] = backwardHandle.y
+        this.values.push(x)
+        this.values.push(y)
+    }
+    updateSymmetric(backwardHandle: Point) {
+        if (this.types.length === 0)
+            throw Error(`figure.Path.changeEdgeToEdgeAngle(): figure is empty`)
+        if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_SYMMETRIC) {
+            throw Error(`figure.Path.changeEdgeToEdgeAngle(): last anchor is not symmetric`)
+        }
+        this.values[this.values.length-4] = backwardHandle.x
+        this.values[this.values.length-3] = backwardHandle.y
+    }
     changeEdgeToEdgeAngle(p0: Point) {
         if (this.types.length === 0)
             throw Error(`figure.Path.changeEdgeToEdgeAngle(): figure is empty`)

@@ -62,22 +62,11 @@ enum Cursor {
 
 export enum State {
     READY,
-    DOWN_POINT,
-    DOWN_CURVE,
-    UP_CURVE,
-    DOWN_CURVE_POINT,
-    DOWN_CURVE_CURVE,
-    UP_X_CURVE,
-
-    UP_POINT,
-    DOWN_POINT_POINT,
-    DOWN_POINT_CURVE,
-
-    DOWN_CURVE_CLOSE,
-    DOWN_CURVE_CLOSE_CURVE,
-
-    DOWN_POINT_CLOSE,
-    DOWN_POINT_CLOSE_CURVE
+    DOWN_ADD_FIRST_ANCHOR,
+    DOWN_DRAG_FIRST_ANCHOR,
+    ACTIVE,
+    DOWN_ADD_ANCHOR,
+    DOWN_DRAG_ANCHOR,
 }
 
 enum Handle {
@@ -95,7 +84,7 @@ export class PenTool extends Tool {
     state = State.READY
 
     svg?: SVGElement
-    path?: RawPath // the outline during editing
+    _outline?: Path // the outline during editing
     figure?: Path // the figure we create
 
     anchors: SVGRectElement[] = []
@@ -134,80 +123,14 @@ export class PenTool extends Tool {
                     case "mousedown":
                         this.setCursor(event, Cursor.DIRECT)
                         this.prepareEditor(event)
-                        // start with a single anchor rectangle [] where the pointer went down
                         this.addAnchor(event)
-                        this.path!.move(event)
-                        this.figure!.addEdge(event)
-                        this.state = State.DOWN_POINT
-                        break
-                } break
-
-            case State.DOWN_POINT:
-                switch (event.type) {
-                    case "mousemove": {
-                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
-                            const anchor = event.editor.mouseDownAt!
-                            const forwardHandle = event
-                            const backwardHandle = mirrorPoint(anchor, forwardHandle)
-                            this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
-                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                            this.path!.curve(event, new Point(), new Point())
-                            this.state = State.DOWN_CURVE
-                        }
-                    } break
-                    case "mouseup":
-                        this.setCursor(event, Cursor.ACTIVE)
-                        this.state = State.UP_POINT
-                        break
-                } break
-
-            case State.DOWN_CURVE:
-                switch (event.type) {
-                    case "mousemove": {
-                        const anchor = event.editor.mouseDownAt!
-                        const forwardHandle = event
-                        const backwardHandle = mirrorPoint(anchor, forwardHandle)
-                        this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
-                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        segment.values[0] = event.x
-                        segment.values[1] = event.y
-                    } break
-                    case "mouseup": {
-                        this.state = State.UP_CURVE
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]!
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        this.figure!.changeEdgeToEdgeAngle(event)
-                        this.setCursor(event, Cursor.ACTIVE)
-                    } break
-                } break
-
-            case State.UP_CURVE:
-                switch (event.type) {
-                    case "mousedown": {
-                        this.setCursor(event, Cursor.DIRECT)
-                        this.addAnchor(event)
-                        this.updateHandle(Handle.CURRENT_BACKWARD)
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        segment.values[2] = segment.values[4] = event.x
-                        segment.values[3] = segment.values[5] = event.y
+                        this._outline!.addEdge(event)
                         this.updateSVG(event)
-                        this.state = State.DOWN_CURVE_POINT
-                    } break
+                        this.figure!.addEdge(event)
+                        this.state = State.DOWN_ADD_FIRST_ANCHOR
+                        break
                 } break
-
-            case State.DOWN_CURVE_POINT:
+            case State.DOWN_ADD_FIRST_ANCHOR:
                 switch (event.type) {
                     case "mousemove": {
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
@@ -216,60 +139,15 @@ export class PenTool extends Tool {
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                            const path = this.path!
-                            const segment = path.data[path.data.length - 1]
-                            if (segment.type !== 'C') {
-                                throw Error("yikes")
-                            }
-                            segment.values[2] = backwardHandle.x
-                            segment.values[3] = backwardHandle.y
-                            this.updateSVG(event)
-                            this.state = State.DOWN_CURVE_CURVE
+                            this.state = State.DOWN_DRAG_FIRST_ANCHOR
                         }
                     } break
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        switch(this.figure!.types[this.figure!.types.length - 1]) {
-                            case figure.AnchorType.ANCHOR_ANGLE_EDGE:
-                                this.figure!.changeAngleEdgeToSymmetric()
-                                this.figure!.addEdge(
-                                    { x: segment.values[4], y: segment.values[5] }
-                                )       
-                                break
-                            case figure.AnchorType.ANCHOR_EDGE_ANGLE:                               
-                                this.figure!.addEdge(
-                                    { x: segment.values[4], y: segment.values[5] }
-                                )     
-                                break
-                            default:
-                                throw Error("yahoo!")
-                        }
-
-                        // if (this.figure!.types[this.figure!.types.length - 1] === figure.AnchorType.ANCHOR_ANGLE_EDGE) {
-                        //     this.figure!.changeAngleEdgeToSymmetric()
-                        // this.figure!.addEdge(
-                        //     { x: segment.values[4], y: segment.values[5] }
-                        // )
-                        // } else {
-                        //     this.figure!.addAngleEdge(
-                        //         { x: segment.values[2], y: segment.values[3] },
-                        //         { x: segment.values[4], y: segment.values[5] }
-                        //     )
-                        // }
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-                        this.state = State.UP_POINT
+                        this.state = State.ACTIVE
                     } break
                 } break
-
-            case State.DOWN_CURVE_CURVE:
+            case State.DOWN_DRAG_FIRST_ANCHOR:
                 switch (event.type) {
                     case "mousemove": {
                         const anchor = event.editor.mouseDownAt!
@@ -277,590 +155,79 @@ export class PenTool extends Tool {
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        segment.values[2] = backwardHandle.x
-                        segment.values[3] = backwardHandle.y
-                        this.updateSVG(event)
                     } break
-
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        this.figure!.changeAngleEdgeToSymmetric()
-                        this.figure!.addAngleEdge(
-                            { x: segment.values[2], y: segment.values[3] },
-                            { x: segment.values[4], y: segment.values[5] }
-                        )
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-
-                        this.state = State.UP_X_CURVE
+                        this.state = State.ACTIVE
+                        const anchor = event.editor.mouseDownAt!
+                        const forwardHandle = event
+                        this._outline!.changeEdgeToEdgeAngle(forwardHandle)
+                        this.figure!.changeEdgeToEdgeAngle(forwardHandle)
                     } break
                 } break
-
-            case State.UP_X_CURVE:
-                switch (event.type) {
-                    case "mousedown": {
-                        this.setCursor(event, Cursor.DIRECT)
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        let h0 = { x: segment.values[2], y: segment.values[3] }
-                        const a0 = { x: segment.values[4], y: segment.values[5] }
-                        h0 = mirrorPoint(a0, h0)
-                        if (this.isFirstAnchor(event)) {
-                            this.state = State.DOWN_CURVE_CLOSE
-                            this.path!.curve(h0, event, event)
-                            this.updateSVG(event)
-                            break
-                        }
-
-                        this.updateHandle(Handle.PREVIOUS_FORWARD, a0, h0)
-                        this.updateHandle(Handle.CURRENT_BACKWARD)
-                        this.updateHandle(Handle.CURRENT_FORWARD)
-
-                        this.addAnchor(event)
-                        this.path!.curve(h0, event, event)
-                        this.updateSVG(event)
-                        this.state = State.DOWN_CURVE_POINT
-                    } break
-                } break
-
-            case State.UP_POINT:
+            case State.ACTIVE:
                 switch (event.type) {
                     case "mousedown":
                         this.setCursor(event, Cursor.DIRECT)
-                        if (this.isFirstAnchor(event)) {
-                            this.state = State.DOWN_POINT_CLOSE
-                            this.path!.line(event)
-                            this.updateSVG(event)
-                        } else {
-                            this.addAnchor(event)
-                            this.path!.line(event)
-                            this.updateSVG(event)
-                            this.state = State.DOWN_POINT_POINT
-                        }
-                        break
+                        this.addAnchor(event)
+                        this._outline!.addEdge(event)
+                        this.updateSVG(event)
+                        this.figure!.addEdge(event)
+                        this.state = State.DOWN_ADD_ANCHOR
+                        this.switchHandle(Handle.CURRENT_FORWARD, Handle.PREVIOUS_FORWARD)
+                        // this.updateHandle(Handle.CURRENT_FORWARD)
+                        this.updateHandle(Handle.CURRENT_BACKWARD)
                 } break
-
-            case State.DOWN_POINT_POINT:
+            case State.DOWN_ADD_ANCHOR:
                 switch (event.type) {
                     case "mousemove": {
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
-                            const path = this.path!
-                            const segment = path.data[path.data.length - 1]
-                            if (segment.type !== 'L') {
-                                throw Error("yikes")
-                            }
-                            const segment0 = path.data[path.data.length - 2]
-                            let curveStartPoint
-                            switch (segment0.type) {
-                                case 'M':
-                                case 'L':
-                                    curveStartPoint = { x: segment0.values[0], y: segment0.values[1] }
-                                    break
-                                case 'C':
-                                    curveStartPoint = { x: segment0.values[4], y: segment0.values[5] }
-                                    break
-                                default:
-                                    throw Error("yikes")
-                            }
                             const anchor = event.editor.mouseDownAt!
                             const forwardHandle = event
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
-                            segment.type = 'C'
-                            segment.values = [
-                                curveStartPoint.x, curveStartPoint.y,
-                                backwardHandle.x, backwardHandle.y,
-                                anchor.x, anchor.y
-                            ]
+                            this._outline!.changeEdgeToSymmetric(backwardHandle)
                             this.updateSVG(event)
-                            this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
+                            this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                            this.state = State.DOWN_POINT_CURVE
+                            this.state = State.DOWN_DRAG_ANCHOR
                         }
                     } break
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]
-                        if (segment.type !== 'L') {
-                            throw Error("yikes")
-                        }
-                        // this.figure!.line(
-                        //     { x: segment.values[0], y: segment.values[1] },
-                        // )
-                        this.figure!.addEdge({ x: segment.values[0], y: segment.values[1] })
+                        this.state = State.ACTIVE
                         event.editor.model?.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
-
-                        this.state = State.UP_POINT
                     } break
                 } break
-
-            case State.DOWN_POINT_CURVE:
+            case State.DOWN_DRAG_ANCHOR:
                 switch (event.type) {
-                    case "mouseup": {
-                        this.setCursor(event, Cursor.ACTIVE)
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        this.figure?.addAngleEdge(
-                            { x: segment.values[2], y: segment.values[3] },
-                            { x: segment.values[4], y: segment.values[5] }
-                        )
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-                        this.state = State.UP_X_CURVE
-                    } break
                     case "mousemove": {
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1] // FIXME: why not have a current segment variable?
-                        if (segment.type !== 'C') {
-                            throw Error("yikes")
-                        }
                         const anchor = event.editor.mouseDownAt!
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
-                        segment.values[2] = backwardHandle.x
-                        segment.values[3] = backwardHandle.y
+                        this._outline!.updateSymmetric(backwardHandle)
                         this.updateSVG(event)
-                        this.updateHandle(Handle.PREVIOUS_FORWARD, anchor, forwardHandle)
-                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                    } break
-                } break
-
-            case State.DOWN_CURVE_CLOSE:
-                switch (event.type) {
-                    case "mouseup":
-                        this.state = State.READY
-                        this.setCursor(event, Cursor.READY)
-                        this.figure!.changeAngleEdgeToSymmetric()
-                        this.figure!.addClose()
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-                        break
-                    case "mousemove":
-                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
-                            this.state = State.DOWN_CURVE_CLOSE_CURVE
-                            switch (this.figure!.types[0]) {
-                                case figure.AnchorType.ANCHOR_EDGE: {
-                                    const virtualforwardHandle = event
-                                    const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                                    const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
-                                    const path = this.path!
-                                    const segmentTail = path.data[path.data.length - 1]
-                                    if (segmentTail.type !== 'C') {
-                                        throw Error("yikes")
-                                    }
-                                    segmentTail.values[2] = backwardHandle.x
-                                    segmentTail.values[3] = backwardHandle.y
-                                    this.updateSVG(event)
-                                    // HACK: keep PREVIOUS_FORWARD, CURRENT_BACKWARD and use CURRENT_FORWARD as CURRENT_BACKWARD
-                                    this.updateHandle(Handle.CURRENT_FORWARD, anchor, backwardHandle)
-                                } break
-                                case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
-                                    const virtualforwardHandle = event
-                                    const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                                    let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
-                                    const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
-                                    const d0 = distancePointToPoint(anchor, backwardHandle)
-                                    const d1 = distancePointToPoint(anchor, forwardHandle)
-
-                                    const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
-                                    forwardHandle = pointPlusPoint(anchor, d)
-
-                                    const path = this.path!
-                                    const segmentHead = path.data[1]
-                                    const segmentTail = path.data[path.data.length - 1]
-                                    if (segmentHead.type !== 'C') {
-                                        throw Error("yikes")
-                                    }
-                                    if (segmentTail.type !== 'C') {
-                                        throw Error("yikes")
-                                    }
-                                    segmentHead.values[0] = forwardHandle.x
-                                    segmentHead.values[1] = forwardHandle.y
-                                    segmentTail.values[2] = backwardHandle.x
-                                    segmentTail.values[3] = backwardHandle.y
-
-                                    const v0 = path.data[path.data.length - 2].values!
-                                    const v2 = segmentHead.values
-
-                                    this.updateSVG(event)
-                                    this.updateHandle(Handle.PREVIOUS_FORWARD,
-                                        { x: v0[v0.length - 2], y: v0[v0.length - 1] },
-                                        { x: segmentTail.values[0], y: segmentTail.values[1] }
-                                    )
-                                    this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                                    this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
-                                    this.updateHandle(Handle.NEXT_BACKWARD,
-                                        { x: v2[v2.length - 2], y: v2[v2.length - 1] },
-                                        { x: v2[v2.length - 4], y: v2[v2.length - 3] }
-                                    )
-
-                                } break
-                                default:
-                                    throw Error(`DOWN_CURVE_CLOSE --move--> not implemented 1st anchor of ${figure.AnchorType[this.figure!.types[0]]}`)
-                            }
-                        } break
-                } break
-            case State.DOWN_CURVE_CLOSE_CURVE:
-                switch (event.type) {
-                    case "mousemove":
-                        switch (this.figure!.types[0]) {
-                            case figure.AnchorType.ANCHOR_EDGE: {
-                                const virtualforwardHandle = event
-                                const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                                const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
-                                const path = this.path!
-                                const segmentTail = path.data[path.data.length - 1]
-                                if (segmentTail.type !== 'C') {
-                                    throw Error("yikes")
-                                }
-                                segmentTail.values[2] = backwardHandle.x
-                                segmentTail.values[3] = backwardHandle.y
-                                this.updateSVG(event)
-                                // HACK: keep PREVIOUS_FORWARD, CURRENT_BACKWARD and use CURRENT_FORWARD as CURRENT_BACKWARD
-                                this.updateHandle(Handle.CURRENT_FORWARD, anchor, backwardHandle)
-                            } break
-                            case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
-                                const virtualforwardHandle = event
-                                const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                                let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
-                                const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
-                                const d0 = distancePointToPoint(anchor, backwardHandle)
-                                const d1 = distancePointToPoint(anchor, forwardHandle)
-
-                                const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
-                                forwardHandle = pointPlusPoint(anchor, d)
-
-                                const path = this.path!
-                                const segmentHead = path.data[1]
-                                const segmentTail = path.data[path.data.length - 1]
-                                if (segmentHead.type !== 'C') {
-                                    throw Error("yikes")
-                                }
-                                if (segmentTail.type !== 'C') {
-                                    throw Error("yikes")
-                                }
-                                segmentHead.values[0] = forwardHandle.x
-                                segmentHead.values[1] = forwardHandle.y
-                                segmentTail.values[2] = backwardHandle.x
-                                segmentTail.values[3] = backwardHandle.y
-
-                                const v0 = path.data[path.data.length - 2].values!
-                                const v2 = segmentHead.values
-
-                                this.updateSVG(event)
-                                this.updateHandle(Handle.PREVIOUS_FORWARD,
-                                    { x: v0[v0.length - 2], y: v0[v0.length - 1] },
-                                    { x: segmentTail.values[0], y: segmentTail.values[1] }
-                                )
-                                this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                                this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
-                                this.updateHandle(Handle.NEXT_BACKWARD,
-                                    { x: v2[v2.length - 2], y: v2[v2.length - 1] },
-                                    { x: v2[v2.length - 4], y: v2[v2.length - 3] }
-                                )
-                            } break
-                            default:
-                                throw Error(`DOWN_CURVE_CLOSE_CURVE --move--> not implemented 1st anchor of ${figure.AnchorType[this.figure!.types[0]]}`)
-                        }
-                        break
-                    case "mouseup": {
-                        this.state = State.READY
-                        this.setCursor(event, Cursor.READY)
-                        switch (this.figure!.types[0]) {
-                            case figure.AnchorType.ANCHOR_EDGE: {
-                                // throw Error(`DOWN_CURVE_CLOSE_CURVE --up--> not implemented 1st anchor of ${figure.AnchorType[this.figure!.types[0]]}`)
-                                const path = this.path!
-                                const segmentHead = path.data[1]
-                                const segmentTail = path.data[path.data.length - 1]
-                                this.figure!.changeAngleEdgeToSymmetric()
-                                this.figure!.changeEdgeToAngleEdge(0,
-                                    { x: segmentTail.values![2], y: segmentTail.values![3] }
-                                )
-                                this.figure!.addClose()
-                                event.editor.model?.modified.trigger({
-                                    operation: Operation.UPDATE_FIGURES,
-                                    figures: [this.figure!.id]
-                                })
-                            } break
-                            case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
-                                const path = this.path!
-                                const segmentHead = path.data[1]
-                                const segmentTail = path.data[path.data.length - 1]
-                                this.figure!.changeAngleEdgeToSymmetric()
-                                this.figure!.changeEdgeAngleToSmooth(0,
-                                    { x: segmentTail.values![2], y: segmentTail.values![3] },
-                                    { x: segmentHead.values![0], y: segmentHead.values![1] }
-                                )
-                                this.figure!.addClose()
-                                event.editor.model?.modified.trigger({
-                                    operation: Operation.UPDATE_FIGURES,
-                                    figures: [this.figure!.id]
-                                })
-                            } break
-                            default:
-                                throw Error(`DOWN_CURVE_CLOSE_CURVE --up--> not implemented 1st anchor of ${figure.AnchorType[this.figure!.types[0]]}`)
-                        }
-                    }
-                } break
-            case State.DOWN_POINT_CLOSE:
-                switch (event.type) {
-                    case "mousemove": {
-                        // this is copy'n pasted from DOWN_POINT_POINT
-                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
-                            const path = this.path!
-                            switch (this.figure!.types[0]) {
-                                case figure.AnchorType.ANCHOR_EDGE:
-                                    const segmentHead = path.data[1]
-                                    if (segmentHead.type !== 'L') {
-                                        throw Error("yikes")
-                                    }
-                                    switch(this.figure!.types[this.figure!.types.length-1]) {
-                                        case figure.AnchorType.ANCHOR_EDGE: {
-                                            const segmentTail = path.data[path.data.length - 1]
-                                            if (segmentTail.type !== 'L') {
-                                                throw Error("yikes")
-                                            }
-
-                                            const segmentPrevTail = path.data[path.data.length - 2]
-                                            let curveStartPoint
-                                            switch (segmentPrevTail.type) {
-                                                case 'M':
-                                                case 'L':
-                                                    curveStartPoint = { x: segmentPrevTail.values[0], y: segmentPrevTail.values[1] }
-                                                    break
-                                                case 'C':
-                                                    curveStartPoint = { x: segmentPrevTail.values[4], y: segmentPrevTail.values[5] }
-                                                    break
-                                                default:
-                                                    throw Error("yikes")
-                                            }
-
-                                            const virtualforwardHandle = event
-                                            const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                                            // let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
-                                            const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
-                                            // const d0 = distancePointToPoint(anchor, backwardHandle)
-                                            // const d1 = distancePointToPoint(anchor, forwardHandle)
-
-                                            // const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
-                                            // forwardHandle = pointPlusPoint(anchor, d)
-
-                                            segmentTail.type = 'C'
-                                            segmentTail.values = [
-                                                curveStartPoint.x, curveStartPoint.y,
-                                                backwardHandle.x, backwardHandle.y,
-                                                anchor.x, anchor.y
-                                            ]
-
-                                            // segmentHead.values[0] = forwardHandle.x
-                                            // segmentHead.values[1] = forwardHandle.y
-
-                                            this.updateSVG(event)
-                                            this.updateHandle(Handle.PREVIOUS_FORWARD)
-                                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                                            this.updateHandle(Handle.CURRENT_FORWARD)
-                                            // this.updateHandle(Handle.NEXT_BACKWARD)
-                                        } break
-                                        default:
-                                            throw Error(`yikes ${figure.AnchorType[this.figure!.types[this.figure!.types.length-1]]}`)
-                                    } break
-                                case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
-                                    // 1st anchor has an angle, hence this is going to be a smooth aa
-                                    const segmentHead = path.data[1]
-                                    if (segmentHead.type !== 'C') {
-                                        throw Error("yikes")
-                                    }
-                                    switch(this.figure!.types[this.figure!.types.length-1]) {
-                                        case figure.AnchorType.ANCHOR_EDGE:
-                                            // previous point ended in an edge
-                                            const segmentTail = path.data[path.data.length - 1]
-                                            if (segmentTail.type !== 'L') {
-                                                throw Error("yikes")
-                                            }
-
-                                            const segmentPrevTail = path.data[path.data.length - 2]
-                                            let curveStartPoint
-                                            switch (segmentPrevTail.type) {
-                                                case 'M':
-                                                case 'L':
-                                                    curveStartPoint = { x: segmentPrevTail.values[0], y: segmentPrevTail.values[1] }
-                                                    break
-                                                case 'C':
-                                                    curveStartPoint = { x: segmentPrevTail.values[4], y: segmentPrevTail.values[5] }
-                                                    break
-                                                default:
-                                                    throw Error("yikes")
-                                            }
-
-                                            const virtualforwardHandle = event
-                                            const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                                            let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
-                                            const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
-                                            const d0 = distancePointToPoint(anchor, backwardHandle)
-                                            const d1 = distancePointToPoint(anchor, forwardHandle)
-
-                                            const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
-                                            forwardHandle = pointPlusPoint(anchor, d)
-
-                                            segmentTail.type = 'C'
-                                            segmentTail.values = [
-                                                curveStartPoint.x, curveStartPoint.y,
-                                                backwardHandle.x, backwardHandle.y,
-                                                anchor.x, anchor.y
-                                            ]
-
-                                            segmentHead.values[0] = forwardHandle.x
-                                            segmentHead.values[1] = forwardHandle.y
-
-                                            this.updateSVG(event)
-                                            this.updateHandle(Handle.PREVIOUS_FORWARD)
-                                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                                            this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
-                                            // this.updateHandle(Handle.NEXT_BACKWARD)
-                                            break
-                                        default:
-                                            throw Error(`yikes ${figure.AnchorType[this.figure!.types[this.figure!.types.length-1]]}`)
-                                    }
-                                } break
-                            }
-                            this.state = State.DOWN_POINT_CLOSE_CURVE
-                        }
-                    } break
-                    case "mouseup": {
-                        this.state = State.READY
-                        this.setCursor(event, Cursor.READY)
-                        this.figure!.addClose()
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-                    } break
-                } break
-            case State.DOWN_POINT_CLOSE_CURVE:
-                switch (event.type) {
-                    case "mouseup": {
-                        this.state = State.READY
-                        this.setCursor(event, Cursor.READY)
-                        const path = this.path!
-                        const segment = path.data[path.data.length - 1]
-                        switch (this.figure!.types[0]) {
-                            case figure.AnchorType.ANCHOR_EDGE:
-                                this.figure!.changeEdgeToAngleEdge(0,
-                                    { x: segment.values![2], y: segment.values![3] }
-                                )
-                                break
-                            case figure.AnchorType.ANCHOR_EDGE_ANGLE: {
-                                const virtualforwardHandle = event
-                                const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                                const oldForwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
-                                const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
-                                const d0 = distancePointToPoint(anchor, backwardHandle)
-                                const d1 = distancePointToPoint(anchor, oldForwardHandle)
-                                const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
-                                const newForwardHandle = pointPlusPoint(anchor, d)
-                                this.figure!.changeEdgeAngleToSmooth(0,
-                                    { x: backwardHandle.x, y: backwardHandle.y },
-                                    { x: newForwardHandle.x, y: newForwardHandle.y }
-                                )
-                            } break
-                            default:
-                                throw Error(`yikes: ${figure.AnchorType[this.figure!.types[0]]}`)
-                        }
-                        this.figure!.addClose()
-                        event.editor.model?.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.figure!.id]
-                        })
-                    } break
-                    case "mousemove": {
-                        const path = this.path!
-                        // const segment = path.data[path.data.length - 1]
-                        // if (segment.type !== 'C') {
-                        //     throw Error("yikes")
-                        // }
-                        // const anchor = event.editor.mouseDownAt!
-                        // const forwardHandle = event
-                        // const backwardHandle = mirrorPoint(anchor, forwardHandle)
-                        // segment.values[2] = backwardHandle.x
-                        // segment.values[3] = backwardHandle.y
-                        // this.updateSVG(event)
-                        // this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                        const segmentHead = path.data[1]
-                        if (segmentHead.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        const segmentTail = path.data[path.data.length - 1]
-                        if (segmentTail.type !== 'C') {
-                            throw Error("yikes")
-                        }
-                        // const segmentPrevTail = path.data[path.data.length - 2]
-                        // let curveStartPoint
-                        // switch (segmentPrevTail.type) {
-                        //     case 'M':
-                        //     case 'L':
-                        //         curveStartPoint = { x: segmentPrevTail.values[0], y: segmentPrevTail.values[1] }
-                        //         break
-                        //     case 'C':
-                        //         curveStartPoint = { x: segmentPrevTail.values[4], y: segmentPrevTail.values[5] }
-                        //         break
-                        //     default:
-                        //         throw Error("yikes")
-                        // }
-
-                        const virtualforwardHandle = event
-                        const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
-                        let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
-                        const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
-                        const d0 = distancePointToPoint(anchor, backwardHandle)
-                        const d1 = distancePointToPoint(anchor, forwardHandle)
-
-                        const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
-                        forwardHandle = pointPlusPoint(anchor, d)
-
-                        // segmentTail.type = 'C'
-                        // segmentTail.values = [
-                        //     curveStartPoint.x, curveStartPoint.y,
-                        //     backwardHandle.x, backwardHandle.y, // we only need to update this one?
-                        //     anchor.x, anchor.y
-                        // ]
-                        segmentTail.values[2] = backwardHandle.x
-                        segmentTail.values[3] = backwardHandle.y
-
-                        segmentHead.values[0] = forwardHandle.x
-                        segmentHead.values[1] = forwardHandle.y
-
-                        this.updateSVG(event)
-                        this.updateHandle(Handle.PREVIOUS_FORWARD)
-                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                         this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                        this.state = State.DOWN_DRAG_ANCHOR
                     } break
-                }
-                break
+                    case "mouseup": {
+                        this.setCursor(event, Cursor.ACTIVE)
+                        this.state = State.ACTIVE
+                        const anchor = event.editor.mouseDownAt!
+                        const forwardHandle = event
+                        const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                        this._outline!.updateSymmetric(backwardHandle)
+                        this.updateSVG(event)
+                        this.figure!.changeEdgeToSymmetric(backwardHandle)
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                    } break
+                } break
         }
     }
 
@@ -873,8 +240,8 @@ export class PenTool extends Tool {
         this.updateBoundary() // FIXME: side effect
         event.editor.decorationOverlay.appendChild(this.decoration)
 
-        this.path = new RawPath()
-        this.svg = this.path.createSVG()
+        this._outline = new Path()
+        this.svg = this._outline.getPath().createSVG()
         this.setOutlineColors(this.svg)
         this.decoration.appendChild(this.svg)
 
@@ -895,7 +262,7 @@ export class PenTool extends Tool {
             event.editor.decorationOverlay.removeChild(this.decoration)
         }
         this.decoration = undefined
-        this.path = undefined
+        this._outline = undefined
         this.svg = undefined
     }
 
@@ -1017,6 +384,20 @@ export class PenTool extends Tool {
             this.lines[idx].setAttributeNS("", "y2", `${handlePos.y}`)
         }
     }
+    switchHandle(idxOld: Handle, idxNew: Handle) {
+        [
+            this._handles[idxOld],
+            this._handles[idxNew],
+            this.lines[idxOld],
+            this.lines[idxNew]
+        ] = [
+            this._handles[idxNew],
+            this._handles[idxOld],
+            this.lines[idxNew],
+            this.lines[idxOld]
+        ]
+        this.updateHandle(idxOld)
+    }
 
     createLine(p0: Point, p1: Point) {
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line")
@@ -1029,6 +410,7 @@ export class PenTool extends Tool {
     }
 
     updateSVG(event: EditorMouseEvent) {
-        this.path?.updateSVG(event.editor.decorationOverlay, this.svg as SVGPathElement)
+        // this.svg!.setAttributeNS("", "d", this._outline!.getPath().toString())
+        this._outline!.getPath().updateSVG(event.editor.decorationOverlay, this.svg as SVGPathElement)
     }
 }
