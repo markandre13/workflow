@@ -50,9 +50,9 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     }
     changeEdgeToSymmetric(backwardHandle: Point) {
         if (this.types.length === 0)
-            throw Error(`figure.Path.changeEdgeToEdgeAngle(): figure is empty`)
+            throw Error(`figure.Path.changeEdgeToSymmetric(): figure is empty`)
         if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_EDGE) {
-            throw Error(`figure.Path.changeEdgeToEdgeAngle(): last anchor is not an edge`)
+            throw Error(`figure.Path.changeEdgeToSymmetric(): last anchor is not an edge`)
         }
         this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_SYMMETRIC
         const x = this.values[this.values.length-2]
@@ -64,12 +64,21 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
     }
     updateSymmetric(backwardHandle: Point) {
         if (this.types.length === 0)
-            throw Error(`figure.Path.changeEdgeToEdgeAngle(): figure is empty`)
+            throw Error(`figure.Path.updateSymmetric(): figure is empty`)
         if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_SYMMETRIC) {
-            throw Error(`figure.Path.changeEdgeToEdgeAngle(): last anchor is not symmetric`)
+            throw Error(`figure.Path.updateSymmetric(): last anchor is not symmetric`)
         }
         this.values[this.values.length-4] = backwardHandle.x
         this.values[this.values.length-3] = backwardHandle.y
+    }
+    updateAngleEdge(index: number, backwardHandle: Point) {
+        if (this.types.length === 0)
+            throw Error(`figure.Path.updateAngleEdge(): figure is empty`)
+        if (this.types[0] !== figure.AnchorType.ANCHOR_ANGLE_EDGE) {
+            throw Error(`figure.Path.updateAngleEdge(): last anchor is not symmetric`)
+        }
+        this.values[0] = backwardHandle.x
+        this.values[1] = backwardHandle.y
     }
     changeEdgeToEdgeAngle(p0: Point) {
         if (this.types.length === 0)
@@ -92,7 +101,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         }
         this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_SYMMETRIC
     }
-    changeEdgeAngleToSmooth(index: number, p0: Point, p1: Point) {
+    changeEdgeAngleToSmooth(index: number, beforeAnchor: Point, afterAnchor: Point) {
         if (index !== 0) {
             throw Error("figure.Path.changeEdgeAngleToAngleAngle(): index !== 0 not implemented yet")
         }
@@ -103,9 +112,24 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
             throw Error(`figure.Path.changeEdgeAngleToAngleAngle(): anchor is not edge-angle ${figure.AnchorType[this.types[index]]}`)
         }
         this.types[index] = figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE
-        this.values = [p0.x, p0.y].concat(this.values)
-        this.values[4] = p1.x
-        this.values[5] = p1.y
+        this.values = [beforeAnchor.x, beforeAnchor.y].concat(this.values)
+        this.values[4] = afterAnchor.x
+        this.values[5] = afterAnchor.y
+    }
+    updateSmooth(index: number, beforeAnchor: Point, afterAnchor: Point) {
+        if (index !== 0) {
+            throw Error("figure.Path.updateSmooth(): index !== 0 not implemented yet")
+        }
+        if (this.types.length === 0) {
+            throw Error(`figure.Path.updateSmooth(): figure is empty`)
+        }
+        if (this.types[index] !== figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE) {
+            throw Error(`figure.Path.updateSmooth(): anchor is not smooth angle-angle ${figure.AnchorType[this.types[index]]}`)
+        }
+        this.values[0] = beforeAnchor.x
+        this.values[1] = beforeAnchor.y
+        this.values[4] = afterAnchor.x
+        this.values[5] = afterAnchor.y
     }
     changeEdgeToAngleEdge(index: number, p0: Point) {
         if (index !== 0) {

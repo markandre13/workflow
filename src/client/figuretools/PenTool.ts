@@ -62,11 +62,19 @@ enum Cursor {
 
 export enum State {
     READY,
+
     DOWN_ADD_FIRST_ANCHOR,
     DOWN_DRAG_FIRST_ANCHOR,
+
     ACTIVE,
     DOWN_ADD_ANCHOR,
     DOWN_DRAG_ANCHOR,
+
+    DOWN_CLOSE_EDGE,
+    DRAG_CLOSE_EDGE,
+
+    DOWN_CLOSE_CURVE,
+    DRAG_CLOSE_CURVE
 }
 
 enum Handle {
@@ -121,25 +129,25 @@ export class PenTool extends Tool {
             case State.READY:
                 switch (event.type) {
                     case "mousedown":
-                        this.setCursor(event, Cursor.DIRECT)
                         this.prepareEditor(event)
+                        this.setCursor(event, Cursor.DIRECT)
+                        this.state = State.DOWN_ADD_FIRST_ANCHOR
                         this.addAnchor(event)
                         this._outline!.addEdge(event)
                         this.updateSVG(event)
                         this.figure!.addEdge(event)
-                        this.state = State.DOWN_ADD_FIRST_ANCHOR
                         break
                 } break
             case State.DOWN_ADD_FIRST_ANCHOR:
                 switch (event.type) {
                     case "mousemove": {
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                            this.state = State.DOWN_DRAG_FIRST_ANCHOR
                             const anchor = event.editor.mouseDownAt!
                             const forwardHandle = event
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                            this.state = State.DOWN_DRAG_FIRST_ANCHOR
                         }
                     } break
                     case "mouseup": {
@@ -159,7 +167,6 @@ export class PenTool extends Tool {
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
                         this.state = State.ACTIVE
-                        const anchor = event.editor.mouseDownAt!
                         const forwardHandle = event
                         this._outline!.changeEdgeToEdgeAngle(forwardHandle)
                         this.figure!.changeEdgeToEdgeAngle(forwardHandle)
@@ -168,20 +175,41 @@ export class PenTool extends Tool {
             case State.ACTIVE:
                 switch (event.type) {
                     case "mousedown":
-                        this.setCursor(event, Cursor.DIRECT)
-                        this.addAnchor(event)
-                        this._outline!.addEdge(event)
-                        this.updateSVG(event)
-                        this.figure!.addEdge(event)
-                        this.state = State.DOWN_ADD_ANCHOR
-                        this.switchHandle(Handle.CURRENT_FORWARD, Handle.PREVIOUS_FORWARD)
-                        // this.updateHandle(Handle.CURRENT_FORWARD)
-                        this.updateHandle(Handle.CURRENT_BACKWARD)
+                        if (this.isFirstAnchor(event)) {
+                            this.setCursor(event, Cursor.DIRECT)
+                            switch (this._outline!.types[0]) {
+                                case figure.AnchorType.ANCHOR_EDGE:
+                                    this.state = State.DOWN_CLOSE_EDGE
+                                    // FIXME: add a dummy point into the test to be able to check the handles
+                                    break
+                                case figure.AnchorType.ANCHOR_EDGE_ANGLE:
+                                    this.state = State.DOWN_CLOSE_CURVE
+                                    const anchor = { x: this._outline!.values[0], y: this._outline!.values[1] }
+                                    const forwardHandle = { x: this._outline!.values[2], y: this._outline!.values[3] }
+                                    this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                                    this.updateHandle(Handle.CURRENT_BACKWARD)
+                                    break
+                                default:
+                                    throw Error(`PenTool: mousedown at state ACTIVE unexpected 1st anchor of type ${figure.AnchorType[this._outline!.types[0]]}`)
+                            }
+                            this._outline!.addClose()
+                            this.updateSVG(event)
+                        } else {
+                            this.setCursor(event, Cursor.DIRECT)
+                            this.state = State.DOWN_ADD_ANCHOR
+                            this.addAnchor(event)
+                            this._outline!.addEdge(event)
+                            this.updateSVG(event)
+                            this.figure!.addEdge(event)
+                            this.switchHandle(Handle.CURRENT_FORWARD, Handle.PREVIOUS_FORWARD)
+                            this.updateHandle(Handle.CURRENT_BACKWARD)
+                        }
                 } break
             case State.DOWN_ADD_ANCHOR:
                 switch (event.type) {
                     case "mousemove": {
                         if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                            this.state = State.DOWN_DRAG_ANCHOR
                             const anchor = event.editor.mouseDownAt!
                             const forwardHandle = event
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
@@ -189,7 +217,6 @@ export class PenTool extends Tool {
                             this.updateSVG(event)
                             this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                            this.state = State.DOWN_DRAG_ANCHOR
                         }
                     } break
                     case "mouseup": {
@@ -204,6 +231,7 @@ export class PenTool extends Tool {
             case State.DOWN_DRAG_ANCHOR:
                 switch (event.type) {
                     case "mousemove": {
+                        this.state = State.DOWN_DRAG_ANCHOR
                         const anchor = event.editor.mouseDownAt!
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
@@ -211,7 +239,6 @@ export class PenTool extends Tool {
                         this.updateSVG(event)
                         this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
-                        this.state = State.DOWN_DRAG_ANCHOR
                     } break
                     case "mouseup": {
                         this.setCursor(event, Cursor.ACTIVE)
@@ -222,6 +249,129 @@ export class PenTool extends Tool {
                         this._outline!.updateSymmetric(backwardHandle)
                         this.updateSVG(event)
                         this.figure!.changeEdgeToSymmetric(backwardHandle)
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                    } break
+                } break
+            case State.DOWN_CLOSE_EDGE:
+                switch (event.type) {
+                    case "mousemove":
+                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                            this.state = State.DRAG_CLOSE_EDGE
+                            const anchor = event.editor.mouseDownAt!
+                            const forwardHandle = event
+                            const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                            this._outline!.changeEdgeToAngleEdge(0, backwardHandle)
+                            this.updateSVG(event)
+                        }
+                        break
+                    case "mouseup":
+                        this.state = State.READY
+                        this.setCursor(event, Cursor.READY)
+                        this.figure!.addClose()
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                        break
+                } break
+            case State.DRAG_CLOSE_EDGE:
+                switch (event.type) {
+                    case "mousemove": {
+                        const anchor = event.editor.mouseDownAt!
+                        const forwardHandle = event
+                        const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                        this._outline!.updateAngleEdge(0, backwardHandle)
+                        this.updateSVG(event)
+                    } break
+                    case "mouseup": {
+                        this.setCursor(event, Cursor.READY)
+                        this.state = State.READY
+                        const anchor = event.editor.mouseDownAt!
+                        const forwardHandle = event
+                        const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                        this._outline!.updateAngleEdge(0, backwardHandle)
+                        this.updateSVG(event)
+                        this.figure!.addClose()
+                        this.figure!.changeEdgeToAngleEdge(0, backwardHandle)
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                    } break
+                } break
+            case State.DOWN_CLOSE_CURVE:
+                switch (event.type) {
+                    case "mousemove":
+                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                            this.state = State.DRAG_CLOSE_CURVE
+                            const virtualforwardHandle = event
+                            const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
+                            let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
+                            const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
+                            const d0 = distancePointToPoint(anchor, backwardHandle)
+                            const d1 = distancePointToPoint(anchor, forwardHandle)
+                            const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
+                            forwardHandle = pointPlusPoint(anchor, d)
+                            this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                            this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                            this._outline!.changeEdgeAngleToSmooth(0,
+                                backwardHandle,
+                                forwardHandle
+                            )
+                            this.updateSVG(event)
+                        }
+                        break
+                    case "mouseup":
+                        this.state = State.READY
+                        this.setCursor(event, Cursor.READY)
+                        this.figure!.addClose()
+                        event.editor.model?.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                        break
+                } break
+            case State.DRAG_CLOSE_CURVE:
+                switch (event.type) {
+                    case "mousemove": {
+                        const virtualforwardHandle = event
+                        const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
+                        let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
+                        const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
+                        const d0 = distancePointToPoint(anchor, backwardHandle)
+                        const d1 = distancePointToPoint(anchor, forwardHandle)
+                        const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
+                        forwardHandle = pointPlusPoint(anchor, d)
+                        this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                        this._outline!.updateSmooth(0,
+                            backwardHandle,
+                            forwardHandle
+                        )
+                        this.updateSVG(event)
+                    } break
+                    case "mouseup": {
+                        this.setCursor(event, Cursor.READY)
+                        this.state = State.READY
+                        const virtualforwardHandle = event
+                        const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }
+                        let forwardHandle = { x: this.figure!.values[2], y: this.figure!.values[3] }
+                        const backwardHandle = mirrorPoint(anchor, virtualforwardHandle)
+                        const d0 = distancePointToPoint(anchor, backwardHandle)
+                        const d1 = distancePointToPoint(anchor, forwardHandle)
+                        const d = pointMultiplyNumber(pointMinusPoint(virtualforwardHandle, anchor), d1 / d0)
+                        forwardHandle = pointPlusPoint(anchor, d)
+                        this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                        this._outline!.updateSmooth(0, backwardHandle, forwardHandle)
+                        this.figure!.addClose()
+                        this.figure!.changeEdgeAngleToSmooth(0, backwardHandle, forwardHandle)
                         event.editor.model?.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
@@ -391,11 +541,11 @@ export class PenTool extends Tool {
             this.lines[idxOld],
             this.lines[idxNew]
         ] = [
-            this._handles[idxNew],
-            this._handles[idxOld],
-            this.lines[idxNew],
-            this.lines[idxOld]
-        ]
+                this._handles[idxNew],
+                this._handles[idxOld],
+                this.lines[idxNew],
+                this.lines[idxOld]
+            ]
         this.updateHandle(idxOld)
     }
 
