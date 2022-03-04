@@ -14,6 +14,8 @@ import { gslPolySolveCubic } from "./solveCubic"
 import { bez2x, bez2dy } from "./Intersection"
 import { isZero, isEqual } from "../geometry"
 
+// FIXME: this assumes a fill-rule of "evenodd", while the browsers default to "nonzero"
+// https://www.w3.org/TR/SVG2/painting.html#FillRuleProperty
 export function pointInPath(path: Path, pt: Point): boolean {
 
     let wn = 0 // the  winding number counter
