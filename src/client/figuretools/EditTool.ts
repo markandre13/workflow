@@ -1,6 +1,6 @@
 /*
  *  workflow - A collaborative real-time white- and kanban board
- *  Copyright (C) 2018-2021 Mark-André Hopf <mhopf@mark13.org>
+ *  Copyright (C) 2018-2022 Mark-André Hopf <mhopf@mark13.org>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -16,10 +16,29 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export * from "./figuretools/Tool"
-export * from "./figuretools/ArrangeTool"
-export * from "./figuretools/EditTool"
-export * from "./figuretools/PenTool"
-export * from "./figuretools/ShapeTool"
-export * from "./figuretools/TextTool"
-export * from "./figuretools/ToolModel"
+ import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent } from "../figureeditor"
+ import { Tool } from "./Tool"
+ 
+ export enum EditToolState {
+     NONE,
+ }
+ 
+ export class EditTool extends Tool {
+     state: EditToolState
+ 
+ 
+     constructor() {
+         super()
+         this.debug = false
+         this.state = EditToolState.NONE
+     }
+     
+     override activate(editor: FigureEditor) {
+         editor.svgView.style.cursor = "default"
+         Tool.setHint(`edit tool: under construction`)
+     }
+     
+     override deactivate(editor: FigureEditor) {
+     }
+ }
+ 

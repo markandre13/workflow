@@ -39,7 +39,8 @@
         // "src/shared/*.ts",
         "test/unit/figures/path.spec.ts",
         "test/unit/figuretools/pentool.spec.ts",
-        "test/unit/figuretools/selecttool.spec.ts",
+        "test/unit/figuretools/arrangetool.spec.ts",
+        "test/unit/figuretools/edittool.spec.ts",
         "test/unit/geometry/nearestPointOnCurve.spec.ts",
         "test/unit/geometry/pointInPolygon.spec.ts"
     ],
