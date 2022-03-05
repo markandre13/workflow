@@ -36,15 +36,15 @@ import { Figure } from "../figures/Figure"
 import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent } from "../figureeditor"
 import { Tool } from "./Tool"
 
-export enum SelectToolState {
+export enum ArrangeToolState {
     NONE,
     DRAG_MARQUEE,       // select figures using a marquee rectangle
     MOVE_HANDLE,        // move a handle to resize and rotate
     MOVE_SELECTION      // move selected
 }
 
-export class SelectTool extends Tool {
-    state: SelectToolState
+export class ArrangeTool extends Tool {
+    state: ArrangeToolState
 
     pointerDownAt?: Point
     pointerLastAt?: Point
@@ -63,7 +63,7 @@ export class SelectTool extends Tool {
     constructor() {
         super()
         this.debug = false
-        this.state = SelectToolState.NONE
+        this.state = ArrangeToolState.NONE
         this.marqueeOutlines = new Map<Figure, SVGElement>()
         
         this.selectedHandle = 0
@@ -93,7 +93,7 @@ export class SelectTool extends Tool {
         this.pointerLastAt = event
 
         if (this.downHandle(event)) {
-            this.state = SelectToolState.MOVE_HANDLE
+            this.state = ArrangeToolState.MOVE_HANDLE
             // console.log(`DOWN: START TO MOVE HANDLE ${this.selectedHandle}`)
             return
         }
@@ -106,11 +106,11 @@ export class SelectTool extends Tool {
             if (!event.shiftKey) {
                 Tool.selection.clear()
             }
-            this.state = SelectToolState.DRAG_MARQUEE
+            this.state = ArrangeToolState.DRAG_MARQUEE
             return
         }
         
-        this.state = SelectToolState.MOVE_SELECTION
+        this.state = ArrangeToolState.MOVE_SELECTION
 
         if (Tool.selection.has(figure)) {
             return
@@ -137,13 +137,13 @@ export class SelectTool extends Tool {
         if (!event.pointerDown)
             return
         switch(this.state) {
-            case SelectToolState.MOVE_HANDLE:
+            case ArrangeToolState.MOVE_HANDLE:
                 this.moveHandle(event)
                 break
-            case SelectToolState.DRAG_MARQUEE:
+            case ArrangeToolState.DRAG_MARQUEE:
                 this.dragMarquee(event)
                 break
-            case SelectToolState.MOVE_SELECTION:
+            case ArrangeToolState.MOVE_SELECTION:
                 this.moveSelection(event)
                 break
         }
@@ -151,21 +151,21 @@ export class SelectTool extends Tool {
 
     override pointerup(event: EditorPointerEvent) {
         switch(this.state) {
-            case SelectToolState.DRAG_MARQUEE:
+            case ArrangeToolState.DRAG_MARQUEE:
                 this.stopMarquee(event)
                 break
-            case SelectToolState.MOVE_HANDLE:
+            case ArrangeToolState.MOVE_HANDLE:
                 // console.log("UP: HANDLE")
                 this.moveHandle(event)
                 this.stopHandle(event)
                 break
-            case SelectToolState.MOVE_SELECTION:
+            case ArrangeToolState.MOVE_SELECTION:
                 this.moveSelection(event)
                 this.stopMove(event)
                 break
         }
         // reset state for next operation
-        this.state = SelectToolState.NONE
+        this.state = ArrangeToolState.NONE
         this.transformation.identity()
         this.updateBoundary()
     }
@@ -336,7 +336,7 @@ export class SelectTool extends Tool {
     
     private stopHandle(event: EditorPointerEvent) {
         // console.log(`stopHandle`)
-        this.state = SelectToolState.NONE
+        this.state = ArrangeToolState.NONE
         // console.log("SelectTool.stopHandle() -> editor.transformSelection()")
 
         let transformation = this.transformation

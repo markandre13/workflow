@@ -29,7 +29,7 @@ import * as skel from "shared/workflow_skel"
 
 import { Rectangle, Circle } from "./figures"
 
-import { SelectTool, PenTool, ShapeTool, TextTool } from "./figuretools"
+import { ArrangeTool, PenTool, ShapeTool, TextTool } from "./figuretools"
 import { ToolModel } from "./figuretools/ToolModel"
 import { StrokeAndFillModel } from "./views/widgets/strokeandfill"
 
@@ -280,7 +280,7 @@ export class Client_impl extends skel.Client {
 
     private createToolModel(): ToolModel {
         let toolmodel = new ToolModel()
-        toolmodel.add("select", new SelectTool())
+        toolmodel.add("select", new ArrangeTool())
         toolmodel.add("pen", new PenTool())
         toolmodel.add("rectangle", new ShapeTool(Rectangle))
         toolmodel.add("circle", new ShapeTool(Circle))

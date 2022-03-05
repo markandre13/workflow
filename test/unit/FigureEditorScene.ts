@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { SelectTool, PenTool, TextTool, Tool } from "client/figuretools"
+import { ArrangeTool, PenTool, TextTool, Tool } from "client/figuretools"
 import { LocalDrawingModel } from "client/figureeditor/LocalDrawingModel"
 import { Figure } from "client/figures"
 import * as figure from "client/figures"
@@ -91,7 +91,7 @@ interface KeyboardOption {
 // https://martinfowler.com/bliki/PageObject.html
 export class FigureEditorScene {
     figureeditor: FigureEditor
-    selectTool: SelectTool
+    selectTool: ArrangeTool
     penTool: PenTool
     textTool: TextTool
     id: number
@@ -117,7 +117,7 @@ export class FigureEditorScene {
         if (Tool.selection)
             Tool.selection.clear()
 
-        this.selectTool = new SelectTool()
+        this.selectTool = new ArrangeTool()
         this.penTool = new PenTool()
         this.textTool = new TextTool()
         this.figureeditor.setTool(this.selectTool)

@@ -28,7 +28,7 @@ import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 
 import * as figure from "client/figures"
-import { Tool, SelectToolState } from "client/figuretools"
+import { Tool, ArrangeToolState } from "client/figuretools"
 import { FigureEditorScene } from "../FigureEditorScene"
 
 describe("FigureEditor", function() {
@@ -614,7 +614,7 @@ describe("FigureEditor", function() {
                     let position2 = rotatePointAroundPointBy(position0, center, Math.PI / 4)
 
                     scene.pointerDownAt(position0)
-                    expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(scene.selectTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
                     expect(scene.selectTool.selectedHandle).is.equal(8)
                     scene.pointerTo(position1)
                     scene.pointerUp()
@@ -624,7 +624,7 @@ describe("FigureEditor", function() {
                     position2 = rotatePointAroundPointBy(p1, center, Math.PI / 8)
 
                     scene.pointerDownAt(p1)
-                    expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(scene.selectTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
                     expect(scene.selectTool.selectedHandle).is.equal(8)
                     scene.pointerTo(position2)
 
@@ -652,7 +652,7 @@ describe("FigureEditor", function() {
 
                     // 1st rotation
                     scene.pointerDownAt(position0)
-                    expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(scene.selectTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
                     expect(scene.selectTool.selectedHandle).is.equal(8)
                     scene.pointerTo(position1)
                     scene.pointerUp()
@@ -664,7 +664,7 @@ describe("FigureEditor", function() {
                     position2 = rotatePointAroundPointBy(p1, center, Math.PI / 8)
 
                     scene.pointerDownAt(p1)
-                    expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
+                    expect(scene.selectTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
                     expect(scene.selectTool.selectedHandle).is.equal(8)
                     scene.pointerTo(position2)
                     scene.pointerUp()
