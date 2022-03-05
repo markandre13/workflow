@@ -566,6 +566,8 @@ export class FigureEditor extends ModelView<DrawingModel> {
         // console.log(this.tool)
         // console.log(this.selectedLayer)
 
+        this.scrollView.setPointerCapture(pointerEvent.pointerId)
+
         this.inputCatcher.focus({ preventScroll: true })
         pointerEvent.preventDefault()
 
