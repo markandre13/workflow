@@ -109,6 +109,7 @@ export class PenTool extends Tool {
     override activate(editor: FigureEditor) {
         Tool.selection.clear() // FIXME: when a path is selected, we must be able to continue editing
         this.setCursor(editor, Cursor.READY)
+        Tool.setHint(`technical pen: <pointer>down</pointer>: add anchor, <pointer>drag</pointer>: smooth anchor, <alt/>+<pointer>drag</pointer>: sharp anchor`)
     }
 
     override deactivate(editor: FigureEditor) {

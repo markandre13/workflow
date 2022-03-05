@@ -27,6 +27,7 @@ import { pointPlusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMu
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
+import { parseXML, Tag, TagType, Text } from "client/utils/xml"
 
 export class Tool {
     static selection: FigureSelectionModel // = new FigureSelection()
@@ -506,4 +507,84 @@ export class Tool {
         }
     }
 
+    static setHint(hint: string) {
+        const hintView = document.getElementById("hint")
+        if (!hintView) {
+            console.trace(`setHint: no #hint found`)
+            return
+        }
+        const xml = parseXML("Tool.setHint()", hint)
+        Tool.transform(xml)
+        hintView.innerHTML = xml.toString()
+    }
+
+    static clearHint() {
+        const hintView = document.getElementById("hint")
+        if (!hintView)
+            return
+        hintView.innerHTML = ``
+    }
+
+    static transform(xml: Tag) {
+        xml.forAll("pointer", (tag: Tag) => {
+            tag.name = "span"
+            tag.addAttribute("class", "action")
+        })
+        xml.forAll("ctrl", (tag: Tag) => {
+            tag.name = "kbd"
+            tag.type = TagType.Start
+            const text = new Text(tag.filename, tag.row, tag.col)
+            if (navigator.appVersion.indexOf("Macintosh") !== -1) {
+                text.text = " ^ " // aka. ctrl, control
+            } else {
+                text.text = "ctrl"
+            }
+            tag.pushBack(text)
+        })
+        xml.forAll("alt", (tag: Tag) => {
+            tag.name = "kbd"
+            tag.type = TagType.Start
+            const text = new Text(tag.filename, tag.row, tag.col)
+            if (navigator.appVersion.indexOf("Macintosh") !== -1) {
+                text.text = "⌥" // aka. opt, option
+            } else {
+                text.text = "alt"
+            }
+            tag.pushBack(text)
+        })
+        xml.forAll("meta", (tag: Tag) => {
+            tag.name = "kbd"
+            tag.type = TagType.Start
+            const text = new Text(tag.filename, tag.row, tag.col)
+            if (navigator.appVersion.indexOf("Macintosh") !== -1) {
+                text.text = "⌘" // aka. cmd, command
+            } else {
+                text.text = "⊞" // aka. windows, linux key
+            }
+            tag.pushBack(text)
+        })
+        xml.forAll("shift", (tag: Tag) => {
+            tag.name = "kbd"
+            tag.type = TagType.Start
+            const text = new Text(tag.filename, tag.row, tag.col)
+            text.text = "⇧"
+            tag.pushBack(text)
+        })
+        xml.forAll("enter", (tag: Tag) => {
+            tag.name = "kbd"
+            tag.type = TagType.Start
+            const text = new Text(tag.filename, tag.row, tag.col)
+            text.text = "↩"
+            tag.pushBack(text)
+        })
+        xml.forAll("esc", (tag: Tag) => {
+            tag.name = "kbd"
+            tag.type = TagType.Start
+            const text = new Text(tag.filename, tag.row, tag.col)
+            text.text = "esc"
+            tag.pushBack(text)
+        })
+
+        return xml
+    }
 }

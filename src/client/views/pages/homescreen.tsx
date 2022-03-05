@@ -47,8 +47,8 @@ export function homeScreen(model: DrawingModel, tool: ToolModel, strokeandfill: 
                 <StrokeAndFill model={strokeandfill} />
                 <ColorSwatch model={colorswatch} action={setcolor} />
             </div>
-            <FigureEditor model={model} tool={tool} strokeandfill={strokeandfill} style={{position: "absolute", left: "49px", right: "0px", top: "49px", bottom: "32px"}} />
-            <div id="debug" style={{ position: "absolute", left: "0", right: "0", height: "32px", bottom: "0", backgroundColor: "silver" }}></div>
+            <FigureEditor model={model} tool={tool} strokeandfill={strokeandfill} style={{position: "absolute", left: "49px", right: "0px", top: "49px", bottom: "24px"}} />
+            <div id="hint" style={{ position: "absolute", left: "0", right: "0", height: "24px", bottom: "0" }}></div>
             <div style={{ position: "absolute", left: "48px", right: "0", top: "0" }}>
             <Menu config={[
                 {name: "file", label: "File", sub: [

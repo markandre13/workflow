@@ -79,6 +79,7 @@ export class SelectTool extends Tool {
             this.updateOutlineAndDecorationOfSelection(editor)
         }, this)
         Tool.selection.modified.trigger()
+        Tool.setHint(`arrange tool: <pointer>click</pointer>: select at cursor, <pointer>drag</pointer>: select within rectangle, <shift/>: add to selection`)
     }
     
     override deactivate(editor: FigureEditor) {

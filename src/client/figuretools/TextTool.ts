@@ -65,6 +65,7 @@ export class TextTool extends Tool {
 
     override activate(editor: FigureEditor) {
         this.state = TextToolState.NONE
+        Tool.setHint(`type tool: <pointer>drag</pointer> to add text area`)
     }
 
     override deactivate(editor: FigureEditor) {

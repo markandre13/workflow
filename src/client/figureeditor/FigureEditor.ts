@@ -229,14 +229,20 @@ export class FigureEditor extends ModelView<DrawingModel> {
     }
 
     setTool(tool?: Tool) {
-        if (tool == this.tool)
+        if (tool === this.tool)
             return
         if (this.tool) {
+            Tool.clearHint()
             this.tool.deactivate(this)
         }
         this.tool = tool
-        if (this.tool)
-            this.tool.activate(this)
+        if (this.tool) {
+            if (this.isConnected) {
+                this.tool.activate(this)
+            } else {
+                window.setTimeout( () => { this!.tool!.activate(this)}, 0)
+            }
+        }
     }
 
     override setModel(model?: DrawingModel | ToolModel | StrokeAndFillModel): void {

@@ -35,6 +35,7 @@ export class ShapeTool extends Tool {
 
     override activate(editor: FigureEditor) {
         Tool.selection.clear()
+        Tool.setHint(`${this.creator.name.toLowerCase()} tool: <pointer>drag</pointer> to add ${this.creator.name.toLowerCase()}`)
     }
 
     override pointerdown(event: EditorPointerEvent) {
