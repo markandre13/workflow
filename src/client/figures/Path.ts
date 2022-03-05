@@ -62,6 +62,54 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
         this.values.push(x)
         this.values.push(y)
     }
+    changeSymmetricToSmoothAngleAngle(forwardHandle: Point) {
+        if (this.types.length === 0)
+            throw Error(`figure.Path.changeSymmetricToSmoothAngleAngle(): figure is empty`)
+        if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_SYMMETRIC) {
+            throw Error(`figure.Path.changeSymmetricToSmoothAngleAngle(): last anchor is not symmetric`)
+        }
+        this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE
+        this.values.push(forwardHandle.x)
+        this.values.push(forwardHandle.y)
+    }
+    changeEdgeToSmoothAngleAngle(backwardHandle: Point, forwardHandle: Point) {
+        if (this.types.length === 0)
+            throw Error(`figure.Path.changeEdgeToSmoothAngleAngle(): figure is empty`)
+        if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_EDGE) {
+            throw Error(`figure.Path.changeEdgeToSmoothAngleAngle(): last anchor is not an edge`)
+        }
+        this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE
+        const anchor = {x: this.values[this.values.length-2], y: this.values[this.values.length-1]}
+        this.values[this.values.length-2] = backwardHandle.x
+        this.values[this.values.length-1] = backwardHandle.y
+        this.values.push(anchor.x)
+        this.values.push(anchor.y)
+        this.values.push(forwardHandle.x)
+        this.values.push(forwardHandle.y)
+    }
+    changeSmoothAngleAngleToSymmetric() {
+        if (this.types.length === 0)
+            throw Error(`figure.Path.changeSmoothAngleAngleToSymmetric(): figure is empty`)
+        if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE) {
+            throw Error(`figure.Path.changeSmoothAngleAngleToSymmetric(): unexpected last anchor type ${figure.AnchorType[this.types[this.types.length - 1]]}`)
+        }
+        this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_SYMMETRIC
+        const anchor = {x: this.values[this.values.length-4], y: this.values[this.values.length-3]}
+        const forwardHandle = {x: this.values[this.values.length-2], y: this.values[this.values.length-1]}
+        const backwardHandle = mirrorPoint(anchor, forwardHandle)
+        this.values[this.values.length-4] = backwardHandle.x
+        this.values[this.values.length-3] = backwardHandle.y
+        this.values.length -= 2
+    }
+    // updateSmoothAngleAngle(backwardHandle: Point) {
+    //     if (this.types.length === 0)
+    //         throw Error(`figure.Path.changeEdgeToSymmetric(): figure is empty`)
+    //     if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE) {
+    //         throw Error(`figure.Path.changeEdgeToSymmetric(): last anchor is not an edge`)
+    //     }
+    //     this.values[this.values.length-2] = backwardHandle.x
+    //     this.values[this.values.length-1] = backwardHandle.y
+    // }
     updateSymmetric(backwardHandle: Point) {
         if (this.types.length === 0)
             throw Error(`figure.Path.updateSymmetric(): figure is empty`)
@@ -474,7 +522,7 @@ export class Path extends AttributedFigure implements valuetype.figure.Path {
                     d += `S ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
                     break
                 case figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
-                    d += `SM ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
+                    d += `SAA ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
                     break   
                 case figure.AnchorType.ANCHOR_ANGLE_ANGLE:
                     d += `AA ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `

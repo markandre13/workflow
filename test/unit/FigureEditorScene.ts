@@ -295,9 +295,9 @@ export class FigureEditorScene {
         }, transform)
     }
 
-    mouseDownAt(point: Point, shift = true): void {
+    pointerDownAt(point: Point, shift = true): void {
         if (this.verbose)
-            console.log(`### MOUSE DOWN AT ${point.x}, ${point.y}`)
+            console.log(`### POINTER DOWN AT ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
         this.figureeditor.mouseIsDown = true
         this.figureeditor.mouseDownAt = point
@@ -320,9 +320,9 @@ export class FigureEditorScene {
         })
     }
 
-    mouseTo(point: Point, shift = true) {
+    pointerTo(point: Point, shift = true) {
         if (this.verbose)
-            console.log(`### MOVE MOUSE TO ${point.x}, ${point.y}`)
+            console.log(`### MOVE POINTER TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
         this.figureeditor.tool!.pointerEvent({
             x: this.mousePosition.x,
@@ -343,9 +343,9 @@ export class FigureEditorScene {
         })
     }
 
-    moveMouseBy(translation: Point, shift = true): void {
+    movePointerBy(translation: Point, shift = true): void {
         if (this.verbose)
-            console.log(`### MOVE MOUSE BY ${translation.x}, ${translation.y}`)
+            console.log(`### MOVE POINTER BY ${translation.x}, ${translation.y}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
         this.figureeditor.tool!.pointerEvent({
             x: this.mousePosition.x,
@@ -366,9 +366,9 @@ export class FigureEditorScene {
         })
     }
 
-    mouseUp(shift = true): void {
+    pointerUp(shift = true): void {
         if (this.verbose)
-            console.log(`### MOUSE UP`)
+            console.log(`### POINTER UP`)
         this.figureeditor.mouseIsDown = false
         this.figureeditor.tool!.pointerEvent({
             x: this.mousePosition.x,
@@ -389,18 +389,18 @@ export class FigureEditorScene {
         })
     }
 
-    mouseClickAt(point: Point, shift = false): void {
+    pointerClickAt(point: Point, shift = false): void {
         if (this.verbose)
-            console.log(`### MOUSE CLICK AT ${point}`)
-        this.mouseDownAt(point, shift)
-        this.mouseUp(shift)
+            console.log(`### POINTER CLICK AT ${point}`)
+        this.pointerDownAt(point, shift)
+        this.pointerUp(shift)
     }
 
     clickInsideFigure(index = 0, shift = false): void {
         if (this.verbose)
             console.log(`### CLICK INSIDE FIGURE ${index}`)
-        this.mouseDownAt(this.centerOfFigure(index), shift)
-        this.mouseUp(shift)
+        this.pointerDownAt(this.centerOfFigure(index), shift)
+        this.pointerUp(shift)
     }
 
     centerOfFigure(index = 0): Point {
@@ -426,9 +426,9 @@ export class FigureEditorScene {
 
     createTextArea() {
         this.selectTextTool()
-        this.mouseDownAt(new Point(10, 15))
-        this.moveMouseBy(new Point(110, 50))
-        this.mouseUp()
+        this.pointerDownAt(new Point(10, 15))
+        this.movePointerBy(new Point(110, 50))
+        this.pointerUp()
     }
 
     private getActiveElement(): Element | null {
@@ -449,6 +449,24 @@ export class FigureEditorScene {
             console.log(`### KEY DOWN ${keycode}`)
 
         let event = new KeyboardEvent("keydown", {
+            key: keyCode2keyValue(keycode, option),
+            code: keycode,
+            altKey: option?.alt,
+            shiftKey: option?.shift,
+            ctrlKey: option?.ctrl,
+            metaKey: option?.meta,
+            composed: true,
+            cancelable: true,
+            bubbles: true,
+        })
+        this.dispatchEvent(event)
+    }
+
+    keyup(keycode: KeyCode, option?: KeyboardOption): void {
+        if (this.verbose)
+            console.log(`### KEY UP ${keycode}`)
+
+        let event = new KeyboardEvent("keyup", {
             key: keyCode2keyValue(keycode, option),
             code: keycode,
             altKey: option?.alt,

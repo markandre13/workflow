@@ -48,8 +48,8 @@ describe("FigureEditor", function() {
                     scene.addRectangle(rectangle0)
 
                     // WHEN
-                    scene.mouseDownAt(new Point(60, 65))
-                    scene.mouseUp()
+                    scene.pointerDownAt(new Point(60, 65))
+                    scene.pointerUp()
 
                     // THEN
                     scene.selectionHasRectangle(rectangle0)
@@ -60,8 +60,8 @@ describe("FigureEditor", function() {
                     scene.addRectangle(rectangle0, new Point(100, 0))
 
                     // WHEN
-                    scene.mouseDownAt(new Point(60 + 100, 65))
-                    scene.mouseUp()
+                    scene.pointerDownAt(new Point(60 + 100, 65))
+                    scene.pointerUp()
 
                     // THEN
                     scene.selectionHasRectangle(new Rectangle(50 + 100, 50, 20, 30))
@@ -223,9 +223,9 @@ describe("FigureEditor", function() {
                 scene.addRectangle(rectangle0)
 
                 // WHEN
-                scene.mouseDownAt({ x: 45, y: 45 })
-                scene.mouseTo({ x: 75, y: 85 })
-                scene.mouseUp()
+                scene.pointerDownAt({ x: 45, y: 45 })
+                scene.pointerTo({ x: 75, y: 85 })
+                scene.pointerUp()
 
                 // THEN
                 scene.selectionHasRectangle(rectangle0)
@@ -248,9 +248,9 @@ describe("FigureEditor", function() {
                 scene.addRectangle(bottomRect)
 
                 // WHEN
-                scene.mouseDownAt({ x: 45, y: 45 })
-                scene.mouseTo({ x: 85, y: 85 })
-                scene.mouseUp()
+                scene.pointerDownAt({ x: 45, y: 45 })
+                scene.pointerTo({ x: 85, y: 85 })
+                scene.pointerUp()
 
                 // THEN
                 scene.selectionHasPoint(innerRect0.origin)
@@ -263,9 +263,9 @@ describe("FigureEditor", function() {
                 test.addRectangle(rectangle0, { x: 100, y: 0 })
 
                 // WHEN
-                test.mouseDownAt({ x: 145, y: 45 })
-                test.mouseTo({ x: 175, y: 85 })
-                test.mouseUp()
+                test.pointerDownAt({ x: 145, y: 45 })
+                test.pointerTo({ x: 175, y: 85 })
+                test.pointerUp()
 
                 // THEN
                 let rectangle1 = new Rectangle(150, 50, 20, 30)
@@ -290,8 +290,8 @@ describe("FigureEditor", function() {
 
                     // WHEN
                     let oldCenter = scene.centerOfFigure()
-                    scene.mouseDownAt(oldCenter)
-                    scene.moveMouseBy(translation)
+                    scene.pointerDownAt(oldCenter)
+                    scene.movePointerBy(translation)
 
                     // THEN
                     scene.selectionHasRectangle(r1)
@@ -358,9 +358,9 @@ describe("FigureEditor", function() {
 
                     // WHEN
                     let oldCenter = test.centerOfFigure()
-                    test.mouseDownAt(oldCenter)
-                    test.moveMouseBy(translation)
-                    test.mouseUp()
+                    test.pointerDownAt(oldCenter)
+                    test.movePointerBy(translation)
+                    test.pointerUp()
 
                     // THEN
                     let r1 = new Rectangle(r0)
@@ -380,9 +380,9 @@ describe("FigureEditor", function() {
 
                     // WHEN
                     let oldCenter = scene.centerOfFigure()
-                    scene.mouseDownAt(oldCenter)
-                    scene.moveMouseBy(translation)
-                    scene.mouseUp()
+                    scene.pointerDownAt(oldCenter)
+                    scene.movePointerBy(translation)
+                    scene.pointerUp()
 
                     // THEN
                     let r1 = new Rectangle(r0)
@@ -400,10 +400,10 @@ describe("FigureEditor", function() {
                     scene.selectFigure(0)
 
                     // WHEN
-                    scene.mouseDownAt(r0.center())
+                    scene.pointerDownAt(r0.center())
                     let translation = new Point(100, 0)
-                    scene.moveMouseBy(translation)
-                    scene.mouseUp()
+                    scene.movePointerBy(translation)
+                    scene.pointerUp()
 
                     // THEN
                     let r1 = new Rectangle(r0)
@@ -429,8 +429,8 @@ describe("FigureEditor", function() {
                     let up = new Point(40, 65)
 
                     // WHEN
-                    scene.mouseDownAt(down)
-                    scene.mouseTo(up)
+                    scene.pointerDownAt(down)
+                    scene.pointerTo(up)
 
                     // THEN
                     let scaled = new Rectangle(40, 65, 30, 15)
@@ -447,9 +447,9 @@ describe("FigureEditor", function() {
                     let up = new Point(40, 65)
 
                     // WHEN
-                    scene.mouseDownAt(down)
-                    scene.mouseTo(up)
-                    scene.mouseUp()
+                    scene.pointerDownAt(down)
+                    scene.pointerTo(up)
+                    scene.pointerUp()
 
                     // THEN
                     let scaled = new Rectangle(40, 65, 30, 15)
@@ -471,9 +471,9 @@ describe("FigureEditor", function() {
                     // WHEN
                     let down = rotatePointAroundPointBy(rectangle.origin, rectangle.center(), Math.PI / 8)
                     let up = rotatePointAroundPointBy(scaled.origin, rectangle.center(), Math.PI / 8)
-                    scene.mouseDownAt(down)
-                    scene.mouseTo(up)
-                    scene.mouseUp()
+                    scene.pointerDownAt(down)
+                    scene.pointerTo(up)
+                    scene.pointerUp()
 
                     // THEN
                     scene.selectionHasRectangle(scaled, rectangle.center(), Math.PI / 8)
@@ -499,8 +499,8 @@ describe("FigureEditor", function() {
                     let up = new Point(40, 60)
 
                     // WHEN
-                    scene.mouseDownAt(down)
-                    scene.mouseTo(up)
+                    scene.pointerDownAt(down)
+                    scene.pointerTo(up)
                     // test.mouseUp()
 
                     // THEN
@@ -527,9 +527,9 @@ describe("FigureEditor", function() {
                     let up = new Point(40, 60)
 
                     // WHEN
-                    scene.mouseDownAt(down)
-                    scene.mouseTo(up)
-                    scene.mouseUp()
+                    scene.pointerDownAt(down)
+                    scene.pointerTo(up)
+                    scene.pointerUp()
 
                     // THEN
                     let scaled = new Rectangle(40, 60, 100, 90)
@@ -561,8 +561,8 @@ describe("FigureEditor", function() {
                     let center = scene.centerOfFigure()
                     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI / 8)
 
-                    scene.mouseDownAt(oldMouseRotate)
-                    scene.mouseTo(newMouseRotate)
+                    scene.pointerDownAt(oldMouseRotate)
+                    scene.pointerTo(newMouseRotate)
 
                     // THEN
                     scene.selectionHasRectangle(rectangle, rectangle.center(), Math.PI / 8)
@@ -585,9 +585,9 @@ describe("FigureEditor", function() {
                     let position0 = scene.centerOfNWRotateHandle()
                     let position1 = rotatePointAroundPointBy(position0, center, Math.PI / 8)
 
-                    scene.mouseDownAt(position0)
-                    scene.mouseTo(position1)
-                    scene.mouseUp()
+                    scene.pointerDownAt(position0)
+                    scene.pointerTo(position1)
+                    scene.pointerUp()
 
                     // THEN
                     scene.selectionHasRectangle(rectangle, center, Math.PI / 8)
@@ -613,20 +613,20 @@ describe("FigureEditor", function() {
                     let position1 = rotatePointAroundPointBy(position0, center, Math.PI / 8)
                     let position2 = rotatePointAroundPointBy(position0, center, Math.PI / 4)
 
-                    scene.mouseDownAt(position0)
+                    scene.pointerDownAt(position0)
                     expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
                     expect(scene.selectTool.selectedHandle).is.equal(8)
-                    scene.mouseTo(position1)
-                    scene.mouseUp()
+                    scene.pointerTo(position1)
+                    scene.pointerUp()
 
                     // 2nd rotation
                     let p1 = { x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0 }
                     position2 = rotatePointAroundPointBy(p1, center, Math.PI / 8)
 
-                    scene.mouseDownAt(p1)
+                    scene.pointerDownAt(p1)
                     expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
                     expect(scene.selectTool.selectedHandle).is.equal(8)
-                    scene.mouseTo(position2)
+                    scene.pointerTo(position2)
 
                     // THEN
                     scene.selectionHasRectangle(rectangle, center, Math.PI / 4)
@@ -651,11 +651,11 @@ describe("FigureEditor", function() {
                     let position2 = rotatePointAroundPointBy(position0, center, Math.PI / 4)
 
                     // 1st rotation
-                    scene.mouseDownAt(position0)
+                    scene.pointerDownAt(position0)
                     expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
                     expect(scene.selectTool.selectedHandle).is.equal(8)
-                    scene.mouseTo(position1)
-                    scene.mouseUp()
+                    scene.pointerTo(position1)
+                    scene.pointerUp()
                     scene.selectionHasRectangle(rectangle, center, Math.PI / 8)
                     scene.renderHasRectangle(rectangle, center, Math.PI / 8)
 
@@ -663,11 +663,11 @@ describe("FigureEditor", function() {
                     let p1 = { x: 48.5 + figure.Figure.HANDLE_RANGE / 2.0, y: 38.5 + figure.Figure.HANDLE_RANGE / 2.0 }
                     position2 = rotatePointAroundPointBy(p1, center, Math.PI / 8)
 
-                    scene.mouseDownAt(p1)
+                    scene.pointerDownAt(p1)
                     expect(scene.selectTool.state).is.equal(SelectToolState.MOVE_HANDLE)
                     expect(scene.selectTool.selectedHandle).is.equal(8)
-                    scene.mouseTo(position2)
-                    scene.mouseUp()
+                    scene.pointerTo(position2)
+                    scene.pointerUp()
 
                     // THEN            
                     scene.selectionHasRectangle(rectangle, center, Math.PI / 4)
@@ -689,9 +689,9 @@ describe("FigureEditor", function() {
                         pointPlusPoint(rectangle0.origin, translate), { x: handleRange, y: handleRange })
                     let up = rotatePointAroundPointBy(down, center, Math.PI / 8)
 
-                    scene.mouseDownAt(down)
-                    scene.mouseTo(up)
-                    scene.mouseUp()
+                    scene.pointerDownAt(down)
+                    scene.pointerTo(up)
+                    scene.pointerUp()
 
                     // THEN
                     scene.selectionHasRectangle(new Rectangle(50 + 100, 50, 20, 30), center, Math.PI / 8)
@@ -720,8 +720,8 @@ describe("FigureEditor", function() {
                     let center = scene.selectTool.boundary.center()
                     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI / 4)
 
-                    scene.mouseDownAt(oldMouseRotate)
-                    scene.mouseTo(newMouseRotate)
+                    scene.pointerDownAt(oldMouseRotate)
+                    scene.pointerTo(newMouseRotate)
 
                     // THEN
                     scene.selectionHasRectangle(r2, center, Math.PI / 4)
@@ -749,9 +749,9 @@ describe("FigureEditor", function() {
                     let center = scene.selectTool.boundary.center()
                     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI / 4)
 
-                    scene.mouseDownAt(oldMouseRotate)
-                    scene.mouseTo(newMouseRotate)
-                    scene.mouseUp()
+                    scene.pointerDownAt(oldMouseRotate)
+                    scene.pointerTo(newMouseRotate)
+                    scene.pointerUp()
 
                     // THEN
                     scene.selectionHasRectangle(r2, center, Math.PI / 4)
@@ -770,9 +770,9 @@ describe("FigureEditor", function() {
                 scene.addRectangle(rectangle0)
 
                 // WHEN
-                scene.mouseDownAt({ x: 45, y: 45 })
-                scene.mouseTo({ x: 75, y: 85 })
-                scene.mouseUp()
+                scene.pointerDownAt({ x: 45, y: 45 })
+                scene.pointerTo({ x: 75, y: 85 })
+                scene.pointerUp()
 
                 expect(scene.model.layers[0].data.length).to.equal(1)
                 scene.keydown("Delete")
@@ -799,9 +799,9 @@ describe("FigureEditor", function() {
                 scene.addRectangle(bottomRect)
 
                 // WHEN
-                scene.mouseDownAt({ x: 45, y: 45 })
-                scene.mouseTo({ x: 85, y: 85 })
-                scene.mouseUp()
+                scene.pointerDownAt({ x: 45, y: 45 })
+                scene.pointerTo({ x: 85, y: 85 })
+                scene.pointerUp()
 
                 expect(scene.model.layers[0].data.length).to.equal(6)
                 scene.keydown("Delete")
@@ -825,9 +825,9 @@ describe("FigureEditor", function() {
                 let rect1 = new Rectangle(40, 60, 30, 20)
                 let down0 = new Point(rect0.origin)
                 let up0 = new Point(rect1.origin)
-                scene.mouseDownAt(down0)
-                scene.mouseTo(up0)
-                scene.mouseUp()
+                scene.pointerDownAt(down0)
+                scene.pointerTo(up0)
+                scene.pointerUp()
                 scene.selectionHasRectangle(rect1)
                 scene.outlineHasRectangle(rect1)
                 scene.renderHasRectangle(rect1)
@@ -836,9 +836,9 @@ describe("FigureEditor", function() {
                 let rect2 = new Rectangle(140, 60, 30, 20)
                 let down1 = new Point(65, 65)
                 let up1 = new Point(165, 65)
-                scene.mouseDownAt(down1)
-                scene.mouseTo(up1)
-                scene.mouseUp()
+                scene.pointerDownAt(down1)
+                scene.pointerTo(up1)
+                scene.pointerUp()
                 scene.selectionHasRectangle(rect2)
                 scene.outlineHasRectangle(rect2)
                 scene.renderHasRectangle(rect2)
@@ -847,9 +847,9 @@ describe("FigureEditor", function() {
                 let rect3 = new Rectangle(130, 70, 40, 10)
                 let down2 = new Point(rect2.origin)
                 let up2 = new Point(rect3.origin)
-                scene.mouseDownAt(down2)
-                scene.mouseTo(up2)
-                scene.mouseUp()
+                scene.pointerDownAt(down2)
+                scene.pointerTo(up2)
+                scene.pointerUp()
                 scene.selectionHasRectangle(rect3)
                 scene.outlineHasRectangle(rect3)
                 scene.renderHasRectangle(rect3)

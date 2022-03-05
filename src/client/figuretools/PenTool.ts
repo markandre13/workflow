@@ -35,13 +35,13 @@
 import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
 import { FigureEditor, EditorPointerEvent, Operation } from "../figureeditor"
-import { Path as RawPath } from "../paths/Path"
 import { Path } from "../figures/Path"
 import { distancePointToPoint, pointMinusPoint, pointPlusPoint, pointMultiplyNumber } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 
 import { figure } from "shared/workflow"
+import { EditorKeyboardEvent } from "client/figureeditor/EditorKeyboardEvent"
 
 // FIXME: cursor: remove white border from tip and set center one pixel above tip
 // FIXME: cursor: white surrounding for ready, edge, ...
@@ -70,6 +70,7 @@ export enum State {
     DOWN_ADD_ANCHOR,
     DOWN_DRAG_ANCHOR,
     DOWN_DRAG_EDGE,
+    DOWN_DRAG_LINE,
 
     DOWN_CLOSE_EDGE,
     DRAG_CLOSE_EDGE,
@@ -97,10 +98,9 @@ export class PenTool extends Tool {
     figure?: Path // the figure we create
 
     anchors: SVGRectElement[] = []
+    _handlePos = new Array<Point>(4)
     _handles = new Array<SVGCircleElement>(4)
     lines = new Array<SVGLineElement>(4)
-
-    edgeHandle?: Point
 
     constructor() {
         super()
@@ -116,15 +116,47 @@ export class PenTool extends Tool {
         this.setCursor(editor, Cursor.DEFAULT)
     }
 
-    wasMove = false
+    override keydown(event: EditorKeyboardEvent): void {
+        switch (this.state) {
+            case State.DOWN_DRAG_ANCHOR:
+                switch (event.value) {
+                    case "Alt":
+                        this.state = State.DOWN_DRAG_EDGE
+                        break
+                    case "Control":
+                        // this.state = State.DOWN_DRAG_LINE
+                        break
+                } break
+        }
+    }
+
+    override keyup(event: EditorKeyboardEvent): void {
+        switch (this.state) {
+            case State.DOWN_DRAG_EDGE:
+                switch (event.value) {
+                    case "Alt": {
+                        this.state = State.DOWN_DRAG_ANCHOR
+                        const anchor = event.editor.mouseDownAt!
+                        const forwardHandle = this.getHandlePos(Handle.CURRENT_FORWARD)
+                        const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                        this._outline!.updateSymmetric(backwardHandle)
+                        this.updateSVG(event.editor)
+                        // this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                        this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
+                        // this._outline!.changeSmoothAngleAngleToSymmetric()
+                    } break
+                    case "Control":
+                        // this.state = State.DOWN_DRAG_LINE
+                        break
+                } break
+        }
+    }
 
     override pointerEvent(event: EditorPointerEvent) {
         // if (!this.wasMove || event.type !== "mousemove") {
         //     console.log(`PenTool.mouseEvent(): state=${State[this.state]}, type=${event.type}`)
         // }
         // console.log(this.figure?.toInternalString())
-
-        this.wasMove = event.type === "move"
 
         switch (this.state) {
             case State.READY:
@@ -135,7 +167,7 @@ export class PenTool extends Tool {
                         this.state = State.DOWN_ADD_FIRST_ANCHOR
                         this.addAnchor(event)
                         this._outline!.addEdge(event)
-                        this.updateSVG(event)
+                        this.updateSVG(event.editor)
                         this.figure!.addEdge(event)
                         break
                 } break
@@ -194,13 +226,13 @@ export class PenTool extends Tool {
                                     throw Error(`PenTool: mousedown at state ACTIVE unexpected 1st anchor of type ${figure.AnchorType[this._outline!.types[0]]}`)
                             }
                             this._outline!.addClose()
-                            this.updateSVG(event)
+                            this.updateSVG(event.editor)
                         } else {
                             this.setCursor(event.editor, Cursor.DIRECT)
                             this.state = State.DOWN_ADD_ANCHOR
                             this.addAnchor(event)
                             this._outline!.addEdge(event)
-                            this.updateSVG(event)
+                            this.updateSVG(event.editor)
                             this.figure!.addEdge(event)
                             this.switchHandle(Handle.CURRENT_FORWARD, Handle.PREVIOUS_FORWARD)
                             this.updateHandle(Handle.CURRENT_BACKWARD)
@@ -215,7 +247,7 @@ export class PenTool extends Tool {
                             const forwardHandle = event
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
                             this._outline!.changeEdgeToSymmetric(backwardHandle)
-                            this.updateSVG(event)
+                            this.updateSVG(event.editor)
                             this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                         }
@@ -223,7 +255,7 @@ export class PenTool extends Tool {
                     case "up": {
                         this.setCursor(event.editor, Cursor.ACTIVE)
                         this.state = State.ACTIVE
-                        event.editor.model?.modified.trigger({
+                        event.editor.model!.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -232,12 +264,11 @@ export class PenTool extends Tool {
             case State.DOWN_DRAG_ANCHOR:
                 switch (event.type) {
                     case "move": {
-                        this.state = State.DOWN_DRAG_ANCHOR
                         const anchor = event.editor.mouseDownAt!
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this._outline!.updateSymmetric(backwardHandle)
-                        this.updateSVG(event)
+                        this.updateSVG(event.editor)
                         this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                     } break
@@ -248,13 +279,33 @@ export class PenTool extends Tool {
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this._outline!.updateSymmetric(backwardHandle)
-                        this.updateSVG(event)
+                        this.updateSVG(event.editor)
                         this.figure!.changeEdgeToSymmetric(backwardHandle)
-                        event.editor.model?.modified.trigger({
+                        event.editor.model!.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
                     } break
+                } break
+            case State.DOWN_DRAG_EDGE:
+                switch (event.type) {
+                    case "move": {
+                        const anchor = event.editor.mouseDownAt!
+                        const forwardHandle = event
+                        this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
+                    } break
+                    case "up": {
+                        this.state = State.ACTIVE
+                        this.setCursor(event.editor, Cursor.ACTIVE)
+                        const backwardHandle = this.getHandlePos(Handle.CURRENT_BACKWARD)
+                        const forwardHandle = event
+                        this._outline!.changeSymmetricToSmoothAngleAngle(forwardHandle)
+                        this.figure!.changeEdgeToSmoothAngleAngle(backwardHandle, forwardHandle)
+                        event.editor.model!.modified.trigger({
+                            operation: Operation.UPDATE_FIGURES,
+                            figures: [this.figure!.id]
+                        })
+                    }break
                 } break
             case State.DOWN_CLOSE_EDGE:
                 switch (event.type) {
@@ -266,14 +317,14 @@ export class PenTool extends Tool {
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                             this._outline!.changeEdgeToAngleEdge(0, backwardHandle)
-                            this.updateSVG(event)
+                            this.updateSVG(event.editor)
                         }
                         break
                     case "up":
                         this.state = State.READY
                         this.setCursor(event.editor, Cursor.READY)
                         this.figure!.addClose()
-                        event.editor.model?.modified.trigger({
+                        event.editor.model!.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -287,7 +338,7 @@ export class PenTool extends Tool {
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                         this._outline!.updateAngleEdge(0, backwardHandle)
-                        this.updateSVG(event)
+                        this.updateSVG(event.editor)
                     } break
                     case "up": {
                         this.setCursor(event.editor, Cursor.READY)
@@ -297,10 +348,10 @@ export class PenTool extends Tool {
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
                         this._outline!.updateAngleEdge(0, backwardHandle)
-                        this.updateSVG(event)
+                        this.updateSVG(event.editor)
                         this.figure!.addClose()
                         this.figure!.changeEdgeToAngleEdge(0, backwardHandle)
-                        event.editor.model?.modified.trigger({
+                        event.editor.model!.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -325,14 +376,14 @@ export class PenTool extends Tool {
                                 backwardHandle,
                                 forwardHandle
                             )
-                            this.updateSVG(event)
+                            this.updateSVG(event.editor)
                         }
                         break
                     case "up":
                         this.state = State.READY
                         this.setCursor(event.editor, Cursor.READY)
                         this.figure!.addClose()
-                        event.editor.model?.modified.trigger({
+                        event.editor.model!.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -355,7 +406,7 @@ export class PenTool extends Tool {
                             backwardHandle,
                             forwardHandle
                         )
-                        this.updateSVG(event)
+                        this.updateSVG(event.editor)
                     } break
                     case "up": {
                         this.setCursor(event.editor, Cursor.READY)
@@ -373,7 +424,7 @@ export class PenTool extends Tool {
                         this._outline!.updateSmooth(0, backwardHandle, forwardHandle)
                         this.figure!.addClose()
                         this.figure!.changeEdgeAngleToSmooth(0, backwardHandle, forwardHandle)
-                        event.editor.model?.modified.trigger({
+                        event.editor.model!.modified.trigger({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -517,6 +568,7 @@ export class PenTool extends Tool {
         if (handlePos === undefined)
             throw Error("yikes")
 
+        this._handlePos[idx] = handlePos
         if (this._handles[idx] === undefined) {
             this._handles[idx] = this._createHandle(handlePos)
             this.decoration!.appendChild(this._handles[idx])
@@ -540,14 +592,21 @@ export class PenTool extends Tool {
             this._handles[idxOld],
             this._handles[idxNew],
             this.lines[idxOld],
-            this.lines[idxNew]
+            this.lines[idxNew],
+            this._handlePos[idxOld],
+            this._handlePos[idxNew]
         ] = [
                 this._handles[idxNew],
                 this._handles[idxOld],
                 this.lines[idxNew],
-                this.lines[idxOld]
+                this.lines[idxOld],
+                this._handlePos[idxNew],
+                this._handlePos[idxOld]
             ]
         this.updateHandle(idxOld)
+    }
+    getHandlePos(idx: Handle): Point {
+        return this._handlePos[idx]
     }
 
     createLine(p0: Point, p1: Point) {
@@ -560,8 +619,8 @@ export class PenTool extends Tool {
         return line
     }
 
-    updateSVG(event: EditorPointerEvent) {
+    updateSVG(editor: FigureEditor) {
         // this.svg!.setAttributeNS("", "d", this._outline!.getPath().toString())
-        this._outline!.getPath().updateSVG(event.editor.decorationOverlay, this.svg as SVGPathElement)
+        this._outline!.getPath().updateSVG(editor.decorationOverlay, this.svg as SVGPathElement)
     }
 }

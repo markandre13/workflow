@@ -20,9 +20,9 @@ describe("FigureEditor", function () {
                 expect(scene.model.layers[0].data.length).equals(0)
 
                 // WHEN when we drag a rectangle
-                scene.mouseDownAt(new Point(10, 15))
-                scene.moveMouseBy(new Point(110, 50))
-                scene.mouseUp()
+                scene.pointerDownAt(new Point(10, 15))
+                scene.movePointerBy(new Point(110, 50))
+                scene.pointerUp()
 
                 // THEN we will have a Text figure within this rectangle...
                 expect(scene.model.layers[0].data.length).equals(1)

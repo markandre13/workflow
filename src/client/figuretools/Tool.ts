@@ -58,6 +58,7 @@ export class Tool {
     pointerup(event: EditorPointerEvent) {}
 
     keydown(event: EditorKeyboardEvent) {}
+    keyup(event: EditorKeyboardEvent) {}
     clipboard(editor: FigureEditor, event: ClipboardEvent) {}
     
     constructor() {
