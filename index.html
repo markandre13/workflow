@@ -1,14 +1,15 @@
 <!doctype html>
 <html>
-  <head>
+
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
-    
+
     <title>Workflow</title>
-    <meta name="description" content="A collaborative real-time white- and kanban board."/>
-    <meta name="copyright" content="Mark-André Hopf <mhopf@mark13.org>"/>
-<!--
+    <meta name="description" content="A collaborative real-time white- and kanban board." />
+    <meta name="copyright" content="Mark-André Hopf <mhopf@mark13.org>" />
+    <!--
     <script type="application/javascript" src="polyfill/webcomponents-lite.min.js"></script>
 -->
     <script type="application/javascript" src="polyfill/webcomponents-hi-sd-ce.js"></script>
@@ -16,93 +17,125 @@
     <script type="application/javascript" src="js/workflow.js"></script>
 
     <template id="logonScreen">
-    <style>
-      .logon {
-        margin: 0 auto; /* center horizontally */
-        max-width: 512px;
-        display: grid;
-        grid-template-columns: 68px 1fr 1fr
-      }
-      .logon-text {
-        grid-column-start: 2;
-        grid-column-end: 4;
-      }
-      .logon-label {
-        grid-column-start: 2;
-      }
-      .logon-input {
-        grid-column-start: 3;
-      }
-    </style>
-    <div class="logon">
-      <img style="grid-column-start: 1;" src="img/logo.svg" width="64" height="64" />
-      <div class="logon-text"><toad-slot model="disclaimer"></toad-slot></div>
+        <style>
+            .logon {
+                margin: 0 auto;
+                /* center horizontally */
+                max-width: 512px;
+                display: grid;
+                grid-template-columns: 68px 1fr 1fr
+            }
 
-      <label class="logon-label" for="logon">Logon:</label>
-      <toad-text class="logon-input" id="logon" model="logon" /></toad-text>
+            .logon-text {
+                grid-column-start: 2;
+                grid-column-end: 4;
+            }
 
-      <label class="logon-label" for="password">Password:</label>
-      <toad-text class="logon-input" id="password" model="password" /></toad-text>
+            .logon-label {
+                grid-column-start: 2;
+            }
 
-      <label class="logon-label" for="remember">
-        Remember me (for up to <toad-slot model="lifetime">?</toad-slot> days):
-      </label>
-      <toad-checkbox class="logon-input" id="remember" model="remember" /></toad-checkbox>
+            .logon-input {
+                grid-column-start: 3;
+            }
+        </style>
+        <div class="logon">
+            <img style="grid-column-start: 1;" src="img/logo.svg" width="64" height="64" />
+            <div class="logon-text">
+                <toad-slot model="disclaimer"></toad-slot>
+            </div>
 
-      <toad-button class="logon-input" action="logon">Log on</toad-button>
-      <div class="logon-text">
-        Not a member? <a href="#">Sign up</a> for an account.
-      </div>
-      <div class="logon-text">
-        <toad-slot model="message" style="color: #f00"></toad-slot>
-      </div>
-    </div>
+            <label class="logon-label" for="logon">Logon:</label>
+            <toad-text class="logon-input" id="logon" model="logon" />
+            </toad-text>
 
-      <div>
-         Hint:<br />
-         mark / secret<br />
-         tiger / lovely
-      </div>
+            <label class="logon-label" for="password">Password:</label>
+            <toad-text class="logon-input" id="password" model="password" />
+            </toad-text>
+
+            <label class="logon-label" for="remember">
+                Remember me (for up to <toad-slot model="lifetime">?</toad-slot> days):
+            </label>
+            <toad-checkbox class="logon-input" id="remember" model="remember" />
+            </toad-checkbox>
+
+            <toad-button class="logon-input" action="logon">Log on</toad-button>
+            <div class="logon-text">
+                Not a member? <a href="#">Sign up</a> for an account.
+            </div>
+            <div class="logon-text">
+                <toad-slot model="message" style="color: #f00"></toad-slot>
+            </div>
+        </div>
+
+        <div>
+            Hint:<br />
+            mark / secret<br />
+            tiger / lovely
+        </div>
     </template>
-    
-    <style>
-      :root {
-        --toad-font-family: "Trebuchet MS", Futura, Helvetica Neue, Helvetica, Arial, sans-serif;
-        --toad-font-size: 12px;
-        --toad-outline-color: #9eccfb;
-        --toad-selection-color: #0069d4;
-        --toad-menu-face: #535353;
-        --toad-menu-type: #c3c3c3;
-        --toad-menu-shadow: #303030; 
-      }
 
-      body {
-        font-family: var(--toad-font-family);
-        font-size: var(--toad-font-size);
-        background: #535353;
-      }
-    
-      .toolbar {
-        position: absolute;
-        left: 1px;
-        width: 48px;
-        top: 49px;
-        bottom: 32px;
-        background: #535353;
-      }
-      .toolbar > toad-toolbutton {
-          width: 24px;
-          height: 20px;
-          border: none;
-          background: #535353;
-      }
-      .toolbar > toad-toolbutton[selected] {
-          background: #303030;
-      }
+    <style>
+        :root {
+            --toad-font-family: "Trebuchet MS", Futura, Helvetica Neue, Helvetica, Arial, sans-serif;
+            --toad-font-size: 12px;
+            --toad-outline-color: #9eccfb;
+            --toad-selection-color: #0069d4;
+            --toad-menu-face: #535353;
+            --toad-menu-type: #c3c3c3;
+            --toad-menu-shadow: #303030;
+        }
+
+        body {
+            font-family: var(--toad-font-family);
+            font-size: var(--toad-font-size);
+            background: #535353;
+        }
+
+        .toolbar {
+            position: absolute;
+            left: 1px;
+            width: 48px;
+            top: 49px;
+            bottom: 32px;
+            background: #535353;
+        }
+
+        .toolbar>toad-toolbutton {
+            width: 24px;
+            height: 20px;
+            border: none;
+            background: #535353;
+        }
+
+        .toolbar>toad-toolbutton[selected] {
+            background: #303030;
+        }
+        
+        div#hint {
+            font-weight: normal;
+            background-color: #323232;
+            color: #909090;
+            line-height: 24px;
+            padding-left: 4px;
+            padding-right: 4px;
+        }
+        kbd {
+            color: #fff;
+            font-family: sans-serif;
+            border: 1px solid #fff;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .action {
+            color: #fff;
+        }
     </style>
-  </head>
-  <body onload="workflow.main()" style="overflow: hidden;"></body>
-  <!-- <body onload="workflow.main('ws://localhost:8080')"></body> -->
-  <!-- <body onload="workflow.main('ws://'+window.location.hostname+':8080')"></body> -->
-  <!-- <body onload="workflow.main('wss://'+window.location.hostname+'/workflow/')"></body> -->
+</head>
+
+<body onload="workflow.main()" style="overflow: hidden;"></body>
+<!-- <body onload="workflow.main('ws://localhost:8080')"></body> -->
+<!-- <body onload="workflow.main('ws://'+window.location.hostname+':8080')"></body> -->
+<!-- <body onload="workflow.main('wss://'+window.location.hostname+'/workflow/')"></body> -->
+
 </html>
