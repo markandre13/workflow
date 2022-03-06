@@ -16,16 +16,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent } from "../figureeditor"
+ import { FigureEditor, EditorPointerEvent } from "../figureeditor"
  import { Tool } from "./Tool"
- 
+ import { Path } from "../figures/Path"
+
  export enum EditToolState {
      NONE,
  }
  
  export class EditTool extends Tool {
      state: EditToolState
- 
  
      constructor() {
          super()
@@ -36,9 +36,37 @@
      override activate(editor: FigureEditor) {
          editor.svgView.style.cursor = "default"
          Tool.setHint(`edit tool: under construction`)
+         Tool.selection.modified.add( () => {
+             this.updateOutlineOfSelection(editor)
+        }, this)
+        Tool.selection.modified.trigger()
      }
      
      override deactivate(editor: FigureEditor) {
+        Tool.selection.modified.remove(this)
+        this.removeOutlines(editor)
+        // this.removeDecoration(editor)
+     }
+
+     override pointerdown(event: EditorPointerEvent): void {
+        let figure = event.editor.selectedLayer!.findFigureAt(event)
+        if (figure === undefined) {
+            if (!event.shiftKey) {
+                Tool.selection.clear()
+            }
+            // this.state = ArrangeToolState.DRAG_MARQUEE
+            return
+        }
+      
+        if (Tool.selection.has(figure)) {
+            return
+        }
+
+        Tool.selection.modified.lock()
+        if (!event.shiftKey)
+            Tool.selection.clear()
+        Tool.selection.add(figure)
+        Tool.selection.modified.unlock()
      }
  }
  
