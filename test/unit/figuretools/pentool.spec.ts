@@ -6,7 +6,7 @@ import { State } from "client/figuretools/PenTool"
 import { initializeCORBAValueTypes } from "client/workflow"
 import { Point, mirrorPoint } from 'shared/geometry'
 
-it("\x07") // beep
+// it("\x07") // beep
 
 describe("PenTool", function () {
     this.beforeAll(async function () {

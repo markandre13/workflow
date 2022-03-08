@@ -17,7 +17,6 @@
  */
 
 export * from "./figures/Figure"
-export * from "./figures/AttributedFigure"
 export * from "./figures/Shape"
 export * from "./figures/Rectangle"
 export * from "./figures/Circle"

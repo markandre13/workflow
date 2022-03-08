@@ -20,7 +20,7 @@ import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
-import { AttributedFigure } from "./AttributedFigure"
+import { Figure } from "./Figure"
 
 import * as valuetype from "shared/workflow_valuetype"
 import * as value     from "shared/workflow_value"
@@ -29,7 +29,7 @@ import * as value     from "shared/workflow_value"
  * The base class for all figures which fit into a rectangular shape with four handles to
  * scale them like rectangle, circle, text, star, ...
  */
-export abstract class Shape extends AttributedFigure implements valuetype.figure.Shape {
+export abstract class Shape extends Figure implements valuetype.figure.Shape {
     origin!: Point
     size!: Size
     

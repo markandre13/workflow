@@ -25,6 +25,7 @@ const bcryptRounds = 10
 
 import { ORB } from 'corba.js'
 import { WsProtocol } from 'corba.js/net/ws'
+import { Attribute } from 'shared/workflow'
 import * as skel from "shared/workflow_skel"
 import * as stub from "shared/workflow_stub"
 
@@ -123,7 +124,6 @@ async function main() {
     ORB.registerValueType("Matrix", Matrix)
     ORB.registerValueType("Rectangle", Rectangle)
     ORB.registerValueType("Figure", Figure)
-    ORB.registerValueType("figure.AttributedFigure", figure.AttributedFigure)
     ORB.registerValueType("figure.Rectangle", figure.Rectangle)
     ORB.registerValueType("figure.Circle", figure.Circle)
     ORB.registerValueType("figure.Group", figure.Group)
@@ -378,6 +378,7 @@ export class FigureModel implements valuetype.FigureModel {
 export abstract class Figure implements valuetype.Figure {
     id!: number
     matrix!: Matrix | undefined
+    attributes!: Array<Attribute>
 
     constructor(init?: Partial<Figure>) {
         value.initFigure(this, init)
@@ -422,22 +423,7 @@ export class Layer extends FigureModel implements valuetype.Layer {
 // FIXME: share with client
 namespace figure {
 
-    export abstract class AttributedFigure extends Figure implements valuetype.figure.AttributedFigure
-    {
-        stroke!: string
-        strokeWidth!: number
-        fill!: string
-
-        constructor(init?: Partial<AttributedFigure>) {
-            super(init)
-            value.figure.initAttributedFigure(this, init)
-            this.stroke = "#000"
-            this.strokeWidth = 1.0
-            this.fill = "#fff"
-        }
-    }
-
-    export abstract class Shape extends AttributedFigure implements valuetype.figure.Shape
+    export abstract class Shape extends Figure implements valuetype.figure.Shape
     {
         origin!: Point
         size!: Size
@@ -489,9 +475,9 @@ namespace figure {
         constructor(init?: Partial<Rectangle>) {
             super(init)
             value.figure.initRectangle(this, init)
-            this.stroke = "#000"
-            this.strokeWidth = 1.0
-            this.fill = "#fff"
+            // this.stroke = "#000"
+            // this.strokeWidth = 1.0
+            // this.fill = "#fff"
         }
         
     }
@@ -502,8 +488,8 @@ namespace figure {
         constructor(init?: Partial<Rectangle>) {
             super(init)
             value.figure.initCircle(this, init)
-            this.stroke = "#000"
-            this.fill = "#fff"
+            // this.stroke = "#000"
+            // this.fill = "#fff"
         }
         
     }

@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Attribute, AttributeType, _Attribute_strokeRGBA, _Attribute_fillRGBA, _Attribute_strokeWidth } from "shared/workflow"
 import * as value  from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
 import { Path, AbstractPath } from "../paths"
@@ -23,6 +24,7 @@ import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { GIOPDecoder } from "corba.js"
+import { parseColor } from "client/utils/color"
 
 /**
  * The base class of a figures like rectangle, circle, bezier curve, text, image, etc
@@ -34,6 +36,7 @@ export abstract class Figure implements valuetype.Figure
 
     // each figure has an optional affine transformation
     matrix!: Matrix // FIXME in corba.js: should be optional (as per CORBA every object is optional... :()
+    attributes!: Array<Attribute>
 
     // fixme: move into FigureEditor
     public static readonly FIGURE_RANGE = 5.0
@@ -43,6 +46,91 @@ export abstract class Figure implements valuetype.Figure
     
     constructor(init?: Partial<value.Figure>|GIOPDecoder) {
         value.initFigure(this, init)
+    }
+
+    protected _getAttribute(type: AttributeType): Attribute | undefined {
+        for(let i=0; i<this.attributes.length; ++i) {
+            if (this.attributes[i].type === type) {
+                return this.attributes[i]
+            }
+        }
+        return undefined
+    }
+
+    protected _setAttribute(attribute: Attribute) {
+        for(let i=0; i<this.attributes.length; ++i) {
+            if (this.attributes[i].type === attribute.type) {
+                this.attributes[i] = attribute
+                return
+            }
+        }
+        this.attributes.push(attribute)
+    }
+
+    protected _clearAttribute(type: AttributeType) {
+        for(let i=0; i<this.attributes.length; ++i) {
+            if (this.attributes[i].type === type) {
+                this.attributes.splice(i, 1)
+                return
+            }
+        }
+    }
+
+    get stroke(): string {
+        const a = this._getAttribute(AttributeType.STROKE_RGBA)
+        if (a?.type !== AttributeType.STROKE_RGBA)
+            return "none"
+        return `rgba(${a.strokeRGBA.r},${a.strokeRGBA.g},${a.strokeRGBA.b},${a.strokeRGBA.a/255})`
+    }
+
+    set stroke(color: string) {
+        const rgba = parseColor(color)
+        if (rgba === undefined) {
+            this._clearAttribute(AttributeType.STROKE_RGBA)
+            this._clearAttribute(AttributeType.STROKE_WIDTH)
+        } else {
+            this._setAttribute({
+                type: AttributeType.STROKE_RGBA,
+                strokeRGBA: rgba
+            })
+        }
+    }
+
+    get strokeWidth(): number {
+        const a = this._getAttribute(AttributeType.STROKE_WIDTH)
+        if (a?.type !== AttributeType.STROKE_WIDTH)
+            return 1
+        return a.strokeWidth
+    }
+
+    set strokeWidth(width: number) {
+        if (width === 1) {
+            this._clearAttribute(AttributeType.STROKE_WIDTH) 
+        } else {
+            this._setAttribute({
+                type: AttributeType.STROKE_WIDTH,
+                strokeWidth: width
+            })
+        }
+    }
+
+    get fill(): string {
+        const a = this._getAttribute(AttributeType.FILL_RGBA)
+        if (a?.type !== AttributeType.FILL_RGBA)
+            return "none"
+        return `rgba(${a.fillRGBA.r},${a.fillRGBA.g},${a.fillRGBA.b},${a.fillRGBA.a/255})`
+    }
+
+    set fill(color: string) {
+        const rgba = parseColor(color)
+        if (rgba === undefined) {
+            this._clearAttribute(AttributeType.FILL_RGBA)
+        } else {
+            this._setAttribute({
+                type: AttributeType.FILL_RGBA,
+                fillRGBA: rgba
+            })
+        }
     }
 
     /**

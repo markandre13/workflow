@@ -86,9 +86,24 @@ valuetype Rectangle {
 
 };
 
+enum AttributeType {
+    STROKE_RGBA,
+    FILL_RGBA,
+    STROKE_WIDTH
+};
+struct RGBA {
+    octet r, g, b, a;
+};
+union Attribute switch(AttributeType) {
+    case STROKE_RGBA: RGBA strokeRGBA;
+    case FILL_RGBA: RGBA fillRGBA;
+    case STROKE_WIDTH: double strokeWidth;
+};
+
 valuetype Figure {
     public unsigned long id;
     public Matrix_ptr matrix;
+    public sequence<Attribute> attributes;
 
     Path getPath();
     SVGElement updateSVG(in AbstractPath path, in SVGElement parentSVG, in SVGElement_ptr svg); 
@@ -101,13 +116,8 @@ valuetype Figure {
 };
 
 module figure {
-    valuetype AttributedFigure: Figure {
-    	public string stroke;
-    	public double strokeWidth;
-    	public string fill;
-    };
 
-    valuetype Shape: AttributedFigure {
+    valuetype Shape: Figure {
         public Point origin;
         public Size size;
     };
@@ -135,7 +145,7 @@ module figure {
         // TILT     = 128 ,    // anchor has tilt x/y information (two values)
     };
 
-    valuetype Path: AttributedFigure {
+    valuetype Path: Figure {
         private sequence<octet> types; // AnchorType
         private sequence<double> values;
     };

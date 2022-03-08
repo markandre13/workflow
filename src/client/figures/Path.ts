@@ -21,12 +21,12 @@ import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { mirrorPoint } from "shared/geometry"
 import { AbstractPath, Path as RawPath } from "../paths"
-import { AttributedFigure } from "./AttributedFigure"
+import { Figure } from "./Figure"
 import { figure } from "shared/workflow"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value from "shared/workflow_value"
 
-export class Path extends AttributedFigure implements valuetype.figure.Path {
+export class Path extends Figure implements valuetype.figure.Path {
     types!: number[]
     values!: number[]
     constructor(init?: Partial<Path>) {

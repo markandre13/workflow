@@ -26,7 +26,6 @@ import { DrawingModel } from "./DrawingModel"
 import { Operation } from "./FigureEditor"
 import { Group } from 'client/figures/Group'
 import { Layer } from './Layer'
-import { AttributedFigure } from 'client/figures'
 
 /**
  * Drawing model for when there is no server.
@@ -64,10 +63,8 @@ export class LocalDrawingModel implements DrawingModel {
 
     setStrokeAndFill(layerID: number, figureIds: Array<number>, stroke: string, fill: string):void {
         this.forAllFigures(layerID, figureIds, (figure) => {
-            if (figure instanceof AttributedFigure) {
-                figure.stroke = stroke
-                figure.fill = fill
-            }
+            figure.stroke = stroke
+            figure.fill = fill
         })
         this.modified.trigger({ operation: Operation.UPDATE_FIGURES, figures: figureIds })
     }
