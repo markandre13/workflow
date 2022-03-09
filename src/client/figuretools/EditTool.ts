@@ -34,8 +34,8 @@
      }
      
      override activate(editor: FigureEditor) {
-         editor.svgView.style.cursor = "default"
          Tool.setHint(`edit tool: under construction`)
+         editor.svgView.style.cursor = `url(${Tool.cursorPath}edit.svg) 1 1, crosshair`
          Tool.selection.modified.add( () => {
              this.updateOutlineOfSelection(editor)
         }, this)
@@ -43,6 +43,7 @@
      }
      
      override deactivate(editor: FigureEditor) {
+        editor.svgView.style.cursor = "default"
         Tool.selection.modified.remove(this)
         this.removeOutlines(editor)
         // this.removeDecoration(editor)

@@ -45,14 +45,14 @@ describe("PenTool", function () {
 
             scene.pointerDownAt(p0)
             expect(scene.penTool.state).to.equal(State.DOWN_ADD_FIRST_ANCHOR)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.penTool._outline!.toInternalString()).to.equal(`E ${p(p0)}`)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([1, 0])
 
             scene.pointerTo(p1)
             expect(scene.penTool.state).to.equal(State.DOWN_DRAG_FIRST_ANCHOR)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.penTool._outline!.toInternalString()).to.equal(`E ${p(p0)}`)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasHandleAt(p0, p1)).to.be.true
@@ -61,7 +61,7 @@ describe("PenTool", function () {
 
             scene.pointerTo(p2)
             expect(scene.penTool.state).to.equal(State.DOWN_DRAG_FIRST_ANCHOR)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.penTool._outline!.toInternalString()).to.equal(`E ${p(p0)}`)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasHandleAt(p0, p2)).to.be.true
@@ -79,7 +79,7 @@ describe("PenTool", function () {
 
             scene.pointerDownAt(p3)
             expect(scene.penTool.state).to.equal(State.DOWN_ADD_ANCHOR)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.penTool._outline!.toInternalString()).to.equal(`EA ${p(p0)} ${p(p2)} E ${p(p3)}`)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p3)).to.be.true
@@ -89,7 +89,7 @@ describe("PenTool", function () {
             scene.pointerTo(p4)
             const m4 = mirrorPoint(p3, p4)
             expect(scene.penTool.state).to.equal(State.DOWN_DRAG_ANCHOR)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.penTool._outline!.toInternalString()).to.equal(`EA ${p(p0)} ${p(p2)} S ${p(m4)} ${p(p3)}`)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p3)).to.be.true
@@ -101,7 +101,7 @@ describe("PenTool", function () {
             scene.pointerTo(p5)
             const m5 = mirrorPoint(p3, p5)
             expect(scene.penTool.state).to.equal(State.DOWN_DRAG_ANCHOR)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.penTool._outline!.toInternalString()).to.equal(`EA ${p(p0)} ${p(p2)} S ${p(m5)} ${p(p3)}`)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p3)).to.be.true
@@ -145,7 +145,7 @@ describe("PenTool", function () {
 
             scene.pointerDownAt(p0)           
             expect(scene.penTool.state).to.equal(State.DOWN_CLOSE_EDGE)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.penTool._outline!.toInternalString()).to.equal(`E ${p(p0)} E ${p(p1)} E ${p(p2)} Z`)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p1)).to.be.true
@@ -153,7 +153,7 @@ describe("PenTool", function () {
 
             scene.pointerTo(p3)
             expect(scene.penTool.state).to.equal(State.DRAG_CLOSE_EDGE)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             const m2 = mirrorPoint(p0, p3)
             expect(scene.penTool._outline!.toInternalString()).to.equal(`AE ${p(m2)} ${p(p0)} E ${p(p1)} E ${p(p2)} Z`)
             expect(scene.hasAnchorAt(p0)).to.be.true
@@ -163,7 +163,7 @@ describe("PenTool", function () {
 
             scene.pointerTo(p4)
             expect(scene.penTool.state).to.equal(State.DRAG_CLOSE_EDGE)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             const m3 = mirrorPoint(p0, p4)
             expect(scene.penTool._outline!.toInternalString()).to.equal(`AE ${p(m3)} ${p(p0)} E ${p(p1)} E ${p(p2)} Z`)
             expect(scene.hasAnchorAt(p0)).to.be.true
@@ -205,7 +205,7 @@ describe("PenTool", function () {
 
             scene.pointerDownAt(p0)           
             expect(scene.penTool.state).to.equal(State.DOWN_CLOSE_CURVE)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.penTool._outline!.toInternalString()).to.equal(`EA ${p(p0)} ${p(p1)} E ${p(p2)} E ${p(p3)} Z`)
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p2)).to.be.true
@@ -215,7 +215,7 @@ describe("PenTool", function () {
 
             scene.pointerTo(p4)
             expect(scene.penTool.state).to.equal(State.DRAG_CLOSE_CURVE)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             const m4 = mirrorPoint(p0, p4)
             let m1 = new Point(93.67544467966324, 87.35088935932649)
             expect(scene.penTool._outline!.toInternalString()).to.equal(`SAA ${p(m4)} ${p(p0)} ${p(m1)} E ${p(p2)} E ${p(p3)} Z`)
@@ -228,7 +228,7 @@ describe("PenTool", function () {
 
             scene.pointerTo(p5)
             expect(scene.penTool.state).to.equal(State.DRAG_CLOSE_CURVE)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             const m5 = mirrorPoint(p0, p5)
             m1 = new Point(90.94642539574815, 89.13571047489778)
             expect(scene.penTool._outline!.toInternalString()).to.equal(`SAA ${p(m5)} ${p(p0)} ${p(m1)} E ${p(p2)} E ${p(p3)} Z`)
@@ -268,7 +268,7 @@ describe("PenTool", function () {
             scene.pointerTo(p2)
       
             expect(scene.penTool.state).to.equal(State.DOWN_DRAG_ANCHOR)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p1)).to.be.true
             expect(scene.hasHandleAt(p1, p2)).to.be.true
@@ -323,7 +323,7 @@ describe("PenTool", function () {
             scene.pointerTo(p2)
       
             expect(scene.penTool.state).to.equal(State.DOWN_DRAG_ANCHOR)
-            expect(scene.figureeditor.svgView.style.cursor).to.contain("direct-selection-cursor.svg")
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit-cursor.svg")
             expect(scene.hasAnchorAt(p0)).to.be.true
             expect(scene.hasAnchorAt(p1)).to.be.true
             expect(scene.hasHandleAt(p1, p2)).to.be.true

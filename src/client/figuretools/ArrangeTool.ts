@@ -74,7 +74,7 @@ export class ArrangeTool extends Tool {
     }
     
     override activate(editor: FigureEditor) {
-        editor.svgView.style.cursor = "default"
+        editor.svgView.style.cursor = `url(${Tool.cursorPath}arrange.svg) 1 1, crosshair`
         Tool.selection.modified.add( () => {
             this.updateOutlineAndDecorationOfSelection(editor)
         }, this)
@@ -83,6 +83,7 @@ export class ArrangeTool extends Tool {
     }
     
     override deactivate(editor: FigureEditor) {
+        editor.svgView.style.cursor = "default"
         Tool.selection.modified.remove(this)
         this.removeOutlines(editor)
         this.removeDecoration(editor)

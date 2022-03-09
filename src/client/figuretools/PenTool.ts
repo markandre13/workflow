@@ -481,7 +481,7 @@ export class PenTool extends Tool {
                 editor.svgView.style.cursor = `url(${Tool.cursorPath}pen-active.svg) 5 1, crosshair`
                 break
             case Cursor.DIRECT:
-                editor.svgView.style.cursor = `url(${Tool.cursorPath}direct-selection-cursor.svg) 1 1, crosshair`
+                editor.svgView.style.cursor = `url(${Tool.cursorPath}edit-cursor.svg) 1 1, crosshair`
                 break
         }
     }
