@@ -507,6 +507,35 @@ export class Tool {
         }
     }
 
+    protected createAnchor(p: Point) {
+        let x = p.x - Figure.HANDLE_RANGE / 2.0
+        let y = p.y - Figure.HANDLE_RANGE / 2.0
+        x = Math.round(x - 0.5) + 0.5
+        y = Math.round(y - 0.5) + 0.5
+
+        let anchor = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        anchor.setAttributeNS("", "x", `${x}`)
+        anchor.setAttributeNS("", "y", `${y}`)
+        anchor.setAttributeNS("", "width", `${Figure.HANDLE_RANGE}`)
+        anchor.setAttributeNS("", "height", `${Figure.HANDLE_RANGE}`)
+        anchor.setAttributeNS("", "stroke", "rgb(79,128,255)")
+        anchor.setAttributeNS("", "fill", "#fff")
+        return anchor
+    }
+
+    protected createHandle(p: Point) {
+        const x = Math.round(p.x - 0.5) + 0.5
+        const y = Math.round(p.y - 0.5) + 0.5
+
+        const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle")
+        handle.setAttributeNS("", "cx", `${x}`)
+        handle.setAttributeNS("", "cy", `${y}`)
+        handle.setAttributeNS("", "r", `${Figure.HANDLE_RANGE / 2.0}`)
+        handle.setAttributeNS("", "stroke", `rgb(79,128,255)`)
+        handle.setAttributeNS("", "fill", `rgb(79,128,255)`)
+        return handle
+    }
+
     static setHint(hint: string) {
         const hintView = document.getElementById("hint")
         if (!hintView) {

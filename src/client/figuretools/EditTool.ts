@@ -16,40 +16,70 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- import { FigureEditor, EditorPointerEvent } from "../figureeditor"
- import { Tool } from "./Tool"
- import { Path } from "../figures/Path"
+import { FigureEditor, EditorPointerEvent } from "../figureeditor"
+import { Tool } from "./Tool"
+import { Figure } from "../figures/Figure"
+import { Path } from "../figures/Path"
+import { distancePointToPoint, pointMinusPoint, pointPlusPoint, pointMultiplyNumber } from "shared/geometry"
+import { Rectangle } from "shared/geometry/Rectangle"
+import { Point } from "shared/geometry/Point"
+import { figure } from "shared/workflow"
+const AnchorType = figure.AnchorType
 
- export enum EditToolState {
-     NONE,
- }
- 
- export class EditTool extends Tool {
-     state: EditToolState
- 
-     constructor() {
-         super()
-         this.debug = false
-         this.state = EditToolState.NONE
-     }
-     
-     override activate(editor: FigureEditor) {
-         Tool.setHint(`edit tool: under construction`)
-         editor.svgView.style.cursor = `url(${Tool.cursorPath}edit.svg) 1 1, crosshair`
-         Tool.selection.modified.add( () => {
-             this.updateOutlineOfSelection(editor)
+export enum EditToolState {
+    NONE,
+}
+
+enum Handle {
+    PREVIOUS_FORWARD,
+    CURRENT_BACKWARD,
+    CURRENT_FORWARD,
+    NEXT_BACKWARD
+}
+
+interface Anchor {
+    svg: SVGElement
+    figure: Figure
+    index: number
+}
+
+export class EditTool extends Tool {
+    state: EditToolState
+
+    constructor() {
+        super()
+        this.debug = false
+        this.state = EditToolState.NONE
+    }
+
+    override activate(editor: FigureEditor) {
+        Tool.setHint(`edit tool: under construction`)
+        editor.svgView.style.cursor = `url(${Tool.cursorPath}edit.svg) 1 1, crosshair`
+
+        this.outline = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        editor.decorationOverlay.appendChild(this.outline)
+        this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        editor.decorationOverlay.appendChild(this.decoration)
+
+        // selection does not have a protocol yet...
+        Tool.selection.modified.add(() => {
+            this.updateOutline(editor)
+            this.updateAnchorsOfSelection(editor)
         }, this)
         Tool.selection.modified.trigger()
-     }
-     
-     override deactivate(editor: FigureEditor) {
-        editor.svgView.style.cursor = "default"
-        Tool.selection.modified.remove(this)
-        this.removeOutlines(editor)
-        // this.removeDecoration(editor)
-     }
+    }
 
-     override pointerdown(event: EditorPointerEvent): void {
+    override deactivate(editor: FigureEditor) {
+        editor.svgView.style.cursor = "default"
+        Tool.selection.modified.remove(this)       
+        editor.decorationOverlay.removeChild(this.outline!)
+        editor.decorationOverlay.removeChild(this.decoration!)
+        this.outline = undefined
+        this.decoration = undefined
+        this.anchors = []
+    }
+
+    override pointerdown(event: EditorPointerEvent): void {
         let figure = event.editor.selectedLayer!.findFigureAt(event)
         if (figure === undefined) {
             if (!event.shiftKey) {
@@ -58,7 +88,7 @@
             // this.state = ArrangeToolState.DRAG_MARQUEE
             return
         }
-      
+
         if (Tool.selection.has(figure)) {
             return
         }
@@ -68,6 +98,71 @@
             Tool.selection.clear()
         Tool.selection.add(figure)
         Tool.selection.modified.unlock()
-     }
- }
- 
+    }
+
+    anchors: Anchor[] = []
+    _handlePos = new Array<Point>(4)
+    _handles = new Array<SVGCircleElement>(4)
+    lines = new Array<SVGLineElement>(4)
+
+    clearOutline() {
+        this.outline!.innerHTML = ""
+    }
+
+    updateOutline(editor: FigureEditor) {
+        for(let figure of Tool.selection.selection) {
+            this.outline!.appendChild(this.createOutline(editor, figure))
+        }
+    }
+
+    clearAnchors() {
+        this.anchors.forEach(anchor => {
+            this.decoration!.removeChild(anchor.svg)
+        })
+        this.anchors.length = 0
+    }
+
+    updateAnchorsOfSelection(editor: FigureEditor) {
+        this.clearAnchors()
+        Tool.selection.selection.forEach( figure => {
+            // TODO: move into figure.Path, etc. once this works
+            if (figure instanceof Path) {
+                let idxValue = 0
+                for (let idxType = 0; idxType < figure.types.length; ++idxType) {
+                    let anchor
+                    switch(figure.types[idxType]) {
+                        case AnchorType.ANCHOR_EDGE:
+                            anchor = this.createAnchor({x: figure.values[idxValue], y: figure.values[idxValue+1]})
+                            idxValue += 2
+                            break
+                        case AnchorType.ANCHOR_EDGE_ANGLE:
+                            anchor = this.createAnchor({x: figure.values[idxValue], y: figure.values[idxValue+1]})
+                            idxValue += 4
+                            break
+                        case AnchorType.ANCHOR_ANGLE_EDGE:
+                        case AnchorType.ANCHOR_SYMMETRIC:
+                            anchor = this.createAnchor({x: figure.values[idxValue+2], y: figure.values[idxValue+3]})
+                            idxValue += 4
+                            break
+                        case AnchorType.ANCHOR_ANGLE_ANGLE:
+                        case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
+                            anchor = this.createAnchor({x: figure.values[idxValue+2], y: figure.values[idxValue+3]})
+                            idxValue += 6
+                            break
+                        case AnchorType.CLOSE:
+                            break
+                    }
+                    if (anchor) {
+                        anchor.style.cursor = `url(${Tool.cursorPath}edit-anchor.svg) 1 1, crosshair`
+                        this.anchors.push({
+                            figure: figure,
+                            index: idxType,
+                            svg: anchor,
+                        })
+                        this.decoration!.appendChild(anchor)
+                    }
+                }
+            }
+        })
+    }
+}

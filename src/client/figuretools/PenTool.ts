@@ -486,22 +486,6 @@ export class PenTool extends Tool {
         }
     }
 
-    createAnchor(p: Point) {
-        let x = p.x - Figure.HANDLE_RANGE / 2.0
-        let y = p.y - Figure.HANDLE_RANGE / 2.0
-        x = Math.round(x - 0.5) + 0.5
-        y = Math.round(y - 0.5) + 0.5
-
-        let anchor = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-        anchor.setAttributeNS("", "x", `${x}`)
-        anchor.setAttributeNS("", "y", `${y}`)
-        anchor.setAttributeNS("", "width", `${Figure.HANDLE_RANGE}`)
-        anchor.setAttributeNS("", "height", `${Figure.HANDLE_RANGE}`)
-        anchor.setAttributeNS("", "stroke", "rgb(79,128,255)")
-        anchor.setAttributeNS("", "fill", "#fff")
-        return anchor
-    }
-
     addAnchor(p: Point) {
         if (this.anchors.length > 1) {
             this.anchors[this.anchors.length - 1].style.cursor = ""
@@ -543,18 +527,6 @@ export class PenTool extends Tool {
     }
 
     // use updateHandle
-    private _createHandle(p: Point) {
-        const x = Math.round(p.x - 0.5) + 0.5
-        const y = Math.round(p.y - 0.5) + 0.5
-
-        const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle")
-        handle.setAttributeNS("", "cx", `${x}`)
-        handle.setAttributeNS("", "cy", `${y}`)
-        handle.setAttributeNS("", "r", `${Figure.HANDLE_RANGE / 2.0}`)
-        handle.setAttributeNS("", "stroke", `rgb(79,128,255)`)
-        handle.setAttributeNS("", "fill", `rgb(79,128,255)`)
-        return handle
-    }
 
     updateHandle(idx: Handle): void
     updateHandle(idx: Handle, anchorPos: Point, handlePos: Point): void
@@ -571,7 +543,7 @@ export class PenTool extends Tool {
 
         this._handlePos[idx] = handlePos
         if (this._handles[idx] === undefined) {
-            this._handles[idx] = this._createHandle(handlePos)
+            this._handles[idx] = this.createHandle(handlePos)
             this.decoration!.appendChild(this._handles[idx])
             this.lines[idx] = this.createLine(anchorPos, handlePos)
             this.decoration!.appendChild(this.lines[idx])

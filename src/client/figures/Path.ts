@@ -27,7 +27,7 @@ import * as valuetype from "shared/workflow_valuetype"
 import * as value from "shared/workflow_value"
 
 export class Path extends Figure implements valuetype.figure.Path {
-    types!: number[]
+    types!: figure.AnchorType[]
     values!: number[]
     constructor(init?: Partial<Path>) {
         if (init instanceof RawPath) {
@@ -477,33 +477,12 @@ export class Path extends Figure implements valuetype.figure.Path {
     }
 
     getHandlePosition(i: number): Point | undefined {
-        // switch (i) {
-        //     case 0: return { x: this.origin.x, y: this.origin.y }
-        //     case 1: return { x: this.origin.x + this.size.width, y: this.origin.y }
-        //     case 2: return { x: this.origin.x + this.size.width, y: this.origin.y + this.size.height }
-        //     case 3: return { x: this.origin.x, y: this.origin.y + this.size.height }
-        // }
         return undefined
     }
 
     setHandlePosition(handle: number, pt: Point): void {
-        // if (handle < 0 || handle > 3)
-        //     throw Error("yikes")
-        // if (handle == 0 || handle == 3) {
-        //     this.size.width += this.origin.x - pt.x
-        //     this.origin.x = pt.x
-        // }
-        // else {
-        //     this.size.width += pt.x - (this.origin.x + this.size.width)
-        // }
-        // if (handle == 0 || handle == 1) {
-        //     this.size.height += this.origin.y - pt.y
-        //     this.origin.y = pt.y
-        // }
-        // else {
-        //     this.size.height += pt.y - (this.origin.y + this.size.height)
-        // }
     }
+
     toInternalString() {
         let d = ""
         let idxValue = 0
