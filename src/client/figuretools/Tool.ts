@@ -536,6 +536,16 @@ export class Tool {
         return handle
     }
 
+    createLine(p0: Point, p1: Point) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line")
+        line.setAttributeNS("", "x1", `${p0.x}`)
+        line.setAttributeNS("", "y1", `${p0.y}`)
+        line.setAttributeNS("", "x2", `${p1.x}`)
+        line.setAttributeNS("", "y2", `${p1.y}`)
+        line.setAttributeNS("", "stroke", `rgb(79,128,255)`)
+        return line
+    }
+
     static setHint(hint: string) {
         const hintView = document.getElementById("hint")
         if (!hintView) {

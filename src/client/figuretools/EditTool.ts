@@ -47,7 +47,7 @@ class Anchor {
     outline: Path
     idxType: number
     idxValue: number
-    svgAnchor: SVGRectElement
+    private svgAnchor: SVGRectElement
 
     constructor(tool: EditTool, editor: PathEditor, figure: Path, outline: Path, idxType: number, idxValue: number) {
         this.tool = tool
@@ -62,6 +62,64 @@ class Anchor {
         this.svgAnchor.onmouseenter = () => { editor.insideAnchor = this }
         this.svgAnchor.onmouseleave = () => { editor.insideAnchor = undefined }
         this.tool.decoration!.appendChild(this.svgAnchor)
+    }
+
+    destructor() {
+        this.tool.decoration!.removeChild(this.svgAnchor)
+    }
+
+    select() {
+        this.showBackwardHandle()
+        this.showForwardHandle()
+    }
+
+    showBackwardHandle() {
+        switch (this.figure.types[this.idxType]) {
+            case AnchorType.ANCHOR_EDGE:
+            case AnchorType.ANCHOR_EDGE_ANGLE:
+            case AnchorType.CLOSE:
+                return
+            case AnchorType.ANCHOR_ANGLE_EDGE:
+            case AnchorType.ANCHOR_SYMMETRIC:
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
+            case AnchorType.ANCHOR_ANGLE_ANGLE:
+                const pos = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
+                const backwardHandle = this.tool.createHandle(pos)
+                this.tool.decoration!.appendChild(backwardHandle)
+                const line = this.tool.createLine(this.pos, pos)
+                this.tool.decoration!.appendChild(line)
+        }
+    }
+
+    showForwardHandle() {
+        let anchor, pos
+        switch (this.figure.types[this.idxType]) {
+            case AnchorType.ANCHOR_EDGE:
+            case AnchorType.ANCHOR_ANGLE_EDGE:
+            case AnchorType.CLOSE:
+                return
+            case AnchorType.ANCHOR_EDGE_ANGLE:
+                anchor = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
+                pos = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+                break
+            case AnchorType.ANCHOR_SYMMETRIC:
+                const backwardHandle = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
+                anchor = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+                pos = mirrorPoint(anchor, backwardHandle)
+                break
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
+            case AnchorType.ANCHOR_ANGLE_ANGLE:
+                anchor = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+                pos = { x: this.outline.values[this.idxValue + 4], y: this.outline.values[this.idxValue + 5] }
+        }
+        const forwardHandle = this.tool.createHandle(pos)
+        this.tool.decoration!.appendChild(forwardHandle)
+
+        const line = this.tool.createLine(anchor, pos)
+        this.tool.decoration!.appendChild(line)
+    }
+
+    deselect() {
     }
 
     get length(): number {
@@ -224,9 +282,7 @@ export class PathEditor extends EditToolEditor {
 
     override destructor(): void {
         this.anchors.forEach(anchor => {
-            if (anchor.svgAnchor) {
-                this.tool.decoration!.removeChild(anchor.svgAnchor)
-            }
+            anchor.destructor()
         })
         this.anchors.length = 0
         this.tool.outline!.removeChild(this.outlineSVG)
@@ -238,6 +294,7 @@ export class PathEditor extends EditToolEditor {
     override pointerEvent(event: EditorPointerEvent): boolean {
         if (event.type === "down" && this.insideAnchor) {
             this.currentAnchor = this.insideAnchor
+            this.currentAnchor.select()
             return true
         }
         if (this.currentAnchor !== undefined) {
