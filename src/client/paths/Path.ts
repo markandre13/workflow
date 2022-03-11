@@ -274,7 +274,6 @@ export class Path extends AbstractPath {
 
     createSVG(stroke = "#000", strokeWidth = 1, fill = "none"): SVGPathElement {
         let svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
-        // svg.setPathData(this.data)
         svg.setAttributeNS("", "d", this.toString())
         svg.setAttributeNS("", "stroke-width", String(strokeWidth))
         svg.setAttributeNS("", "stroke", stroke)

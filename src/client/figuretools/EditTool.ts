@@ -20,11 +20,9 @@ import { FigureEditor, EditorPointerEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
 import { Path } from "../figures/Path"
-import { distancePointToPoint, pointMinusPoint, pointPlusPoint, pointMultiplyNumber } from "shared/geometry"
-import { Rectangle } from "shared/geometry/Rectangle"
+import { pointMinusPoint, pointPlusPoint, mirrorPoint } from "shared/geometry"
 import { Point } from "shared/geometry/Point"
 import { figure } from "shared/workflow"
-import { timeStamp } from "console"
 const AnchorType = figure.AnchorType
 
 export enum EditToolState {
@@ -39,18 +37,231 @@ enum Handle {
     NEXT_BACKWARD
 }
 
-interface Anchor {
-    svg: SVGElement
-    figure: Figure
-    index: number
+// Anchor wraps the somewhat tedious data structure of figure.Path's anchors
+// modifications will happen on 'outline' and are then copied to 'figure' by
+// calling apply()
+class Anchor {
+    tool: EditTool
+    editor: PathEditor
+    figure: Path
+    outline: Path
+    idxType: number
+    idxValue: number
+    svgAnchor: SVGRectElement
+
+    constructor(tool: EditTool, editor: PathEditor, figure: Path, outline: Path, idxType: number, idxValue: number) {
+        this.tool = tool
+        this.editor = editor
+        this.figure = figure
+        this.outline = outline
+        this.idxType = idxType
+        this.idxValue = idxValue
+
+        this.svgAnchor = tool.createAnchor(this.pos)
+        this.svgAnchor.style.cursor = `url(${Tool.cursorPath}edit-anchor.svg) 1 1, crosshair`
+        this.svgAnchor.onmouseenter = () => { editor.insideAnchor = this }
+        this.svgAnchor.onmouseleave = () => { editor.insideAnchor = undefined }
+        this.tool.decoration!.appendChild(this.svgAnchor)
+    }
+
+    get length(): number {
+        switch (this.figure.types[this.idxType]) {
+            case AnchorType.ANCHOR_EDGE:
+                return 2
+            case AnchorType.ANCHOR_EDGE_ANGLE:
+            case AnchorType.ANCHOR_ANGLE_EDGE:
+            case AnchorType.ANCHOR_SYMMETRIC:
+                return 4
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
+            case AnchorType.ANCHOR_ANGLE_ANGLE:
+                return 6
+            case AnchorType.CLOSE:
+                return 0
+        }
+    }
+
+    get pos(): Point {
+        switch (this.outline.types[this.idxType]) {
+            case AnchorType.ANCHOR_EDGE:
+            case AnchorType.ANCHOR_EDGE_ANGLE:
+                return { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
+            case AnchorType.ANCHOR_ANGLE_EDGE:
+            case AnchorType.ANCHOR_SYMMETRIC:
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
+            case AnchorType.ANCHOR_ANGLE_ANGLE:
+                return { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+            case AnchorType.CLOSE:
+                throw Error(`anchor type CLOSE has no position to get`)
+        }
+    }
+
+    set pos(point: Point) {
+        switch (this.outline.types[this.idxType]) {
+            case AnchorType.ANCHOR_EDGE: {
+                this.outline.values[this.idxValue] = point.x
+                this.outline.values[this.idxValue + 1] = point.y
+            } break
+            case AnchorType.ANCHOR_EDGE_ANGLE: {
+                const anchor = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
+                let backwardHandle = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+                backwardHandle = pointPlusPoint(point, pointMinusPoint(backwardHandle, anchor))
+                this.outline.values[this.idxValue] = point.x
+                this.outline.values[this.idxValue + 1] = point.y
+                this.outline.values[this.idxValue + 2] = backwardHandle.x
+                this.outline.values[this.idxValue + 3] = backwardHandle.y
+            } break
+            case AnchorType.ANCHOR_ANGLE_EDGE:
+            case AnchorType.ANCHOR_SYMMETRIC: {
+                let forwardHandle = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
+                const anchor = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+                forwardHandle = pointPlusPoint(point, pointMinusPoint(forwardHandle, anchor))
+                this.outline.values[this.idxValue] = forwardHandle.x
+                this.outline.values[this.idxValue + 1] = forwardHandle.y
+                this.outline.values[this.idxValue + 2] = point.x
+                this.outline.values[this.idxValue + 3] = point.y
+            } break
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
+            case AnchorType.ANCHOR_ANGLE_ANGLE: {
+                let forwardHandle = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
+                const anchor = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+                let backwardHandle = { x: this.outline.values[this.idxValue + 4], y: this.outline.values[this.idxValue + 5] }
+                backwardHandle = pointPlusPoint(point, pointMinusPoint(backwardHandle, anchor))
+                forwardHandle = pointPlusPoint(point, pointMinusPoint(forwardHandle, anchor))
+                this.outline.values[this.idxValue] = forwardHandle.x
+                this.outline.values[this.idxValue + 1] = forwardHandle.y
+                this.outline.values[this.idxValue + 2] = point.x
+                this.outline.values[this.idxValue + 3] = point.y
+                this.outline.values[this.idxValue + 4] = backwardHandle.x
+                this.outline.values[this.idxValue + 5] = backwardHandle.y
+            } break
+            case AnchorType.CLOSE:
+                throw Error(`anchor type CLOSE has no position to set`)
+        }
+
+        this.svgAnchor.setAttributeNS("", "x", `${Math.round(point.x - Figure.HANDLE_RANGE / 2.0 - 0.5) + 0.5}`)
+        this.svgAnchor.setAttributeNS("", "y", `${Math.round(point.y - Figure.HANDLE_RANGE / 2.0 - 0.5) + 0.5}`)
+
+        this.outline.getPath().updateSVG(this.tool.outline!, this.editor.outlineSVG)
+    }
+
+    apply() {
+        const end = this.idxValue + this.length
+        for (let i = this.idxValue; i < end; ++i) {
+            this.figure.values[i] = this.outline.values[i]
+        }
+    }
+}
+
+abstract class EditToolEditor {
+    destructor(): void { }
+    pointerEvent(event: EditorPointerEvent): boolean {
+        return false
+    }
+
+    protected createAnchor(p: Point) {
+        let x = p.x - Figure.HANDLE_RANGE / 2.0
+        let y = p.y - Figure.HANDLE_RANGE / 2.0
+        x = Math.round(x - 0.5) + 0.5
+        y = Math.round(y - 0.5) + 0.5
+
+        let anchor = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+        anchor.setAttributeNS("", "x", `${x}`)
+        anchor.setAttributeNS("", "y", `${y}`)
+        anchor.setAttributeNS("", "width", `${Figure.HANDLE_RANGE}`)
+        anchor.setAttributeNS("", "height", `${Figure.HANDLE_RANGE}`)
+        anchor.setAttributeNS("", "stroke", "rgb(79,128,255)")
+        anchor.setAttributeNS("", "fill", "#fff")
+        return anchor
+    }
+
+    protected createHandle(p: Point) {
+        const x = Math.round(p.x - 0.5) + 0.5
+        const y = Math.round(p.y - 0.5) + 0.5
+
+        const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle")
+        handle.setAttributeNS("", "cx", `${x}`)
+        handle.setAttributeNS("", "cy", `${y}`)
+        handle.setAttributeNS("", "r", `${Figure.HANDLE_RANGE / 2.0}`)
+        handle.setAttributeNS("", "stroke", `rgb(79,128,255)`)
+        handle.setAttributeNS("", "fill", `rgb(79,128,255)`)
+        return handle
+    }
+}
+
+export class PathEditor extends EditToolEditor {
+    anchors: Anchor[] = []
+    currentAnchor?: Anchor
+    insideAnchor?: Anchor
+    path: Path
+    editor: FigureEditor
+    tool: EditTool
+
+    outlineSVG: SVGPathElement
+
+    constructor(editor: FigureEditor, tool: EditTool, path: Path) {
+        super()
+        this.path = path
+        this.editor = editor
+        this.tool = tool
+
+        // create outline
+        const outline = path.clone()
+        const outlinePath = outline.getPath()
+        this.outlineSVG = outlinePath.createSVG()
+        this.tool.setOutlineColors(this.outlineSVG)
+        this.tool.outline!.appendChild(this.outlineSVG)
+
+        // create anchors
+        let idxValue = 0
+        for (let idxType = 0; idxType < path.types.length; ++idxType) {
+            if (path.types[idxType] !== AnchorType.CLOSE) {
+                const anchor = new Anchor(tool, this, path, outline, idxType, idxValue)
+                idxValue += anchor.length
+                this.anchors.push(anchor)
+            }
+        }
+    }
+
+    override destructor(): void {
+        this.anchors.forEach(anchor => {
+            if (anchor.svgAnchor) {
+                this.tool.decoration!.removeChild(anchor.svgAnchor)
+            }
+        })
+        this.anchors.length = 0
+        this.tool.outline!.removeChild(this.outlineSVG)
+    }
+
+    // TODO: this is copied from figure.Path.getPath(), which is covered by tests
+    // plan is to create a function which is suitable for both use cases...
+    // hm... changes become too many, might want to have a complete new set of tests
+    override pointerEvent(event: EditorPointerEvent): boolean {
+        if (event.type === "down" && this.insideAnchor) {
+            this.currentAnchor = this.insideAnchor
+            return true
+        }
+        if (this.currentAnchor !== undefined) {
+            switch (event.type) {
+                case "move":
+                    this.currentAnchor.pos = event
+                    break
+                case "up":
+                    this.currentAnchor.apply()
+                    event.editor.model!.modified.trigger({
+                        operation: Operation.UPDATE_FIGURES,
+                        figures: [this.currentAnchor!.figure.id]
+                    })
+                    this.currentAnchor = undefined
+                    break
+            }
+            return true
+        }
+        return false
+    }
 }
 
 export class EditTool extends Tool {
     state: EditToolState
-    insideAnchor?: Anchor
-    currentAnchor?: Anchor
-    lastPos?: Point
-
     constructor() {
         super()
         this.debug = false
@@ -65,38 +276,33 @@ export class EditTool extends Tool {
         editor.decorationOverlay.appendChild(this.outline)
         this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
         editor.decorationOverlay.appendChild(this.decoration)
-
-        // selection does not have a protocol yet...
         Tool.selection.modified.add(() => {
-            this.updateOutline(editor)
-            this.updateAnchorsOfSelection(editor)
+            this.updateSelection(editor)
         }, this)
         Tool.selection.modified.trigger()
     }
 
     override deactivate(editor: FigureEditor) {
         editor.svgView.style.cursor = "default"
+        this.removeEditors(editor)
         Tool.selection.modified.remove(this)
         editor.decorationOverlay.removeChild(this.outline!)
         editor.decorationOverlay.removeChild(this.decoration!)
         this.outline = undefined
         this.decoration = undefined
-        this.anchors = []
-        this.insideAnchor = undefined
     }
 
     override pointerEvent(event: EditorPointerEvent): void {
+        for (let i = 0; i < this.editors.length; ++i) {
+            if (this.editors[i].pointerEvent(event)) {
+                return
+            }
+        }
+
         switch (this.state) {
             case EditToolState.NONE:
                 switch (event.type) {
                     case "down": {
-                        if (this.insideAnchor) {
-                            console.log(`inside anchor!!!`)
-                            this.state = EditToolState.DRAG_ANCHOR
-                            this.currentAnchor = this.insideAnchor
-                            this.lastPos = event
-                            return
-                        }
                         let figure = event.editor.selectedLayer!.findFigureAt(event)
                         if (figure === undefined) {
                             if (!event.shiftKey) {
@@ -107,113 +313,41 @@ export class EditTool extends Tool {
                         }
 
                         if (Tool.selection.has(figure)) {
+                            if (event.shiftKey) {
+                                Tool.selection.remove(figure)
+                            }
                             return
                         }
 
-                        Tool.selection.modified.lock()
-                        if (!event.shiftKey)
-                            Tool.selection.clear()
-                        Tool.selection.add(figure)
-                        Tool.selection.modified.unlock()
+                        if (event.shiftKey) {
+                            Tool.selection.add(figure)
+                        } else {
+                            Tool.selection.set(figure)
+                        }
                     } break
                 } break
-            case EditToolState.DRAG_ANCHOR:
-                switch(event.type) {
-                    case "move":
-                        if (this.currentAnchor!.figure instanceof Path) {
-                            // FIXME: there's too much skew using delta transformations
-                            this.currentAnchor!.figure.moveEdge(this.currentAnchor!.index, pointMinusPoint(event, this.lastPos!))
-                            let x = event.x - Figure.HANDLE_RANGE / 2.0
-                            let y = event.y - Figure.HANDLE_RANGE / 2.0
-                            x = Math.round(x - 0.5) + 0.5
-                            y = Math.round(y - 0.5) + 0.5
-                            this.currentAnchor!.svg.setAttributeNS("", "x", `${x}`)
-                            this.currentAnchor!.svg.setAttributeNS("", "y", `${y}`)
-                            this.updateOutline(event.editor)
-                            this.lastPos = event
-                        }
-                        break
-                    case "up":
-                        this.state = EditToolState.NONE
-                        event.editor.model!.modified.trigger({
-                            operation: Operation.UPDATE_FIGURES,
-                            figures: [this.currentAnchor!.figure.id]
-                        })
-                        break
-                }
         }
     }
 
-    anchors: Anchor[] = []
-    _handlePos = new Array<Point>(4)
-    _handles = new Array<SVGCircleElement>(4)
-    lines = new Array<SVGLineElement>(4)
+    editors: EditToolEditor[] = []
 
-    clearOutline() {
-        this.outline!.innerHTML = ""
+    updateSelection(editor: FigureEditor) {
+        this.removeEditors(editor)
+        this.addEditors(editor)
     }
 
-    updateOutline(editor: FigureEditor) {
-        this.clearOutline()
-        for (let figure of Tool.selection.selection) {
-            this.outline!.appendChild(this.createOutline(editor, figure))
-        }
-    }
-
-    clearAnchors() {
-        this.anchors.forEach(anchor => {
-            this.decoration!.removeChild(anchor.svg)
+    removeEditors(editor: FigureEditor) {
+        this.editors.forEach(editor => {
+            editor.destructor()
         })
-        this.anchors.length = 0
+        this.editors.length = 0
     }
 
-    updateAnchorsOfSelection(editor: FigureEditor) {
-        this.clearAnchors()
+    addEditors(editor: FigureEditor) {
         Tool.selection.selection.forEach(figure => {
             // TODO: move into figure.Path, etc. once this works
             if (figure instanceof Path) {
-                let idxValue = 0
-                for (let idxType = 0; idxType < figure.types.length; ++idxType) {
-                    let svg
-                    switch (figure.types[idxType]) {
-                        case AnchorType.ANCHOR_EDGE:
-                            svg = this.createAnchor({ x: figure.values[idxValue], y: figure.values[idxValue + 1] })
-                            idxValue += 2
-                            break
-                        case AnchorType.ANCHOR_EDGE_ANGLE:
-                            svg = this.createAnchor({ x: figure.values[idxValue], y: figure.values[idxValue + 1] })
-                            idxValue += 4
-                            break
-                        case AnchorType.ANCHOR_ANGLE_EDGE:
-                        case AnchorType.ANCHOR_SYMMETRIC:
-                            svg = this.createAnchor({ x: figure.values[idxValue + 2], y: figure.values[idxValue + 3] })
-                            idxValue += 4
-                            break
-                        case AnchorType.ANCHOR_ANGLE_ANGLE:
-                        case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
-                            svg = this.createAnchor({ x: figure.values[idxValue + 2], y: figure.values[idxValue + 3] })
-                            idxValue += 6
-                            break
-                        case AnchorType.CLOSE:
-                            break
-                    }
-                    if (svg) {
-                        svg.style.cursor = `url(${Tool.cursorPath}edit-anchor.svg) 1 1, crosshair`
-                        const anchor = {
-                            figure: figure,
-                            index: idxType,
-                            svg: svg,
-                        }
-                        this.anchors.push(anchor)
-                        svg.onmouseenter = () => {
-                            this.insideAnchor = anchor
-                        }
-                        svg.onmouseleave = () => {
-                            this.insideAnchor = undefined
-                        }
-                        this.decoration!.appendChild(svg)
-                    }
-                }
+                this.editors.push(new PathEditor(editor, this, figure))
             }
         })
     }

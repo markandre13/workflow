@@ -40,6 +40,13 @@ export class Path extends Figure implements valuetype.figure.Path {
         }
     }
 
+    clone(): Path {
+        const path = new Path()
+        path.types = [...this.types]
+        path.values = [...this.values]
+        return path
+    }
+
     //
     // Add and edit anchors
     //

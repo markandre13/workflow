@@ -507,7 +507,7 @@ export class Tool {
         }
     }
 
-    protected createAnchor(p: Point) {
+    createAnchor(p: Point) {
         let x = p.x - Figure.HANDLE_RANGE / 2.0
         let y = p.y - Figure.HANDLE_RANGE / 2.0
         x = Math.round(x - 0.5) + 0.5
@@ -523,7 +523,7 @@ export class Tool {
         return anchor
     }
 
-    protected createHandle(p: Point) {
+    createHandle(p: Point) {
         const x = Math.round(p.x - 0.5) + 0.5
         const y = Math.round(p.y - 0.5) + 0.5
 
