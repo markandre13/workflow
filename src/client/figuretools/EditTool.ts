@@ -30,13 +30,6 @@ export enum EditToolState {
     DRAG_ANCHOR
 }
 
-enum Handle {
-    PREVIOUS_FORWARD,
-    CURRENT_BACKWARD,
-    CURRENT_FORWARD,
-    NEXT_BACKWARD
-}
-
 // Anchor wraps the somewhat tedious data structure of figure.Path's anchors
 // modifications will happen on 'outline' and are then copied to 'figure' by
 // calling apply()
@@ -45,15 +38,26 @@ class Anchor {
     editor: PathEditor
     figure: Path
     outline: Path
+
+    _selected: boolean
+
+    // pointers into figure/outlines types and values array
     idxType: number
     idxValue: number
+
+    // SVG elements managedby this class
     private svgAnchor: SVGRectElement
+    private svgBackwardLine?: SVGLineElement
+    private svgBackwardHandle?: SVGCircleElement
+    private svgForwardLine?: SVGLineElement
+    private svgForwardHandle?: SVGCircleElement
 
     constructor(tool: EditTool, editor: PathEditor, figure: Path, outline: Path, idxType: number, idxValue: number) {
         this.tool = tool
         this.editor = editor
         this.figure = figure
         this.outline = outline
+        this._selected = false
         this.idxType = idxType
         this.idxValue = idxValue
 
@@ -66,11 +70,34 @@ class Anchor {
 
     destructor() {
         this.tool.decoration!.removeChild(this.svgAnchor)
+        this.hideBackwardHandle()
+        this.hideForwardHandle()
     }
 
-    select() {
-        this.showBackwardHandle()
-        this.showForwardHandle()
+    get selected(): boolean {
+        return this._selected
+    }
+
+    set selected(selected: boolean) {
+        this._selected = selected
+        if (this.svgAnchor) {
+            if (this._selected) {
+                this.svgAnchor.setAttributeNS("", "fill", "rgb(79,128,255)")
+            } else {
+                this.svgAnchor.setAttributeNS("", "fill", "#fff")
+            }
+        }
+    }
+
+    updateHandles(backwardHandle: boolean, forwardHandle: boolean) {
+        if (backwardHandle)
+            this.showBackwardHandle()
+        else
+            this.hideBackwardHandle()
+        if (forwardHandle)
+            this.showForwardHandle()
+        else
+            this.hideForwardHandle()
     }
 
     showBackwardHandle() {
@@ -84,10 +111,30 @@ class Anchor {
             case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
             case AnchorType.ANCHOR_ANGLE_ANGLE:
                 const pos = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
-                const backwardHandle = this.tool.createHandle(pos)
-                this.tool.decoration!.appendChild(backwardHandle)
-                const line = this.tool.createLine(this.pos, pos)
-                this.tool.decoration!.appendChild(line)
+                if (this.svgBackwardHandle) {
+                    this.svgBackwardLine!.setAttributeNS("", "x1", `${this.pos.x}`)
+                    this.svgBackwardLine!.setAttributeNS("", "y1", `${this.pos.y}`)
+                    this.svgBackwardLine!.setAttributeNS("", "x2", `${pos.x}`)
+                    this.svgBackwardLine!.setAttributeNS("", "y2", `${pos.y}`)
+                    const x = Math.round(pos.x - 0.5) + 0.5
+                    const y = Math.round(pos.y - 0.5) + 0.5
+                    this.svgBackwardHandle.setAttributeNS("", "cx", `${x}`)
+                    this.svgBackwardHandle.setAttributeNS("", "cy", `${y}`)
+                } else {
+                    this.svgBackwardLine = this.tool.createLine(this.pos, pos)
+                    this.tool.outline!.appendChild(this.svgBackwardLine)
+                    this.svgBackwardHandle = this.tool.createHandle(pos)
+                    this.tool.decoration!.appendChild(this.svgBackwardHandle)
+                }
+        }
+    }
+
+    hideBackwardHandle() {
+        if (this.svgBackwardHandle) {
+            this.tool.outline!.removeChild(this.svgBackwardLine!)
+            this.tool.decoration!.removeChild(this.svgBackwardHandle)
+            this.svgBackwardHandle = undefined
+            this.svgBackwardLine = undefined
         }
     }
 
@@ -112,14 +159,31 @@ class Anchor {
                 anchor = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
                 pos = { x: this.outline.values[this.idxValue + 4], y: this.outline.values[this.idxValue + 5] }
         }
-        const forwardHandle = this.tool.createHandle(pos)
-        this.tool.decoration!.appendChild(forwardHandle)
 
-        const line = this.tool.createLine(anchor, pos)
-        this.tool.decoration!.appendChild(line)
+        if (this.svgForwardHandle) {
+            this.svgForwardLine!.setAttributeNS("", "x1", `${anchor.x}`)
+            this.svgForwardLine!.setAttributeNS("", "y1", `${anchor.y}`)
+            this.svgForwardLine!.setAttributeNS("", "x2", `${pos.x}`)
+            this.svgForwardLine!.setAttributeNS("", "y2", `${pos.y}`)
+            const x = Math.round(pos.x - 0.5) + 0.5
+            const y = Math.round(pos.y - 0.5) + 0.5
+            this.svgForwardHandle.setAttributeNS("", "cx", `${x}`)
+            this.svgForwardHandle.setAttributeNS("", "cy", `${y}`)
+        } else {
+            this.svgForwardLine = this.tool.createLine(anchor, pos)
+            this.tool.outline!.appendChild(this.svgForwardLine)
+            this.svgForwardHandle = this.tool.createHandle(pos)
+            this.tool.decoration!.appendChild(this.svgForwardHandle)
+        }
     }
 
-    deselect() {
+    hideForwardHandle() {
+        if (this.svgForwardHandle) {
+            this.tool.outline!.removeChild(this.svgForwardLine!)
+            this.tool.decoration!.removeChild(this.svgForwardHandle)
+            this.svgForwardHandle = undefined
+            this.svgForwardLine = undefined
+        }
     }
 
     get length(): number {
@@ -246,6 +310,13 @@ abstract class EditToolEditor {
     }
 }
 
+enum Handle {
+    PREVIOUS_FORWARD,
+    CURRENT_BACKWARD,
+    CURRENT_FORWARD,
+    NEXT_BACKWARD
+}
+
 export class PathEditor extends EditToolEditor {
     anchors: Anchor[] = []
     currentAnchor?: Anchor
@@ -255,6 +326,8 @@ export class PathEditor extends EditToolEditor {
     tool: EditTool
 
     outlineSVG: SVGPathElement
+    handle = new Array<SVGCircleElement>(4)
+    line = new Array<SVGLineElement>(4)
 
     constructor(editor: FigureEditor, tool: EditTool, path: Path) {
         super()
@@ -294,7 +367,28 @@ export class PathEditor extends EditToolEditor {
     override pointerEvent(event: EditorPointerEvent): boolean {
         if (event.type === "down" && this.insideAnchor) {
             this.currentAnchor = this.insideAnchor
-            this.currentAnchor.select()
+            if (event.shiftKey) {
+                this.currentAnchor.selected = !this.currentAnchor.selected
+            } else {
+                this.anchors.forEach(anchor => anchor.selected = false)
+                this.currentAnchor.selected = true
+            }
+            for(let i=0; i<this.anchors.length; ++i) {
+                let backwardHandle = false
+                let forwardHandle = false
+                if (this.anchors[i].selected) {
+                    backwardHandle = true
+                    forwardHandle = true
+                } else {
+                    if (i>0 && this.anchors[i-1].selected) {
+                        backwardHandle = true
+                    }
+                    if (i+1<this.anchors.length && this.anchors[i+1].selected) {
+                        forwardHandle = true
+                    }
+                }
+                this.anchors[i].updateHandles(backwardHandle, forwardHandle)
+            }
             return true
         }
         if (this.currentAnchor !== undefined) {
