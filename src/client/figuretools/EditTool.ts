@@ -89,7 +89,7 @@ class Anchor {
         }
     }
 
-    updateHandles(backwardHandle: boolean, forwardHandle: boolean) {
+    setHandles(backwardHandle: boolean, forwardHandle: boolean) {
         if (backwardHandle)
             this.showBackwardHandle()
         else
@@ -98,6 +98,13 @@ class Anchor {
             this.showForwardHandle()
         else
             this.hideForwardHandle()
+    }
+
+    updateHandles() {
+        if (this.svgBackwardHandle)
+            this.showBackwardHandle()
+        if (this.svgForwardHandle)
+            this.showForwardHandle()
     }
 
     showBackwardHandle() {
@@ -262,6 +269,7 @@ class Anchor {
 
         this.svgAnchor.setAttributeNS("", "x", `${Math.round(point.x - Figure.HANDLE_RANGE / 2.0 - 0.5) + 0.5}`)
         this.svgAnchor.setAttributeNS("", "y", `${Math.round(point.y - Figure.HANDLE_RANGE / 2.0 - 0.5) + 0.5}`)
+        this.updateHandles()
 
         this.outline.getPath().updateSVG(this.tool.outline!, this.editor.outlineSVG)
     }
@@ -326,8 +334,8 @@ export class PathEditor extends EditToolEditor {
     tool: EditTool
 
     outlineSVG: SVGPathElement
-    handle = new Array<SVGCircleElement>(4)
-    line = new Array<SVGLineElement>(4)
+    // handle = new Array<SVGCircleElement>(4)
+    // line = new Array<SVGLineElement>(4)
 
     constructor(editor: FigureEditor, tool: EditTool, path: Path) {
         super()
@@ -387,7 +395,7 @@ export class PathEditor extends EditToolEditor {
                         forwardHandle = true
                     }
                 }
-                this.anchors[i].updateHandles(backwardHandle, forwardHandle)
+                this.anchors[i].setHandles(backwardHandle, forwardHandle)
             }
             return true
         }
