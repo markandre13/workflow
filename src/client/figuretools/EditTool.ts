@@ -20,7 +20,7 @@ import { FigureEditor, EditorPointerEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
 import { Path } from "../figures/Path"
-import { pointMinusPoint, pointPlusPoint, mirrorPoint } from "shared/geometry"
+import { pointMinusPoint, pointPlusPoint, mirrorPoint, distancePointToPoint, pointMultiplyNumber } from "shared/geometry"
 import { Point } from "shared/geometry/Point"
 import { figure } from "shared/workflow"
 const AnchorType = figure.AnchorType
@@ -28,6 +28,12 @@ const AnchorType = figure.AnchorType
 export enum EditToolState {
     NONE,
     DRAG_ANCHOR
+}
+
+enum AnchorElement {
+    BACKWARD_HANDLE,
+    ANCHOR,
+    FORWARD_HANDLE
 }
 
 // Anchor wraps the somewhat tedious data structure of figure.Path's anchors
@@ -40,6 +46,8 @@ class Anchor {
     outline: Path
 
     _selected: boolean
+    anchorElement!: AnchorElement
+
 
     // pointers into figure/outlines types and values array
     idxType: number
@@ -63,8 +71,14 @@ class Anchor {
 
         this.svgAnchor = tool.createAnchor(this.pos)
         this.svgAnchor.style.cursor = `url(${Tool.cursorPath}edit-anchor.svg) 1 1, crosshair`
-        this.svgAnchor.onmouseenter = () => { editor.insideAnchor = this }
-        this.svgAnchor.onmouseleave = () => { editor.insideAnchor = undefined }
+        this.svgAnchor.onpointerenter = () => {
+            editor.insideAnchor = this
+            this.anchorElement = AnchorElement.ANCHOR
+        }
+        this.svgAnchor.onpointerleave = () => {
+            editor.insideAnchor = undefined
+            this.anchorElement = AnchorElement.ANCHOR
+        }
         this.tool.decoration!.appendChild(this.svgAnchor)
     }
 
@@ -132,6 +146,15 @@ class Anchor {
                     this.tool.outline!.appendChild(this.svgBackwardLine)
                     this.svgBackwardHandle = this.tool.createHandle(pos)
                     this.tool.decoration!.appendChild(this.svgBackwardHandle)
+                    this.svgBackwardHandle.onpointerenter = () => {
+                        this.editor.insideAnchor = this
+                        this.anchorElement = AnchorElement.BACKWARD_HANDLE
+                    }
+                    this.svgBackwardHandle.onpointerleave = () => {
+                        this.editor.insideAnchor = undefined
+                        this.anchorElement = AnchorElement.BACKWARD_HANDLE
+                    }
+                    this.svgBackwardHandle.style.cursor = `url(${Tool.cursorPath}edit-handle.svg) 1 1, crosshair`
                 }
         }
     }
@@ -181,6 +204,15 @@ class Anchor {
             this.tool.outline!.appendChild(this.svgForwardLine)
             this.svgForwardHandle = this.tool.createHandle(pos)
             this.tool.decoration!.appendChild(this.svgForwardHandle)
+            this.svgForwardHandle.onpointerenter = () => {
+                this.editor.insideAnchor = this
+                this.anchorElement = AnchorElement.FORWARD_HANDLE
+            }
+            this.svgForwardHandle.onpointerleave = () => {
+                this.editor.insideAnchor = undefined
+                this.anchorElement = AnchorElement.FORWARD_HANDLE
+            }
+            this.svgForwardHandle.style.cursor = `url(${Tool.cursorPath}edit-handle.svg) 1 1, crosshair`
         }
     }
 
@@ -221,6 +253,20 @@ class Anchor {
                 return { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
             case AnchorType.CLOSE:
                 throw Error(`anchor type CLOSE has no position to get`)
+        }
+    }
+
+    moveTo(point: Point) {
+        switch (this.anchorElement) {
+            case AnchorElement.ANCHOR:
+                this.pos = point
+                break
+            case AnchorElement.BACKWARD_HANDLE:
+                this.backwardHandle = point
+                break
+            case AnchorElement.FORWARD_HANDLE:
+                this.forwardHandle = point
+                break
         }
     }
 
@@ -271,6 +317,81 @@ class Anchor {
         this.svgAnchor.setAttributeNS("", "y", `${Math.round(point.y - Figure.HANDLE_RANGE / 2.0 - 0.5) + 0.5}`)
         this.updateHandles()
 
+        this.outline.getPath().updateSVG(this.tool.outline!, this.editor.outlineSVG)
+    }
+
+    set backwardHandle(point: Point) {
+        switch (this.outline.types[this.idxType]) {
+            case AnchorType.ANCHOR_EDGE:
+                throw Error("anchor type EDGE has no backward handle to set")
+            case AnchorType.ANCHOR_EDGE_ANGLE:
+                throw Error("anchor type EDGE_ANGLE has no backward handle to set")
+            case AnchorType.CLOSE:
+                throw Error(`anchor type CLOSE has no backward handle to set`)
+            case AnchorType.ANCHOR_ANGLE_EDGE:
+            case AnchorType.ANCHOR_SYMMETRIC:
+            case AnchorType.ANCHOR_ANGLE_ANGLE: {
+                this.outline.values[this.idxValue] = point.x
+                this.outline.values[this.idxValue + 1] = point.y
+            } break
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE: {
+                let forwardHandle = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
+                const anchor = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+                let backwardHandle = point
+                const d0 = distancePointToPoint(anchor, backwardHandle)
+                const d1 = distancePointToPoint(anchor, forwardHandle)
+                const d = pointMultiplyNumber(pointMinusPoint(forwardHandle, anchor), d1 / d0)
+                forwardHandle = pointPlusPoint(anchor, d)
+                this.outline.values[this.idxValue] = backwardHandle.x
+                this.outline.values[this.idxValue + 1] = backwardHandle.y
+                this.outline.values[this.idxValue + 4] = forwardHandle.x
+                this.outline.values[this.idxValue + 5] = forwardHandle.y
+            } break
+        }
+
+        this.updateHandles()
+        this.outline.getPath().updateSVG(this.tool.outline!, this.editor.outlineSVG)
+    }
+
+    set forwardHandle(point: Point) {
+        switch (this.outline.types[this.idxType]) {
+            case AnchorType.ANCHOR_EDGE:
+                throw Error("anchor type EDGE has no forward handle to set")
+            case AnchorType.ANCHOR_ANGLE_EDGE:
+                throw Error("anchor type ANGLE_EDGE has no forward handle to set")
+            case AnchorType.CLOSE:
+                throw Error(`anchor type CLOSE has no forward handle to set`)
+            case AnchorType.ANCHOR_EDGE_ANGLE: {
+                this.outline.values[this.idxValue + 2] = point.x
+                this.outline.values[this.idxValue + 3] = point.y
+            } break
+            case AnchorType.ANCHOR_SYMMETRIC: {
+                const anchor = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+                const forwardHandle = point
+                const backwardHandle = mirrorPoint(anchor, forwardHandle)
+                this.outline.values[this.idxValue] = backwardHandle.x
+                this.outline.values[this.idxValue + 1] = backwardHandle.y
+            } break
+            case AnchorType.ANCHOR_ANGLE_ANGLE: {
+                this.outline.values[this.idxValue + 4] = point.x
+                this.outline.values[this.idxValue + 5] = point.y
+            } break
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE: {
+                let backwardHandle = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
+                const anchor = { x: this.outline.values[this.idxValue + 2], y: this.outline.values[this.idxValue + 3] }
+                let forwardHandle = { x: this.outline.values[this.idxValue + 4], y: this.outline.values[this.idxValue + 5] }
+                const d0 = distancePointToPoint(anchor, backwardHandle)
+                const d1 = distancePointToPoint(anchor, forwardHandle)
+                const d = pointMultiplyNumber(pointMinusPoint(point, anchor), d1 / d0)
+                backwardHandle = pointPlusPoint(anchor, d)
+                this.outline.values[this.idxValue] = backwardHandle.x
+                this.outline.values[this.idxValue + 1] = backwardHandle.y
+                this.outline.values[this.idxValue + 4] = point.x
+                this.outline.values[this.idxValue + 5] = point.y
+            } break
+        }
+
+        this.updateHandles()
         this.outline.getPath().updateSVG(this.tool.outline!, this.editor.outlineSVG)
     }
 
@@ -334,8 +455,6 @@ export class PathEditor extends EditToolEditor {
     tool: EditTool
 
     outlineSVG: SVGPathElement
-    // handle = new Array<SVGCircleElement>(4)
-    // line = new Array<SVGLineElement>(4)
 
     constructor(editor: FigureEditor, tool: EditTool, path: Path) {
         super()
@@ -375,23 +494,26 @@ export class PathEditor extends EditToolEditor {
     override pointerEvent(event: EditorPointerEvent): boolean {
         if (event.type === "down" && this.insideAnchor) {
             this.currentAnchor = this.insideAnchor
+            // if (this.insideAnchor.anchorElement !== AnchorElement.ANCHOR) {
+            //     // TODO: temporarily select anchor until mouse is released
+            // }
             if (event.shiftKey) {
                 this.currentAnchor.selected = !this.currentAnchor.selected
             } else {
                 this.anchors.forEach(anchor => anchor.selected = false)
                 this.currentAnchor.selected = true
             }
-            for(let i=0; i<this.anchors.length; ++i) {
+            for (let i = 0; i < this.anchors.length; ++i) {
                 let backwardHandle = false
                 let forwardHandle = false
                 if (this.anchors[i].selected) {
                     backwardHandle = true
                     forwardHandle = true
                 } else {
-                    if (i>0 && this.anchors[i-1].selected) {
+                    if (i > 0 && this.anchors[i - 1].selected) {
                         backwardHandle = true
                     }
-                    if (i+1<this.anchors.length && this.anchors[i+1].selected) {
+                    if (i + 1 < this.anchors.length && this.anchors[i + 1].selected) {
                         forwardHandle = true
                     }
                 }
@@ -402,7 +524,7 @@ export class PathEditor extends EditToolEditor {
         if (this.currentAnchor !== undefined) {
             switch (event.type) {
                 case "move":
-                    this.currentAnchor.pos = event
+                    this.currentAnchor.moveTo(event)
                     break
                 case "up":
                     this.currentAnchor.apply()
