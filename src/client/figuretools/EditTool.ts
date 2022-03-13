@@ -16,6 +16,33 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+converting between anchor types in affinity designer:
+
+             anchor            handle
+opt+click    remove handles    remove this handle
+ctrl+click   smooth            smooth
+opt+drag                       sharp
+ctrl+drag                      symmetric while pressed (affinity only)
+                               we could use this to switch to symmetric permanently,
+                               ctrl+click on the anchor can then switch back to smooth
+space+drag                     move anchor (affinity & illustrator)
+
+symmetric is not stored, it's always smooth (both in illustrator and affinity designer)
+tool hint changes depending what the cursor hovers on
+we could also change the cursor depending on what key is pressed?
+
+add/remove anchor?
+affinity:
+o select anchor, hit delete/backspace to remove anchor
+o click on curve to add anchor
+
+cursor
+o we could fill the edit cursor to indicate the grab?
+
+a method to indicate the anchor type?
+*/
+
 import { FigureEditor, EditorPointerEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
@@ -48,12 +75,11 @@ class Anchor {
     _selected: boolean
     anchorElement!: AnchorElement
 
-
     // pointers into figure/outlines types and values array
     idxType: number
     idxValue: number
 
-    // SVG elements managedby this class
+    // SVG elements managed by this class
     private svgAnchor: SVGRectElement
     private svgBackwardLine?: SVGLineElement
     private svgBackwardHandle?: SVGCircleElement
@@ -69,7 +95,20 @@ class Anchor {
         this.idxType = idxType
         this.idxValue = idxValue
 
-        this.svgAnchor = tool.createAnchor(this.pos)
+        // HOW TO DO THIS:
+        // o each EditToolEditor (PathEditor) manages one figure hence
+        // o each EditToolEditor is going to maintain two matrices, one
+        //   for screen2figure, one for figure2screen. in case the figure
+        //   is part of a group/groups, those are included
+        // o now we just need a nice API to handle this
+        // o add group/ungroup to be able to write a complete test!
+        //   (also, edit usually goes inside the group)
+        let pos = this.pos
+        if (figure.matrix !== undefined) {
+            pos = figure.matrix.transformPoint(pos)
+        }
+
+        this.svgAnchor = tool.createAnchor(pos)
         this.svgAnchor.style.cursor = `url(${Tool.cursorPath}edit-anchor.svg) 1 1, crosshair`
         this.svgAnchor.onpointerenter = () => {
             editor.insideAnchor = this
@@ -465,6 +504,8 @@ export class PathEditor extends EditToolEditor {
         // create outline
         const outline = path.clone()
         const outlinePath = outline.getPath()
+        if (path.matrix !== undefined)
+            outlinePath.transform(path.matrix)
         this.outlineSVG = outlinePath.createSVG()
         this.tool.setOutlineColors(this.outlineSVG)
         this.tool.outline!.appendChild(this.outlineSVG)
