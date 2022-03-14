@@ -490,7 +490,7 @@ export class PenTool extends Tool {
         if (this.anchors.length > 1) {
             this.anchors[this.anchors.length - 1].style.cursor = ""
         }
-        const anchor = this.createAnchor(p)
+        const anchor = Tool.createAnchor(undefined, p)
         if (this.anchors.length === 0) {
             anchor.style.cursor = `url(${Tool.cursorPath}pen-close.svg) 5 1, crosshair`
         } else {
@@ -543,21 +543,15 @@ export class PenTool extends Tool {
 
         this._handlePos[idx] = handlePos
         if (this._handles[idx] === undefined) {
-            this._handles[idx] = this.createHandle(handlePos)
+            this._handles[idx] = Tool.createHandle(undefined, handlePos)
             this.decoration!.appendChild(this._handles[idx])
-            this.lines[idx] = this.createLine(anchorPos, handlePos)
+            this.lines[idx] = Tool.createLine(undefined, anchorPos, handlePos)
             this.decoration!.appendChild(this.lines[idx])
         } else {
             this._handles[idx].style.display = ""
             this.lines[idx].style.display = ""
-            const x = Math.round(handlePos.x - 0.5) + 0.5
-            const y = Math.round(handlePos.y - 0.5) + 0.5
-            this._handles[idx].setAttributeNS("", "cx", `${x}`)
-            this._handles[idx].setAttributeNS("", "cy", `${y}`)
-            this.lines[idx].setAttributeNS("", "x1", `${anchorPos.x}`)
-            this.lines[idx].setAttributeNS("", "y1", `${anchorPos.y}`)
-            this.lines[idx].setAttributeNS("", "x2", `${handlePos.x}`)
-            this.lines[idx].setAttributeNS("", "y2", `${handlePos.y}`)
+            Tool.updateHandle(undefined, handlePos, this._handles[idx])
+            Tool.updateLine(undefined, anchorPos, handlePos, this.lines[idx])
         }
     }
     switchHandle(idxOld: Handle, idxNew: Handle) {

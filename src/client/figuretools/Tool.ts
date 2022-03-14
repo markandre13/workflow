@@ -507,7 +507,10 @@ export class Tool {
         }
     }
 
-    createAnchor(p: Point) {
+    static createAnchor(figureToScreen: Matrix | undefined, p: Point) {
+        if (figureToScreen) {
+            p = figureToScreen.transformPoint(p)
+        }
         let x = p.x - Figure.HANDLE_RANGE / 2.0
         let y = p.y - Figure.HANDLE_RANGE / 2.0
         x = Math.round(x - 0.5) + 0.5
@@ -523,7 +526,22 @@ export class Tool {
         return anchor
     }
 
-    createHandle(p: Point) {
+    static updateAnchor(figureToScreen: Matrix | undefined, p: Point, svg: SVGRectElement) {
+        if (figureToScreen) {
+            p = figureToScreen.transformPoint(p)
+        }
+        let x = p.x - Figure.HANDLE_RANGE / 2.0
+        let y = p.y - Figure.HANDLE_RANGE / 2.0
+        x = Math.round(x - 0.5) + 0.5
+        y = Math.round(y - 0.5) + 0.5
+        svg.setAttributeNS("", "x", `${x}`)
+        svg.setAttributeNS("", "y", `${y}`)
+    }
+
+    static createHandle(figureToScreen: Matrix | undefined, p: Point) {
+        if (figureToScreen) {
+            p = figureToScreen.transformPoint(p)
+        }
         const x = Math.round(p.x - 0.5) + 0.5
         const y = Math.round(p.y - 0.5) + 0.5
 
@@ -536,7 +554,21 @@ export class Tool {
         return handle
     }
 
-    createLine(p0: Point, p1: Point) {
+    static updateHandle(figureToScreen: Matrix | undefined, p: Point, svg: SVGCircleElement) {
+        if (figureToScreen) {
+            p = figureToScreen.transformPoint(p)
+        }
+        const x = Math.round(p.x - 0.5) + 0.5
+        const y = Math.round(p.y - 0.5) + 0.5
+        svg.setAttributeNS("", "cx", `${x}`)
+        svg.setAttributeNS("", "cy", `${y}`)
+    }
+
+    static createLine(figureToScreen: Matrix | undefined, p0: Point, p1: Point) {
+        if (figureToScreen) {
+            p0 = figureToScreen.transformPoint(p0)
+            p1 = figureToScreen.transformPoint(p1)
+        }
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line")
         line.setAttributeNS("", "x1", `${p0.x}`)
         line.setAttributeNS("", "y1", `${p0.y}`)
@@ -544,6 +576,17 @@ export class Tool {
         line.setAttributeNS("", "y2", `${p1.y}`)
         line.setAttributeNS("", "stroke", `rgb(79,128,255)`)
         return line
+    }
+
+    static updateLine(figureToScreen: Matrix | undefined, p0: Point, p1: Point, svg: SVGLineElement) {
+        if (figureToScreen) {
+            p0 = figureToScreen.transformPoint(p0)
+            p1 = figureToScreen.transformPoint(p1)
+        }
+        svg.setAttributeNS("", "x1", `${p0.x}`)
+        svg.setAttributeNS("", "y1", `${p0.y}`)
+        svg.setAttributeNS("", "x2", `${p1.x}`)
+        svg.setAttributeNS("", "y2", `${p1.y}`)
     }
 
     static setHint(hint: string) {
