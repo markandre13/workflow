@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="32px" height="32px" viewBox="0 0 32 32">
+  <path stroke="#fff" stroke-width="1" fill="#000" d="M 0.5 1.5 L 0.5 15.5 L 4.5 11.5 L 10.5 11.5 Z"/>
+  <path stroke="#fff" stroke-width="1" fill="#fff" d="M 2.5 6 L 2.5 11 L 4 9.5 L 6 9.5 Z"/>
+  <rect stroke="#fff" stroke-width="1" fill="#fff" x="8.5" y="11.5" width="6" height="6"/>
+  <rect stroke="#000" stroke-width="1" fill="#fff" x="9.5" y="12.5" width="4" height="4"/>
+</svg>
