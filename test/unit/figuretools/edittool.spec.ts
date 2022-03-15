@@ -1,12 +1,13 @@
 import { expect } from '@esm-bundle/chai'
 
 import { FigureEditorScene } from "../FigureEditorScene"
-import { State } from "client/figuretools/PenTool"
+import { Tool } from "client/figuretools/Tool"
+import { Path } from "client/figures/Path"
 
 import { initializeCORBAValueTypes } from "client/workflow"
 import { Point, mirrorPoint } from 'shared/geometry'
 
-// it("\x07") // beep
+it("\x07") // beep
 
 describe("EditTool", function () {
     this.beforeAll(async function () {
@@ -14,16 +15,64 @@ describe("EditTool", function () {
         await loadScript("polyfill/path-data-polyfill.js")
     })
 
-    it("ready to start a new path", function () {
-        const scene = new FigureEditorScene()
-        scene.selectEditTool()
+    describe("Path", function() {
 
-        expect(scene.penTool.state).to.equal(State.READY)
-        expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-ready.svg")
-    })
+        it("ready to edit", function () {
+            const scene = new FigureEditorScene()
 
-    xit("select a path", function() {
+            scene.selectEditTool()
 
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit.svg")
+        })
+
+        it("select a path", function() {
+            const scene = new FigureEditorScene()
+            const path = new Path()
+            const p0 = {x: 10, y: 50}
+            const p1 = {x: 90, y: 50}
+            path.addEdge(p0)
+            path.addEdge(p1)
+            scene.addFigure(path)
+            scene.selectEditTool()
+
+            scene.pointerClickAt({x: 50, y: 50})
+
+            expect(Tool.selection.has(path)).to.be.true
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit.svg")
+        })
+
+        it("cursor for anchor")
+        it("cursor for handle")
+
+        it("move an edge anchor", function() {
+            const scene = new FigureEditorScene()
+            const path = new Path()
+            const p0 = {x: 10, y: 50}
+            const p1 = {x: 90, y: 50}
+            const p2 = {x: 20, y: 30}
+
+            path.addEdge(p0)
+            path.addEdge(p1)
+            scene.addFigure(path)
+            scene.selectEditTool()
+
+            scene.pointerClickAt({x: 50, y: 50})
+
+            const e = scene.figureeditor.shadowRoot!.elementFromPoint(p0.x, p0.y)! as SVGElement
+            expect(e.style.cursor).to.contain("edit-anchor.svg")
+
+            // TODO: test outline
+            e.dispatchEvent(new PointerEvent("pointerenter"))
+            scene.pointerDownAt(p0)
+            scene.pointerTo(p2)
+            scene.pointerUp()
+            e.dispatchEvent(new PointerEvent("pointerleave"))
+
+            expect(path.toInternalString()).to.equal("E 20 30 E 90 50")
+
+            expect(Tool.selection.has(path)).to.be.true
+            expect(scene.figureeditor.svgView.style.cursor).to.contain("edit.svg")
+        })
     })
 })
 
