@@ -8,10 +8,22 @@ import { Point, mirrorPoint } from 'shared/geometry'
 
 // it("\x07") // beep
 
-describe("PenTool", function () {
+describe("EditTool", function () {
     this.beforeAll(async function () {
         initializeCORBAValueTypes()
         await loadScript("polyfill/path-data-polyfill.js")
+    })
+
+    it("ready to start a new path", function () {
+        const scene = new FigureEditorScene()
+        scene.selectEditTool()
+
+        expect(scene.penTool.state).to.equal(State.READY)
+        expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-ready.svg")
+    })
+
+    xit("select a path", function() {
+
     })
 })
 

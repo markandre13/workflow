@@ -14,14 +14,9 @@ describe("PenTool", function () {
         await loadScript("polyfill/path-data-polyfill.js")
     })
 
-    // the checks the state machine according to doc/pentool-state-diagram.svg
-    describe("draw curves one segment at a time (v5)", function () {
+    describe("draw curves one segment at a time", function () {
 
-        //
-        // getting started
-        //
-
-        it("READY", function () {
+        it("ready to start a new path", function () {
             const scene = new FigureEditorScene()
             scene.selectPenTool()
 
@@ -29,7 +24,11 @@ describe("PenTool", function () {
             expect(scene.figureeditor.svgView.style.cursor).to.contain("pen-ready.svg")
         })
 
-        it("sequence of curves", function () {
+        it("create a sequence of lines")
+
+        it("mix curves and lines")
+
+        it("create a sequence of curves", function () {
             const scene = new FigureEditorScene()
             scene.selectPenTool()
 
@@ -182,6 +181,7 @@ describe("PenTool", function () {
 
             expect(scene.penTool.figure?.toInternalString()).to.equal(`AE ${p(m3)} ${p(p0)} E ${p(p1)} E ${p(p2)} Z`)
         })
+
         it("drag close on curve", function() {
             const scene = new FigureEditorScene()
             scene.selectPenTool()

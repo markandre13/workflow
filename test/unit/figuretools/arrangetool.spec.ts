@@ -614,8 +614,8 @@ describe("FigureEditor", function() {
                     let position2 = rotatePointAroundPointBy(position0, center, Math.PI / 4)
 
                     scene.pointerDownAt(position0)
-                    expect(scene.selectTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
-                    expect(scene.selectTool.selectedHandle).is.equal(8)
+                    expect(scene.arrangeTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
+                    expect(scene.arrangeTool.selectedHandle).is.equal(8)
                     scene.pointerTo(position1)
                     scene.pointerUp()
 
@@ -624,8 +624,8 @@ describe("FigureEditor", function() {
                     position2 = rotatePointAroundPointBy(p1, center, Math.PI / 8)
 
                     scene.pointerDownAt(p1)
-                    expect(scene.selectTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
-                    expect(scene.selectTool.selectedHandle).is.equal(8)
+                    expect(scene.arrangeTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
+                    expect(scene.arrangeTool.selectedHandle).is.equal(8)
                     scene.pointerTo(position2)
 
                     // THEN
@@ -652,8 +652,8 @@ describe("FigureEditor", function() {
 
                     // 1st rotation
                     scene.pointerDownAt(position0)
-                    expect(scene.selectTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
-                    expect(scene.selectTool.selectedHandle).is.equal(8)
+                    expect(scene.arrangeTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
+                    expect(scene.arrangeTool.selectedHandle).is.equal(8)
                     scene.pointerTo(position1)
                     scene.pointerUp()
                     scene.selectionHasRectangle(rectangle, center, Math.PI / 8)
@@ -664,8 +664,8 @@ describe("FigureEditor", function() {
                     position2 = rotatePointAroundPointBy(p1, center, Math.PI / 8)
 
                     scene.pointerDownAt(p1)
-                    expect(scene.selectTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
-                    expect(scene.selectTool.selectedHandle).is.equal(8)
+                    expect(scene.arrangeTool.state).is.equal(ArrangeToolState.MOVE_HANDLE)
+                    expect(scene.arrangeTool.selectedHandle).is.equal(8)
                     scene.pointerTo(position2)
                     scene.pointerUp()
 
@@ -717,7 +717,7 @@ describe("FigureEditor", function() {
                     scene.selectionHasRectangle(r2)
                     // WHEN
                     let oldMouseRotate = scene.centerOfNWRotateHandle()
-                    let center = scene.selectTool.boundary.center()
+                    let center = scene.arrangeTool.boundary.center()
                     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI / 4)
 
                     scene.pointerDownAt(oldMouseRotate)
@@ -746,7 +746,7 @@ describe("FigureEditor", function() {
 
                     // WHEN
                     let oldMouseRotate = scene.centerOfNWRotateHandle()
-                    let center = scene.selectTool.boundary.center()
+                    let center = scene.arrangeTool.boundary.center()
                     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI / 4)
 
                     scene.pointerDownAt(oldMouseRotate)

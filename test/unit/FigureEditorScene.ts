@@ -91,7 +91,7 @@ interface KeyboardOption {
 // https://martinfowler.com/bliki/PageObject.html
 export class FigureEditorScene {
     figureeditor: FigureEditor
-    selectTool: ArrangeTool
+    arrangeTool: ArrangeTool
     editTool: EditTool
     penTool: PenTool
     textTool: TextTool
@@ -118,11 +118,11 @@ export class FigureEditorScene {
         if (Tool.selection)
             Tool.selection.clear()
 
-        this.selectTool = new ArrangeTool()
+        this.arrangeTool = new ArrangeTool()
         this.editTool = new EditTool()
         this.penTool = new PenTool()
         this.textTool = new TextTool()
-        this.figureeditor.setTool(this.selectTool)
+        this.figureeditor.setTool(this.arrangeTool)
 
         Tool.selection.clear()
 
@@ -149,7 +149,8 @@ export class FigureEditorScene {
 
     // semantic operations
 
-    selectSelectTool() { this.figureeditor.setTool(this.selectTool) }
+    selectArrangeTool() { this.figureeditor.setTool(this.arrangeTool) }
+    selectEditTool() { this.figureeditor.setTool(this.editTool) }
     selectPenTool() { this.figureeditor.setTool(this.penTool) }
     selectTextTool() { this.figureeditor.setTool(this.textTool) }
 
@@ -176,11 +177,11 @@ export class FigureEditorScene {
             transform.translate(center)
             fig.matrix = transform
         } else
-            if (center !== undefined) {
-                let transform = new Matrix()
-                transform.translate(center)
-                fig.matrix = transform
-            }
+        if (center !== undefined) {
+            let transform = new Matrix()
+            transform.translate(center)
+            fig.matrix = transform
+        }
         this.model.add(0, fig)
         this.figures.push(fig)
     }
@@ -261,7 +262,7 @@ export class FigureEditorScene {
     }
 
     outlineHasPoint(point: Point): void {
-        let outline = this.selectTool.outline!!
+        let outline = this.arrangeTool.outline!!
         let msg = ""
         for (let i = 0; i < outline.childNodes.length; ++i) {
             let path = outline.childNodes[i] as SVGPathElement
