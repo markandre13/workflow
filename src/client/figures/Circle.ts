@@ -36,7 +36,7 @@ export class Circle extends Shape implements valuetype.figure.Circle {
         if (this.fill !== "none") {
             let d = Math.sqrt(dx * dx + dy * dy) - Math.sqrt(ex * ex + ey * ey)
             if (d < 0.0)
-                return -1.0
+                return Shape.FIGURE_RANGE/4*3
             return d
         }
         dx -= ex

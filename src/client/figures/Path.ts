@@ -500,9 +500,9 @@ export class Path extends Figure implements valuetype.figure.Path {
     // TODO: why have a distance method when the RawPath can be used for that?
     override distance(pt: Point): number {
         const path = this.getPath() // FIXME: slow
-        // TODO: consider range/scale?
+        // TODO: consider range/scale, or is pt already in figure coordinates?
         if (this.fill !== "none" && path.contains(pt)) {
-            return -1
+            return Figure.FIGURE_RANGE/4*3 // TODO: path.distance() is in figure coordinates, this one should be in screen coordinates
         }
         return path.distance(pt)
     }

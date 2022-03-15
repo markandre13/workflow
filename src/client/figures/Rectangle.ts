@@ -31,7 +31,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
         // FIXME: not final: RANGE and fill="none" need to be considered
         if (this.origin.x <= pt.x && pt.x < this.origin.x + this.size.width &&
             this.origin.y <= pt.y && pt.y < this.origin.y + this.size.height) {
-            return -1.0 // even closer than 0
+            return Shape.FIGURE_RANGE/4*3
         }
         return Number.MAX_VALUE
     }
