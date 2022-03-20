@@ -533,32 +533,9 @@ export class PathEditor extends EditToolEditor {
             this.currentAnchor = this.insideAnchor
             event.editor.scrollView.style.cursor = `url(${Tool.cursorPath}edit-cursor.svg) 1 1, crosshair`
 
-            // if (this.insideAnchor.anchorElement !== AnchorElement.ANCHOR) {
-            //     // TODO: temporarily select anchor until mouse is released
-            //     // to have all handles on the anchor visible when editing
-            // }
-            if (event.shiftKey) {
-                this.currentAnchor.selected = !this.currentAnchor.selected
-            } else {
-                this.anchors.forEach(anchor => anchor.selected = false)
-                this.currentAnchor.selected = true
-            }
-            for (let i = 0; i < this.anchors.length; ++i) {
-                let backwardHandle = false
-                let forwardHandle = false
-                if (this.anchors[i].selected) {
-                    backwardHandle = true
-                    forwardHandle = true
-                } else {
-                    if (i > 0 && this.anchors[i - 1].selected) {
-                        backwardHandle = true
-                    }
-                    if (i + 1 < this.anchors.length && this.anchors[i + 1].selected) {
-                        forwardHandle = true
-                    }
-                }
-                this.anchors[i].setHandles(backwardHandle, forwardHandle)
-            }
+            this.selectAnchor(event)
+            this.updateHandles()
+
             return true
         }
         if (this.currentAnchor !== undefined) {
@@ -573,11 +550,46 @@ export class PathEditor extends EditToolEditor {
                         figures: [this.currentAnchor!.figure.id]
                     })
                     this.currentAnchor = undefined
+                    this.updateHandles()
                     break
             }
             return true
         }
         return false
+    }
+
+    private selectAnchor(event: EditorPointerEvent) {
+        if (!this.insideAnchor || !this.currentAnchor) {
+            throw Error("yikes")
+        }
+        if (this.insideAnchor.anchorElement === AnchorElement.ANCHOR) {
+            if (event.shiftKey) {
+                this.currentAnchor.selected = !this.currentAnchor.selected
+            } else {
+                this.anchors.forEach(anchor => anchor.selected = false)
+                this.currentAnchor.selected = true
+            }
+        }
+    }
+
+    private updateHandles() {
+        // show/hide handles
+        for (let i = 0; i < this.anchors.length; ++i) {
+            let backwardHandle = false
+            let forwardHandle = false
+            if (this.anchors[i].selected || this.anchors[i] === this.currentAnchor) {
+                backwardHandle = true
+                forwardHandle = true
+            } else {
+                if (i > 0 && this.anchors[i - 1].selected) {
+                    backwardHandle = true
+                }
+                if (i + 1 < this.anchors.length && this.anchors[i + 1].selected) {
+                    forwardHandle = true
+                }
+            }
+            this.anchors[i].setHandles(backwardHandle, forwardHandle)
+        }
     }
 }
 

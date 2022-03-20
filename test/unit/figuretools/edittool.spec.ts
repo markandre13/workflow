@@ -40,8 +40,68 @@ describe("EditTool", function () {
             expect(Tool.selection.has(path)).to.be.true
             expect(scene.figureeditor.svgView.style.cursor).to.contain("edit.svg")
         })
+        it("temporarily show all handles on anchor when one handle is grabbed", function() {
+            const scene = new FigureEditorScene()
+            const path = new Path()
+            const p0 = { x: 10, y: 50 }
+            const p1 = { x: 30, y: 70 }
+            const p2 = { x: 40, y: 50 }
+            const p3 = { x: 60, y: 70 }
+            const p4 = { x: 70, y: 50 }
+            const p5 = { x: 90, y: 70 }
+            const p6 = { x: 100, y: 50 }
+            const p7 = { x: 120, y: 50 }
+            path.addEdge(p0)
+            path.addSymmetric(p1, p2)
+            path.addSymmetric(p3, p4)
+            path.addSymmetric(p5, p6)
+            path.addEdge(p7)
+            scene.addFigure(path)
+            scene.selectEditTool()
 
-        it("non selected anchors show all handles when their visible handle is edited till pointer is released")
+            scene.pointerClickAt(p0)
+            expect(scene.getAnchorHandleCount()).to.deep.equal([5, 0])
+
+            scene.pointerClickAt(p4)
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p1))).to.be.true
+            expect(scene.hasHandleAt(p4, p3)).to.be.true
+            expect(scene.hasHandleAt(p4, mirrorPoint(p4, p3))).to.be.true
+            expect(scene.hasHandleAt(p6, p5)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([5, 4])
+
+            // previous anchor's handle
+            scene.pointerDownAt(mirrorPoint(p2, p1))
+            expect(scene.hasHandleAt(p2, p1)).to.be.true
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p1))).to.be.true
+            expect(scene.hasHandleAt(p4, p3)).to.be.true
+            expect(scene.hasHandleAt(p4, mirrorPoint(p4, p3))).to.be.true
+            expect(scene.hasHandleAt(p6, p5)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([5, 5])
+
+            scene.pointerUp()
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p1))).to.be.true
+            expect(scene.hasHandleAt(p4, p3)).to.be.true
+            expect(scene.hasHandleAt(p4, mirrorPoint(p4, p3))).to.be.true
+            expect(scene.hasHandleAt(p6, p5)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([5, 4])
+
+            // next anchor's handle
+            scene.pointerDownAt(p5)
+            // expect(scene.hasHandleAt(p2, p1)).to.be.true
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p1))).to.be.true
+            expect(scene.hasHandleAt(p4, p3)).to.be.true
+            expect(scene.hasHandleAt(p4, mirrorPoint(p4, p3))).to.be.true
+            expect(scene.hasHandleAt(p6, p5)).to.be.true
+            expect(scene.hasHandleAt(p6, mirrorPoint(p6, p5))).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([5, 5])
+
+            scene.pointerUp()
+            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p1))).to.be.true
+            expect(scene.hasHandleAt(p4, p3)).to.be.true
+            expect(scene.hasHandleAt(p4, mirrorPoint(p4, p3))).to.be.true
+            expect(scene.hasHandleAt(p6, p5)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([5, 4])
+        })
 
         describe("change anchor types", function () {
             describe("ALT key makes edges sharper", function () {
