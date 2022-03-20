@@ -240,7 +240,6 @@ export class FigureEditorScene {
                         break
                     case 'C':
                         throw Error("not implemented yet")
-                        break
                 }
             }
         }
@@ -327,7 +326,7 @@ export class FigureEditorScene {
         })
     }
 
-    pointerTo(point: Point, shift = true) {
+    pointerTo(point: Point, shift = false, alt=false) {
         if (this.verbose)
             console.log(`### MOVE POINTER TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
@@ -350,7 +349,7 @@ export class FigureEditorScene {
         })
     }
 
-    movePointerBy(translation: Point, shift = true): void {
+    movePointerBy(translation: Point, shift = false): void {
         if (this.verbose)
             console.log(`### MOVE POINTER BY ${translation.x}, ${translation.y}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
@@ -373,7 +372,7 @@ export class FigureEditorScene {
         })
     }
 
-    pointerUp(shift = true): void {
+    pointerUp(shift = false): void {
         if (this.verbose)
             console.log(`### POINTER UP`)
         this.figureeditor.mouseIsDown = false

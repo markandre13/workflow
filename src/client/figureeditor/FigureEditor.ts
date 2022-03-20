@@ -644,7 +644,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
 
     @bind inputCatcherKeyDown(e: KeyboardEvent) {
         if (e.metaKey !== true && e.key !== "Dead" && this.tool && this.selectedLayer) {
-            this.tool.keydown(new EditorKeyboardEvent(this, e))
+            this.tool.keyEvent(new EditorKeyboardEvent(this, e))
             // clear the input catcher so we do not accumulate data we do not need.
             // NOTE: do not clear it when e.key === "Dead" because the input method
             // uses the content to compose the character.
@@ -652,11 +652,12 @@ export class FigureEditor extends ModelView<DrawingModel> {
             //       the if statement might be wrong...?
             this.inputCatcher.textContent = ""
         }
+        // TODO: we might want some deadkeys
     }
 
     @bind inputCatcherKeyUp(e: KeyboardEvent) {
         if (e.metaKey !== true && e.key !== "Dead" && this.tool && this.selectedLayer) {
-            this.tool.keyup(new EditorKeyboardEvent(this, e))
+            this.tool.keyEvent(new EditorKeyboardEvent(this, e))
             // clear the input catcher so we do not accumulate data we do not need.
             // NOTE: do not clear it when e.key === "Dead" because the input method
             // uses the content to compose the character.

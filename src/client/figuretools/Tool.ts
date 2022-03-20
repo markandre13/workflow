@@ -58,6 +58,12 @@ export class Tool {
     pointermove(event: EditorPointerEvent) {}
     pointerup(event: EditorPointerEvent) {}
 
+    keyEvent(event: EditorKeyboardEvent) {
+        switch(event.type) {
+            case "down": return this.keydown(event)
+            case "up": return this.keyup(event)
+        }
+    }
     keydown(event: EditorKeyboardEvent) {}
     keyup(event: EditorKeyboardEvent) {}
     clipboard(editor: FigureEditor, event: ClipboardEvent) {}
@@ -592,7 +598,6 @@ export class Tool {
     static setHint(hint: string) {
         const hintView = document.getElementById("hint")
         if (!hintView) {
-            console.trace(`setHint: no #hint found`)
             return
         }
         const xml = parseXML("Tool.setHint()", hint)

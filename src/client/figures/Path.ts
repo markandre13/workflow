@@ -97,52 +97,6 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.types.push(figure.AnchorType.CLOSE)
     }
 
-    //
-    // Add and edit anchors
-    //
-    // moveEdge(index: number, point: Point) {
-    //     let idxValue = 0
-    //     for (let idxType = 0; idxType < this.types.length; ++idxType) {
-    //         switch (this.types[idxType]) {
-    //             case AnchorType.ANCHOR_EDGE:
-    //                 if (idxType === index) {
-    //                     this.values[idxValue++] += point.x
-    //                     this.values[idxValue] += point.y
-    //                     return
-    //                 }
-    //                 idxValue += 2
-    //                 break
-    //             case AnchorType.ANCHOR_EDGE_ANGLE:
-    //             case AnchorType.ANCHOR_ANGLE_EDGE:
-    //             case AnchorType.ANCHOR_SYMMETRIC:
-    //                 if (idxType === index) {
-    //                     this.values[idxValue++] += point.x
-    //                     this.values[idxValue++] += point.y
-    //                     this.values[idxValue++] += point.x
-    //                     this.values[idxValue] += point.y
-    //                     return
-    //                 }
-    //                 idxValue += 4
-    //                 break
-    //             case AnchorType.ANCHOR_ANGLE_ANGLE:
-    //             case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
-    //                 if (idxType === index) {
-    //                     this.values[idxValue++] += point.x
-    //                     this.values[idxValue++] += point.y
-    //                     this.values[idxValue++] += point.x
-    //                     this.values[idxValue++] += point.y
-    //                     this.values[idxValue++] += point.x
-    //                     this.values[idxValue] += point.y
-    //                     return
-    //                 }
-    //                 idxValue += 6
-    //                 break
-    //             case AnchorType.CLOSE:
-    //                 break
-    //         }
-    //     }
-    // }
-
     changeEdgeToSymmetric(backwardHandle: Point) {
         if (this.types.length === 0)
             throw Error(`figure.Path.changeEdgeToSymmetric(): figure is empty`)

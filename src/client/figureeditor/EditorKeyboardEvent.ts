@@ -33,6 +33,7 @@ export class EditorKeyboardEvent {
     protected event: KeyboardEvent
 
     editor: FigureEditor
+    type: "down" | "up"
     code: KeyCode
     value: string
 
@@ -50,6 +51,16 @@ export class EditorKeyboardEvent {
         this.ctrl = event.ctrlKey
         this.alt = event.altKey
         this.meta = event.metaKey
+        switch(event.type) {
+            case "keydown":
+                this.type = "down"
+                break
+            case "keyup":
+                this.type = "up"
+                break
+            default:
+                throw Error(`Unknown KeyboardEvent.type '${event.type}'`)
+        }
     }
 
     preventDefault() {

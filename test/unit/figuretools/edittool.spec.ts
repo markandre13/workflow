@@ -2,6 +2,7 @@ import { expect } from '@esm-bundle/chai'
 
 import { FigureEditorScene } from "../FigureEditorScene"
 import { Tool } from "client/figuretools/Tool"
+import { PathEditor } from "client/figuretools/EditTool"
 import { Path } from "client/figures/Path"
 
 import { initializeCORBAValueTypes } from "client/workflow"
@@ -40,7 +41,7 @@ describe("EditTool", function () {
             expect(Tool.selection.has(path)).to.be.true
             expect(scene.figureeditor.svgView.style.cursor).to.contain("edit.svg")
         })
-        it("temporarily show all handles on anchor when one handle is grabbed", function() {
+        it("temporarily show all handles on anchor when one handle is grabbed", function () {
             const scene = new FigureEditorScene()
             const path = new Path()
             const p0 = { x: 10, y: 50 }
@@ -87,7 +88,6 @@ describe("EditTool", function () {
 
             // next anchor's handle
             scene.pointerDownAt(p5)
-            // expect(scene.hasHandleAt(p2, p1)).to.be.true
             expect(scene.hasHandleAt(p2, mirrorPoint(p2, p1))).to.be.true
             expect(scene.hasHandleAt(p4, p3)).to.be.true
             expect(scene.hasHandleAt(p4, mirrorPoint(p4, p3))).to.be.true
@@ -108,8 +108,56 @@ describe("EditTool", function () {
                 describe("click handle", function () {
                     it("handle/angle is removed")
                 })
-                describe("drag handle", function () {
-                    it("when pressed then outline's anchor becomes ANGLE_ANGLE")
+                describe("drag handle and release pointer", function () {
+                    describe("when pressed then outline's anchor becomes ANGLE_ANGLE", function () {
+                        it("backward handle, from SYMMETRIC", function () {
+                            const scene = new FigureEditorScene()
+
+                            const p0 = { x: 10, y: 50 }
+                            let p1 = { x: 40, y: 20 }
+                            let p2 = { x: 50, y: 50 }
+                            let p3 = { x: 70, y: 60 }
+                            const p4 = { x: 90, y: 50 }
+
+                            const p5 = { x: 30, y: 70 }
+                            const p6 = { x: 35, y: 65 }
+
+                            const path = new Path()
+                            path.addEdge(p0)
+                            path.addSymmetric(p1, p2)
+                            path.addEdge(p4)
+                            scene.addFigure(path)
+                            expect(path.toInternalString()).to.equal(`E ${p(p0)} S ${p(p1)} ${p(p2)} E ${p(p4)}`)
+
+                            scene.selectEditTool()
+                            scene.pointerClickAt(p0)
+                            scene.pointerClickAt(p2)
+
+                            // check handles!!!
+
+                            scene.pointerDownAt(p1)
+                            scene.pointerTo(p5)
+                            expect(
+                                (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                            ).to.equal(`E ${p(p0)} S ${p(p5)} ${p(p2)} E ${p(p4)}`)
+
+                            // scene.pointerTo(p6)
+                            scene.keydown("AltLeft")
+                            expect(
+                                (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                            ).to.equal(`E ${p(p0)} AA ${p(p5)} ${p(p2)} ${p(mirrorPoint(p2, p5))} E ${p(p4)}`)
+
+                            scene.pointerTo(p6)
+                            expect(
+                                (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                            ).to.equal(`E ${p(p0)} AA ${p(p6)} ${p(p2)} ${p(mirrorPoint(p2, p5))} E ${p(p4)}`)
+
+                            scene.pointerUp()
+                            expect(
+                                path.toInternalString()
+                            ).to.equal(`E ${p(p0)} AA ${p(p6)} ${p(p2)} ${p(mirrorPoint(p2, p5))} E ${p(p4)}`)
+                        })
+                    })
                     it("when key released then outline's anchor reverts")
                     it("when mouse released then path's anchor becomes ANGLE_ANGLE")
                 })

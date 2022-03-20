@@ -16,33 +16,6 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*
-converting between anchor types in affinity designer:
-
-             anchor            handle
-opt+click    remove handles    remove this handle
-ctrl+click   smooth            smooth
-opt+drag                       sharp
-ctrl+drag                      symmetric while pressed (affinity only)
-                               we could use this to switch to symmetric permanently,
-                               ctrl+click on the anchor can then switch back to smooth
-space+drag                     move anchor (affinity & illustrator)
-
-symmetric is not stored, it's always smooth (both in illustrator and affinity designer)
-tool hint changes depending what the cursor hovers on
-we could also change the cursor depending on what key is pressed?
-
-add/remove anchor?
-affinity:
-o select anchor, hit delete/backspace to remove anchor
-o click on curve to add anchor
-
-cursor
-o we could fill the edit cursor to indicate the grab?
-
-a method to indicate the anchor type?
-*/
-
 import { FigureEditor, EditorPointerEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
 import { Figure } from "../figures/Figure"
@@ -51,6 +24,7 @@ import { pointMinusPoint, pointPlusPoint, mirrorPoint, distancePointToPoint, poi
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { figure } from "shared/workflow"
+import { EditorKeyboardEvent } from "client/figureeditor/EditorKeyboardEvent"
 const AnchorType = figure.AnchorType
 
 export enum EditToolState {
@@ -157,7 +131,7 @@ class Anchor {
     }
 
     showBackwardHandle() {
-        switch (this.figure.types[this.idxType]) {
+        switch (this.outline.types[this.idxType]) {
             case AnchorType.ANCHOR_EDGE:
             case AnchorType.ANCHOR_EDGE_ANGLE:
             case AnchorType.CLOSE:
@@ -199,7 +173,7 @@ class Anchor {
 
     showForwardHandle() {
         let anchor, pos
-        switch (this.figure.types[this.idxType]) {
+        switch (this.outline.types[this.idxType]) {
             case AnchorType.ANCHOR_EDGE:
             case AnchorType.ANCHOR_ANGLE_EDGE:
             case AnchorType.CLOSE:
@@ -249,7 +223,11 @@ class Anchor {
     }
 
     get length(): number {
-        switch (this.figure.types[this.idxType]) {
+        return this.lengthOfType(this.figure.types[this.idxType])
+    }
+
+    protected lengthOfType(type: figure.AnchorType) {
+        switch (type) {
             case AnchorType.ANCHOR_EDGE:
                 return 2
             case AnchorType.ANCHOR_EDGE_ANGLE:
@@ -290,6 +268,16 @@ class Anchor {
             case AnchorElement.FORWARD_HANDLE:
                 this.forwardHandle = point
                 break
+        }
+    }
+
+    changeToAngleAngle() {
+        switch (this.outline.types[this.idxType]) {
+            case AnchorType.ANCHOR_SYMMETRIC:
+                this.editor.changeToAngleAngle(this)
+                break
+            default:
+                throw Error("yikes")
         }
     }
 
@@ -427,10 +415,20 @@ class Anchor {
     }
 
     apply() {
-        const end = this.idxValue + this.length
+        const oldLength = this.lengthOfType(this.figure.types[this.idxType])
+        const newLength = this.lengthOfType(this.outline.types[this.idxType])
+        if (oldLength !== newLength) {
+            if (oldLength < newLength) {
+                this.figure.values.splice(this.idxValue, 0, ...new Array(newLength-oldLength).fill(0))
+            } else {
+                this.figure.values.splice(this.idxValue, oldLength - newLength)
+            }
+        }
+        const end = this.idxValue + newLength
         for (let i = this.idxValue; i < end; ++i) {
             this.figure.values[i] = this.outline.values[i]
         }
+        this.figure.types[this.idxType] = this.outline.types[this.idxType]
     }
 }
 
@@ -439,9 +437,8 @@ abstract class EditToolEditor {
     screenToFigure?: Matrix
 
     destructor(): void { }
-    pointerEvent(event: EditorPointerEvent): boolean {
-        return false
-    }
+    pointerEvent(event: EditorPointerEvent): boolean { return false }
+    keyEvent(event: EditorKeyboardEvent): boolean { return false }
 
     createAnchor(p: Point) {
         return Tool.createAnchor(this.figureToScreen, p)
@@ -473,6 +470,7 @@ export class PathEditor extends EditToolEditor {
     currentAnchor?: Anchor
     insideAnchor?: Anchor
     path: Path
+    outline: Path
     editor: FigureEditor
     tool: EditTool
 
@@ -491,6 +489,7 @@ export class PathEditor extends EditToolEditor {
 
         // create outline
         const outline = path.clone()
+        this.outline = outline
         const outlinePath = outline.getPath()
         if (path.matrix !== undefined)
             outlinePath.transform(path.matrix)
@@ -499,14 +498,7 @@ export class PathEditor extends EditToolEditor {
         this.tool.outline!.appendChild(this.outlineSVG)
 
         // create anchors
-        let idxValue = 0
-        for (let idxType = 0; idxType < path.types.length; ++idxType) {
-            if (path.types[idxType] !== AnchorType.CLOSE) {
-                const anchor = new Anchor(tool, this, path, outline, idxType, idxValue)
-                idxValue += anchor.length
-                this.anchors.push(anchor)
-            }
-        }
+        this.createAnchors()
     }
 
     override destructor(): void {
@@ -558,6 +550,19 @@ export class PathEditor extends EditToolEditor {
         return false
     }
 
+    override keyEvent(event: EditorKeyboardEvent): boolean {
+        if (!this.currentAnchor)
+            return false
+        switch (event.type) {
+            case "down":
+                if (event.value === "Alt") {
+                    this.currentAnchor.changeToAngleAngle()
+                }
+                break
+        }
+        return true
+    }
+
     private selectAnchor(event: EditorPointerEvent) {
         if (!this.insideAnchor || !this.currentAnchor) {
             throw Error("yikes")
@@ -589,6 +594,41 @@ export class PathEditor extends EditToolEditor {
                 }
             }
             this.anchors[i].setHandles(backwardHandle, forwardHandle)
+        }
+    }
+
+    changeToAngleAngle(anchor: Anchor) {
+        switch (this.outline.types[anchor.idxType]) {
+            case AnchorType.ANCHOR_SYMMETRIC: {
+                this.outline.types[anchor.idxType] = AnchorType.ANCHOR_ANGLE_ANGLE
+                const h0 = { x: this.outline.values[anchor.idxValue], y: this.outline.values[anchor.idxValue + 1] }
+                const a = { x: this.outline.values[anchor.idxValue + 2], y: this.outline.values[anchor.idxValue + 3] }
+                const h1 = mirrorPoint(a, h0)
+                this.outline.values.splice(anchor.idxValue + 4, 0, h1.x, h1.y)
+                this.updateAnchors()
+            } break
+        }
+    }
+
+    protected createAnchors() {
+        let idxValue = 0
+        for (let idxType = 0; idxType < this.path.types.length; ++idxType) {
+            if (this.path.types[idxType] !== AnchorType.CLOSE) {
+                const anchor = new Anchor(this.tool, this, this.path, this.outline, idxType, idxValue)
+                idxValue += anchor.length
+                this.anchors.push(anchor)
+            }
+        }
+    }
+
+    protected updateAnchors() {
+        let idxAnchor = 0, idxValue = 0
+        for (let idxType = 0; idxType < this.path.types.length; ++idxType) {
+            if (this.path.types[idxType] !== AnchorType.CLOSE) {
+                const anchor = this.anchors[idxAnchor++]
+                anchor.idxValue = idxValue
+                idxValue += anchor.length
+            }
         }
     }
 }
@@ -659,6 +699,14 @@ export class EditTool extends Tool {
                         }
                     } break
                 } break
+        }
+    }
+
+    override keyEvent(event: EditorKeyboardEvent): void {
+        for (let i = 0; i < this.editors.length; ++i) {
+            if (this.editors[i].keyEvent(event)) {
+                return
+            }
         }
     }
 
