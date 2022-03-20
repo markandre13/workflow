@@ -298,9 +298,13 @@ export class FigureEditorScene {
         }, transform)
     }
 
-    pointerDownAt(point: Point, shift = true): void {
+    pointerDownAt(point: Point, shift = false): void {
         if (this.verbose)
             console.log(`### POINTER DOWN AT ${point.x}, ${point.y}`)
+
+        const e = this.figureeditor.shadowRoot!.elementFromPoint(point.x, point.y)! as SVGElement
+        e.dispatchEvent(new PointerEvent("pointerenter"))
+
         this.mousePosition = new Point(point)
         this.figureeditor.mouseIsDown = true
         this.figureeditor.mouseDownAt = point
@@ -390,6 +394,8 @@ export class FigureEditorScene {
             tiltY: 0,
             twist: 0
         })
+        const e = this.figureeditor.shadowRoot!.elementFromPoint(this.mousePosition.x, this.mousePosition.y)! as SVGElement
+        e.dispatchEvent(new PointerEvent("pointerenter"))
     }
 
     pointerClickAt(point: Point, shift = false): void {
@@ -526,7 +532,8 @@ export class FigureEditorScene {
 
     getAnchorHandleCount() {
         let a = 0, h = 0
-        const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+        // const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+        const decorations = this.figureeditor.decorationOverlay.children[1]
         for (let i = 0; i < decorations.children.length; ++i) {
             if (decorations.children[i] instanceof SVGRectElement &&
                 (decorations.children[i] as SVGRectElement).style.display !== "none") {
@@ -541,7 +548,8 @@ export class FigureEditorScene {
     }
 
     hasAnchorAt(point: Point) {
-        const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+        // const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+        const decorations = this.figureeditor.decorationOverlay.children[1]
         for (let i = 0; i < decorations.children.length; ++i) {
             const child = decorations.children[i]
             if (child instanceof SVGRectElement && child.style.display !== "none") {
@@ -560,51 +568,61 @@ export class FigureEditorScene {
     }
 
     hasHandleAt(anchor: Point, handle: Point) {
-        const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
-        for (let i = 0; i < this.penTool._handles.length; ++i) {
-            const circle = this.penTool._handles[i]
-            if (circle !== undefined &&
-                circle.style.display !== "none" &&
-                circle.parentElement == decorations) {
-                const cx = Number.parseFloat(circle.getAttributeNS(null, "cx")!)
-                const cy = Number.parseFloat(circle.getAttributeNS(null, "cy")!)
-                const r = Number.parseFloat(circle.getAttributeNS(null, "r")!)
-                if (distancePointToPoint({ x: cx, y: cy }, handle) <= r) {
-                    const line = this.penTool.lines[i]
-                    const p0 = {
-                        x: Number.parseFloat(line.getAttributeNS(null, "x1")!),
-                        y: Number.parseFloat(line.getAttributeNS(null, "y1")!)
-                    }
-                    const p1 = {
-                        x: Number.parseFloat(line.getAttributeNS(null, "x2")!),
-                        y: Number.parseFloat(line.getAttributeNS(null, "y2")!)
-                    }
-                    if (distancePointToPoint(p0, anchor) > 1) {
-                        break
-                    }
-                    if (distancePointToPoint(p1, handle) > 1) {
-                        break
-                    }
-                    return true
+        // const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
+        let foundAnchor = false, foundHandle = false, foundLine = false
+        const outlines = this.figureeditor.decorationOverlay.children[0]
+        const decorations = this.figureeditor.decorationOverlay.children[1]
+        for (let i = 0; i < decorations.children.length; ++i) {
+            const child = decorations.children[i]
+            if (child instanceof SVGRectElement && child.style.display !== "none") {
+                const r = new Rectangle(
+                    Number.parseFloat(child.getAttributeNS(null, "x")!),
+                    Number.parseFloat(child.getAttributeNS(null, "y")!),
+                    Number.parseFloat(child.getAttributeNS(null, "width")!),
+                    Number.parseFloat(child.getAttributeNS(null, "height")!)
+                )
+                if (r.inside(anchor)) {
+                    foundAnchor = true
+                }
+            }
+            if (child instanceof SVGCircleElement && child.style.display !== "none") {
+                const 
+                    cx = Number.parseFloat(child.getAttributeNS(null, "cx")!),
+                    cy = Number.parseFloat(child.getAttributeNS(null, "cy")!),
+                    r = Number.parseFloat(child.getAttributeNS(null, "r")!)
+
+                const rect = new Rectangle(cx-r,cy-2, 2*r, 2*r)
+                if (rect.inside(handle)) {
+                    foundHandle = true
                 }
             }
         }
-        console.error(`expected anchor (${anchor.x}, ${anchor.y}) to handle (${handle.x}, ${handle.y})`)
-        for (let i = 0; i < this.penTool._handles.length; ++i) {
-            const circle = this.penTool._handles[i]
-            if (circle === undefined || circle.style.display === "none") {
-                continue
+        let msg = ""
+        for (let i = 0; i < outlines.children.length; ++i) {
+            const child = outlines.children[i]
+            if (child instanceof SVGLineElement && child.style.display !== "none") {
+                const 
+                    x1 = Number.parseFloat(child.getAttributeNS(null, "x1")!),
+                    y1 = Number.parseFloat(child.getAttributeNS(null, "y1")!),
+                    x2 = Number.parseFloat(child.getAttributeNS(null, "x2")!),
+                    y2 = Number.parseFloat(child.getAttributeNS(null, "y2")!)
+                const
+                    r = Figure.HANDLE_RANGE,
+                    ar = new Rectangle(x1-r/2, y1 - r/2, r, r),
+                    hr = new Rectangle(x2-r/2, y2 - r/2, r, r)
+                if (ar.inside(anchor), hr.inside(handle)) {
+                    foundLine = true
+                }
+                msg=`${msg}\n[${x1},${y1}]---(${x2},${y2})`
             }
-            const cx = Number.parseFloat(circle.getAttributeNS(null, "cx")!)
-            const cy = Number.parseFloat(circle.getAttributeNS(null, "cy")!)
-            const r = Number.parseFloat(circle.getAttributeNS(null, "r")!)
-            const line = this.penTool.lines[i]
-            const x1 = Number.parseFloat(line.getAttributeNS(null, "x1")!)
-            const y1 = Number.parseFloat(line.getAttributeNS(null, "y1")!)
-            const x2 = Number.parseFloat(line.getAttributeNS(null, "x2")!)
-            const y2 = Number.parseFloat(line.getAttributeNS(null, "y2")!)
-            console.log(`  have line(${x1}, ${y1} - ${x2}, ${y2}) to handle (${cx}, ${cy})`)
         }
+        if (msg==="") {
+            msg = "\nno lines"
+        }
+        if (foundAnchor && foundHandle && foundLine) {
+            return true
+        }
+        console.error(`expected anchor (${anchor.x}, ${anchor.y}) to handle (${handle.x}, ${handle.y})\nfound${msg}`)
         return false
     }
 }

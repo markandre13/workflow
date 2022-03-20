@@ -468,13 +468,6 @@ abstract class EditToolEditor {
     }
 }
 
-enum Handle {
-    PREVIOUS_FORWARD,
-    CURRENT_BACKWARD,
-    CURRENT_FORWARD,
-    NEXT_BACKWARD
-}
-
 export class PathEditor extends EditToolEditor {
     anchors: Anchor[] = []
     currentAnchor?: Anchor
@@ -538,8 +531,11 @@ export class PathEditor extends EditToolEditor {
 
         if (event.type === "down" && this.insideAnchor) {
             this.currentAnchor = this.insideAnchor
+            event.editor.scrollView.style.cursor = `url(${Tool.cursorPath}edit-cursor.svg) 1 1, crosshair`
+
             // if (this.insideAnchor.anchorElement !== AnchorElement.ANCHOR) {
             //     // TODO: temporarily select anchor until mouse is released
+            //     // to have all handles on the anchor visible when editing
             // }
             if (event.shiftKey) {
                 this.currentAnchor.selected = !this.currentAnchor.selected

@@ -38,6 +38,7 @@ export class Path extends Figure implements valuetype.figure.Path {
             super(init)
             value.figure.initPath(this, init)
         }
+        this.stroke = "#000"
     }
 
     clone(): Path {
