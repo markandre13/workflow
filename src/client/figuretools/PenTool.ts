@@ -137,7 +137,7 @@ export class PenTool extends Tool {
                 switch (event.value) {
                     case "Alt": {
                         this.state = State.DOWN_DRAG_ANCHOR
-                        const anchor = event.editor.mouseDownAt!
+                        const anchor = event.editor.pointerDownAt!
                         const forwardHandle = this.getHandlePos(Handle.CURRENT_FORWARD)
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this._outline!.updateSymmetric(backwardHandle)
@@ -175,9 +175,9 @@ export class PenTool extends Tool {
             case State.DOWN_ADD_FIRST_ANCHOR:
                 switch (event.type) {
                     case "move": {
-                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                        if (distancePointToPoint(event.editor.pointerDownAt!, event) > Figure.DRAG_START_DISTANCE) {
                             this.state = State.DOWN_DRAG_FIRST_ANCHOR
-                            const anchor = event.editor.mouseDownAt!
+                            const anchor = event.editor.pointerDownAt!
                             const forwardHandle = event
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
@@ -192,7 +192,7 @@ export class PenTool extends Tool {
             case State.DOWN_DRAG_FIRST_ANCHOR:
                 switch (event.type) {
                     case "move": {
-                        const anchor = event.editor.mouseDownAt!
+                        const anchor = event.editor.pointerDownAt!
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
@@ -242,9 +242,9 @@ export class PenTool extends Tool {
             case State.DOWN_ADD_ANCHOR:
                 switch (event.type) {
                     case "move": {
-                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                        if (distancePointToPoint(event.editor.pointerDownAt!, event) > Figure.DRAG_START_DISTANCE) {
                             this.state = State.DOWN_DRAG_ANCHOR
-                            const anchor = event.editor.mouseDownAt!
+                            const anchor = event.editor.pointerDownAt!
                             const forwardHandle = event
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
                             this._outline!.changeEdgeToSymmetric(backwardHandle)
@@ -265,7 +265,7 @@ export class PenTool extends Tool {
             case State.DOWN_DRAG_ANCHOR:
                 switch (event.type) {
                     case "move": {
-                        const anchor = event.editor.mouseDownAt!
+                        const anchor = event.editor.pointerDownAt!
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this._outline!.updateSymmetric(backwardHandle)
@@ -276,7 +276,7 @@ export class PenTool extends Tool {
                     case "up": {
                         this.setCursor(event.editor, Cursor.ACTIVE)
                         this.state = State.ACTIVE
-                        const anchor = event.editor.mouseDownAt!
+                        const anchor = event.editor.pointerDownAt!
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this._outline!.updateSymmetric(backwardHandle)
@@ -291,7 +291,7 @@ export class PenTool extends Tool {
             case State.DOWN_DRAG_EDGE:
                 switch (event.type) {
                     case "move": {
-                        const anchor = event.editor.mouseDownAt!
+                        const anchor = event.editor.pointerDownAt!
                         const forwardHandle = event
                         this.updateHandle(Handle.CURRENT_FORWARD, anchor, forwardHandle)
                     } break
@@ -311,9 +311,9 @@ export class PenTool extends Tool {
             case State.DOWN_CLOSE_EDGE:
                 switch (event.type) {
                     case "move":
-                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                        if (distancePointToPoint(event.editor.pointerDownAt!, event) > Figure.DRAG_START_DISTANCE) {
                             this.state = State.DRAG_CLOSE_EDGE
-                            const anchor = event.editor.mouseDownAt!
+                            const anchor = event.editor.pointerDownAt!
                             const forwardHandle = event
                             const backwardHandle = mirrorPoint(anchor, forwardHandle)
                             this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
@@ -334,7 +334,7 @@ export class PenTool extends Tool {
             case State.DRAG_CLOSE_EDGE:
                 switch (event.type) {
                     case "move": {
-                        const anchor = event.editor.mouseDownAt!
+                        const anchor = event.editor.pointerDownAt!
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
@@ -344,7 +344,7 @@ export class PenTool extends Tool {
                     case "up": {
                         this.setCursor(event.editor, Cursor.READY)
                         this.state = State.READY
-                        const anchor = event.editor.mouseDownAt!
+                        const anchor = event.editor.pointerDownAt!
                         const forwardHandle = event
                         const backwardHandle = mirrorPoint(anchor, forwardHandle)
                         this.updateHandle(Handle.CURRENT_BACKWARD, anchor, backwardHandle)
@@ -361,7 +361,7 @@ export class PenTool extends Tool {
             case State.DOWN_CLOSE_CURVE:
                 switch (event.type) {
                     case "move":
-                        if (distancePointToPoint(event.editor.mouseDownAt!, event) > Figure.DRAG_START_DISTANCE) {
+                        if (distancePointToPoint(event.editor.pointerDownAt!, event) > Figure.DRAG_START_DISTANCE) {
                             this.state = State.DRAG_CLOSE_CURVE
                             const virtualforwardHandle = event
                             const anchor = { x: this.figure!.values[0], y: this.figure!.values[1] }

@@ -406,20 +406,28 @@ class Anchor {
     }
 
     apply() {
-        const oldLength = this.lengthOfType(this.figure.types[this.idxType])
-        const newLength = this.lengthOfType(this.outline.types[this.idxType])
+        this.copyAnchorFromTo(this.outline, this.figure)
+    }
+
+    revert() {
+        this.copyAnchorFromTo(this.figure, this.outline)
+    }
+
+    protected copyAnchorFromTo(source: Path, destination: Path) {
+        const oldLength = this.lengthOfType(destination.types[this.idxType])
+        const newLength = this.lengthOfType(source.types[this.idxType])
         if (oldLength !== newLength) {
             if (oldLength < newLength) {
-                this.figure.values.splice(this.idxValue, 0, ...new Array(newLength-oldLength).fill(0))
+                destination.values.splice(this.idxValue, 0, ...new Array(newLength-oldLength).fill(0))
             } else {
-                this.figure.values.splice(this.idxValue, oldLength - newLength)
+                destination.values.splice(this.idxValue, oldLength - newLength)
             }
         }
         const end = this.idxValue + newLength
         for (let i = this.idxValue; i < end; ++i) {
-            this.figure.values[i] = this.outline.values[i]
+            destination.values[i] = source.values[i]
         }
-        this.figure.types[this.idxType] = this.outline.types[this.idxType]
+        destination.types[this.idxType] = source.types[this.idxType]
     }
 }
 
@@ -542,12 +550,18 @@ export class PathEditor extends EditToolEditor {
     }
 
     override keyEvent(event: EditorKeyboardEvent): boolean {
-        if (!this.currentAnchor)
+        if (!this.currentAnchor) // only set when mouse is pressed
             return false
         switch (event.type) {
             case "down":
                 if (event.value === "Alt") {
                     this.changeToAngleAngle(this.currentAnchor)
+                }
+                break
+            case "up":
+                if (event.value === "Alt") {
+                    this.revert(this.currentAnchor)
+                    this.currentAnchor.moveTo(event.editor.pointerNowAt!)
                 }
                 break
         }
@@ -613,6 +627,11 @@ export class PathEditor extends EditToolEditor {
         }
     }
 
+    revert(anchor: Anchor) {
+        anchor.revert()
+        this.updateAnchors()
+    }
+
     protected createAnchors() {
         let idxValue = 0
         for (let idxType = 0; idxType < this.path.types.length; ++idxType) {
@@ -647,7 +666,7 @@ export class EditTool extends Tool {
     }
 
     override activate(editor: FigureEditor) {
-        Tool.setHint(`edit tool: under construction`)
+        Tool.setHint(`edit tool: under construction, use pointer with <ctrl/> to smooth or with <alt/> to sharpen edges`)
         editor.svgView.style.cursor = `url(${Tool.cursorPath}edit.svg) 1 1, crosshair`
 
         this.outline = document.createElementNS("http://www.w3.org/2000/svg", "g")

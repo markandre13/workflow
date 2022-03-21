@@ -159,8 +159,9 @@ export class FigureEditor extends ModelView<DrawingModel> {
     strokeAndFillModel?: StrokeAndFillModel
 
     // some additional mouse data commonly used by the tools
-    mouseDownAt?: Point
-    mouseIsDown: boolean
+    pointerDownAt?: Point
+    pointerNowAt?: Point
+    pointerIsDown: boolean // TODO: reuse mouseDownAt for this
 
     selectedLayer?: Layer
     layer?: SVGElement
@@ -171,7 +172,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
         super()
 
         this.cache = new Map<number, CacheEntry>()
-        this.mouseIsDown = false
+        this.pointerIsDown = false
         this.bounds = new Rectangle()
         this.zoom = 1.0
 
@@ -578,25 +579,30 @@ export class FigureEditor extends ModelView<DrawingModel> {
         this.inputCatcher.focus({ preventScroll: true })
         pointerEvent.preventDefault()
 
-        this.mouseIsDown = true
+        this.pointerIsDown = true
         if (this.tool && this.selectedLayer) {
             const editorEvent = this.createEditorPointerEvent(pointerEvent)
-            this.mouseDownAt = editorEvent
+            this.pointerDownAt = editorEvent
             this.tool.pointerEvent(editorEvent)
         }
     }
 
     @bind pointerMove(pointerEvent: PointerEvent) {
         pointerEvent.preventDefault()
-        if (this.tool && this.selectedLayer)
-            this.tool.pointerEvent(this.createEditorPointerEvent(pointerEvent))
+        if (this.tool && this.selectedLayer) {
+            const editorEvent = this.createEditorPointerEvent(pointerEvent)
+            this.pointerNowAt = editorEvent
+            this.tool.pointerEvent(editorEvent)
+        }
     }
 
     @bind pointerUp(pointerEvent: PointerEvent) {
         pointerEvent.preventDefault()
-        this.mouseIsDown = false
-        if (this.tool && this.selectedLayer)
+        this.pointerIsDown = false
+        if (this.tool && this.selectedLayer) {
             this.tool.pointerEvent(this.createEditorPointerEvent(pointerEvent))
+            this.pointerDownAt = undefined
+        }
     }
 
     protected createEditorPointerEvent(event: PointerEvent): EditorPointerEvent {
@@ -633,7 +639,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
             twist: event.twist,
             pointerId: event.pointerId,
             pointerType: event.pointerType,
-            pointerDown: this.mouseIsDown,
+            pointerDown: this.pointerIsDown,
             type: type
         }
     }

@@ -141,11 +141,11 @@ describe("EditTool", function () {
 
         describe("change anchor types", function () {
             describe("ALT key makes edges sharper", function () {
-                describe("click handle", function () {
-                    it("handle/angle is removed")
-                })
+                it("click handle, it's angle is removed")
+                it("click anchor, all angles are removed")
+                // drag anchor: undefined
                 describe("drag handle and release pointer", function () {
-                    describe("when pressed then outline's anchor becomes ANGLE_ANGLE", function () {
+                    describe("anchor becomes ANGLE_ANGLE", function () {
                         // NOTE: when the conversion to ANGLE_ANGLE becomes more generic
                         // and we test the function doing that, one test for backward and
                         // forward handle each will be sufficient
@@ -340,19 +340,82 @@ describe("EditTool", function () {
                             expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
                         })
                     })
-                    it("when key released then outline's anchor reverts")
-                    it("when mouse released then path's anchor becomes ANGLE_ANGLE")
+                    it("when key is released outline's anchor reverts", function () {
+                        const scene = new FigureEditorScene()
+
+                        const p0 = { x: 10, y: 50 }
+                        let p1 = { x: 40, y: 20 }
+                        let p2 = { x: 50, y: 50 }
+                        let p3 = { x: 70, y: 60 }
+                        const p4 = { x: 90, y: 50 }
+
+                        const p5 = { x: 30, y: 70 }
+                        const p6 = { x: 35, y: 65 }
+
+                        const path = new Path()
+                        path.addEdge(p0)
+                        path.addSymmetric(p1, p2)
+                        path.addEdge(p4)
+                        scene.addFigure(path)
+                        expect(path.toInternalString()).to.equal(`E ${p(p0)} S ${p(p1)} ${p(p2)} E ${p(p4)}`)
+
+                        scene.selectEditTool()
+                        scene.pointerClickAt(p0)
+                        scene.pointerClickAt(p2)
+
+                        expect(scene.hasAnchorAt(p0)).to.be.true
+                        expect(scene.hasAnchorAt(p2)).to.be.true
+                        expect(scene.hasAnchorAt(p4)).to.be.true
+                        expect(scene.hasHandleAt(p2, p1)).to.be.true
+                        expect(scene.hasHandleAt(p2, mirrorPoint(p2, p1))).to.be.true
+                        expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+
+                        scene.pointerDownAt(p1)
+                        scene.pointerTo(p5)
+
+                        expect(scene.hasAnchorAt(p0)).to.be.true
+                        expect(scene.hasAnchorAt(p2)).to.be.true
+                        expect(scene.hasAnchorAt(p4)).to.be.true
+                        expect(scene.hasHandleAt(p2, p5)).to.be.true
+                        expect(scene.hasHandleAt(p2, mirrorPoint(p2, p5))).to.be.true
+                        expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+                        expect(
+                            (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                        ).to.equal(`E ${p(p0)} S ${p(p5)} ${p(p2)} E ${p(p4)}`)
+
+                        scene.keydown("AltLeft")
+                        expect(
+                            (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                        ).to.equal(`E ${p(p0)} AA ${p(p5)} ${p(p2)} ${p(mirrorPoint(p2, p5))} E ${p(p4)}`)
+
+                        scene.pointerTo(p6)
+                        expect(scene.hasAnchorAt(p0)).to.be.true
+                        expect(scene.hasAnchorAt(p2)).to.be.true
+                        expect(scene.hasAnchorAt(p4)).to.be.true
+                        expect(scene.hasHandleAt(p2, p6)).to.be.true
+                        expect(scene.hasHandleAt(p2, mirrorPoint(p2, p5))).to.be.true
+                        expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+                        expect(
+                            (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                        ).to.equal(`E ${p(p0)} AA ${p(p6)} ${p(p2)} ${p(mirrorPoint(p2, p5))} E ${p(p4)}`)
+
+                        scene.keyup("AltLeft")
+                        expect(
+                            (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                        ).to.equal(`E ${p(p0)} S ${p(p6)} ${p(p2)} E ${p(p4)}`)
+                        expect(scene.hasAnchorAt(p0)).to.be.true
+                        expect(scene.hasAnchorAt(p2)).to.be.true
+                        expect(scene.hasAnchorAt(p4)).to.be.true
+                        expect(scene.hasHandleAt(p2, p6)).to.be.true
+                        expect(scene.hasHandleAt(p2, mirrorPoint(p2, p6))).to.be.true
+                        expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+                    })
                 })
-                describe("click anchor", function () {
-                    it("anchor becomes EDGE")
-                })
-                // drag anchor: undefined
             })
             describe("CTRL key makes anchors smoother", function () {
                 // this is true for all anchor types, even edge
                 it("click handle, anchor becomes SMOOTH")
                 it("click anchor, anchor becomes SYMMETRIC")
-                it("drag anchor, move all marked anchors") // hm, SHIFT instead?
                 it("drag handle + SMOOTH, opposite handle's distance adjust propotionally")
             })
             it("remove ANCHOR: click DELETE/BACKSPACE key to delete all marked anchors")
@@ -361,6 +424,7 @@ describe("EditTool", function () {
         })
 
         describe("no key", function () {
+            it("drag anchor, move all marked anchors")
             // these are for a single selected anchor, but when multiple anchors are selected, move all anchors
             describe("anchor EDGE", function () {
                 it("move anchor", function () {

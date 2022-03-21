@@ -98,7 +98,7 @@ export class TextTool extends Tool {
     override pointermove(event: EditorPointerEvent) {
         switch (this.state) {
             case TextToolState.EDIT:
-                if (event.editor.mouseIsDown) {
+                if (event.editor.pointerIsDown) {
                     this.texteditor!.mousemove(event)
                     return
                 }

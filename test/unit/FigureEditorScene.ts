@@ -307,8 +307,8 @@ export class FigureEditorScene {
         }
 
         this.mousePosition = new Point(point)
-        this.figureeditor.mouseIsDown = true
-        this.figureeditor.mouseDownAt = point
+        this.figureeditor.pointerIsDown = true
+        this.figureeditor.pointerDownAt = point
         this.figureeditor.tool!.pointerEvent({
             x: this.mousePosition.x,
             y: this.mousePosition.y,
@@ -332,6 +332,7 @@ export class FigureEditorScene {
         if (this.verbose)
             console.log(`### MOVE POINTER TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
+        this.figureeditor.pointerNowAt = point
         this.figureeditor.tool!.pointerEvent({
             x: this.mousePosition.x,
             y: this.mousePosition.y,
@@ -377,7 +378,7 @@ export class FigureEditorScene {
     pointerUp(shift = false): void {
         if (this.verbose)
             console.log(`### POINTER UP`)
-        this.figureeditor.mouseIsDown = false
+        this.figureeditor.pointerIsDown = false
         this.figureeditor.tool!.pointerEvent({
             x: this.mousePosition.x,
             y: this.mousePosition.y,
