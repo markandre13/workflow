@@ -18,7 +18,6 @@
 
 import { FigureEditor, EditorPointerEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
-import { Figure } from "../figures/Figure"
 import { Path } from "../figures/Path"
 import { pointMinusPoint, pointPlusPoint, mirrorPoint, distancePointToPoint, pointMultiplyNumber } from "shared/geometry"
 import { Point } from "shared/geometry/Point"
@@ -135,6 +134,7 @@ class Anchor {
             case AnchorType.ANCHOR_EDGE:
             case AnchorType.ANCHOR_EDGE_ANGLE:
             case AnchorType.CLOSE:
+                this.hideBackwardHandle()
                 return
             case AnchorType.ANCHOR_ANGLE_EDGE:
             case AnchorType.ANCHOR_SYMMETRIC:
@@ -177,6 +177,7 @@ class Anchor {
             case AnchorType.ANCHOR_EDGE:
             case AnchorType.ANCHOR_ANGLE_EDGE:
             case AnchorType.CLOSE:
+                this.hideForwardHandle()
                 return
             case AnchorType.ANCHOR_EDGE_ANGLE:
                 anchor = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
@@ -226,7 +227,7 @@ class Anchor {
         return this.lengthOfType(this.figure.types[this.idxType])
     }
 
-    protected lengthOfType(type: figure.AnchorType) {
+    public lengthOfType(type: figure.AnchorType) {
         switch (type) {
             case AnchorType.ANCHOR_EDGE:
                 return 2
@@ -625,11 +626,13 @@ export class PathEditor extends EditToolEditor {
 
     protected updateAnchors() {
         let idxAnchor = 0, idxValue = 0
-        for (let idxType = 0; idxType < this.path.types.length; ++idxType) {
-            if (this.path.types[idxType] !== AnchorType.CLOSE) {
+        for (let idxType = 0; idxType < this.outline.types.length; ++idxType) {
+            const type = this.outline.types[idxType]
+            if (type !== AnchorType.CLOSE) {
                 const anchor = this.anchors[idxAnchor++]
+                const length = anchor.lengthOfType(type)
                 anchor.idxValue = idxValue
-                idxValue += anchor.length
+                idxValue += length
             }
         }
     }

@@ -277,7 +277,7 @@ describe("EditTool", function () {
                                 path.toInternalString()
                             ).to.equal(`E ${p(p0)} AA ${p(mirrorPoint(p2, p5))} ${p(p2)} ${p(p6)} E ${p(p4)}`)
                         })
-                        it("regression", function () {
+                        it("regression: handles were wrong after pointerUp()", function () {
                             const scene = new FigureEditorScene()
 
                             const p0 = { x: 10, y: 50 }
@@ -329,10 +329,8 @@ describe("EditTool", function () {
                             ).to.equal(`S ${p(p0)} ${p(p1)} AA ${p(p2)} ${p(p3)} ${p(p6)} S ${p(p4)} ${p(p5)}`)
 
                             scene.pointerUp()
-
                             expect(path.toInternalString())
                                 .to.equal(`S ${p(p0)} ${p(p1)} AA ${p(p2)} ${p(p3)} ${p(p6)} S ${p(p4)} ${p(p5)}`)
-
                             expect(scene.hasAnchorAt(p1)).to.be.true
                             expect(scene.hasAnchorAt(p3)).to.be.true
                             expect(scene.hasAnchorAt(p5)).to.be.true
