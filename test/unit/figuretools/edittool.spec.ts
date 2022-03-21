@@ -102,6 +102,42 @@ describe("EditTool", function () {
             expect(scene.hasHandleAt(p6, p5)).to.be.true
             expect(scene.getAnchorHandleCount()).to.deep.equal([5, 4])
         })
+        it("anchors at path head and tail show only one handle", function () {
+            const scene = new FigureEditorScene()
+
+            const p0 = { x: 10, y: 50 }
+            const p1 = { x: 20, y: 70 }
+            const p2 = { x: 40, y: 50 }
+            const p3 = { x: 60, y: 70 }
+            const p4 = { x: 80, y: 50 }
+            const p5 = { x: 100, y: 70 }
+
+            const path = new Path()
+            path.addSymmetric(p0, p1)
+            path.addSymmetric(p2, p3)
+            path.addSymmetric(p4, p5)
+            scene.addFigure(path)
+
+            scene.selectEditTool()
+            scene.pointerClickAt(p1)
+            expect(Tool.selection.has(path)).to.be.true
+
+            scene.pointerClickAt(p5)
+            expect(scene.hasAnchorAt(p1)).to.be.true
+            expect(scene.hasAnchorAt(p3)).to.be.true
+            expect(scene.hasAnchorAt(p5)).to.be.true
+            expect(scene.hasHandleAt(p3, mirrorPoint(p3, p2))).to.be.true
+            expect(scene.hasHandleAt(p5, p4)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+
+            scene.pointerClickAt(p1)
+            expect(scene.hasAnchorAt(p1)).to.be.true
+            expect(scene.hasAnchorAt(p3)).to.be.true
+            expect(scene.hasAnchorAt(p5)).to.be.true
+            expect(scene.hasHandleAt(p1, mirrorPoint(p1, p0))).to.be.true
+            expect(scene.hasHandleAt(p3, p2)).to.be.true
+            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+        })
 
         describe("change anchor types", function () {
             describe("ALT key makes edges sharper", function () {
@@ -110,7 +146,10 @@ describe("EditTool", function () {
                 })
                 describe("drag handle and release pointer", function () {
                     describe("when pressed then outline's anchor becomes ANGLE_ANGLE", function () {
-                        it("backward handle, from SYMMETRIC", function () {
+                        // NOTE: when the conversion to ANGLE_ANGLE becomes more generic
+                        // and we test the function doing that, one test for backward and
+                        // forward handle each will be sufficient
+                        it("backward handle", function () {
                             const scene = new FigureEditorScene()
 
                             const p0 = { x: 10, y: 50 }
@@ -133,21 +172,38 @@ describe("EditTool", function () {
                             scene.pointerClickAt(p0)
                             scene.pointerClickAt(p2)
 
-                            // check handles!!!
+                            expect(scene.hasAnchorAt(p0)).to.be.true
+                            expect(scene.hasAnchorAt(p2)).to.be.true
+                            expect(scene.hasAnchorAt(p4)).to.be.true
+                            expect(scene.hasHandleAt(p2, p1)).to.be.true
+                            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p1))).to.be.true
+                            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
 
                             scene.pointerDownAt(p1)
                             scene.pointerTo(p5)
+
+                            expect(scene.hasAnchorAt(p0)).to.be.true
+                            expect(scene.hasAnchorAt(p2)).to.be.true
+                            expect(scene.hasAnchorAt(p4)).to.be.true
+                            expect(scene.hasHandleAt(p2, p5)).to.be.true
+                            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p5))).to.be.true
+                            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
                             expect(
                                 (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
                             ).to.equal(`E ${p(p0)} S ${p(p5)} ${p(p2)} E ${p(p4)}`)
 
-                            // scene.pointerTo(p6)
                             scene.keydown("AltLeft")
                             expect(
                                 (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
                             ).to.equal(`E ${p(p0)} AA ${p(p5)} ${p(p2)} ${p(mirrorPoint(p2, p5))} E ${p(p4)}`)
 
                             scene.pointerTo(p6)
+                            expect(scene.hasAnchorAt(p0)).to.be.true
+                            expect(scene.hasAnchorAt(p2)).to.be.true
+                            expect(scene.hasAnchorAt(p4)).to.be.true
+                            expect(scene.hasHandleAt(p2, p6)).to.be.true
+                            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p5))).to.be.true
+                            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
                             expect(
                                 (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
                             ).to.equal(`E ${p(p0)} AA ${p(p6)} ${p(p2)} ${p(mirrorPoint(p2, p5))} E ${p(p4)}`)
@@ -156,6 +212,134 @@ describe("EditTool", function () {
                             expect(
                                 path.toInternalString()
                             ).to.equal(`E ${p(p0)} AA ${p(p6)} ${p(p2)} ${p(mirrorPoint(p2, p5))} E ${p(p4)}`)
+                        })
+                        it("forward handle", function () {
+                            const scene = new FigureEditorScene()
+
+                            const p0 = { x: 10, y: 50 }
+                            let p1 = { x: 40, y: 20 }
+                            let p2 = { x: 50, y: 50 }
+                            let p3 = { x: 70, y: 60 }
+                            const p4 = { x: 90, y: 50 }
+
+                            const p5 = { x: 30, y: 70 }
+                            const p6 = { x: 35, y: 65 }
+
+                            const path = new Path()
+                            path.addEdge(p0)
+                            path.addSymmetric(p1, p2)
+                            path.addEdge(p4)
+                            scene.addFigure(path)
+                            expect(path.toInternalString()).to.equal(`E ${p(p0)} S ${p(p1)} ${p(p2)} E ${p(p4)}`)
+
+                            scene.selectEditTool()
+                            scene.pointerClickAt(p0)
+                            scene.pointerClickAt(p2)
+
+                            expect(scene.hasAnchorAt(p0)).to.be.true
+                            expect(scene.hasAnchorAt(p2)).to.be.true
+                            expect(scene.hasAnchorAt(p4)).to.be.true
+                            expect(scene.hasHandleAt(p2, p1)).to.be.true
+                            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p1))).to.be.true
+                            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+
+                            scene.pointerDownAt(mirrorPoint(p2, p1))
+                            scene.pointerTo(p5)
+
+                            expect(scene.hasAnchorAt(p0)).to.be.true
+                            expect(scene.hasAnchorAt(p2)).to.be.true
+                            expect(scene.hasAnchorAt(p4)).to.be.true
+                            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p5))).to.be.true
+                            expect(scene.hasHandleAt(p2, p5)).to.be.true
+                            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+                            expect(
+                                (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                            ).to.equal(`E ${p(p0)} S ${p(mirrorPoint(p2, p5))} ${p(p2)} E ${p(p4)}`)
+
+                            scene.keydown("AltLeft")
+                            expect(
+                                (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                            ).to.equal(`E ${p(p0)} AA ${p(mirrorPoint(p2, p5))} ${p(p2)} ${p(p5)} E ${p(p4)}`)
+
+                            scene.pointerTo(p6)
+                            expect(scene.hasAnchorAt(p0)).to.be.true
+                            expect(scene.hasAnchorAt(p2)).to.be.true
+                            expect(scene.hasAnchorAt(p4)).to.be.true
+                            expect(scene.hasHandleAt(p2, p6)).to.be.true
+                            expect(scene.hasHandleAt(p2, mirrorPoint(p2, p5))).to.be.true
+                            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+                            expect(
+                                (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                            ).to.equal(`E ${p(p0)} AA ${p(mirrorPoint(p2, p5))} ${p(p2)} ${p(p6)} E ${p(p4)}`)
+
+                            scene.pointerUp()
+                            expect(
+                                path.toInternalString()
+                            ).to.equal(`E ${p(p0)} AA ${p(mirrorPoint(p2, p5))} ${p(p2)} ${p(p6)} E ${p(p4)}`)
+                        })
+                        it("regression", function () {
+                            const scene = new FigureEditorScene()
+
+                            const p0 = { x: 10, y: 50 }
+                            const p1 = { x: 20, y: 70 }
+                            const p2 = { x: 40, y: 50 }
+                            const p3 = { x: 60, y: 70 }
+                            const p4 = { x: 80, y: 50 }
+                            const p5 = { x: 100, y: 70 }
+
+                            const p6 = { x: 40, y: 90 }
+
+                            const path = new Path()
+                            path.addSymmetric(p0, p1)
+                            path.addSymmetric(p2, p3)
+                            path.addSymmetric(p4, p5)
+                            scene.addFigure(path)
+                            // expect(path.toInternalString()).to.equal(`S ${p(p0)} S ${p(p1)} ${p(p2)} E ${p(p4)}`)
+
+                            scene.selectEditTool()
+                            scene.pointerClickAt(p1)
+                            expect(Tool.selection.has(path)).to.be.true
+                            scene.pointerClickAt(p5)
+
+                            expect(
+                                (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                            ).to.equal(`S ${p(p0)} ${p(p1)} S ${p(p2)} ${p(p3)} S ${p(p4)} ${p(p5)}`)
+
+                            expect(scene.hasAnchorAt(p1)).to.be.true
+                            expect(scene.hasAnchorAt(p3)).to.be.true
+                            expect(scene.hasAnchorAt(p5)).to.be.true
+                            expect(scene.hasHandleAt(p3, mirrorPoint(p3, p2))).to.be.true
+                            expect(scene.hasHandleAt(p5, p4)).to.be.true
+                            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
+
+                            scene.pointerDownAt(mirrorPoint(p3, p2))
+                            scene.keydown("AltLeft")
+                            scene.pointerTo(p6)
+
+                            expect(scene.hasAnchorAt(p1)).to.be.true
+                            expect(scene.hasAnchorAt(p3)).to.be.true
+                            expect(scene.hasAnchorAt(p5)).to.be.true
+                            expect(scene.hasHandleAt(p3, p2)).to.be.true
+                            expect(scene.hasHandleAt(p3, p6)).to.be.true
+                            expect(scene.hasHandleAt(p5, p4)).to.be.true
+                            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 3])
+
+                            expect(
+                                (scene.editTool.editors[0] as PathEditor).outline.toInternalString()
+                            ).to.equal(`S ${p(p0)} ${p(p1)} AA ${p(p2)} ${p(p3)} ${p(p6)} S ${p(p4)} ${p(p5)}`)
+
+                            scene.pointerUp()
+
+                            expect(path.toInternalString())
+                                .to.equal(`S ${p(p0)} ${p(p1)} AA ${p(p2)} ${p(p3)} ${p(p6)} S ${p(p4)} ${p(p5)}`)
+
+                            expect(scene.hasAnchorAt(p1)).to.be.true
+                            expect(scene.hasAnchorAt(p3)).to.be.true
+                            expect(scene.hasAnchorAt(p5)).to.be.true
+                            // expect(scene.hasHandleAt(p3, p2)).to.be.true
+                            expect(scene.hasHandleAt(p3, p6)).to.be.true
+                            expect(scene.hasHandleAt(p5, p4)).to.be.true
+                            expect(scene.getAnchorHandleCount()).to.deep.equal([3, 2])
                         })
                     })
                     it("when key released then outline's anchor reverts")

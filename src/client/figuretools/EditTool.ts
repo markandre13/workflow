@@ -271,16 +271,6 @@ class Anchor {
         }
     }
 
-    changeToAngleAngle() {
-        switch (this.outline.types[this.idxType]) {
-            case AnchorType.ANCHOR_SYMMETRIC:
-                this.editor.changeToAngleAngle(this)
-                break
-            default:
-                throw Error("yikes")
-        }
-    }
-
     set pos(point: Point) {
         switch (this.outline.types[this.idxType]) {
             case AnchorType.ANCHOR_EDGE: {
@@ -556,7 +546,7 @@ export class PathEditor extends EditToolEditor {
         switch (event.type) {
             case "down":
                 if (event.value === "Alt") {
-                    this.currentAnchor.changeToAngleAngle()
+                    this.changeToAngleAngle(this.currentAnchor)
                 }
                 break
         }
@@ -582,9 +572,16 @@ export class PathEditor extends EditToolEditor {
         for (let i = 0; i < this.anchors.length; ++i) {
             let backwardHandle = false
             let forwardHandle = false
-            if (this.anchors[i].selected || this.anchors[i] === this.currentAnchor) {
+            if (this.anchors[i] === this.currentAnchor) {
                 backwardHandle = true
                 forwardHandle = true
+            } else if (this.anchors[i].selected) {
+                if (i>0) {
+                    backwardHandle = true
+                }
+                if (i<this.anchors.length-1) {
+                    forwardHandle = true
+                }
             } else {
                 if (i > 0 && this.anchors[i - 1].selected) {
                     backwardHandle = true
@@ -607,6 +604,11 @@ export class PathEditor extends EditToolEditor {
                 this.outline.values.splice(anchor.idxValue + 4, 0, h1.x, h1.y)
                 this.updateAnchors()
             } break
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE: {
+                this.outline.types[anchor.idxType] = AnchorType.ANCHOR_ANGLE_ANGLE
+            } break
+            default:
+                throw Error("yikes")
         }
     }
 

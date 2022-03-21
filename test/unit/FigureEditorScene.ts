@@ -302,7 +302,9 @@ export class FigureEditorScene {
             console.log(`### POINTER DOWN AT ${point.x}, ${point.y}`)
 
         const e = this.figureeditor.shadowRoot!.elementFromPoint(point.x, point.y)! as SVGElement
-        e.dispatchEvent(new PointerEvent("pointerenter"))
+        if (e!==null) {
+            e.dispatchEvent(new PointerEvent("pointerenter"))
+        }
 
         this.mousePosition = new Point(point)
         this.figureeditor.mouseIsDown = true
@@ -394,7 +396,9 @@ export class FigureEditorScene {
             twist: 0
         })
         const e = this.figureeditor.shadowRoot!.elementFromPoint(this.mousePosition.x, this.mousePosition.y)! as SVGElement
-        e.dispatchEvent(new PointerEvent("pointerenter"))
+        if (e!==null) {
+            e.dispatchEvent(new PointerEvent("pointerenter"))
+        }
     }
 
     pointerClickAt(point: Point, shift = false): void {
