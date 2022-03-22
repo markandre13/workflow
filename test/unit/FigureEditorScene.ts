@@ -297,7 +297,7 @@ export class FigureEditorScene {
         }, transform)
     }
 
-    pointerDownAt(point: Point, shift = false): void {
+    pointerDownAt(point: Point, shift = false, alt=false): void {
         if (this.verbose)
             console.log(`### POINTER DOWN AT ${point.x}, ${point.y}`)
 
@@ -316,7 +316,7 @@ export class FigureEditorScene {
             type: "down",
             pointerDown: true,
             shiftKey: shift,
-            altKey: false,
+            altKey: alt,
             metaKey: false,
             ctrlKey: false,
             pointerId: 0,
@@ -402,10 +402,10 @@ export class FigureEditorScene {
         }
     }
 
-    pointerClickAt(point: Point, shift = false): void {
+    pointerClickAt(point: Point, shift = false, alt=false): void {
         if (this.verbose)
             console.log(`### POINTER CLICK AT ${point}`)
-        this.pointerDownAt(point, shift)
+        this.pointerDownAt(point, shift, alt)
         this.pointerUp(shift)
     }
 

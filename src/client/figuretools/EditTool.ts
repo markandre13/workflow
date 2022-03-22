@@ -418,7 +418,7 @@ class Anchor {
         const newLength = this.lengthOfType(source.types[this.idxType])
         if (oldLength !== newLength) {
             if (oldLength < newLength) {
-                destination.values.splice(this.idxValue, 0, ...new Array(newLength-oldLength).fill(0))
+                destination.values.splice(this.idxValue, 0, ...new Array(newLength - oldLength).fill(0))
             } else {
                 destination.values.splice(this.idxValue, oldLength - newLength)
             }
@@ -522,8 +522,21 @@ export class PathEditor extends EditToolEditor {
 
         if (event.type === "down" && this.insideAnchor) {
             this.currentAnchor = this.insideAnchor
-            event.editor.scrollView.style.cursor = `url(${Tool.cursorPath}edit-cursor.svg) 1 1, crosshair`
+            if (event.altKey) {
+                switch (this.currentAnchor.anchorElement) {
+                    case AnchorElement.ANCHOR:
+                        break
+                    case AnchorElement.BACKWARD_HANDLE:
+                        this.removeBackwardHandle(this.currentAnchor)
+                        break
+                    case AnchorElement.FORWARD_HANDLE:
+                        this.removeForwardHandle(this.currentAnchor)
+                        break
+                }
+                return true
+            }
 
+            event.editor.scrollView.style.cursor = `url(${Tool.cursorPath}edit-cursor.svg) 1 1, crosshair`
             this.selectAnchor(event)
             this.updateHandles()
 
@@ -591,10 +604,10 @@ export class PathEditor extends EditToolEditor {
                 backwardHandle = true
                 forwardHandle = true
             } else if (this.anchors[i].selected) {
-                if (i>0) {
+                if (i > 0) {
                     backwardHandle = true
                 }
-                if (i<this.anchors.length-1) {
+                if (i < this.anchors.length - 1) {
                     forwardHandle = true
                 }
             } else {
@@ -609,6 +622,7 @@ export class PathEditor extends EditToolEditor {
         }
     }
 
+    // TODO: move into class Anchor, add unit test
     changeToAngleAngle(anchor: Anchor) {
         switch (this.outline.types[anchor.idxType]) {
             case AnchorType.ANCHOR_SYMMETRIC: {
@@ -624,6 +638,60 @@ export class PathEditor extends EditToolEditor {
             } break
             default:
                 throw Error("yikes")
+        }
+    }
+
+    // TODO: move into class Anchor, add unit test
+    removeBackwardHandle(anchor: Anchor) {
+        switch (this.outline.types[anchor.idxType]) {
+            case AnchorType.ANCHOR_ANGLE_EDGE:
+                break
+            case AnchorType.ANCHOR_SYMMETRIC: {
+                this.outline.types[anchor.idxType] = AnchorType.ANCHOR_EDGE_ANGLE
+                const h0 = { x: this.outline.values[anchor.idxValue], y: this.outline.values[anchor.idxValue + 1] }
+                const a = { x: this.outline.values[anchor.idxValue + 2], y: this.outline.values[anchor.idxValue + 3] }
+                const h1 = mirrorPoint(a, h0)
+                this.outline.values[anchor.idxValue] = a.x
+                this.outline.values[anchor.idxValue + 1] = a.y
+                this.outline.values[anchor.idxValue + 2] = h1.x
+                this.outline.values[anchor.idxValue + 3] = h1.y
+
+                const path = this.outline.getPath()
+                if (this.path.matrix)
+                    path.transform(this.path.matrix)
+                path.updateSVG(this.tool.outline!, this.outlineSVG)
+
+                this.currentAnchor!.apply()
+                this.updateAnchors()
+            } break
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
+                break
+            case AnchorType.ANCHOR_ANGLE_ANGLE:
+                break
+        }
+    }
+    // TODO: move into class Anchor, add unit test
+    removeForwardHandle(anchor: Anchor) {
+        switch (this.outline.types[anchor.idxType]) {
+            case AnchorType.ANCHOR_EDGE_ANGLE:
+                this.outline.types[anchor.idxType] = AnchorType.ANCHOR_EDGE
+                this.outline.values.splice(anchor.idxValue + 2, 2)
+
+                const path = this.outline.getPath()
+                if (this.path.matrix)
+                    path.transform(this.path.matrix)
+                path.updateSVG(this.tool.outline!, this.outlineSVG)
+
+                this.currentAnchor!.apply()
+                this.updateAnchors()
+
+                break
+            case AnchorType.ANCHOR_SYMMETRIC: {
+            } break
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
+                break
+            case AnchorType.ANCHOR_ANGLE_ANGLE:
+                break
         }
     }
 

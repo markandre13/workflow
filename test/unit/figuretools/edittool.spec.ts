@@ -141,14 +141,53 @@ describe("EditTool", function () {
 
         describe("change anchor types", function () {
             describe("ALT key makes edges sharper", function () {
-                it("click handle, it's angle is removed")
+                it("click handle, it's angle is removed", function() {
+                    const scene = new FigureEditorScene()
+
+                    const p0 = { x: 10, y: 50 }
+                    let p1 = { x: 40, y: 20 }
+                    let p2 = { x: 50, y: 50 }
+                    let p3 = mirrorPoint(p2, p1)
+                    const p4 = { x: 90, y: 50 }
+
+                    const path = new Path()
+                    path.addEdge(p0)
+                    path.addSymmetric(p1, p2)
+                    path.addEdge(p4)
+                    scene.addFigure(path)
+
+                    expect(path.toInternalString()).to.equal(`E ${p(p0)} S ${p(p1)} ${p(p2)} E ${p(p4)}`)
+
+                    scene.selectEditTool()
+                    scene.pointerClickAt(p0) // select figure
+
+                    const outline = (scene.editTool.editors[0] as PathEditor).outline
+                    expect(
+                        outline.toInternalString()
+                    ).to.equal(`E ${p(p0)} S ${p(p1)} ${p(p2)} E ${p(p4)}`)
+
+                    scene.pointerClickAt(p2) // select anchor
+                  
+                    // TODO: send key events and let the pointer methods use that information
+                    scene.pointerClickAt(p1, false, true)
+                    expect(
+                        outline.toInternalString()
+                    ).to.equal(`E ${p(p0)} EA ${p(p2)} ${p(p3)} E ${p(p4)}`)
+
+                    expect(path.toInternalString()).to.equal(`E ${p(p0)} EA ${p(p2)} ${p(p3)} E ${p(p4)}`)
+
+                    scene.pointerClickAt(p3, false, true)
+                    expect(
+                        outline.toInternalString()
+                    ).to.equal(`E ${p(p0)} E ${p(p2)} E ${p(p4)}`)
+
+                    expect(path.toInternalString()).to.equal(`E ${p(p0)} E ${p(p2)} E ${p(p4)}`)
+                    
+                })
                 it("click anchor, all angles are removed")
                 // drag anchor: undefined
                 describe("drag handle and release pointer", function () {
                     describe("anchor becomes ANGLE_ANGLE", function () {
-                        // NOTE: when the conversion to ANGLE_ANGLE becomes more generic
-                        // and we test the function doing that, one test for backward and
-                        // forward handle each will be sufficient
                         it("backward handle", function () {
                             const scene = new FigureEditorScene()
 
