@@ -622,7 +622,7 @@ export class PathEditor extends EditToolEditor {
         }
     }
 
-    // TODO: move into class Anchor, add unit test
+    // TODO: add unit test
     changeToAngleAngle(anchor: Anchor) {
         switch (this.outline.types[anchor.idxType]) {
             case AnchorType.ANCHOR_SYMMETRIC: {
@@ -641,10 +641,12 @@ export class PathEditor extends EditToolEditor {
         }
     }
 
-    // TODO: move into class Anchor, add unit test
+    // TODO: add unit test!
     removeBackwardHandle(anchor: Anchor) {
         switch (this.outline.types[anchor.idxType]) {
             case AnchorType.ANCHOR_ANGLE_EDGE:
+                this.outline.types[anchor.idxType] = AnchorType.ANCHOR_EDGE
+                this.outline.values.splice(anchor.idxValue, 2)
                 break
             case AnchorType.ANCHOR_SYMMETRIC: {
                 this.outline.types[anchor.idxType] = AnchorType.ANCHOR_EDGE_ANGLE
@@ -655,44 +657,45 @@ export class PathEditor extends EditToolEditor {
                 this.outline.values[anchor.idxValue + 1] = a.y
                 this.outline.values[anchor.idxValue + 2] = h1.x
                 this.outline.values[anchor.idxValue + 3] = h1.y
-
-                const path = this.outline.getPath()
-                if (this.path.matrix)
-                    path.transform(this.path.matrix)
-                path.updateSVG(this.tool.outline!, this.outlineSVG)
-
-                this.currentAnchor!.apply()
-                this.updateAnchors()
             } break
             case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
-                break
             case AnchorType.ANCHOR_ANGLE_ANGLE:
+                this.outline.types[anchor.idxType] = AnchorType.ANCHOR_EDGE_ANGLE
+                this.outline.values.splice(anchor.idxValue, 2)
                 break
         }
+        const path = this.outline.getPath()
+        if (this.path.matrix)
+            path.transform(this.path.matrix)
+        path.updateSVG(this.tool.outline!, this.outlineSVG)
+
+        this.currentAnchor!.apply()
+        this.updateAnchors()
     }
-    // TODO: move into class Anchor, add unit test
+
+    // TODO: add unit test!
     removeForwardHandle(anchor: Anchor) {
         switch (this.outline.types[anchor.idxType]) {
             case AnchorType.ANCHOR_EDGE_ANGLE:
                 this.outline.types[anchor.idxType] = AnchorType.ANCHOR_EDGE
                 this.outline.values.splice(anchor.idxValue + 2, 2)
-
-                const path = this.outline.getPath()
-                if (this.path.matrix)
-                    path.transform(this.path.matrix)
-                path.updateSVG(this.tool.outline!, this.outlineSVG)
-
-                this.currentAnchor!.apply()
-                this.updateAnchors()
-
                 break
-            case AnchorType.ANCHOR_SYMMETRIC: {
-            } break
+            case AnchorType.ANCHOR_SYMMETRIC:
+                this.outline.types[anchor.idxType] = AnchorType.ANCHOR_ANGLE_EDGE
+                break
             case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
-                break
             case AnchorType.ANCHOR_ANGLE_ANGLE:
+                this.outline.types[anchor.idxType] = AnchorType.ANCHOR_ANGLE_EDGE
+                this.outline.values.splice(anchor.idxValue + 4, 2)
                 break
         }
+        const path = this.outline.getPath()
+        if (this.path.matrix)
+            path.transform(this.path.matrix)
+        path.updateSVG(this.tool.outline!, this.outlineSVG)
+
+        this.currentAnchor!.apply()
+        this.updateAnchors()
     }
 
     revert(anchor: Anchor) {
