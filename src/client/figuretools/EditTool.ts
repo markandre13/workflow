@@ -525,6 +525,7 @@ export class PathEditor extends EditToolEditor {
             if (event.altKey) {
                 switch (this.currentAnchor.anchorElement) {
                     case AnchorElement.ANCHOR:
+                        this.removeBothHandles(this.currentAnchor)
                         break
                     case AnchorElement.BACKWARD_HANDLE:
                         this.removeBackwardHandle(this.currentAnchor)
@@ -689,6 +690,33 @@ export class PathEditor extends EditToolEditor {
                 this.outline.values.splice(anchor.idxValue + 4, 2)
                 break
         }
+        const path = this.outline.getPath()
+        if (this.path.matrix)
+            path.transform(this.path.matrix)
+        path.updateSVG(this.tool.outline!, this.outlineSVG)
+
+        this.currentAnchor!.apply()
+        this.updateAnchors()
+    }
+
+    // TODO: add unit test!
+    removeBothHandles(anchor: Anchor) {
+        switch (this.outline.types[anchor.idxType]) {
+            case AnchorType.ANCHOR_EDGE_ANGLE:
+                this.outline.values.splice(anchor.idxValue + 2, 2)
+                break
+            case AnchorType.ANCHOR_ANGLE_EDGE:
+            case AnchorType.ANCHOR_SYMMETRIC:
+                this.outline.values.splice(anchor.idxValue, 2)
+                break
+            case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
+            case AnchorType.ANCHOR_ANGLE_ANGLE:
+                this.outline.values[anchor.idxValue] = this.outline.values[anchor.idxValue + 2]
+                this.outline.values[anchor.idxValue + 1] = this.outline.values[anchor.idxValue + 3]
+                this.outline.values.splice(anchor.idxValue + 2, 4)
+                break
+        }
+        this.outline.types[anchor.idxType] = AnchorType.ANCHOR_EDGE
         const path = this.outline.getPath()
         if (this.path.matrix)
             path.transform(this.path.matrix)
