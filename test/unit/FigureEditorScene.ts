@@ -152,12 +152,11 @@ export class FigureEditorScene {
         let msg = ""
         for (let i of [0, 2, 4, 6]) {
             const handleInfo = this.figureeditor.tool!.getBoundaryHandle(i)
-            console.log(handleInfo)
             if (handleInfo.path.contains(point))
                 return
-            msg = `${msg}\n(${handleInfo.path})`
+            msg = `${msg} (${handleInfo.path.data[0].values![0]+1.5},${handleInfo.path.data[0].values![1]+1.5})`
         }
-        throw Error(`Selection decoration has no edge (${point.x}, ${point.y}). We have ${msg}`)
+        throw Error(`Selection decoration has no edge (${point.x}, ${point.y}). We have${msg}`)
     }
 
     selectionHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number): void {
@@ -250,10 +249,10 @@ export class FigureEditorScene {
     }
 
     pointerDownAt(point: Point): void {
-        if (this.verbose)
-            console.log(`### POINTER DOWN AT ${point.x}, ${point.y}`)
-
         const e = this.figureeditor.shadowRoot!.elementFromPoint(point.x, point.y)! as SVGElement
+        if (this.verbose) {
+            console.log(`### POINTER DOWN AT ${point.x}, ${point.y} (${e?.nodeName})`)
+        }
         if (e !== null) {
             e.dispatchEvent(new PointerEvent("pointerenter"))
         }
@@ -350,7 +349,7 @@ export class FigureEditorScene {
         })
         const e = this.figureeditor.shadowRoot!.elementFromPoint(this.mousePosition.x, this.mousePosition.y)! as SVGElement
         if (e !== null) {
-            e.dispatchEvent(new PointerEvent("pointerenter"))
+            e.dispatchEvent(new PointerEvent("pointerleave"))
         }
     }
 

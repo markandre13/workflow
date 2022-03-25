@@ -416,9 +416,9 @@ describe("FigureEditor", function() {
 
         describe("scale", () => {
             describe("single figure", () => {
-                it.only("scales figure's outline before mouse is released", () => {
+                it("scales figure's outline before mouse is released", () => {
                     // GIVEN
-                    let scene = new FigureEditorScene(true)
+                    let scene = new FigureEditorScene()
                     let rectangle = new Rectangle(50, 50, 20, 30)
                     scene.addRectangle(rectangle)
                     scene.selectFigure()
@@ -436,12 +436,12 @@ describe("FigureEditor", function() {
                 })
                 it("scales figure when mouse is released", () => {
                     // GIVEN
-                    let scene = new FigureEditorScene()
-                    let rectangle = new Rectangle(50, 50, 20, 30)
+                    let scene = new FigureEditorScene(true)
+                    let rectangle = new Rectangle(50.5, 50.5, 20, 30)
                     scene.addRectangle(rectangle)
                     scene.selectFigure()
                     let down = new Point(rectangle.origin)
-                    let up = new Point(40, 65)
+                    let up = new Point(40.5, 65.5)
 
                     // WHEN
                     scene.pointerDownAt(down)
@@ -449,7 +449,7 @@ describe("FigureEditor", function() {
                     scene.pointerUp()
 
                     // THEN
-                    let scaled = new Rectangle(40, 65, 30, 15)
+                    let scaled = new Rectangle(up.x, up.y, 30, 15)
                     scene.selectionHasRectangle(scaled)
                     scene.outlineHasRectangle(scaled)
                     scene.renderHasRectangle(scaled)
@@ -460,8 +460,8 @@ describe("FigureEditor", function() {
                 it("scales a rotated figure", () => {
                     // GIVEN
                     let scene = new FigureEditorScene()
-                    let rectangle = new Rectangle(50, 50, 20, 30)
-                    let scaled = new Rectangle(40, 65, 30, 15)
+                    let rectangle = new Rectangle(50.5, 50.5, 20, 30)
+                    let scaled = new Rectangle(40.5, 65.5, 30, 15)
                     scene.addRectangle(rectangle, rectangle.center(), Math.PI / 8)
                     scene.selectFigure()
 
@@ -482,18 +482,18 @@ describe("FigureEditor", function() {
                 it("scales outline of two figure before mouse is released", () => {
                     // GIVEN
                     let scene = new FigureEditorScene()
-                    let rect0 = new Rectangle(50, 50, 20, 30)
-                    let rect1 = new Rectangle(100, 100, 40, 50)
+                    let rect0 = new Rectangle(50.5, 50.5, 20, 30)
+                    let rect1 = new Rectangle(100.5, 100.5, 40, 50)
                     scene.addRectangle(rect0)
                     scene.addRectangle(rect1)
                     scene.selectFigure(0)
                     scene.selectFigure(1)
 
-                    let selection = new Rectangle(50, 50, 90, 100)
+                    let selection = new Rectangle(50.5, 50.5, 90, 100)
                     scene.selectionHasRectangle(selection)
 
                     let down = new Point(rect0.origin)
-                    let up = new Point(40, 60)
+                    let up = new Point(40.5, 60.5)
 
                     // WHEN
                     scene.pointerDownAt(down)
@@ -501,7 +501,7 @@ describe("FigureEditor", function() {
                     // test.mouseUp()
 
                     // THEN
-                    let scaled = new Rectangle(40, 60, 100, 90)
+                    let scaled = new Rectangle(40.5, 60.5, 100, 90)
                     scene.selectionHasRectangle(scaled)
                     scene.outlineHasPoint(scaled.origin)
                     scene.outlineHasPoint(pointPlusSize(scaled.origin, scaled.size))
@@ -510,18 +510,18 @@ describe("FigureEditor", function() {
                 it("scales two figures when mouse is released", () => {
                     // GIVEN
                     let scene = new FigureEditorScene()
-                    let rect0 = new Rectangle(50, 50, 20, 30)
-                    let rect1 = new Rectangle(100, 100, 40, 50)
+                    let rect0 = new Rectangle(50.5, 50.5, 20, 30)
+                    let rect1 = new Rectangle(100.5, 100.5, 40, 50)
                     scene.addRectangle(rect0)
                     scene.addRectangle(rect1)
                     scene.selectFigure(0)
                     scene.selectFigure(1)
 
-                    let selection = new Rectangle(50, 50, 90, 100)
+                    let selection = new Rectangle(50.5, 50.5, 90, 100)
                     scene.selectionHasRectangle(selection)
 
                     let down = new Point(rect0.origin)
-                    let up = new Point(40, 60)
+                    let up = new Point(40.5, 60.5)
 
                     // WHEN
                     scene.pointerDownAt(down)
@@ -529,7 +529,7 @@ describe("FigureEditor", function() {
                     scene.pointerUp()
 
                     // THEN
-                    let scaled = new Rectangle(40, 60, 100, 90)
+                    let scaled = new Rectangle(40.5, 60.5, 100, 90)
                     scene.selectionHasRectangle(scaled)
                     scene.outlineHasPoint(scaled.origin)
                     scene.outlineHasPoint(pointPlusSize(scaled.origin, scaled.size))
@@ -814,42 +814,42 @@ describe("FigureEditor", function() {
             it("switch between operations (scale, move, scale)", () => {
                 // GIVEN
                 let scene = new FigureEditorScene()
-                let rect0 = new Rectangle(50, 50, 20, 30)
-                scene.addRectangle(rect0)
+                let originalRectangle = new Rectangle(50.5, 50.5, 20, 30)
+                scene.addRectangle(originalRectangle)
                 scene.selectFigure(0)
 
                 // scale
-                let rect1 = new Rectangle(40, 60, 30, 20)
-                let down0 = new Point(rect0.origin)
-                let up0 = new Point(rect1.origin)
+                let afterScale = new Rectangle(40.5, 60.5, 30, 20)
+                let down0 = new Point(originalRectangle.origin)
+                let up0 = new Point(afterScale.origin)
                 scene.pointerDownAt(down0)
                 scene.pointerTo(up0)
                 scene.pointerUp()
-                scene.selectionHasRectangle(rect1)
-                scene.outlineHasRectangle(rect1)
-                scene.renderHasRectangle(rect1)
+                scene.selectionHasRectangle(afterScale)
+                scene.outlineHasRectangle(afterScale)
+                scene.renderHasRectangle(afterScale)
 
                 // move
-                let rect2 = new Rectangle(140, 60, 30, 20)
-                let down1 = new Point(65, 65)
-                let up1 = new Point(165, 65)
+                let afterMove = new Rectangle(140.5, 60.5, 30, 20)
+                let down1 = new Point(65.5, 65.5)
+                let up1 = new Point(165.5, 65.5)
                 scene.pointerDownAt(down1)
                 scene.pointerTo(up1)
                 scene.pointerUp()
-                scene.selectionHasRectangle(rect2)
-                scene.outlineHasRectangle(rect2)
-                scene.renderHasRectangle(rect2)
+                scene.selectionHasRectangle(afterMove)
+                scene.outlineHasRectangle(afterMove)
+                scene.renderHasRectangle(afterMove)
 
                 // scale
-                let rect3 = new Rectangle(130, 70, 40, 10)
-                let down2 = new Point(rect2.origin)
-                let up2 = new Point(rect3.origin)
+                let after2ndScale = new Rectangle(130.5, 70.5, 40, 10)
+                let down2 = new Point(afterMove.origin)
+                let up2 = new Point(after2ndScale.origin)
                 scene.pointerDownAt(down2)
                 scene.pointerTo(up2)
                 scene.pointerUp()
-                scene.selectionHasRectangle(rect3)
-                scene.outlineHasRectangle(rect3)
-                scene.renderHasRectangle(rect3)
+                scene.selectionHasRectangle(after2ndScale)
+                scene.outlineHasRectangle(after2ndScale)
+                scene.renderHasRectangle(after2ndScale)
             })
         })
     })
@@ -863,7 +863,7 @@ describe("FigureEditor", function() {
             // cache should contain figure, path & svg
             let cache = test.figureeditor.cache
             expect(cache.size).to.equal(1)
-            let ce = cache.get(0)!!
+            let ce = cache.get(1)!!
             expect(ce.figure).to.equal(fig1)
             expect(ce.path).to.not.undefined
             expect(ce.svg).to.not.undefined
@@ -883,12 +883,12 @@ describe("FigureEditor", function() {
             // cache should contain figure, path & svg
             let cache = scene.figureeditor.cache
             expect(cache.size).to.equal(2)
-            let ce1 = cache.get(0)!
+            let ce1 = cache.get(1)!
             expect(ce1.figure).to.equal(fig1)
             expect(ce1.path).to.not.undefined
             expect(ce1.svg).to.not.undefined
 
-            let ce2 = cache.get(1)!
+            let ce2 = cache.get(2)!
             expect(ce2.figure).to.equal(fig2)
             expect(ce2.path).to.not.undefined
             expect(ce2.svg).to.not.undefined

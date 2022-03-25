@@ -94,8 +94,10 @@ export class ArrangeTool extends Tool {
         this.pointerLastAt = event
 
         if (this.downHandle(event)) {
+            if (this.debug) {
+                console.log(`  ArrangeTool.pointerdown(): down at handle ${event.x}, ${event.y} => state := MOVE_HANDLE`)
+            }
             this.state = ArrangeToolState.MOVE_HANDLE
-            // console.log(`DOWN: START TO MOVE HANDLE ${this.selectedHandle}`)
             return
         }
 
@@ -107,11 +109,17 @@ export class ArrangeTool extends Tool {
             if (!event.shiftKey) {
                 Tool.selection.clear()
             }
+            if (this.debug) {
+                console.log(`  ArrangeTool.pointerdown(): down at handle ${event.x}, ${event.y} => state := DRAG_MARQUEE`)
+            }
             this.state = ArrangeToolState.DRAG_MARQUEE
             return
         }
         
         this.state = ArrangeToolState.MOVE_SELECTION
+        if (this.debug) {
+            console.log(`  ArrangeTool.pointerdown(): down at handle ${event.x}, ${event.y} => state := MOVE_SELECTION`)
+        }
 
         if (Tool.selection.has(figure)) {
             return

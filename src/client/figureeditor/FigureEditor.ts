@@ -394,6 +394,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
                     cached.path = cached.figure.getPath()
                     if (cached.figure.matrix)
                         cached.path.transform(cached.figure.matrix)
+                    // console.log(`FigureEditor.updateFigure(): figure with id ${id} to ${cached.path}`)
                     cached.svg = cached.figure.updateSVG(cached.path, layer, cached.svg)
                 }
                 break

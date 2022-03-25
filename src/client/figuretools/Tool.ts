@@ -496,10 +496,10 @@ export class Tool {
                 // }
             }
             this.setCursorForHandle(h, handle, svg)
-            svg.onmouseenter = () => { 
+            svg.onpointerenter = () => { 
                 this.insideHandle = h
             }
-            svg.onmouseleave = () => {
+            svg.onpointerleave = () => {
                 this.insideHandle = undefined
             }
             this.decoration!.appendChild(svg)
