@@ -29,63 +29,6 @@ import {
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
-import { EditorPointerEvent } from "client/figureeditor/EditorPointerEvent"
-
-// NOTE: the translation in here is insufficient
-// we could also track the modifier keys and emulate keyup events, etc.
-//  key       code
-//  --------------------------
-//  ArrowDown ArrowDown
-//  a         KeyA
-//  A         KeyA + shift
-//  ö         Semicolon
-//  ä         Quote
-//  Shift     ShiftLeft
-//  Shift     ShiftRight
-//  CapsLock  CapsLock
-//  ' '       Space
-//  '!'       Digit1 + shift
-function keyCode2keyValue(code: KeyCode, option?: KeyboardOption): string {
-    if (code.substr(0, 3) === "Key") {
-        if (option?.shift === true)
-            return code.substr(3)
-        else
-            return code.substr(3).toLowerCase()
-    }
-    if (code.substr(0, 5) === "Digit") {
-        return code.substr(5)
-    }
-    if (code.substr(0, 6) === "Numeric") {
-        return code.substr(6)
-    }
-    switch (code) {
-        case "Space":
-            return " "
-        case "ShiftLeft":
-        case "ShiftRight":
-            return "Shift"
-        case "ControlLeft":
-        case "ControlRight":
-            return "Control"
-        case "AltLeft":
-        case "AltRight":
-            return "Alt"
-        case "MetaLeft":
-        case "MetaRight":
-            return "Meta"
-        case "Enter":
-        case "NumpadEnter":
-            return "Enter"
-    }
-    return code
-}
-
-interface KeyboardOption {
-    shift?: boolean
-    ctrl?: boolean
-    alt?: boolean
-    meta?: boolean // macOS: command key, windows: windows key
-}
 
 // PageObject style API for testing FigureEditor
 // https://martinfowler.com/bliki/PageObject.html
@@ -98,8 +41,14 @@ export class FigureEditorScene {
     id: number
     model: LocalDrawingModel
     figures: Array<Figure>
-    mousePosition: Point
-    verbose: boolean
+    mousePosition: Point // current mouse position
+    protected verbose: boolean
+
+    // toggled by keyup and down
+    protected shift = false
+    protected ctrl = false
+    protected alt = false
+    protected meta = false // macOS: command key, windows: windows key
 
     constructor(verbose = false) {
         this.verbose = verbose
@@ -177,19 +126,21 @@ export class FigureEditorScene {
             transform.translate(center)
             fig.matrix = transform
         } else
-        if (center !== undefined) {
-            let transform = new Matrix()
-            transform.translate(center)
-            fig.matrix = transform
-        }
+            if (center !== undefined) {
+                let transform = new Matrix()
+                transform.translate(center)
+                fig.matrix = transform
+            }
         this.model.add(0, fig)
         this.figures.push(fig)
     }
 
-    selectFigure(index = 0, shift = true): void {
+    selectFigure(index = 0): void {
         if (this.verbose)
             console.log("### SELECT FIGURE")
-        this.clickInsideFigure(index, shift)
+        this.keydown("ShiftLeft")
+        this.clickInsideFigure(index)
+        this.keyup("ShiftLeft")
         if (!Tool.selection.has(this.figures[index]))
             throw Error(`could not select figure ${index}`)
         // expect(Tool.selection.has(this.figures[index])).to.be.true
@@ -201,9 +152,10 @@ export class FigureEditorScene {
         let msg = ""
         for (let i of [0, 2, 4, 6]) {
             const handleInfo = this.figureeditor.tool!.getBoundaryHandle(i)
+            console.log(handleInfo)
             if (handleInfo.path.contains(point))
                 return
-            msg = `${msg} (${handleInfo.path.data})`
+            msg = `${msg}\n(${handleInfo.path})`
         }
         throw Error(`Selection decoration has no edge (${point.x}, ${point.y}). We have ${msg}`)
     }
@@ -297,12 +249,12 @@ export class FigureEditorScene {
         }, transform)
     }
 
-    pointerDownAt(point: Point, shift = false, alt=false): void {
+    pointerDownAt(point: Point): void {
         if (this.verbose)
             console.log(`### POINTER DOWN AT ${point.x}, ${point.y}`)
 
         const e = this.figureeditor.shadowRoot!.elementFromPoint(point.x, point.y)! as SVGElement
-        if (e!==null) {
+        if (e !== null) {
             e.dispatchEvent(new PointerEvent("pointerenter"))
         }
 
@@ -315,10 +267,10 @@ export class FigureEditorScene {
             editor: this.figureeditor,
             type: "down",
             pointerDown: true,
-            shiftKey: shift,
-            altKey: alt,
-            metaKey: false,
-            ctrlKey: false,
+            altKey: this.alt,
+            shiftKey: this.shift,
+            ctrlKey: this.ctrl,
+            metaKey: this.meta,
             pointerId: 0,
             pointerType: "mouse",
             pressure: 1,
@@ -328,7 +280,7 @@ export class FigureEditorScene {
         })
     }
 
-    pointerTo(point: Point, shift = false, alt=false) {
+    pointerTo(point: Point) {
         if (this.verbose)
             console.log(`### MOVE POINTER TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
@@ -339,10 +291,10 @@ export class FigureEditorScene {
             editor: this.figureeditor,
             type: "move",
             pointerDown: true,
-            shiftKey: shift,
-            altKey: false,
-            metaKey: false,
-            ctrlKey: false,
+            altKey: this.alt,
+            shiftKey: this.shift,
+            ctrlKey: this.ctrl,
+            metaKey: this.meta,
             pointerId: 0,
             pointerType: "mouse",
             pressure: 1,
@@ -352,7 +304,7 @@ export class FigureEditorScene {
         })
     }
 
-    movePointerBy(translation: Point, shift = false): void {
+    movePointerBy(translation: Point): void {
         if (this.verbose)
             console.log(`### MOVE POINTER BY ${translation.x}, ${translation.y}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
@@ -362,10 +314,10 @@ export class FigureEditorScene {
             editor: this.figureeditor,
             type: "move",
             pointerDown: true,
-            shiftKey: shift,
-            altKey: false,
-            metaKey: false,
-            ctrlKey: false,
+            altKey: this.alt,
+            shiftKey: this.shift,
+            ctrlKey: this.ctrl,
+            metaKey: this.meta,
             pointerId: 0,
             pointerType: "mouse",
             pressure: 1,
@@ -375,7 +327,7 @@ export class FigureEditorScene {
         })
     }
 
-    pointerUp(shift = false): void {
+    pointerUp(): void {
         if (this.verbose)
             console.log(`### POINTER UP`)
         this.figureeditor.pointerIsDown = false
@@ -385,10 +337,10 @@ export class FigureEditorScene {
             editor: this.figureeditor,
             type: "up",
             pointerDown: true,
-            shiftKey: shift,
-            altKey: false,
-            metaKey: false,
-            ctrlKey: false,
+            altKey: this.alt,
+            shiftKey: this.shift,
+            ctrlKey: this.ctrl,
+            metaKey: this.meta,
             pointerId: 0,
             pointerType: "mouse",
             pressure: 1,
@@ -397,23 +349,23 @@ export class FigureEditorScene {
             twist: 0
         })
         const e = this.figureeditor.shadowRoot!.elementFromPoint(this.mousePosition.x, this.mousePosition.y)! as SVGElement
-        if (e!==null) {
+        if (e !== null) {
             e.dispatchEvent(new PointerEvent("pointerenter"))
         }
     }
 
-    pointerClickAt(point: Point, shift = false, alt=false): void {
+    pointerClickAt(point: Point): void {
         if (this.verbose)
             console.log(`### POINTER CLICK AT ${point}`)
-        this.pointerDownAt(point, shift, alt)
-        this.pointerUp(shift)
+        this.pointerDownAt(point)
+        this.pointerUp()
     }
 
-    clickInsideFigure(index = 0, shift = false): void {
+    clickInsideFigure(index = 0): void {
         if (this.verbose)
             console.log(`### CLICK INSIDE FIGURE ${index}`)
-        this.pointerDownAt(this.centerOfFigure(index), shift)
-        this.pointerUp(shift)
+        this.pointerDownAt(this.centerOfFigure(index))
+        this.pointerUp()
     }
 
     centerOfFigure(index = 0): Point {
@@ -457,40 +409,123 @@ export class FigureEditorScene {
         active?.dispatchEvent(event)
     }
 
-    keydown(keycode: KeyCode, option?: KeyboardOption): void {
+    keydown(keycode: KeyCode): void {
         if (this.verbose)
             console.log(`### KEY DOWN ${keycode}`)
 
+        const keyValue = this.keyCode2keyValue(keycode)
+
         let event = new KeyboardEvent("keydown", {
-            key: keyCode2keyValue(keycode, option),
+            key: keyValue,
             code: keycode,
-            altKey: option?.alt,
-            shiftKey: option?.shift,
-            ctrlKey: option?.ctrl,
-            metaKey: option?.meta,
+            altKey: this.alt,
+            shiftKey: this.shift,
+            ctrlKey: this.ctrl,
+            metaKey: this.meta,
             composed: true,
             cancelable: true,
             bubbles: true,
         })
         this.dispatchEvent(event)
+
+        switch (keyValue) {
+            case "Shift":
+                this.shift = true
+                break
+            case "Control":
+                this.ctrl = true
+                break
+            case "Alt":
+                this.alt = true
+                break
+            case "Meta":
+                this.meta = true
+                break
+        }
+
     }
 
-    keyup(keycode: KeyCode, option?: KeyboardOption): void {
+    keyup(keycode: KeyCode): void {
         if (this.verbose)
             console.log(`### KEY UP ${keycode}`)
 
+        const keyValue = this.keyCode2keyValue(keycode)
         let event = new KeyboardEvent("keyup", {
-            key: keyCode2keyValue(keycode, option),
+            key: keyValue,
             code: keycode,
-            altKey: option?.alt,
-            shiftKey: option?.shift,
-            ctrlKey: option?.ctrl,
-            metaKey: option?.meta,
+            altKey: this.alt,
+            shiftKey: this.shift,
+            ctrlKey: this.ctrl,
+            metaKey: this.meta,
             composed: true,
             cancelable: true,
             bubbles: true,
         })
         this.dispatchEvent(event)
+
+        switch (keyValue) {
+            case "Shift":
+                this.shift = false
+                break
+            case "Control":
+                this.ctrl = false
+                break
+            case "Alt":
+                this.alt = false
+                break
+            case "Meta":
+                this.meta = false
+                break
+        }
+    }
+
+    // NOTE: the translation in here is insufficient
+    // we could also track the modifier keys and emulate keyup events, etc.
+    //  key       code
+    //  --------------------------
+    //  ArrowDown ArrowDown
+    //  a         KeyA
+    //  A         KeyA + shift
+    //  ö         Semicolon
+    //  ä         Quote
+    //  Shift     ShiftLeft
+    //  Shift     ShiftRight
+    //  CapsLock  CapsLock
+    //  ' '       Space
+    //  '!'       Digit1 + shift
+    protected keyCode2keyValue(code: KeyCode): string {
+        if (code.substr(0, 3) === "Key") {
+            if (this.shift === true)
+                return code.substr(3)
+            else
+                return code.substr(3).toLowerCase()
+        }
+        if (code.substr(0, 5) === "Digit") {
+            return code.substr(5)
+        }
+        if (code.substr(0, 6) === "Numeric") {
+            return code.substr(6)
+        }
+        switch (code) {
+            case "Space":
+                return " "
+            case "ShiftLeft":
+            case "ShiftRight":
+                return "Shift"
+            case "ControlLeft":
+            case "ControlRight":
+                return "Control"
+            case "AltLeft":
+            case "AltRight":
+                return "Alt"
+            case "MetaLeft":
+            case "MetaRight":
+                return "Meta"
+            case "Enter":
+            case "NumpadEnter":
+                return "Enter"
+        }
+        return code
     }
 
     async cut(): Promise<string | undefined> {
@@ -590,12 +625,12 @@ export class FigureEditorScene {
                 }
             }
             if (child instanceof SVGCircleElement && child.style.display !== "none") {
-                const 
+                const
                     cx = Number.parseFloat(child.getAttributeNS(null, "cx")!),
                     cy = Number.parseFloat(child.getAttributeNS(null, "cy")!),
                     r = Number.parseFloat(child.getAttributeNS(null, "r")!)
 
-                const rect = new Rectangle(cx-r,cy-2, 2*r, 2*r)
+                const rect = new Rectangle(cx - r, cy - 2, 2 * r, 2 * r)
                 if (rect.inside(handle)) {
                     foundHandle = true
                 }
@@ -605,22 +640,22 @@ export class FigureEditorScene {
         for (let i = 0; i < outlines.children.length; ++i) {
             const child = outlines.children[i]
             if (child instanceof SVGLineElement && child.style.display !== "none") {
-                const 
+                const
                     x1 = Number.parseFloat(child.getAttributeNS(null, "x1")!),
                     y1 = Number.parseFloat(child.getAttributeNS(null, "y1")!),
                     x2 = Number.parseFloat(child.getAttributeNS(null, "x2")!),
                     y2 = Number.parseFloat(child.getAttributeNS(null, "y2")!)
                 const
                     r = Figure.HANDLE_RANGE,
-                    ar = new Rectangle(x1-r/2, y1 - r/2, r, r),
-                    hr = new Rectangle(x2-r/2, y2 - r/2, r, r)
+                    ar = new Rectangle(x1 - r / 2, y1 - r / 2, r, r),
+                    hr = new Rectangle(x2 - r / 2, y2 - r / 2, r, r)
                 if (ar.inside(anchor), hr.inside(handle)) {
                     foundLine = true
                 }
-                msg=`${msg}\n[${x1},${y1}]---(${x2},${y2})`
+                msg = `${msg}\n[${x1},${y1}]---(${x2},${y2})`
             }
         }
-        if (msg==="") {
+        if (msg === "") {
             msg = "\nno lines"
         }
         if (foundAnchor && foundHandle && foundLine) {

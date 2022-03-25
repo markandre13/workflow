@@ -16,10 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { expect, use } from '@esm-bundle/chai'
-// import chaiAlmost from "chai-almost"
-// use(chaiAlmost())
-
+import { expect } from '@esm-bundle/chai'
 import { initializeCORBAValueTypes } from "client/workflow"
 
 import { pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, rotatePointAroundPointBy } from "shared/geometry"
@@ -37,7 +34,7 @@ describe("FigureEditor", function() {
         await loadScript("polyfill/path-data-polyfill.js")
     })
 
-    describe("SelectTool", () => {
+    describe("ArrangeTool", () => {
 
         describe("select", () => {
             describe("single figure", () => {
@@ -419,9 +416,9 @@ describe("FigureEditor", function() {
 
         describe("scale", () => {
             describe("single figure", () => {
-                it("scales figure's outline before mouse is released", () => {
+                it.only("scales figure's outline before mouse is released", () => {
                     // GIVEN
-                    let scene = new FigureEditorScene()
+                    let scene = new FigureEditorScene(true)
                     let rectangle = new Rectangle(50, 50, 20, 30)
                     scene.addRectangle(rectangle)
                     scene.selectFigure()

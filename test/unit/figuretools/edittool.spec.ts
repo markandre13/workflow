@@ -168,15 +168,15 @@ describe("EditTool", function () {
 
                     scene.pointerClickAt(p2) // select anchor
                   
-                    // TODO: send key events and let the pointer methods use that information
-                    scene.pointerClickAt(p1, false, true)
+                    scene.keydown("AltLeft")
+                    scene.pointerClickAt(p1)
                     expect(
                         outline.toInternalString()
                     ).to.equal(`E ${p(p0)} EA ${p(p2)} ${p(p3)} E ${p(p4)}`)
 
                     expect(path.toInternalString()).to.equal(`E ${p(p0)} EA ${p(p2)} ${p(p3)} E ${p(p4)}`)
 
-                    scene.pointerClickAt(p3, false, true)
+                    scene.pointerClickAt(p3)
                     expect(
                         outline.toInternalString()
                     ).to.equal(`E ${p(p0)} E ${p(p2)} E ${p(p4)}`)
@@ -211,14 +211,15 @@ describe("EditTool", function () {
 
                     scene.pointerClickAt(p2) // select anchor
                   
-                    scene.pointerClickAt(p2, false, true) // delete handles
+                    scene.keydown("AltLeft")
+                    scene.pointerClickAt(p2)
                     expect(
                         outline.toInternalString()
                     ).to.equal(`E ${p(p0)} E ${p(p2)} E ${p(p4)}`)
 
                     expect(path.toInternalString()).to.equal(`E ${p(p0)} E ${p(p2)} E ${p(p4)}`)
                 })
-                // drag anchor: undefined
+
                 describe("drag handle and release pointer", function () {
                     describe("anchor becomes ANGLE_ANGLE", function () {
                         it("backward handle", function () {
