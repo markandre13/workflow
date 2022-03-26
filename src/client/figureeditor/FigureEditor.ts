@@ -36,6 +36,7 @@ import { Group } from "client/figures/Group"
 import { DrawingEvent } from "./DrawingEvent"
 
 import * as figure from "../figures"
+import { throws } from "assert"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -147,8 +148,24 @@ interface FigureEditorProps extends HTMLElementProps {
 export class FigureEditor extends ModelView<DrawingModel> {
     inputCatcher: HTMLDivElement
     scrollView: HTMLDivElement
-    decorationOverlay: SVGElement
-    svgView: SVGElement // that's the svg in the whole scroll area?
+
+    svgView: SVGElement         // the <svg/> with in the scrollView
+
+    // <g/> to render outlines, handles, anchors when editing
+    // * always the last element in svgView
+    // * all other elements must be added before this one
+    // TODO: for scrolling, transformation is applied to the layer AND decorationOverlay
+    //       this might be a stupid idea. especially when we start to have more than one
+    //       layer (err... do we want layers at all? figure.Group would serve the same purpose... )
+    //       so, if we can use the transformations on the <svg/> directly, we could get rid of
+    //       the decorationOverlay and use this.outline and this.decoration directly
+    private decorationOverlay: SVGGElement
+    // the <g/> to show outlines
+    // * always the second to last element in svgView
+    outline: SVGGElement
+    // the <g/> to show anchors, handles, ...
+    // * always the last element in svgView
+    decoration: SVGGElement     
 
     bounds: Rectangle // bounds of whut?
     zoom: number // zoom factor
@@ -195,10 +212,16 @@ export class FigureEditor extends ModelView<DrawingModel> {
         this.scrollView.addEventListener("pointerup", this.pointerUp)
 
         this.svgView = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        this.scrollView.appendChild(this.svgView)
 
         this.decorationOverlay = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.svgView.appendChild(this.decorationOverlay)
-        this.scrollView.appendChild(this.svgView)
+
+        this.outline = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        this.decorationOverlay.appendChild(this.outline)
+
+        this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        this.decorationOverlay.appendChild(this.decoration)
 
         this.attachShadow({ mode: 'open' })
         this.shadowRoot!.appendChild(document.importNode(style, true))

@@ -91,6 +91,7 @@ function mirrorPoint(center: Point, point: Point) {
 }
 
 export class PenTool extends Tool {
+    editor!: FigureEditor
     state = State.READY
 
     svg?: SVGElement
@@ -107,6 +108,7 @@ export class PenTool extends Tool {
     }
 
     override activate(editor: FigureEditor) {
+        this.editor = editor // FIXME: why not make this a property of Tool and set in in FigureEditor before calling activate and unset after calling deactive?
         Tool.selection.clear() // FIXME: when a path is selected, we must be able to continue editing
         this.setCursor(editor, Cursor.READY)
         Tool.setHint(`technical pen: <pointer>down</pointer>: add anchor, <pointer>drag</pointer>: smooth anchor, <alt/>+<pointer>drag</pointer>: sharp anchor`)
@@ -438,15 +440,12 @@ export class PenTool extends Tool {
         this.clear(event.editor)
         Tool.selection.clear()
 
-        this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
-        this.decoration.id = "pen-tool-decoration"
         this.updateBoundary() // FIXME: side effect
-        event.editor.decorationOverlay.appendChild(this.decoration)
 
         this._outline = new Path()
         this.svg = this._outline.getPath().createSVG()
         this.setOutlineColors(this.svg)
-        this.decoration.appendChild(this.svg)
+        event.editor.outline.appendChild(this.svg)
 
         this.figure = new Path() // FIXME: won't work in client/server mode
         if (event.editor.strokeAndFillModel) {
@@ -461,12 +460,9 @@ export class PenTool extends Tool {
         this.anchors = []
         this._handles = new Array<SVGCircleElement>(4)
         this.lines = new Array<SVGLineElement>(4)
-        if (this.decoration) {
-            editor.decorationOverlay.removeChild(this.decoration)
-        }
-        this.decoration = undefined
         this._outline = undefined
         this.svg = undefined
+        this.removeOutlines(editor)
     }
 
     setCursor(editor: FigureEditor, cursor: Cursor) {
@@ -496,7 +492,9 @@ export class PenTool extends Tool {
         } else {
             anchor.style.cursor = `url(${Tool.cursorPath}pen-edge.svg) 5 1, crosshair`
         }
-        this.decoration!.appendChild(anchor)
+        this.editor.decoration.appendChild(anchor)
+
+        // this.decoration!.appendChild(anchor)
         this.anchors.push(anchor)
     }
 
@@ -543,10 +541,10 @@ export class PenTool extends Tool {
 
         this._handlePos[idx] = handlePos
         if (this._handles[idx] === undefined) {
-            this._handles[idx] = Tool.createHandle(undefined, handlePos)
-            this.decoration!.appendChild(this._handles[idx])
             this.lines[idx] = Tool.createLine(undefined, anchorPos, handlePos)
-            this.decoration!.appendChild(this.lines[idx])
+            this.editor.outline.appendChild(this.lines[idx])
+            this._handles[idx] = Tool.createHandle(undefined, handlePos)
+            this.editor.decoration.appendChild(this._handles[idx])
         } else {
             this._handles[idx].style.display = ""
             this.lines[idx].style.display = ""
@@ -579,6 +577,6 @@ export class PenTool extends Tool {
 
     updateSVG(editor: FigureEditor) {
         // this.svg!.setAttributeNS("", "d", this._outline!.getPath().toString())
-        this._outline!.getPath().updateSVG(editor.decorationOverlay, this.svg as SVGPathElement)
+        this._outline!.getPath().updateSVG(editor.outline, this.svg as SVGPathElement)
     }
 }

@@ -276,13 +276,14 @@ describe("FigureEditor", function() {
                     // GIVEN
                     let scene = new FigureEditorScene()
 
-                    let r0 = new Rectangle(50, 50, 20, 30)
+                    let r0 = new Rectangle(50.5, 50.5, 20, 30)
                     let translation = new Point(10, -10)
                     let r1 = new Rectangle(r0)
                     r1.origin = pointPlusPoint(r1.origin, translation)
                     scene.addRectangle(r0)
 
                     scene.selectFigure(0)
+
                     scene.selectionHasRectangle(r0)
 
                     // WHEN
@@ -369,7 +370,7 @@ describe("FigureEditor", function() {
                 it("moves figure with matrix when mouse is released", () => {
                     // GIVEN
                     let scene = new FigureEditorScene()
-                    let r0 = new Rectangle(50, 50, 20, 30)
+                    let r0 = new Rectangle(50.5, 50.5, 20, 30)
                     let translation = new Point(10, -10)
                     scene.addRectangle(r0, new Point(), 0)
                     scene.selectFigure(0)
@@ -392,7 +393,7 @@ describe("FigureEditor", function() {
                 it("moves a rotated figure", () => {
                     // GIVEN
                     let scene = new FigureEditorScene()
-                    let r0 = new Rectangle(50, 50, 20, 30)
+                    let r0 = new Rectangle(50.5, 50.5, 20, 30)
                     scene.addRectangle(r0, r0.center(), Math.PI / 8)
                     scene.selectFigure(0)
 
@@ -419,18 +420,18 @@ describe("FigureEditor", function() {
                 it("scales figure's outline before mouse is released", () => {
                     // GIVEN
                     let scene = new FigureEditorScene()
-                    let rectangle = new Rectangle(50, 50, 20, 30)
+                    let rectangle = new Rectangle(50.5, 50.5, 20, 30)
                     scene.addRectangle(rectangle)
                     scene.selectFigure()
                     let down = new Point(rectangle.origin)
-                    let up = new Point(40, 65)
+                    let up = new Point(40.5, 65.5)
 
                     // WHEN
                     scene.pointerDownAt(down)
                     scene.pointerTo(up)
 
                     // THEN
-                    let scaled = new Rectangle(40, 65, 30, 15)
+                    let scaled = new Rectangle(40.5, 65.5, 30, 15)
                     scene.selectionHasRectangle(scaled)
                     scene.outlineHasRectangle(scaled)
                 })

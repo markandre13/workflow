@@ -59,7 +59,7 @@ export class TextEditor {
 
         this.svgCursor = this.createCursor()
         this.updateCursor()
-        editor.decorationOverlay.appendChild(this.svgCursor)
+        editor.decoration.appendChild(this.svgCursor)
     }
 
     hasSelection(): boolean {

@@ -48,9 +48,9 @@ export class ShapeTool extends Tool {
         }
 
         let path = this.shape.getPath()
-        this.svg = this.shape.updateSVG(path, event.editor.decorationOverlay)
+        this.svg = this.shape.updateSVG(path, event.editor.decoration)
         // Tool.setOutlineColors(path) FIXME
-        event.editor.decorationOverlay.appendChild(this.svg)
+        event.editor.decoration.appendChild(this.svg)
     }
 
     override pointermove(event: EditorPointerEvent) {
@@ -60,7 +60,7 @@ export class ShapeTool extends Tool {
         let shape = this.shape!
         shape.setHandlePosition(2, event)
         let path = shape.getPath()
-        shape.updateSVG(path, event.editor.decorationOverlay, this.svg)
+        shape.updateSVG(path, event.editor.decoration, this.svg)
     }
 
     override pointerup(event: EditorPointerEvent) {
@@ -78,7 +78,7 @@ export class ShapeTool extends Tool {
         }
 
         // let path = shape.getPath()
-        event.editor.decorationOverlay.removeChild(this.svg!!)
+        event.editor.decoration.removeChild(this.svg!!)
 
         event.editor.addFigure(shape)
         this.shape = undefined

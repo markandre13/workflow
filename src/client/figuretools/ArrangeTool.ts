@@ -174,6 +174,9 @@ export class ArrangeTool extends Tool {
                 break
         }
         // reset state for next operation
+        if (this.debug) {
+            console.log(`  ArrangeTool.pointerup(): => state := NONE`)
+        }
         this.state = ArrangeToolState.NONE
         this.transformation.identity()
         this.updateBoundary()
@@ -389,13 +392,13 @@ export class ArrangeTool extends Tool {
         this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
         this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
         this.svgMarquee.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
-        editor.decorationOverlay.appendChild(this.svgMarquee)
+        editor.decoration.appendChild(this.svgMarquee)
     }
     
     private removeMarquee(editor: FigureEditor) {
         if (this.svgMarquee === undefined)
             return
-        editor.decorationOverlay.removeChild(this.svgMarquee)
+        editor.decoration.removeChild(this.svgMarquee)
         this.svgMarquee = undefined
     }
     
@@ -432,14 +435,14 @@ export class ArrangeTool extends Tool {
                 continue
 
             let svg = this.createOutline(editor, figure)
-            editor.decorationOverlay.appendChild(svg)
+            editor.decoration.appendChild(svg)
             this.marqueeOutlines.set(figure, svg)
         }
     }
 
     private removeMarqueeOutlines(editor: FigureEditor) {
         for(let pair of this.marqueeOutlines) {
-            editor.decorationOverlay.removeChild(pair[1])
+            editor.decoration.removeChild(pair[1])
         }
         this.marqueeOutlines.clear()
     }

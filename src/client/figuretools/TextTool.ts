@@ -220,7 +220,7 @@ export class TextTool extends Tool {
         this.svgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
         this.svgRect.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
         this.svgRect.setAttributeNS("", 'fill', 'url(#textToolPattern)')
-        event.editor.decorationOverlay.appendChild(this.svgRect)
+        event.editor.decoration.appendChild(this.svgRect)
     }
 
     protected resizeDrawTextArea(event: EditorPointerEvent) {
@@ -234,7 +234,7 @@ export class TextTool extends Tool {
     }
 
     protected stopDrawTextArea(event: EditorPointerEvent) {
-        event.editor.decorationOverlay.removeChild(this.svgRect)
+        event.editor.decoration.removeChild(this.svgRect)
         event.editor.svgView.removeChild(this.defs)
     }
 

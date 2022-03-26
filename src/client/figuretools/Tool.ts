@@ -41,8 +41,6 @@ export class Tool {
     boundaryTransformation: Matrix
 
     handles: Map<Figure, Array<AbstractPath>>
-    outline: SVGGElement | undefined
-    decoration: SVGGElement | undefined
 
     activate(editor: FigureEditor) {}
     deactivate(editor: FigureEditor) {}
@@ -394,14 +392,12 @@ export class Tool {
     }
 
     createOutlines(editor: FigureEditor): void { // FIXME: rename into createOutlinesForSelection()
-        this.outline = document.createElementNS("http://www.w3.org/2000/svg", "g")
         // this.outline.setAttributeNS("", "transform", "translate(-1, 1)")
 
         for(let figure of Tool.selection.selection) {
-            this.outline.appendChild(this.createOutline(editor, figure))
+            editor.outline.appendChild(this.createOutline(editor, figure))
         }
 
-        editor.decorationOverlay.appendChild(this.outline)
     }
 
     createOutline(editor: FigureEditor, figure: Figure) {
@@ -409,16 +405,13 @@ export class Tool {
         if (figure.matrix !== undefined)
             path.transform(figure.matrix)
         path.transform(this.transformation)
-        let svg = path.updateSVG(editor.decorationOverlay, undefined)
+        let svg = path.updateSVG(editor.outline, undefined)
         this.setOutlineColors(svg)
         return svg
     }
 
     removeOutlines(editor: FigureEditor): void {
-        if (this.outline) {
-            editor.decorationOverlay.removeChild(this.outline)
-            this.outline = undefined
-        }
+        editor.outline.innerHTML = ""
     }
     
     setOutlineColors(svg: SVGElement): void {
@@ -443,14 +436,10 @@ export class Tool {
     createDecoration(editor: FigureEditor) {
         if (Tool.selection.empty())
             return
-
-        this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
     
         this.updateBoundary() // FIXME: side effect
         this.createDecorationRectangle(editor)
         this.createDecorationHandles(editor)
-
-        editor.decorationOverlay.appendChild(this.decoration)
     }
 
     createDecorationRectangle(editor: FigureEditor) {
@@ -472,7 +461,7 @@ export class Tool {
     
         // display path
         let svg = path.createSVG("rgb(79,128,255)")
-        this.decoration!.appendChild(svg)
+        editor.outline.appendChild(svg)
     }
     
     createDecorationHandles(editor: FigureEditor) {
@@ -502,15 +491,14 @@ export class Tool {
             svg.onpointerleave = () => {
                 this.insideHandle = undefined
             }
-            this.decoration!.appendChild(svg)
+            editor.decoration.appendChild(svg)
         }
     }
 
+    // FIXME: this belongs in FigureEditor
     removeDecoration(editor: FigureEditor) {
-        if (this.decoration) {
-            editor.decorationOverlay.removeChild(this.decoration)
-            this.decoration = undefined
-        }
+        editor.decoration.innerHTML = ""
+        editor.outline.innerHTML = ""
     }
 
     static createAnchor(figureToScreen: Matrix | undefined, p: Point) {

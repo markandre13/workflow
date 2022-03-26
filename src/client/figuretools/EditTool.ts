@@ -87,11 +87,11 @@ class Anchor {
             editor.insideAnchor = undefined
             this.anchorElement = AnchorElement.ANCHOR
         }
-        this.tool.decoration!.appendChild(this.svgAnchor)
+        this.editor.editor.decoration.appendChild(this.svgAnchor)
     }
 
     destructor() {
-        this.tool.decoration!.removeChild(this.svgAnchor)
+        this.editor.editor.decoration.removeChild(this.svgAnchor)
         this.hideBackwardHandle()
         this.hideForwardHandle()
     }
@@ -146,9 +146,9 @@ class Anchor {
                     this.editor.updateHandle(pos, this.svgBackwardHandle)
                 } else {
                     this.svgBackwardLine = this.editor.createLine(this.pos, pos)
-                    this.tool.outline!.appendChild(this.svgBackwardLine)
+                    this.editor.editor.outline.appendChild(this.svgBackwardLine)
                     this.svgBackwardHandle = this.editor.createHandle(pos)
-                    this.tool.decoration!.appendChild(this.svgBackwardHandle)
+                    this.editor.editor.decoration.appendChild(this.svgBackwardHandle)
                     this.svgBackwardHandle.onpointerenter = () => {
                         this.editor.insideAnchor = this
                         this.anchorElement = AnchorElement.BACKWARD_HANDLE
@@ -164,8 +164,8 @@ class Anchor {
 
     hideBackwardHandle() {
         if (this.svgBackwardHandle) {
-            this.tool.outline!.removeChild(this.svgBackwardLine!)
-            this.tool.decoration!.removeChild(this.svgBackwardHandle)
+            this.editor.editor.outline.removeChild(this.svgBackwardLine!)
+            this.editor.editor.decoration.removeChild(this.svgBackwardHandle)
             this.svgBackwardHandle = undefined
             this.svgBackwardLine = undefined
         }
@@ -199,9 +199,9 @@ class Anchor {
             this.editor.updateHandle(pos, this.svgForwardHandle)
         } else {
             this.svgForwardLine = this.editor.createLine(anchor, pos)
-            this.tool.outline!.appendChild(this.svgForwardLine)
+            this.editor.editor.outline.appendChild(this.svgForwardLine)
             this.svgForwardHandle = this.editor.createHandle(pos)
-            this.tool.decoration!.appendChild(this.svgForwardHandle)
+            this.editor.editor.decoration.appendChild(this.svgForwardHandle)
             this.svgForwardHandle.onpointerenter = () => {
                 this.editor.insideAnchor = this
                 this.anchorElement = AnchorElement.FORWARD_HANDLE
@@ -216,8 +216,8 @@ class Anchor {
 
     hideForwardHandle() {
         if (this.svgForwardHandle) {
-            this.tool.outline!.removeChild(this.svgForwardLine!)
-            this.tool.decoration!.removeChild(this.svgForwardHandle)
+            this.editor.editor.outline.removeChild(this.svgForwardLine!)
+            this.editor.editor.decoration.removeChild(this.svgForwardHandle)
             this.svgForwardHandle = undefined
             this.svgForwardLine = undefined
         }
@@ -321,7 +321,7 @@ class Anchor {
         const path = this.outline.getPath()
         if (this.figure.matrix)
             path.transform(this.figure.matrix)
-        path.updateSVG(this.tool.outline!, this.editor.outlineSVG)
+        path.updateSVG(this.editor.editor.outline, this.editor.outlineSVG)
     }
 
     set backwardHandle(point: Point) {
@@ -357,7 +357,7 @@ class Anchor {
         const path = this.outline.getPath()
         if (this.figure.matrix)
             path.transform(this.figure.matrix)
-        path.updateSVG(this.tool.outline!, this.editor.outlineSVG)
+        path.updateSVG(this.editor.editor.outline, this.editor.outlineSVG)
     }
 
     set forwardHandle(point: Point) {
@@ -402,7 +402,7 @@ class Anchor {
         const path = this.outline.getPath()
         if (this.figure.matrix)
             path.transform(this.figure.matrix)
-        path.updateSVG(this.tool.outline!, this.editor.outlineSVG)
+        path.updateSVG(this.editor.editor.outline, this.editor.outlineSVG)
     }
 
     apply() {
@@ -494,7 +494,7 @@ export class PathEditor extends EditToolEditor {
             outlinePath.transform(path.matrix)
         this.outlineSVG = outlinePath.createSVG()
         this.tool.setOutlineColors(this.outlineSVG)
-        this.tool.outline!.appendChild(this.outlineSVG)
+        this.editor.outline.appendChild(this.outlineSVG)
 
         // create anchors
         this.createAnchors()
@@ -505,7 +505,7 @@ export class PathEditor extends EditToolEditor {
             anchor.destructor()
         })
         this.anchors.length = 0
-        this.tool.outline!.removeChild(this.outlineSVG)
+        this.editor.outline.removeChild(this.outlineSVG)
     }
 
     // TODO: this is copied from figure.Path.getPath(), which is covered by tests
@@ -668,7 +668,7 @@ export class PathEditor extends EditToolEditor {
         const path = this.outline.getPath()
         if (this.path.matrix)
             path.transform(this.path.matrix)
-        path.updateSVG(this.tool.outline!, this.outlineSVG)
+        path.updateSVG(this.editor.outline, this.outlineSVG)
 
         this.currentAnchor!.apply()
         this.updateAnchors()
@@ -693,7 +693,7 @@ export class PathEditor extends EditToolEditor {
         const path = this.outline.getPath()
         if (this.path.matrix)
             path.transform(this.path.matrix)
-        path.updateSVG(this.tool.outline!, this.outlineSVG)
+        path.updateSVG(this.editor.outline, this.outlineSVG)
 
         this.currentAnchor!.apply()
         this.updateAnchors()
@@ -720,7 +720,7 @@ export class PathEditor extends EditToolEditor {
         const path = this.outline.getPath()
         if (this.path.matrix)
             path.transform(this.path.matrix)
-        path.updateSVG(this.tool.outline!, this.outlineSVG)
+        path.updateSVG(this.editor.outline, this.outlineSVG)
 
         this.currentAnchor!.apply()
         this.updateAnchors()
@@ -767,11 +767,6 @@ export class EditTool extends Tool {
     override activate(editor: FigureEditor) {
         Tool.setHint(`edit tool: under construction, use pointer with <ctrl/> to smooth or with <alt/> to sharpen edges`)
         editor.svgView.style.cursor = `url(${Tool.cursorPath}edit.svg) 1 1, crosshair`
-
-        this.outline = document.createElementNS("http://www.w3.org/2000/svg", "g")
-        editor.decorationOverlay.appendChild(this.outline)
-        this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
-        editor.decorationOverlay.appendChild(this.decoration)
         Tool.selection.modified.add(() => {
             this.updateSelection(editor)
         }, this)
@@ -782,10 +777,8 @@ export class EditTool extends Tool {
         editor.svgView.style.cursor = "default"
         this.removeEditors(editor)
         Tool.selection.modified.remove(this)
-        editor.decorationOverlay.removeChild(this.outline!)
-        editor.decorationOverlay.removeChild(this.decoration!)
-        this.outline = undefined
-        this.decoration = undefined
+        editor.outline.innerHTML = ""
+        editor.decoration.innerHTML = ""
     }
 
     override pointerEvent(event: EditorPointerEvent): void {

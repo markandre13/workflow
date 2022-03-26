@@ -663,7 +663,7 @@ describe("EditTool", function () {
                 })
 
                 it("move handle", function () {
-                    const scene = new FigureEditorScene()
+                    const scene = new FigureEditorScene(true)
 
                     const p0 = { x: 10, y: 50 }
                     let p1 = { x: 40, y: 20 }
@@ -679,6 +679,7 @@ describe("EditTool", function () {
                     scene.addFigure(path)
                     expect(path.toInternalString()).to.equal(`E ${p(p0)} AE ${p(p1)} ${p(p2)} E ${p(p4)}`)
 
+                    // select figure
                     scene.selectEditTool()
                     scene.pointerClickAt(p0)
                     expect(Tool.selection.has(path)).to.be.true
@@ -688,7 +689,9 @@ describe("EditTool", function () {
                     expect(scene.hasAnchorAt(p4)).to.be.true
                     expect(scene.getAnchorHandleCount()).to.deep.equal([3, 0])
 
-                    scene.pointerClickAt(p1)
+                    // select anchor
+                    scene.pointerClickAt(p2)
+                    expect(Tool.selection.has(path)).to.be.true
                     expect(scene.hasAnchorAt(p0)).to.be.true
                     expect(scene.hasAnchorAt(p2)).to.be.true
                     expect(scene.hasAnchorAt(p4)).to.be.true
