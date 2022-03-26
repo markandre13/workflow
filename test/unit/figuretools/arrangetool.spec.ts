@@ -437,7 +437,7 @@ describe("FigureEditor", function() {
                 })
                 it("scales figure when mouse is released", () => {
                     // GIVEN
-                    let scene = new FigureEditorScene(true)
+                    let scene = new FigureEditorScene()
                     let rectangle = new Rectangle(50.5, 50.5, 20, 30)
                     scene.addRectangle(rectangle)
                     scene.selectFigure()
