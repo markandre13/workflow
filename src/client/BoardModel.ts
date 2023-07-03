@@ -28,19 +28,20 @@ import * as valuetype from "shared/workflow_valuetype"
 import { DrawingEvent } from "./figureeditor/DrawingEvent"
 
 // FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
-export class BoardModel implements valuetype.BoardModel, DrawingModel {
+export class BoardModel extends DrawingModel implements valuetype.BoardModel {
     // BoardModel
     bid!: number
     name!: string
-    description!: string
-    layers!: Array<Layer>
+    comment!: string
+    // layers!: Array<Layer>
 
     // LayerModel
-    modified: Signal<DrawingEvent>
+    // modified: Signal<DrawingEvent>
 
     board?: inf.Board
 
     constructor(init: Partial<value.BoardModel>) {
+        super()
         value.initBoardModel(this, init)
         this.modified = new Signal()
         console.log("BoardModel.constructor()")

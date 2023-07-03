@@ -1,36 +1,17 @@
 // this typescript configuration is shared by all builds and visual studio code
 {
+    "extends": "./tsconfig.json",
+
     "compilerOptions": {
         "target": "es2020",
         "module": "es6",
-        "moduleResolution": "node",
-        "traceResolution": false,
         "esModuleInterop": true,
-        "incremental": false,
-        "lib": ["ESNext", "DOM"],
-        "outDir": "build",
-        "baseUrl": "src",
-        "paths": {
-            "shared/*": ["shared/*"],
-            "client/*": ["client/*"]
-        },
         "plugins": [
-            { "transform": "@zerollup/ts-transform-paths" },
             {
-                "transform": "@zoltu/typescript-transformer-append-js-extension",
+                "transform": "./m13-es-transformer.ts",
                 "after": true,
             }
         ],
-        "jsx": "react-jsx",
-        "jsxImportSource": "toad.jsx/lib",
-        "experimentalDecorators": true,
-        "downlevelIteration": true,
-        "strict": true,
-        "strictNullChecks": true,
-        "allowJs": false,
-        "noImplicitAny": true,
-        "noImplicitOverride": true,
-        "sourceMap": true,
     },
     "include": [
         "src/client/workflow.ts",
@@ -44,8 +25,5 @@
         "test/unit/geometry/nearestPointOnCurve.spec.ts",
         "test/unit/geometry/pointInPolygon.spec.ts",
         "test/unit/util/color.spec.ts",
-    ],
-    "exclude": [
-        "node_modules"
     ]
 }

@@ -19,5 +19,6 @@
 import { OptionModel } from "toad.js"
 import { Tool } from "../figuretools"
 
-export class ToolModel extends OptionModel<Tool> {
-}
+// export declare class OptionModel<V, O extends ModelOptions = ModelOptions> extends OptionModelBase<V, O> {
+
+export class ToolModel extends OptionModel<Tool> {}

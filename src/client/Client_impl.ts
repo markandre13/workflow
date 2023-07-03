@@ -279,14 +279,15 @@ export class Client_impl extends skel.Client {
     }
 
     private createToolModel(): ToolModel {
-        let toolmodel = new ToolModel()
-        toolmodel.add("arrange", new ArrangeTool())
-        toolmodel.add("edit", new EditTool())
-        toolmodel.add("pen", new PenTool())
-        toolmodel.add("rectangle", new ShapeTool(Rectangle))
-        toolmodel.add("circle", new ShapeTool(Circle))
-        toolmodel.add("text", new TextTool())
-        toolmodel.stringValue = "arrange"
+        const arrangeTool = new ArrangeTool()
+        let toolmodel = new ToolModel(arrangeTool, [
+            [new ArrangeTool(), "arrange"],
+            [new EditTool(), "edit"],
+            [new PenTool(), "pen"],
+            [new ShapeTool(Rectangle), "rectangle"],
+            [new ShapeTool(Circle), "circle"],
+            [new TextTool(), "text"]
+        ])
         bindModel("tool", toolmodel) // for tool buttons
         bindModel("board", toolmodel)
         return toolmodel

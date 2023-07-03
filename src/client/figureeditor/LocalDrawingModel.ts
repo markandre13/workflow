@@ -16,12 +16,10 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Signal } from 'toad.js'
 import { Matrix } from "shared/geometry/Matrix"
 
 import { Figure } from "../figures/Figure"
 
-import { DrawingEvent } from './DrawingEvent'
 import { DrawingModel } from "./DrawingModel"
 import { Operation } from "./FigureEditor"
 import { Group } from 'client/figures/Group'
@@ -32,10 +30,10 @@ import { Layer } from './Layer'
  * 
  * Changes the model and sends a message to listeners.
  */
-export class LocalDrawingModel implements DrawingModel {
+export class LocalDrawingModel extends DrawingModel {
     idCounter = -1
-    modified = new Signal<DrawingEvent>()
-    layers: Layer[] = []
+    // modified = new Signal<DrawingEvent>()
+    // layers: Layer[] = []
 
     add(layerId: number, figure: Figure) {
         let layer = this.layerById(layerId)

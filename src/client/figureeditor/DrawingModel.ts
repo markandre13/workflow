@@ -16,21 +16,21 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Signal } from "toad.js"
+import { Model, Signal } from "toad.js"
 import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "shared/workflow_valuetype"
 import { Layer } from "./Layer"
 import { DrawingEvent } from "./DrawingEvent"
 
-export interface DrawingModel {
-    modified: Signal<DrawingEvent>
-    layers: Array<Layer>
-    add(layerID: number, figure: Figure): void
-    delete(layerID: number, indices: Array<number>): void
-    setStrokeAndFill(layerID: number, indices: Array<number>, stroke: string, fill: string):void
-    transform(layerID: number, indices: Array<number>, matrix: Matrix): void
-    bringToFront(layerID: number, indices: Array<number>): void
-    bringToBack(layerID: number, indices: Array<number>): void
-    bringForward(layerID: number, indices: Array<number>): void
-    bringBackward(layerID: number, indices: Array<number>): void
+export abstract class DrawingModel extends Model<DrawingEvent> {
+    // modified: Signal<DrawingEvent>
+    layers: Layer[] = []
+    abstract add(layerID: number, figure: Figure): void
+    abstract delete(layerID: number, indices: Array<number>): void
+    abstract setStrokeAndFill(layerID: number, indices: Array<number>, stroke: string, fill: string):void
+    abstract transform(layerID: number, indices: Array<number>, matrix: Matrix): void
+    abstract bringToFront(layerID: number, indices: Array<number>): void
+    abstract bringToBack(layerID: number, indices: Array<number>): void
+    abstract bringForward(layerID: number, indices: Array<number>): void
+    abstract bringBackward(layerID: number, indices: Array<number>): void
 }

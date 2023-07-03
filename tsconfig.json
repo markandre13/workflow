@@ -1,6 +1,7 @@
 // this typescript configuration is shared by all builds and visual studio code
 {
     "compilerOptions": {
+        "outDir": "build",
         "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
@@ -11,6 +12,7 @@
             "shared/*": ["shared/*"],
             "client/*": ["client/*"]
         },
+        "incremental": false,
         "jsx": "react-jsx",
         "jsxImportSource": "toad.jsx/lib",
         "esModuleInterop": true,

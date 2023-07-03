@@ -36,14 +36,14 @@ export function homeScreen(model: DrawingModel, tool: ToolModel, strokeandfill: 
     return <>
             <img src="img/logo.svg" width="44" height="44" style={{ position: "absolute", left: "2px", top: "2px" }} />
             <div class="toolbar">
-                <ToolButton model={tool} value="arrange" img="img/tool/select.svg" title="Arrange (V)" />
+                {/* <ToolButton model={tool} value="arrange" img="img/tool/select.svg" title="Arrange (V)" />
                 <ToolButton model={tool} value="edit" img="img/tool/direct.svg" title="Edit (A)" />
                 <ToolButton model={tool} value="pen" img="img/tool/pen.svg" title="Technical Pen (P)" />
                 <ToolButton model={tool} value="nib" img="img/tool/nib.svg" title="Nib Pen (N)"/>
                 <ToolButton model={tool} value="rectangle" img="img/tool/rectangle.svg" title="Rectangle (M)" />
                 <ToolButton model={tool} value="circle" img="img/tool/circle.svg" title="Ellipse (L)" />
                 <ToolButton model={tool} value="text" img="img/tool/text.svg" title="Type (T)" />
-                <ToolButton model={tool} value="zoom" img="img/tool/zoom.svg" title="Zoom (Z)" />
+                <ToolButton model={tool} value="zoom" img="img/tool/zoom.svg" title="Zoom (Z)" /> */}
                 <StrokeAndFill model={strokeandfill} />
                 <ColorSwatch model={colorswatch} action={setcolor} />
             </div>

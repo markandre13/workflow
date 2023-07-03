@@ -187,7 +187,7 @@ valuetype Card {
 valuetype BoardModel {
     public unsigned long bid;
     public string name;
-    public string description;
+    public string comment;
     public sequence<Layer> layers;
 };
 
