@@ -32,8 +32,14 @@ import { Layer } from "./figureeditor/Layer"
 import { BoardModel } from "./BoardModel"
 import { Client_impl } from "./Client_impl"
 
+import { loadFont } from "toad.js/util/loadFont"
+import { loadStyle} from "toad.js/util/loadStyle"
+
 export async function main(url: string|undefined = undefined) {
     console.log("WORKFLOW: MAIN")
+
+    loadFont()
+    loadStyle()
 
     const orb = new ORB()
     orb.debug = 1

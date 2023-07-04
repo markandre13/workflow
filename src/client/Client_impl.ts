@@ -281,7 +281,7 @@ export class Client_impl extends skel.Client {
     private createToolModel(): ToolModel {
         const arrangeTool = new ArrangeTool()
         let toolmodel = new ToolModel(arrangeTool, [
-            [new ArrangeTool(), "arrange"],
+            [arrangeTool, "arrange"],
             [new EditTool(), "edit"],
             [new PenTool(), "pen"],
             [new ShapeTool(Rectangle), "rectangle"],
