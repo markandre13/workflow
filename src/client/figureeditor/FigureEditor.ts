@@ -37,6 +37,7 @@ import { DrawingEvent } from "./DrawingEvent"
 
 import * as figure from "../figures"
 import { throws } from "assert"
+import { ModelReason } from "toad.js/model/Model"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -309,11 +310,15 @@ export class FigureEditor extends ModelView<DrawingModel> {
     }
 
     // called whenever the model is modified
-    override updateView(event?: DrawingEvent) {
-
+    override updateView(xxx: DrawingEvent | ModelReason) {
         // console.log(`FigureEditor.updateView(${JSON.stringify(event)})`)
         if (this.model === undefined || this.model.layers.length === 0) {
             return
+        }
+
+        let event: DrawingEvent | undefined
+        if (typeof xxx === "object") {
+            event = xxx
         }
 
         this.selectedLayer = this.model.layers[0]
@@ -341,6 +346,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
             }
         }
 
+        
         switch (event.operation) {
             case Operation.ADD_FIGURES:
                 // add new figures to cache
