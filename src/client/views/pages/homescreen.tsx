@@ -41,9 +41,9 @@ function k2v(model: ToolModel, aKey: string) {
             txt += `${label}, `
         })
         if (txt.length === 0) {
-            txt = 'no values'
+            txt = "no values"
         } else {
-            txt = txt.substring(0,txt.length-2)
+            txt = txt.substring(0, txt.length - 2)
         }
         console.log(`did not find key '${aKey}' in model (${txt})`)
         valueOut = undefined as any

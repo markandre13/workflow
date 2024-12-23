@@ -1,4 +1,4 @@
-import { expect } from '@esm-bundle/chai'
+import { expect } from "chai"
 import { parseColor } from "client/utils/color"
 
 describe("color parser", function () {

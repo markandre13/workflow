@@ -1,4 +1,4 @@
-import { expect } from '@esm-bundle/chai'
+import { expect } from "chai"
 
 import { Path } from "client/figures/Path"
 import { mirrorPoint } from "shared/geometry"

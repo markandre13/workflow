@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { expect } from '@esm-bundle/chai'
+import { expect } from "chai"
 import { initializeCORBAValueTypes } from "client/workflow"
 
 import { pointPlusSize, pointMinusPoint, pointMinus, pointPlusPoint, rotatePointAroundPointBy } from "shared/geometry"

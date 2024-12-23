@@ -1,4 +1,4 @@
-import { expect } from '@esm-bundle/chai'
+import { expect } from "chai"
 
 import { FigureEditorScene } from "../FigureEditorScene"
 import { State } from "client/figuretools/PenTool"

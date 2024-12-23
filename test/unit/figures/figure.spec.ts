@@ -1,4 +1,4 @@
-import { expect } from '@esm-bundle/chai'
+import { expect } from "chai"
 
 import { Point } from 'shared/geometry/Point'
 import { Rectangle } from 'shared/geometry/Rectangle'
