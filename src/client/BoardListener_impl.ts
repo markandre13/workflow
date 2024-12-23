@@ -42,7 +42,7 @@ export class BoardListener_impl extends skel.BoardListener {
         let layer = this.layerById(layerId)
         layer.data.push(figure)
 
-        this.boardmodel.modified.trigger({
+        this.boardmodel.signal.emit({
             operation: Operation.ADD_FIGURES,
             figures: [figure.id]
         })
@@ -76,7 +76,7 @@ export class BoardListener_impl extends skel.BoardListener {
             // layer.data[index] = transform
         }
 
-        this.boardmodel.modified.trigger({
+        this.boardmodel.signal.emit({
             operation: Operation.TRANSFORM_FIGURES,
             figures: figureIdArray,
             matrix: matrix

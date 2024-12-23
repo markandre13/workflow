@@ -29,20 +29,20 @@ export class FigureSelectionModel {
     set(figure: Figure): void {
         this.selection.clear()
         this.selection.add(figure)
-        this.modified.trigger()
+        this.modified.emit()
     }
     add(figure: Figure): void {
         this.selection.add(figure)
-        this.modified.trigger()
+        this.modified.emit()
     }
     remove(figure: Figure): void {
         this.selection.delete(figure)
-        this.modified.trigger()
+        this.modified.emit()
     }
     replace(oldFigure: Figure, newFigure: Figure) {
         this.selection.delete(oldFigure)
         this.selection.add(newFigure)
-        this.modified.trigger()
+        this.modified.emit()
     }
     has(figure: Figure): boolean {
         return this.selection.has(figure)
@@ -52,7 +52,7 @@ export class FigureSelectionModel {
     }
     clear(): void {
         this.selection.clear()
-        this.modified.trigger()
+        this.modified.emit()
     }
     figureIds(): Array<number> {
         let result = new Array<number>()

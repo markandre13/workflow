@@ -25,7 +25,7 @@ export class ImportDrawing extends Dialog {
                 const layer = model.layers[0]
                 model.delete(layer.id, layer.data.map((f)=>f.id))
                 layer.data = loadedLayer.data
-                model.modified.trigger(undefined as any)
+                model.signal.emit(undefined as any)
 
                 this.close()
             }

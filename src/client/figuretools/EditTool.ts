@@ -550,7 +550,7 @@ export class PathEditor extends EditToolEditor {
                     break
                 case "up":
                     this.currentAnchor.apply()
-                    event.editor.model!.modified.trigger({
+                    event.editor.model!.signal.emit({
                         operation: Operation.UPDATE_FIGURES,
                         figures: [this.currentAnchor!.figure.id]
                     })
@@ -770,7 +770,7 @@ export class EditTool extends Tool {
         Tool.selection.modified.add(() => {
             this.updateSelection(editor)
         }, this)
-        Tool.selection.modified.trigger()
+        Tool.selection.modified.emit()
     }
 
     override deactivate(editor: FigureEditor) {

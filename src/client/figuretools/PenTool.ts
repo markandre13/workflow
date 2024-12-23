@@ -258,7 +258,7 @@ export class PenTool extends Tool {
                     case "up": {
                         this.setCursor(event.editor, Cursor.ACTIVE)
                         this.state = State.ACTIVE
-                        event.editor.model!.modified.trigger({
+                        event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -284,7 +284,7 @@ export class PenTool extends Tool {
                         this._outline!.updateSymmetric(backwardHandle)
                         this.updateSVG(event.editor)
                         this.figure!.changeEdgeToSymmetric(backwardHandle)
-                        event.editor.model!.modified.trigger({
+                        event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -304,7 +304,7 @@ export class PenTool extends Tool {
                         const forwardHandle = event
                         this._outline!.changeSymmetricToSmoothAngleAngle(forwardHandle)
                         this.figure!.changeEdgeToSmoothAngleAngle(backwardHandle, forwardHandle)
-                        event.editor.model!.modified.trigger({
+                        event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -327,7 +327,7 @@ export class PenTool extends Tool {
                         this.state = State.READY
                         this.setCursor(event.editor, Cursor.READY)
                         this.figure!.addClose()
-                        event.editor.model!.modified.trigger({
+                        event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -354,7 +354,7 @@ export class PenTool extends Tool {
                         this.updateSVG(event.editor)
                         this.figure!.addClose()
                         this.figure!.changeEdgeToAngleEdge(0, backwardHandle)
-                        event.editor.model!.modified.trigger({
+                        event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -386,7 +386,7 @@ export class PenTool extends Tool {
                         this.state = State.READY
                         this.setCursor(event.editor, Cursor.READY)
                         this.figure!.addClose()
-                        event.editor.model!.modified.trigger({
+                        event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })
@@ -427,7 +427,7 @@ export class PenTool extends Tool {
                         this._outline!.updateSmooth(0, backwardHandle, forwardHandle)
                         this.figure!.addClose()
                         this.figure!.changeEdgeAngleToSmooth(0, backwardHandle, forwardHandle)
-                        event.editor.model!.modified.trigger({
+                        event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_FIGURES,
                             figures: [this.figure!.id]
                         })

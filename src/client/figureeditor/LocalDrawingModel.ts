@@ -43,7 +43,7 @@ export class LocalDrawingModel extends DrawingModel {
             figure.id = ++this.idCounter
         }
         layer.data.push(figure)
-        this.modified.trigger({ operation: Operation.ADD_FIGURES, figures: [figure.id] })
+        this.signal.emit({ operation: Operation.ADD_FIGURES, figures: [figure.id] })
     }
 
     delete(layerID: number, figureIds: Array<number>): void {
@@ -56,7 +56,7 @@ export class LocalDrawingModel extends DrawingModel {
         this.removeFromLayer(layer, fastFigureIds)
 
         // inform views to update
-        this.modified.trigger({ operation: Operation.DELETE_FIGURES, figures: figureIds })
+        this.signal.emit({ operation: Operation.DELETE_FIGURES, figures: figureIds })
     }
 
     setStrokeAndFill(layerID: number, figureIds: Array<number>, stroke: string, fill: string):void {
@@ -64,7 +64,7 @@ export class LocalDrawingModel extends DrawingModel {
             figure.stroke = stroke
             figure.fill = fill
         })
-        this.modified.trigger({ operation: Operation.UPDATE_FIGURES, figures: figureIds })
+        this.signal.emit({ operation: Operation.UPDATE_FIGURES, figures: figureIds })
     }
 
     forAllFigures(layerID: number, figureIds: Array<number>, callback: (figure: Figure) => void) {
@@ -91,7 +91,7 @@ export class LocalDrawingModel extends DrawingModel {
 
             if (fig.matrix === undefined && fig.transform(matrix)) {
                 // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${matrix}) -> trigger with UPDATE_FIGURES`)
-                this.modified.trigger({ operation: Operation.UPDATE_FIGURES, figures: [fig.id] })
+                this.signal.emit({ operation: Operation.UPDATE_FIGURES, figures: [fig.id] })
                 continue
             }
 
@@ -99,7 +99,7 @@ export class LocalDrawingModel extends DrawingModel {
                 fig.matrix = new Matrix()
             fig.matrix.prepend(matrix)
             // console.log(`LocalLayerModel.transform(${layerID}, ${figureIds}, ${matrix}) -> trigger with TRANSFORM_FIGURES`)
-            this.modified.trigger({ operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: [fig.id] })
+            this.signal.emit({ operation: Operation.TRANSFORM_FIGURES, matrix: matrix, figures: [fig.id] })
         }
     }
 
@@ -112,7 +112,7 @@ export class LocalDrawingModel extends DrawingModel {
         removed.figures.reverse()
         layer.data.push(...removed.figures)
 
-        this.modified.trigger({ operation: Operation.BRING_FIGURES_TO_FRONT, figures: figureIds })
+        this.signal.emit({ operation: Operation.BRING_FIGURES_TO_FRONT, figures: figureIds })
     }
 
     bringToBack(layerID: number, figureIds: Array<number>): void {
@@ -125,7 +125,7 @@ export class LocalDrawingModel extends DrawingModel {
         removed.figures.reverse()
         layer.data.splice(0, 0, ...removed.figures)
 
-        this.modified.trigger({ operation: Operation.BRING_FIGURES_TO_BACK, figures: figureIds })
+        this.signal.emit({ operation: Operation.BRING_FIGURES_TO_BACK, figures: figureIds })
     }
 
     bringForward(layerID: number, figureIds: Array<number>): void {
@@ -140,7 +140,7 @@ export class LocalDrawingModel extends DrawingModel {
             layer.data.splice(removed.index[i]+1, 0, removed.figures[i])
         }
 
-        this.modified.trigger({ operation: Operation.BRING_FIGURES_FORWARD, figures: figureIds })
+        this.signal.emit({ operation: Operation.BRING_FIGURES_FORWARD, figures: figureIds })
     }
 
     bringBackward(layerID: number, figureIds: Array<number>): void {
@@ -158,7 +158,7 @@ export class LocalDrawingModel extends DrawingModel {
             layer.data.splice(idx, 0, removed.figures[i])
         }
 
-        this.modified.trigger({ operation: Operation.BRING_FIGURES_BACKWARD, figures: figureIds })
+        this.signal.emit({ operation: Operation.BRING_FIGURES_BACKWARD, figures: figureIds })
     }
 
     protected initializeIdCounter() {

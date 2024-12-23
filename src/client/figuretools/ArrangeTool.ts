@@ -78,7 +78,7 @@ export class ArrangeTool extends Tool {
         Tool.selection.modified.add( () => {
             this.updateOutlineAndDecorationOfSelection(editor)
         }, this)
-        Tool.selection.modified.trigger()
+        Tool.selection.modified.emit()
         Tool.setHint(`arrange tool: <pointer>click</pointer>: select at cursor, <pointer>drag</pointer>: select within rectangle, <shift/>: add to selection`)
     }
     

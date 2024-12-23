@@ -36,8 +36,6 @@ import { Group } from "client/figures/Group"
 import { DrawingEvent } from "./DrawingEvent"
 
 import * as figure from "../figures"
-import { throws } from "assert"
-import { ModelReason } from "toad.js/model/Model"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -273,11 +271,11 @@ export class FigureEditor extends ModelView<DrawingModel> {
     override setModel(model?: DrawingModel | ToolModel | StrokeAndFillModel): void {
         if (model === undefined) {
             if (this.toolModel) {
-                this.toolModel.modified.remove(this)
+                this.toolModel.signal.remove(this)
                 this.toolModel = undefined
             }
             if (this.strokeAndFillModel) {
-                this.strokeAndFillModel.modified.remove(this)
+                this.strokeAndFillModel.signal.remove(this)
                 this.strokeAndFillModel = undefined
             }
             super.setModel(undefined)
@@ -286,7 +284,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
             if (this.toolModel === model)
                 return
             this.toolModel = model
-            this.toolModel.modified.add(() => {
+            this.toolModel.signal.add(() => {
                 this.setTool(this.toolModel!.value)
             }, this)
             this.setTool(this.toolModel!.value)
@@ -295,7 +293,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
             if (this.strokeAndFillModel === model)
                 return
             this.strokeAndFillModel = model
-            this.strokeAndFillModel.modified.add(() => {
+            this.strokeAndFillModel.signal.add(() => {
                 this.model!.setStrokeAndFill(
                     this.selectedLayer!.id,
                     Tool.selection.figureIds(),
@@ -310,7 +308,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
     }
 
     // called whenever the model is modified
-    override updateView(xxx: DrawingEvent | ModelReason) {
+    override updateView(xxx: DrawingEvent) {
         // console.log(`FigureEditor.updateView(${JSON.stringify(event)})`)
         if (this.model === undefined || this.model.layers.length === 0) {
             return

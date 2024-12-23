@@ -117,8 +117,8 @@ export class Client_impl extends skel.Client {
             logonAction.enabled = logon.value.trim().length != 0 && password.value.trim().length != 0
         }
         checkLogonCondition()
-        logon.modified.add(checkLogonCondition)
-        password.modified.add(checkLogonCondition)
+        logon.signal.add(checkLogonCondition)
+        password.signal.add(checkLogonCondition)
 
         dom.erase(document.body)
         dom.add(document.body, template.root)
@@ -211,7 +211,7 @@ export class Client_impl extends skel.Client {
                     }
                 }
             }
-            model.modified.add( () => {
+            model.signal.add( () => {
                 console.log("SAVE")
                 xdb.put(db, "document", {name: "Untitled.wf", content: this.orb.serialize(layer)})
             })

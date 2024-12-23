@@ -53,7 +53,7 @@
     "mocha": "^11.0.1",
     "rollup": "^4.29.1",
     "rollup-plugin-typescript2": "^0.36.0",
-    "toad.js": "0.1.17",
+    "toad.js": "^0.2.0",
     "toad.jsx": "^0.0.12",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.3.0",

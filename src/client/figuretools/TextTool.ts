@@ -125,7 +125,7 @@ export class TextTool extends Tool {
     override keydown(event: EditorKeyboardEvent) {
         if (this.state == TextToolState.EDIT) {
             this.texteditor!.keydown(event)
-            event.editor.model?.modified.trigger({
+            event.editor.model?.signal.emit({
                 operation: Operation.UPDATE_FIGURES,
                 figures: [this.figure.id]
             })
@@ -135,7 +135,7 @@ export class TextTool extends Tool {
     override clipboard(editor: FigureEditor, event: ClipboardEvent) {
         if (this.state == TextToolState.EDIT) {
             this.texteditor!.clipboard(editor, event)
-            editor.model?.modified.trigger({
+            editor.model?.signal.emit({
                 operation: Operation.UPDATE_FIGURES,
                 figures: [this.figure.id]
             })
@@ -194,7 +194,7 @@ export class TextTool extends Tool {
             return
         this.texteditor.stop()
         this.texteditor = undefined
-        editor.model?.modified.trigger({
+        editor.model?.signal.emit({
             operation: Operation.UPDATE_FIGURES,
             figures: [this.figure.id]
         })

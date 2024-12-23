@@ -43,7 +43,7 @@ export class BoardModel extends DrawingModel implements valuetype.BoardModel {
     constructor(init: Partial<value.BoardModel>) {
         super()
         value.initBoardModel(this, init)
-        this.modified = new Signal()
+        this.signal = new Signal()
         console.log("BoardModel.constructor()")
     }
     // FIXME: too many functions to do stuff
