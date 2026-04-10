@@ -171,7 +171,7 @@ export class Client_impl extends skel.Client {
         let board = await project.getBoard(1)
         let boardmodel = await board.getModel() as BoardModel // FIXME: getModel should also set the listener so that we won't skip a beat
         boardmodel.board = board
-        let boardListener = new BoardListener_impl(this.orb, boardmodel)
+        let boardListener = new BoardListener_impl(this._orb, boardmodel)
         board.addListener(boardListener)
         bindModel("board", boardmodel)
         return boardmodel
@@ -203,7 +203,7 @@ export class Client_impl extends skel.Client {
                 // console.log(page)
                 if (page.content.byteLength > 0) {
                     try {
-                        const layer2 = this.orb.deserialize(page.content) as Layer
+                        const layer2 = this._orb.deserialize(page.content) as Layer
                         layer.data = layer2.data
                     }
                     catch(error) {
@@ -213,7 +213,7 @@ export class Client_impl extends skel.Client {
             }
             model.signal.add( () => {
                 console.log("SAVE")
-                xdb.put(db, "document", {name: "Untitled.wf", content: this.orb.serialize(layer)})
+                xdb.put(db, "document", {name: "Untitled.wf", content: this._orb.serialize(layer)})
             })
         }
         catch(error) {
@@ -230,10 +230,10 @@ export class Client_impl extends skel.Client {
 
         // FIXME: move into figure editor?
         action("file|export", () => {
-            new ExportDrawing("Untitled.wf", layer, this.orb)
+            new ExportDrawing("Untitled.wf", layer, this._orb)
         })
         action("file|import", () => {
-            new ImportDrawing(model, this.orb)
+            new ImportDrawing(model, this._orb)
         })
         action("file|delete", async ()=> {
             let all: number[] = []

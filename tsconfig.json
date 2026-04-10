@@ -2,12 +2,19 @@
 {
     "compilerOptions": {
         "outDir": "build",
-        "target": "es6",
+        "target": "es2024",
         "module": "commonjs",
         "moduleResolution": "node",
         "traceResolution": false,
         "lib": ["ESNext", "DOM"],
         "baseUrl": "src",
+        "types": [
+            "node",
+            "mocha",
+            "chai",
+            "chai-almost",
+            "chai-string"
+        ],
         "paths": {
             "shared/*": ["shared/*"],
             "client/*": ["client/*"]
@@ -17,7 +24,6 @@
         "jsxImportSource": "toad.jsx/lib",
         "esModuleInterop": true,
         "experimentalDecorators": true,
-        "downlevelIteration": true,
         "strict": true,
         "strictNullChecks": true,
         "allowJs": false,
