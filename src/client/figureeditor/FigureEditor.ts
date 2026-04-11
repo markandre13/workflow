@@ -36,6 +36,7 @@ import { Group } from "client/figures/Group"
 import { DrawingEvent } from "./DrawingEvent"
 
 import * as figure from "../figures"
+import { ALL, ModelEvent } from "toad.js/model/Model"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -309,14 +310,18 @@ export class FigureEditor extends ModelView<DrawingModel> {
 
     // called whenever the model is modified
     override updateView(xxx: DrawingEvent) {
-        // console.log(`FigureEditor.updateView(${JSON.stringify(event)})`)
+        // console.log(`FigureEditor.updateView(${JSON.stringify(xxx)})`)
         if (this.model === undefined || this.model.layers.length === 0) {
             return
         }
 
         let event: DrawingEvent | undefined
         if (typeof xxx === "object") {
-            event = xxx
+            if ("type" in xxx && xxx.type === ALL) {
+                event = undefined
+            } else {
+                event = xxx
+            }
         }
 
         this.selectedLayer = this.model.layers[0]
@@ -379,7 +384,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
                 for (let id of event.figures) {
                     let cached = this.cache.get(id)
                     if (!cached)
-                        throw Error(`FigureEditor error: cache lacks id $id`)
+                        throw Error(`FigureEditor error: TRANSFORM_FIGURES cache lacks id ${id}`)
                     if (cached.figure instanceof Group) {
                         throw Error("FigureEditor.updateView(): ADD_FIGURES for groups not implemented yet")
                     }
@@ -409,7 +414,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
                 for (let id of event.figures) {
                     let cached = this.cache.get(id)
                     if (!cached)
-                        throw Error(`FigureEditor error: cache lacks id $id`)
+                        throw Error(`FigureEditor error: UPDATE_FIGURES cache lacks id ${id}`)
                     if (cached.figure instanceof Group) {
                         throw Error("FigureEditor.updateView(): UPDATE_FIGURES for groups not implemented yet")
                     }
@@ -430,7 +435,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
                 for (let id of event.figures) {
                     let cached = this.cache.get(id)
                     if (!cached)
-                        throw Error(`FigureEditor error: cache lacks id $id`)
+                        throw Error(`FigureEditor error: DELETE_FIGURES cache lacks id ${id}`)
                     if (cached.svg !== undefined)
                         layer.removeChild(cached.svg)
                     this.cache.delete(id)
@@ -494,7 +499,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
         for (let id of figures) {
             let cached = this.cache.get(id)
             if (!cached)
-                throw Error(`FigureEditor error: cache lacks id $id`)
+                throw Error(`FigureEditor error: removeFromLayer() cache lacks id ${id}`)
             if (cached.svg === undefined)
                 throw Error("yikes")
             layer.removeChild(cached.svg)
@@ -514,7 +519,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
         for (let id of figures) {
             let cached = this.cache.get(id)
             if (!cached)
-                throw Error(`FigureEditor error: cache lacks id $id`)
+                throw Error(`FigureEditor error: removeFromLayerWithIndex() cache lacks id ${id}`)
             if (cached.svg === undefined)
                 throw Error("yikes")
             layer.removeChild(cached.svg)
