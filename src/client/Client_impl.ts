@@ -41,6 +41,8 @@ import { Layer } from "./figureeditor/Layer"
 import { ExportDrawing } from "./views/dialogs/ExportDrawing"
 import { ImportDrawing } from "./views/dialogs/ImportDrawing"
 import { HtmlModel } from "toad.js/appkit/HtmlModel"
+import { action } from "toad.js/appkit/Action"
+import { TextModel } from "toad.js/appkit/TextModel"
 
 namespace dom {
     export function erase(n: Element): void {
@@ -227,22 +229,22 @@ export class Client_impl extends skel.Client {
         model.layers.push(layer)
         // bindModel("board", model)
 
-        // // FIXME: move into figure editor?
-        // action("file|export", () => {
-        //     new ExportDrawing("Untitled.wf", layer, this._orb)
-        // })
-        // action("file|import", () => {
-        //     new ImportDrawing(model, this._orb)
-        // })
-        // action("file|delete", async ()=> {
-        //     let all: number[] = []
-        //     for (let figure of model.layers[0].data) {
-        //         all.push(figure.id)
-        //     }
-        //     model.delete(model.layers[0].id, all)
-        //     await xdb.deleteDatabase("workflow")
-        //     await xdb.deleteDatabase("workflow2")           
-        // })
+        // FIXME: move into figure editor?
+        action("file|export", () => {
+            new ExportDrawing("Untitled.wf", layer, this._orb)
+        })
+        action("file|import", () => {
+            new ImportDrawing(model, this._orb)
+        })
+        action("file|delete", async ()=> {
+            let all: number[] = []
+            for (let figure of model.layers[0].data) {
+                all.push(figure.id)
+            }
+            model.delete(model.layers[0].id, all)
+            await xdb.deleteDatabase("workflow")
+            await xdb.deleteDatabase("workflow2")           
+        })
 
         const homeScreen = this.getHomeScreen(model)
 
@@ -256,24 +258,24 @@ export class Client_impl extends skel.Client {
     }
 
     private createMenuActions(fullname: string, email: string) {
-        // action("account|preferences", () => {
-        //     let user = {
-        //         fullname: new TextModel(fullname),
-        //         email: new TextModel(email)
-        //     }
-        //     new AccountPreferences(user)
-        // })
-        // action("account|logout", () => {
-        // })
+        action("account|preferences", () => {
+            // let user = {
+            //     fullname: new TextModel(fullname),
+            //     email: new TextModel(email)
+            // }
+            // new AccountPreferences(user)
+        })
+        action("account|logout", () => {
+        })
     }
 
     private createStrokeAndFillModel(): StrokeAndFillModel {
         const strokeandfillmodel = new StrokeAndFillModel()
         // bindModel("strokeandfill", strokeandfillmodel)
         // bindModel("board", strokeandfillmodel)
-        // action("setcolor", (data?: any) => {
-        //     strokeandfillmodel.set(data)
-        // })
+        action("setcolor", (data?: any) => {
+            strokeandfillmodel.set(data)
+        })
         return strokeandfillmodel
     }
 

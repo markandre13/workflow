@@ -9,7 +9,14 @@
     <title>Workflow</title>
     <meta name="description" content="A collaborative real-time white- and kanban board." />
     <meta name="copyright" content="Mark-André Hopf <mhopf@mark13.org>" />
-<!--
+    <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,500,600&subset=latin" />
+    <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono:400&subset=latin" />
+    <link rel="stylesheet" type="text/css" href="style/tx-static.css" />
+    <link rel="stylesheet" type="text/css" href="style/tx-dark.css" />
+    <link rel="stylesheet" type="text/css" href="style/tx.css" />
+    <!--
     <script type="application/javascript" src="polyfill/webcomponents-lite.min.js"></script>
 -->
     <script src="polyfill/webcomponents-hi-sd-ce.js"></script>
@@ -76,22 +83,6 @@
     </template>
 
     <style>
-        :root {
-            --toad-font-family: "Trebuchet MS", Futura, Helvetica Neue, Helvetica, Arial, sans-serif;
-            --toad-font-size: 12px;
-            --toad-outline-color: #9eccfb;
-            --toad-selection-color: #0069d4;
-            --toad-menu-face: #535353;
-            --toad-menu-type: #c3c3c3;
-            --toad-menu-shadow: #303030;
-        }
-
-        body {
-            font-family: var(--toad-font-family);
-            font-size: var(--toad-font-size);
-            background: #535353;
-        }
-
         .toolbar {
             position: absolute;
             left: 0;
@@ -120,6 +111,7 @@
             padding-left: 4px;
             padding-right: 4px;
         }
+
         kbd {
             color: #fff;
             font-family: sans-serif;
@@ -127,6 +119,7 @@
             border-radius: 3px;
             font-size: 12px;
         }
+
         .action {
             color: #fff;
         }
