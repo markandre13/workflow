@@ -1,7 +1,7 @@
 import * as typescript from 'typescript'
-import * as path from 'path'
-import { existsSync } from 'fs'
-import { normalize } from 'path'
+import * as path from 'node:path'
+import { existsSync } from 'node:fs'
+import { normalize } from 'node:path'
 
 // this transformer applies the baseUrl & paths rules from the tsconfig.json file
 // and appends .js to imports/exports, so that the typescript compiler's output

@@ -16,23 +16,23 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Dialog } from "toad.js"
+// import { Dialog } from "toad.js"
 
-export class AccountPreferences extends Dialog
-{
-    constructor(user: any) {
-        super()
+// export class AccountPreferences extends Dialog
+// {
+//     constructor(user: any) {
+//         super()
 
-        this.open("src/client/AccountPreferences.html")
+//         this.open("src/client/AccountPreferences.html")
         
-        this.bind("fullname", user.fullname)
-        this.bind("email", user.email)
+//         this.bind("fullname", user.fullname)
+//         this.bind("email", user.email)
         
-        this.action("cancel", () => {
-          this.close()
-        })
-        this.action("save", () => {
-          this.close()
-        })
-    }
-}
+//         this.action("cancel", () => {
+//           this.close()
+//         })
+//         this.action("save", () => {
+//           this.close()
+//         })
+//     }
+// }

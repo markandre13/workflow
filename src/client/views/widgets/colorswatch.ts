@@ -16,9 +16,11 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Action, ActionView, Model } from "toad.js"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
+import { Model } from "toad.js/appkit/Model"
+import { Action } from "toad.js/appkit/Action"
+import { ActionView } from "toad.js/viewkit/ActionView"
 
 let strokeandfillStyle = document.createElement("style")
 strokeandfillStyle.textContent=`

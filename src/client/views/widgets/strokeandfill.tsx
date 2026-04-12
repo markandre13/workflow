@@ -16,8 +16,10 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ModelView, Model, ref } from "toad.js"
 import { bind } from "client/utils/bind-decorator"
+import { Model } from "toad.js/appkit/Model"
+import { ModelView } from "toad.js/viewkit/ModelView"
+import { ref } from "toad.jsx/lib/jsx-runtime"
 
 let strokeandfillStyle = document.createElement("style")
 strokeandfillStyle.textContent = `

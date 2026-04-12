@@ -17,8 +17,6 @@
  */
 
 import { bind } from "client/utils/bind-decorator"
-import { HTMLElementProps, setInitialProperties } from "toad.js"
-import { ModelView, action } from "toad.js"
 
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
@@ -36,7 +34,9 @@ import { Group } from "client/figures/Group"
 import { DrawingEvent } from "./DrawingEvent"
 
 import * as figure from "../figures"
-import { ALL, ModelEvent } from "toad.js/model/Model"
+import { ALL } from "toad.js/appkit/Model"
+import { HTMLElementProps, setInitialProperties } from "toad.jsx/lib/jsx-runtime"
+import { ModelView } from "toad.js/viewkit/ModelView"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -234,22 +234,23 @@ export class FigureEditor extends ModelView<DrawingModel> {
         if (props?.strokeandfill)
             this.setModel(props.strokeandfill as any)
 
-        action("object|arrange|front", () => {
-            if (this.model)
-                this.model.bringToFront(this.selectedLayer!.id, Tool.selection.figureIds())
-        })
-        action("object|arrange|back", () => {
-            if (this.model)
-                this.model.bringToBack(this.selectedLayer!.id, Tool.selection.figureIds())
-        })
-        action("object|arrange|forward", () => {
-            if (this.model)
-                this.model.bringForward(this.selectedLayer!.id, Tool.selection.figureIds())
-        })
-        action("object|arrange|backward", () => {
-            if (this.model)
-                this.model.bringBackward(this.selectedLayer!.id, Tool.selection.figureIds())
-        })
+        // FIXME: get menubar actions working again
+        // action("object|arrange|front", () => {
+        //     if (this.model)
+        //         this.model.bringToFront(this.selectedLayer!.id, Tool.selection.figureIds())
+        // })
+        // action("object|arrange|back", () => {
+        //     if (this.model)
+        //         this.model.bringToBack(this.selectedLayer!.id, Tool.selection.figureIds())
+        // })
+        // action("object|arrange|forward", () => {
+        //     if (this.model)
+        //         this.model.bringForward(this.selectedLayer!.id, Tool.selection.figureIds())
+        // })
+        // action("object|arrange|backward", () => {
+        //     if (this.model)
+        //         this.model.bringBackward(this.selectedLayer!.id, Tool.selection.figureIds())
+        // })
     }
 
     setTool(tool?: Tool) {
@@ -603,7 +604,7 @@ export class FigureEditor extends ModelView<DrawingModel> {
     //
 
     @bind pointerDown(pointerEvent: PointerEvent) {
-        // console.log(`FigureEditor.pointerDown()`)
+        console.log(`FigureEditor.pointerDown()`)
         // console.log(this.tool)
         // console.log(this.selectedLayer)
 

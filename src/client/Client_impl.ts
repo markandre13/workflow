@@ -16,12 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {
-    Template, TextModel, HtmlModel,
-    bindModel, action
-} from "toad.js"
-
-import { AccountPreferences } from "./AccountPreferences"
+// import { AccountPreferences } from "./AccountPreferences"
 
 import { ORB } from "corba.js"
 import * as inf from "shared/workflow"
@@ -45,6 +40,7 @@ import * as xdb from "./utils/indexeddb"
 import { Layer } from "./figureeditor/Layer"
 import { ExportDrawing } from "./views/dialogs/ExportDrawing"
 import { ImportDrawing } from "./views/dialogs/ImportDrawing"
+import { HtmlModel } from "toad.js/appkit/HtmlModel"
 
 namespace dom {
     export function erase(n: Element): void {
@@ -98,30 +94,31 @@ export class Client_impl extends skel.Client {
 
     async logonScreen(lifetime: number, disclaimer: string, inRemember: boolean, errorMessage: string) {
         console.log("Client_impl.logonScreen()")
+        throw Error("not updated yet")
 
-        let template = new Template("logonScreen")
+        // let template = new Template("logonScreen")
 
-        let logon = template.text("logon", "")
-        let password = template.text("password", "")
-        let remember = template.boolean("remember", inRemember)
-        template.html("disclaimer", disclaimer)
-        template.number("lifetime", lifetime, {})
-        template.text("message", errorMessage)
+        // let logon = template.text("logon", "")
+        // let password = template.text("password", "")
+        // let remember = template.boolean("remember", inRemember)
+        // template.html("disclaimer", disclaimer)
+        // template.number("lifetime", lifetime, {})
+        // template.text("message", errorMessage)
 
-        let logonAction = template.action("logon", () => {
-            template.clear()
-            this.server!!.logon(logon.value, password.value, remember.value)
-        })
+        // let logonAction = template.action("logon", () => {
+        //     template.clear()
+        //     this.server!!.logon(logon.value, password.value, remember.value)
+        // })
 
-        let checkLogonCondition = function () {
-            logonAction.enabled = logon.value.trim().length != 0 && password.value.trim().length != 0
-        }
-        checkLogonCondition()
-        logon.signal.add(checkLogonCondition)
-        password.signal.add(checkLogonCondition)
+        // let checkLogonCondition = function () {
+        //     logonAction.enabled = logon.value.trim().length != 0 && password.value.trim().length != 0
+        // }
+        // checkLogonCondition()
+        // logon.signal.add(checkLogonCondition)
+        // password.signal.add(checkLogonCondition)
 
-        dom.erase(document.body)
-        dom.add(document.body, template.root)
+        // dom.erase(document.body)
+        // dom.add(document.body, template.root)
     }
 
     async homeScreen(cookie: string, avatar: string, email: string, fullname: string) {
@@ -139,6 +136,7 @@ export class Client_impl extends skel.Client {
             document.cookie = cookie
         }
 
+        throw Error("not updated yet")
         // let homeScreen = dom.instantiateTemplate('homeScreen')
         // msg.board.socket = msg.socket
 
@@ -173,7 +171,7 @@ export class Client_impl extends skel.Client {
         boardmodel.board = board
         let boardListener = new BoardListener_impl(this._orb, boardmodel)
         board.addListener(boardListener)
-        bindModel("board", boardmodel)
+        // bindModel("board", boardmodel)
         return boardmodel
     }
 
@@ -225,25 +223,26 @@ export class Client_impl extends skel.Client {
             let layer = new Layer()
         }
 
-        model.layers.push(layer)
-        bindModel("board", model)
 
-        // FIXME: move into figure editor?
-        action("file|export", () => {
-            new ExportDrawing("Untitled.wf", layer, this._orb)
-        })
-        action("file|import", () => {
-            new ImportDrawing(model, this._orb)
-        })
-        action("file|delete", async ()=> {
-            let all: number[] = []
-            for (let figure of model.layers[0].data) {
-                all.push(figure.id)
-            }
-            model.delete(model.layers[0].id, all)
-            await xdb.deleteDatabase("workflow")
-            await xdb.deleteDatabase("workflow2")           
-        })
+        model.layers.push(layer)
+        // bindModel("board", model)
+
+        // // FIXME: move into figure editor?
+        // action("file|export", () => {
+        //     new ExportDrawing("Untitled.wf", layer, this._orb)
+        // })
+        // action("file|import", () => {
+        //     new ImportDrawing(model, this._orb)
+        // })
+        // action("file|delete", async ()=> {
+        //     let all: number[] = []
+        //     for (let figure of model.layers[0].data) {
+        //         all.push(figure.id)
+        //     }
+        //     model.delete(model.layers[0].id, all)
+        //     await xdb.deleteDatabase("workflow")
+        //     await xdb.deleteDatabase("workflow2")           
+        // })
 
         const homeScreen = this.getHomeScreen(model)
 
@@ -257,24 +256,24 @@ export class Client_impl extends skel.Client {
     }
 
     private createMenuActions(fullname: string, email: string) {
-        action("account|preferences", () => {
-            let user = {
-                fullname: new TextModel(fullname),
-                email: new TextModel(email)
-            }
-            new AccountPreferences(user)
-        })
-        action("account|logout", () => {
-        })
+        // action("account|preferences", () => {
+        //     let user = {
+        //         fullname: new TextModel(fullname),
+        //         email: new TextModel(email)
+        //     }
+        //     new AccountPreferences(user)
+        // })
+        // action("account|logout", () => {
+        // })
     }
 
     private createStrokeAndFillModel(): StrokeAndFillModel {
         const strokeandfillmodel = new StrokeAndFillModel()
-        bindModel("strokeandfill", strokeandfillmodel)
-        bindModel("board", strokeandfillmodel)
-        action("setcolor", (data?: any) => {
-            strokeandfillmodel.set(data)
-        })
+        // bindModel("strokeandfill", strokeandfillmodel)
+        // bindModel("board", strokeandfillmodel)
+        // action("setcolor", (data?: any) => {
+        //     strokeandfillmodel.set(data)
+        // })
         return strokeandfillmodel
     }
 
@@ -288,8 +287,8 @@ export class Client_impl extends skel.Client {
             [new ShapeTool(Circle), "circle"],
             [new TextTool(), "text"]
         ])
-        bindModel("tool", toolmodel) // for tool buttons
-        bindModel("board", toolmodel)
+        // bindModel("tool", toolmodel) // for tool buttons
+        // bindModel("board", toolmodel)
         return toolmodel
     }
 
@@ -304,7 +303,7 @@ export class Client_impl extends skel.Client {
                 <rect x="0" y="0" width="32" height="32" rx="4" ry="4" stroke="none" fill="#08f" />
                 <image clip-path="url(#mask)" xlink:href="${avatar}" x="2" y="2" width="28px" height="28px" />
             </svg>`)
-        bindModel("avatar", model)
+        // bindModel("avatar", model)
         return model
     }
 }

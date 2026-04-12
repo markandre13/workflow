@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Signal } from "toad.js"
+import { Signal } from "toad.js/reactive/Signal"
 import { Figure } from "../figures"
 
 export class FigureSelectionModel {

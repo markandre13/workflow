@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { OptionModel } from "toad.js"
+import { OptionModel } from "toad.js/appkit/OptionModel"
 import { Tool } from "../figuretools"
-
-// export declare class OptionModel<V, O extends ModelOptions = ModelOptions> extends OptionModelBase<V, O> {
 
 export class ToolModel extends OptionModel<Tool> {}

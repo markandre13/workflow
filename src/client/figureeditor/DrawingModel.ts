@@ -16,11 +16,11 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Model, Signal } from "toad.js"
 import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "shared/workflow_valuetype"
 import { Layer } from "./Layer"
 import { DrawingEvent } from "./DrawingEvent"
+import { Model } from "toad.js/appkit/Model"
 
 export abstract class DrawingModel extends Model<DrawingEvent> {
     // modified: Signal<DrawingEvent>

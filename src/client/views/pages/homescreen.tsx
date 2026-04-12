@@ -16,16 +16,19 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Fragment, Menu, ToolButton, action } from "toad.js"
 import { StrokeAndFill } from "client/views/widgets/strokeandfill"
 import { ColorSwatch } from "client/views/widgets/colorswatch"
 import { FigureEditor } from "client/figureeditor"
 
-import { HtmlModel } from "toad.js"
 import { StrokeAndFillModel } from "../widgets/strokeandfill"
 import { ColorSwatchModel } from "../widgets/colorswatch"
 import { ToolModel } from "client/figuretools/ToolModel"
 import { DrawingModel } from "client/figureeditor"
+import { HtmlModel } from "toad.js/appkit/HtmlModel"
+import { Fragment } from "toad.jsx/lib/jsx-runtime"
+import { ToolButton } from "toad.js/viewkit/ToolButton"
+import { Menu } from "toad.js/menu/Menu"
+import { Action } from "toad.js/appkit/Action"
 
 // TODO: make this part of OptionModel & add key=... as an alternative to ToolButton?
 function k2v(model: ToolModel, aKey: string) {
@@ -60,7 +63,7 @@ export function homeScreen(
 ): Fragment {
     // FIXME: let ColorSwatch take a closure
     // FIXME: make it possible to use Action directly
-    const setcolor = action("setcolor", (data?: any) => {
+    const setcolor = new Action((data?: any) => {
         strokeandfill.set(data)
     })
     return (

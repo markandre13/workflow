@@ -16,7 +16,6 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Signal } from "toad.js"
 import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "./figures/Figure"
 import { Layer } from "./figureeditor/Layer"
@@ -26,6 +25,7 @@ import * as inf from "shared/workflow"
 import * as value from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
 import { DrawingEvent } from "./figureeditor/DrawingEvent"
+import { Signal } from "toad.js/reactive/Signal"
 
 // FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
 export class BoardModel extends DrawingModel implements valuetype.BoardModel {

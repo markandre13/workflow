@@ -1,5 +1,5 @@
 process.env.NODE_ENV = 'test'
-import WTRSpecReporter from "./test/WTRSpecReporter.js"
+// import WTRSpecReporter from "./test/WTRSpecReporter.js"
 
 export default {
     nodeResolve: true,
@@ -7,7 +7,8 @@ export default {
     ],
     coverage: false,
     coverageConfig: {},
-    reporters: [
-        WTRSpecReporter({ reportTestResults: true, reportTestProgress: true }),
-    ],
+    // reporters: [
+    //     WTRSpecReporter({ reportTestResults: true, reportTestProgress: true }),
+    // ],
+    files: 'build/test/**/*.spec.js'
 }
