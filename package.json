@@ -14,14 +14,13 @@
     "url": "git+https://github.com/markandre13/workflow.git"
   },
   "scripts": {
+    "start": "npm run build:idl && vite",
+    "test": "npm run build:idl && vitest run",
+    "test:watch": "npm run build:idl && vitest",
     "build": "npm run build:idl && npm run build:client && npm run build:server",
     "build:idl": "corba-idl -v --ts-all src/shared/workflow.idl",
     "build:client": "vite build",
     "build:server": "vite build --config vite.server.config.mts",
-    "dev": "npm run build:idl && vite",
-    "dev:serve": "npm run build:idl && vite",
-    "dev:test": "npm run build:idl && vitest",
-    "test": "npm run build:idl && vitest run",
     "typecheck": "tsc --noEmit",
     "update": "npx npm-check-updates -u && npm install"
   },
