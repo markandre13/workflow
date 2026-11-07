@@ -1,7 +1,7 @@
 import { IndexedDB, ObjectStore } from "client/utils/indexeddb"
 
 import { expect, use } from "chai"
-import chaiAsPromised = require('chai-as-promised')
+import chaiAsPromised from 'chai-as-promised'
 use(chaiAsPromised)
 
 interface Shape {

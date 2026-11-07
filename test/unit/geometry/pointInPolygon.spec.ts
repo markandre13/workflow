@@ -3,8 +3,8 @@ import { isLeft, intersectCurveX, pointInPath } from "shared/geometry/pointInPat
 import { Point } from "shared/geometry/Point"
 import { Path } from "client/paths/Path"
 
-describe("geometry", function () {
-    describe("pointInPath(path: Path, pt: Point): boolean", function () {
+describe("geometry", function (this: any) {
+    describe("pointInPath(path: Path, pt: Point): boolean", function (this: any) {
         comment(this, `
             <p>
                 Return <em>true</em> when <em>pt</em> is within <em>path</em>.
@@ -14,11 +14,11 @@ describe("geometry", function () {
                 and extended to handle curves.
             </p>
         `)
-        describe("open square", function () {
+        describe("open square", function (this: any) {
             comment(this, `
                 When the path is not closed, a straight line is assumed between the first and the last point.
             `)
-            it("left -> outside", function () {
+            it("left -> outside", function (this: any) {
                 expect(
                     pointInPathTest(this,
                         false,
@@ -30,7 +30,7 @@ describe("geometry", function () {
                             .line(110, 150))
                 ).to.be.true
             })
-            it("center -> inside", function () {
+            it("center -> inside", function (this: any) {
                 expect(
                     pointInPathTest(this,
                         true,
@@ -43,11 +43,11 @@ describe("geometry", function () {
                 ).to.be.true
             })
         })
-        describe("closed square", function () {
+        describe("closed square", function (this: any) {
             comment(this, `
                 This should cover the standard cases for pure line paths.
             `)
-            it("center -> inside", function () {
+            it("center -> inside", function (this: any) {
                 expect(
                     pointInPathTest(this,
                         true,
@@ -60,7 +60,7 @@ describe("geometry", function () {
                             .close())
                 ).to.be.true
             })
-            it("left -> outside", function () {
+            it("left -> outside", function (this: any) {
                 expect(
                     pointInPathTest(this,
                         false,
@@ -73,7 +73,7 @@ describe("geometry", function () {
                             .close())
                 ).to.be.true
             })
-            it("right -> outside", function () {
+            it("right -> outside", function (this: any) {
                 expect(
                     pointInPathTest(this,
                         false,
@@ -86,7 +86,7 @@ describe("geometry", function () {
                             .close())
                 ).to.be.true
             })
-            it("top -> outside", function () {
+            it("top -> outside", function (this: any) {
                 expect(
                     pointInPathTest(this,
                         false,
@@ -99,7 +99,7 @@ describe("geometry", function () {
                             .close())
                 ).to.be.true
             })
-            it("bottom -> outside", function () {
+            it("bottom -> outside", function (this: any) {
                 expect(
                     pointInPathTest(this,
                         false,
@@ -113,14 +113,14 @@ describe("geometry", function () {
                 ).to.be.true
             })
         })
-        describe("on horizontal line", function () {
+        describe("on horizontal line", function (this: any) {
             comment(this, `
                 As the algorithm works with an horizontal scan line,
                 encountering horizontal lines on the path may contain
                 corner cases.
             `)
-            describe("square", function () {
-                it("left -> outside", function () {
+            describe("square", function (this: any) {
+                it("left -> outside", function (this: any) {
                     expect(
                         pointInPathTest(this,
                             false,
@@ -133,7 +133,7 @@ describe("geometry", function () {
                                 .close())
                     ).to.be.true
                 })
-                it("middle -> outside", function () {
+                it("middle -> outside", function (this: any) {
                     expect(
                         pointInPathTest(this,
                             true,
@@ -147,8 +147,8 @@ describe("geometry", function () {
                     ).to.be.true
                 })
             })
-            describe("u shape", function () {
-                it("left -> outside", function () {
+            describe("u shape", function (this: any) {
+                it("left -> outside", function (this: any) {
                     expect(
                         pointInPathTest(this,
                             false,
@@ -157,7 +157,7 @@ describe("geometry", function () {
                     ).to.be.true
                 })
 
-                it("middle of left -> outside", function () {
+                it("middle of left -> outside", function (this: any) {
                     expect(
                         pointInPathTest(this,
                             true,
@@ -166,7 +166,7 @@ describe("geometry", function () {
                     ).to.be.true
                 })
 
-                it("middle -> outside", function () {
+                it("middle -> outside", function (this: any) {
                     expect(
                         pointInPathTest(this,
                             false,
@@ -175,9 +175,9 @@ describe("geometry", function () {
                     ).to.be.true
                 })
             })
-            describe("open curve", function () {
-                describe("one intersection", function () {
-                    it("middle -> outside", function () {
+            describe("open curve", function (this: any) {
+                describe("one intersection", function (this: any) {
+                    it("middle -> outside", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 false,
@@ -189,7 +189,7 @@ describe("geometry", function () {
                                         110, 50))
                         ).to.be.true
                     })
-                    it("left -> outside", function () {
+                    it("left -> outside", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 false,
@@ -201,7 +201,7 @@ describe("geometry", function () {
                                         110, 50))
                         ).to.be.true
                     })
-                    it("left -> inside", function () {
+                    it("left -> inside", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 true,
@@ -213,7 +213,7 @@ describe("geometry", function () {
                                         110, 50))
                         ).to.be.true
                     })
-                    it("right -> outside", function () {
+                    it("right -> outside", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 false,
@@ -226,8 +226,8 @@ describe("geometry", function () {
                         ).to.be.true
                     })
                 })
-                describe("two intersections", function () {
-                    it("left -> outside", function () {
+                describe("two intersections", function (this: any) {
+                    it("left -> outside", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 false,
@@ -239,7 +239,7 @@ describe("geometry", function () {
                                         210, 150))
                         ).to.be.true
                     })
-                    it("center -> inside", function () {
+                    it("center -> inside", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 true,
@@ -252,8 +252,8 @@ describe("geometry", function () {
                         ).to.be.true
                     })
                 })
-                describe("three intersections", function () {
-                    it("1", function () {
+                describe("three intersections", function (this: any) {
+                    it("1", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 false,
@@ -265,7 +265,7 @@ describe("geometry", function () {
                                         200, 0))
                         ).to.be.true
                     })
-                    it("2", function () {
+                    it("2", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 true,
@@ -277,7 +277,7 @@ describe("geometry", function () {
                                         200, 0))
                         ).to.be.true
                     })
-                    it("3", function () {
+                    it("3", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 false,
@@ -289,7 +289,7 @@ describe("geometry", function () {
                                         200, 0))
                         ).to.be.true
                     })
-                    it("4", function () {
+                    it("4", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 true,
@@ -301,7 +301,7 @@ describe("geometry", function () {
                                         200, 0))
                         ).to.be.true
                     })
-                    it("5", function () {
+                    it("5", function (this: any) {
                         expect(
                             pointInPathTest(this,
                                 false,
@@ -317,11 +317,11 @@ describe("geometry", function () {
             })
         })
     })
-    describe("isLeft(P0, P1, P2)", function () {
+    describe("isLeft(P0, P1, P2)", function (this: any) {
         comment(this, `
             Used to determine the winding number for lines.
         `)
-        it(">0 for P2 left of the line through P0 and P1", function () {
+        it(">0 for P2 left of the line through P0 and P1", function (this: any) {
             isLeftTest(this,
                 { x: 100, y: 20 },
                 { x: 150, y: 180 },
@@ -329,7 +329,7 @@ describe("geometry", function () {
                 (r) => r > 0
             )
         })
-        it("=0 for P2  on the line", function () {
+        it("=0 for P2  on the line", function (this: any) {
             isLeftTest(this,
                 { x: 100, y: 20 },
                 { x: 150, y: 180 },
@@ -337,7 +337,7 @@ describe("geometry", function () {
                 (r) => r == 0
             )
         })
-        it("<0 for P2  right of the line", function () {
+        it("<0 for P2  right of the line", function (this: any) {
             isLeftTest(this,
                 { x: 100, y: 20 },
                 { x: 150, y: 180 },
@@ -346,7 +346,7 @@ describe("geometry", function () {
             )
         })
     })
-    describe("intersectCurveX", function () {
+    describe("intersectCurveX", function (this: any) {
         comment(this, `
             <p>
                 Used to determine the winding number for curves.
@@ -366,7 +366,7 @@ describe("geometry", function () {
                 Compared to <em>isLeft()</em> this method is rather expensive.
             </p>
         `)
-        it("one intersection", function () {
+        it("one intersection", function (this: any) {
             intersectCurveXTest(this, [
                 { x: 100, y: 20 },
                 { x: 100, y: 50 },
@@ -374,7 +374,7 @@ describe("geometry", function () {
                 { x: 200, y: 180 },
             ], 100)
         })
-        it("one intersection 2", function () {
+        it("one intersection 2", function (this: any) {
             intersectCurveXTest(this, [
                 { x: 100, y: 20 },
                 { x: 100, y: 20 },
@@ -382,7 +382,7 @@ describe("geometry", function () {
                 { x: 100, y: 200 },
             ], 100)
         })
-        it("two intersections forward", function () {
+        it("two intersections forward", function (this: any) {
             intersectCurveXTest(this, [
                 { x: 100, y: 180 },
                 { x: 120, y: 20 },
@@ -390,7 +390,7 @@ describe("geometry", function () {
                 { x: 200, y: 170 },
             ], 100)
         })
-        it("two intersections backward", function () {
+        it("two intersections backward", function (this: any) {
             intersectCurveXTest(this, [
                 { x: 200, y: 170 },
                 { x: 180, y: 30 },
@@ -398,7 +398,7 @@ describe("geometry", function () {
                 { x: 100, y: 180 },
             ], 100)
         })
-        it("three intersections", function () {
+        it("three intersections", function (this: any) {
             intersectCurveXTest(this, [
                 { x: 100, y: 180 },
                 { x: 120, y: -200 },
@@ -406,7 +406,7 @@ describe("geometry", function () {
                 { x: 200, y: 20 },
             ], 100)
         })
-        it("same line", function () {
+        it("same line", function (this: any) {
             intersectCurveXTest(this, [
                 { x: 20, y: 100 },
                 { x: 100, y: 100 },
@@ -417,9 +417,9 @@ describe("geometry", function () {
     })
 })
 
-function annotate(context: Mocha.Context, okay: boolean, annotation: string | SVGSVGElement) {
-    const currentTest = context.currentTest
-    const activeTest = context.test
+function annotate(context: any | undefined, okay: boolean, annotation: string | SVGSVGElement) {
+    const currentTest = context?.currentTest
+    const activeTest = context?.test
     let isEachHook = false
     if (activeTest) {
         isEachHook = currentTest !== undefined && /^"(?:before|after)\seach"/.test(activeTest.title)
@@ -456,18 +456,19 @@ function annotate(context: Mocha.Context, okay: boolean, annotation: string | SV
     text.setAttributeNS("", "y", "194")
     text.style.fontSize = "10px"
     text.style.fontFamily = "sans-serif"
-    text.appendChild(document.createTextNode(test!.title))
+    text.appendChild(document.createTextNode(test?.title ?? ""))
     annotation.appendChild(text)
 
     document.body.appendChild(annotation)
 }
 
-function comment(context: Mocha.Suite, comment: string) {
-    (context as any).comment = comment
+function comment(context: any | undefined, comment: string) {
+    if (context)
+        (context as any).comment = comment
 }
 
 const printedTitles = new Set()
-function printTitles(test?: Mocha.Suite): number {
+function printTitles(test?: any): number {
     if (test === undefined)
         return -1
     const level = printTitles(test.parent) + 1
@@ -527,7 +528,7 @@ function curve(svg: SVGSVGElement, c: Point[]) {
     svg.appendChild(curve)
 }
 
-function runTest(context: Mocha.Context, pt: Point, c: Point[]) {
+function runTest(context: any, pt: Point, c: Point[]) {
     const panel = svg()
     cross(panel, pt)
     curve(panel, c)
@@ -535,7 +536,7 @@ function runTest(context: Mocha.Context, pt: Point, c: Point[]) {
 }
 
 function isLeftTest(
-    context: Mocha.Context,
+    context: any,
     a: Point, b: Point, pt: Point,
     check: (r: number) => boolean
 ) {
@@ -548,7 +549,7 @@ function isLeftTest(
 }
 
 function intersectCurveXTest(
-    context: Mocha.Context,
+    context: any,
     c: Point[],
     y: number
 ) {
@@ -564,7 +565,7 @@ function intersectCurveXTest(
 }
 
 function pointInPathTest(
-    context: Mocha.Context,
+    context: any,
     expectIsInside: boolean,
     pt: Point,
     path: Path) {

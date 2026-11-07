@@ -1,5 +1,5 @@
 import { expect } from "chai"
-import { Rectangle } from "shared/Rectangle"
+import { Rectangle } from "shared/geometry/Rectangle"
 
 describe("Rectangle", ()=> {
     describe("constructor", ()=> {

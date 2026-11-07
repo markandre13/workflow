@@ -2,30 +2,21 @@
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "2.0.0",
+    "version": "0.2.0",
     "configurations": [
         {
-            "name": "debug tests",
-            // 1) start karma
-            "preLaunchTask": "karma:start",
-            // 2) launch the browser at karma's debug page
+            "name": "vitest (headed browser)",
+            "type": "node",
             "request": "launch",
-            "type": "pwa-chrome",
+            "runtimeExecutable": "npx",
             "runtimeArgs": [
-                "--auto-open-devtools-for-tabs",
-                "--disable-gpu",
-                // "--headless"
+                "vitest",
+                "--browser.headless=false"
             ],
-            "url": "http://localhost:9876/debug.html",
-            // for breakpoints to work we need to relate the URL provided by karma to the local file
-            // the following rule will map http://localhost:9876/base/test/feature.spec.ts to test/feature.spec.ts
-            "pathMapping": {
-                "/base": "${workspaceFolder}"
-            },
-            "sourceMaps": true,
-
-            // 3) stop karma (and all other tasks)
-            "postDebugTask": "tasks:terminate",
+            "console": "integratedTerminal",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
-    ],
-  }
+    ]
+}

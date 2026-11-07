@@ -29,7 +29,7 @@ import { Tool, ArrangeToolState } from "client/figuretools"
 import { FigureEditorScene } from "../FigureEditorScene"
 
 describe("FigureEditor", function() {
-    this.beforeAll(async function() {
+    beforeAll(async function() {
         initializeCORBAValueTypes()
         await loadScript("polyfill/path-data-polyfill.js")
     })

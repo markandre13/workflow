@@ -30,6 +30,13 @@ import { Rectangle } from "shared/geometry/Rectangle"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 
+interface KeyboardOption {
+    shift?: boolean
+    ctrl?: boolean
+    alt?: boolean
+    meta?: boolean // macOS: command key, windows: windows key
+}
+
 // PageObject style API for testing FigureEditor
 // https://martinfowler.com/bliki/PageObject.html
 export class FigureEditorScene {
@@ -415,19 +422,19 @@ export class FigureEditorScene {
         active?.dispatchEvent(event)
     }
 
-    keydown(keycode: KeyCode): void {
+    keydown(keycode: KeyCode, option?: KeyboardOption): void {
         if (this.verbose)
             console.log(`### KEY DOWN ${keycode}`)
 
-        const keyValue = this.keyCode2keyValue(keycode)
+        const keyValue = this.keyCode2keyValue(keycode, option)
 
         let event = new KeyboardEvent("keydown", {
             key: keyValue,
             code: keycode,
-            altKey: this.alt,
-            shiftKey: this.shift,
-            ctrlKey: this.ctrl,
-            metaKey: this.meta,
+            altKey: option?.alt ?? this.alt,
+            shiftKey: option?.shift ?? this.shift,
+            ctrlKey: option?.ctrl ?? this.ctrl,
+            metaKey: option?.meta ?? this.meta,
             composed: true,
             cancelable: true,
             bubbles: true,
@@ -451,18 +458,18 @@ export class FigureEditorScene {
 
     }
 
-    keyup(keycode: KeyCode): void {
+    keyup(keycode: KeyCode, option?: KeyboardOption): void {
         if (this.verbose)
             console.log(`### KEY UP ${keycode}`)
 
-        const keyValue = this.keyCode2keyValue(keycode)
+        const keyValue = this.keyCode2keyValue(keycode, option)
         let event = new KeyboardEvent("keyup", {
             key: keyValue,
             code: keycode,
-            altKey: this.alt,
-            shiftKey: this.shift,
-            ctrlKey: this.ctrl,
-            metaKey: this.meta,
+            altKey: option?.alt ?? this.alt,
+            shiftKey: option?.shift ?? this.shift,
+            ctrlKey: option?.ctrl ?? this.ctrl,
+            metaKey: option?.meta ?? this.meta,
             composed: true,
             cancelable: true,
             bubbles: true,
@@ -499,9 +506,9 @@ export class FigureEditorScene {
     //  CapsLock  CapsLock
     //  ' '       Space
     //  '!'       Digit1 + shift
-    protected keyCode2keyValue(code: KeyCode): string {
+    protected keyCode2keyValue(code: KeyCode, option?: KeyboardOption): string {
         if (code.substr(0, 3) === "Key") {
-            if (this.shift === true)
+            if ((option?.shift ?? this.shift) === true)
                 return code.substr(3)
             else
                 return code.substr(3).toLowerCase()

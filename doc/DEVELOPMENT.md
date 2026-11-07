@@ -2,52 +2,75 @@
 
 ## Toolchain
 
-* [Pure ESM Module](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) toolchain
-* [Web Test Runner](https://modern-web.dev/docs/test-runner/overview/) for test execution 
+* [Vite](https://vite.dev/) for the development server and production builds
 
-  Runs ESM files in a browser using [Mocha](https://mochajs.org))
+  Vite uses Rolldown and Oxc, so TypeScript and TSX are transpiled without a
+  separate build step. The development server provides Hot Module Replacement.
 
-* [Web Test Server](https://modern-web.dev/docs/dev-server/overview/) for running the application during development
+* [Vitest](https://vitest.dev/) for test execution
 
-  Serves ESM files and provides Hot Module Reload (HMR)
+  The unit tests run in a real browser (Chromium via Playwright) because they
+  depend on DOM, SVG and IndexedDB APIs. Vitest is configured in browser mode
+  in `vitest.config.mts`.
 
-* [TypeScript](https://www.typescriptlang.org) for catching obvious errors at compile time.
+* [TypeScript](https://www.typescriptlang.org) for catching obvious errors at
+  compile time.
 
-  When run with --watch, usually compiles within less than a second, putting it
-  en par with [swc](https://swc.rs) and [esbuild](https://esbuild.github.io) in regards
-  to performance while also providing newest language features. (E.g. 'override')
+* [corba-idl](https://www.npmjs.com/package/corba-idl) to generate the CORBA
+  stubs and value types from `src/shared/workflow.idl`.
 
-* [ttypescript](https://www.npmjs.com/package/ttypescript) to compile directly to ESM
-
-* [rollup.js](https://rollupjs.org/) for production bundling
-
-I usually run all tools in watch mode for best performance. Each of them in a separate terminal window.
+* [toad.js](https://www.npmjs.com/package/toad.js) and
+  [toad.jsx](https://www.npmjs.com/package/toad.jsx) for the UI.
 
 ## Coding
+
 ```
-     npm run dev:build
-     npm run dev:serve
+    npm run dev
 ```
 
+This generates the CORBA sources and starts the Vite development server at the
+URL printed in the terminal. `index-dev.html` loads `src/client/main.ts`
+directly, so changes are reflected without rebuilding the application.
+
 ## Testing
+
 ```
-    npm run dev:build
+    npm test
+```
+
+runs the complete unit test suite once. During development use
+
+```
     npm run dev:test
 ```
 
-or when focusing on a certain feature
+to run Vitest in watch mode. A single file can be selected with
 
 ```
-    npm run dev:build
-    npm run dev:test --file=build/test/unit/pentool.spec.js
+    npx vitest test/unit/figuretools/pentool.spec.ts
 ```
 
-As workflow is developed along with toad.js and corba.js, I sometimes use them via `npm link toad.js corba.js` and also compile them with `npm run dev:build`, which will _instantly_ reflect in `dev:serve` and `dev:test`.
+To watch the tests in a visible browser, run
 
-## Caveats
+```
+    npx vitest --browser.headless=false
+```
 
-Well, reacting _instantly_ on changes sometimes takes a few seconds for `@web/*` to reload while `tcs` really reacts instantly.
+## Production Build
 
-`@web/test-runner` sometimes also hangs for several minutes and cannot be stopped with Ctrl+C.
+```
+    npm run build
+```
 
-It would also be nice being able to run `ttsc`, `@web/dev-server` and `@web/test-runner` in a single terminal. But the way they print to the console doesn't make this feasible.
+This generates the CORBA sources, bundles the client into `dist/` and emits the
+server as `dist/server.js`.
+
+## Type Checking
+
+```
+    npm run typecheck
+```
+
+As workflow is developed along with toad.js and corba.js, I sometimes use them
+via `npm link toad.js corba.js`; Vite and Vitest will pick up the linked
+packages immediately.

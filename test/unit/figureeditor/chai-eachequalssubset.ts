@@ -8,7 +8,7 @@ declare global {
     }
 }
 
-export = chaiEachEqualsSubset
+export default chaiEachEqualsSubset
 
 function chaiEachEqualsSubset(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils): void {
     Assertion.addMethod('eachEqualsSubset', function (expectation) {

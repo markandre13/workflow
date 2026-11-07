@@ -3,14 +3,14 @@
     "compilerOptions": {
         "outDir": "build",
         "target": "es2024",
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "module": "esnext",
+        "moduleResolution": "bundler",
         "traceResolution": false,
         "lib": ["ESNext", "DOM"],
         "baseUrl": "src",
         "types": [
             "node",
-            "mocha",
+            "vitest/globals",
             "chai",
             "chai-almost",
             "chai-string"

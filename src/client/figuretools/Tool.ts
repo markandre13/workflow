@@ -498,7 +498,6 @@ export class Tool {
     // FIXME: this belongs in FigureEditor
     removeDecoration(editor: FigureEditor) {
         editor.decoration.innerHTML = ""
-        editor.outline.innerHTML = ""
     }
 
     static createAnchor(figureToScreen: Matrix | undefined, p: Point) {

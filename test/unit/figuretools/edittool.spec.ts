@@ -11,7 +11,7 @@ import { Point, pointMinusPoint, pointPlusPoint, pointMultiplyNumber, mirrorPoin
 it("\x07") // beep
 
 describe("EditTool", function () {
-    this.beforeAll(async function () {
+    beforeAll(async function () {
         initializeCORBAValueTypes()
         await loadScript("polyfill/path-data-polyfill.js")
     })

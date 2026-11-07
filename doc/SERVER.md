@@ -4,7 +4,11 @@
 
 Workflow needs a HTTP Server and the Workflow server provided in
 
-    js/server.js
+    dist/server.js
+
+Build it with `npm run build`, then start it with
+
+    node dist/server.js
 
 The index.html page contains the URL under which the workflow WebSocket
 server is available.
@@ -14,9 +18,13 @@ The workflow server doesn't yet support SSL.  If you need security
 
 ### Direct Connection to workflow Server
 
-By default the web app will contact the workflow server directly via
+By default the web app will contact the workflow server via the URL configured
+in `src/client/main.ts`. To connect to a different server, pass the URL to
+`main()` there:
 
-    <body onload="workflow.main('ws://'+window.location.hostname+':8000')"></body>
+    import { main } from "./workflow"
+
+    main("ws://" + window.location.hostname + ":8000")
 
 ### Apache as WebSocket Proxy
 
@@ -35,9 +43,9 @@ by adding
     ProxyRequests off
     ProxyPass "/workflow/" "ws://192.168.1.105:8000/"
 
-tweak index.html like this
+tweak `src/client/main.ts` like this
 
-    <body onload="workflow.main('ws://'+window.location.hostname+'/workflow/')"></body>
+    main("ws://" + window.location.hostname + "/workflow/")
 
 and restart Apache
 
@@ -70,9 +78,9 @@ and enable SSL with the available certificates
     BrowserMatch "MSIE [2-6]" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0
     BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
 
-tweak index.html like this
+tweak `src/client/main.ts` like this
 
-    <body onload="workflow.main('wss://'+window.location.hostname+'/workflow/')"></body>
+    main("wss://" + window.location.hostname + "/workflow/")
 
 and restart Apache
 

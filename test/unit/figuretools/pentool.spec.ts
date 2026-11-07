@@ -9,7 +9,7 @@ import { Point, mirrorPoint } from 'shared/geometry'
 // it("\x07") // beep
 
 describe("PenTool", function () {
-    this.beforeAll(async function () {
+    beforeAll(async function () {
         initializeCORBAValueTypes()
         await loadScript("polyfill/path-data-polyfill.js")
     })

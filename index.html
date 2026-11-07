@@ -21,7 +21,7 @@
 -->
     <script type="application/javascript" src="polyfill/webcomponents-hi-sd-ce.js"></script>
     <script type="application/javascript" src="polyfill/path-data-polyfill.js"></script>
-    <script type="application/javascript" src="js/workflow.js"></script>
+    <script type="module" src="/src/client/main.ts"></script>
 
     <template id="logonScreen">
         <style>
@@ -126,9 +126,10 @@
     </style>
 </head>
 
-<body onload="workflow.main()" style="overflow: hidden;"></body>
-<!-- <body onload="workflow.main('ws://localhost:8080')"></body> -->
-<!-- <body onload="workflow.main('ws://'+window.location.hostname+':8080')"></body> -->
-<!-- <body onload="workflow.main('wss://'+window.location.hostname+'/workflow/')"></body> -->
+<body style="overflow: hidden;"></body>
+<!-- To connect to a specific server, call main(url) from src/client/main.ts. -->
+<!-- <script type="module">import { main } from "/src/client/workflow.ts"; main("ws://localhost:8080")</script> -->
+<!-- <script type="module">import { main } from "/src/client/workflow.ts"; main("ws://"+window.location.hostname+":8080")</script> -->
+<!-- <script type="module">import { main } from "/src/client/workflow.ts"; main("wss://"+window.location.hostname+"/workflow/")</script> -->
 
 </html>

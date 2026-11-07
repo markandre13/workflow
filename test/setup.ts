@@ -16,12 +16,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { registerHTMLCustomElements, initializeCORBAValueTypes } from "client/workflow"
+import { beforeAll } from "vitest"
+import { initializeCORBAValueTypes } from "client/workflow"
 
-before(function() {
-    registerHTMLCustomElements();
-    initializeCORBAValueTypes()
+// SVGPathElement.getPathData()/setPathData() are not implemented by browsers.
+// The old test runner loaded the polyfill through a shared test page, so make
+// sure every test file gets it before the specs run.
+beforeAll(async () => {
+    await new Promise<void>((resolve, reject) => {
+        const script = document.createElement("script")
+        script.src = "/polyfill/path-data-polyfill.js"
+        script.onload = () => resolve()
+        script.onerror = () => reject(new Error("failed to load polyfill/path-data-polyfill.js"))
+        document.head.appendChild(script)
+    })
 })
 
-after(function() {
-})
+initializeCORBAValueTypes()

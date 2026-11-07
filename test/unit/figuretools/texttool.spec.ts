@@ -1,7 +1,7 @@
 import { expect, use } from "chai"
-import chaiAlmost = require('chai-almost')
+import chaiAlmost from 'chai-almost'
 use(chaiAlmost())
-import chaiSubset = require("chai-subset")
+import chaiSubset from "chai-subset"
 use(chaiSubset)
 
 import { Rectangle } from "shared/geometry/Rectangle"
@@ -804,6 +804,7 @@ describe("FigureEditor", function () {
 
             // we have no mouse tests at all!!!
             describe("mouse", function () {
+                it.skip("select text with mouse")
             })
 
             describe("cut, copy, paste via clipboard", function () {

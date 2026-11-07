@@ -1,5 +1,5 @@
 import { expect, use } from "chai"
-import chaiEachEqualsSubset = require("./chai-eachequalssubset")
+import chaiEachEqualsSubset from "./chai-eachequalssubset"
 use(chaiEachEqualsSubset)
 
 import { LocalDrawingModel } from "client/figureeditor/LocalDrawingModel"
