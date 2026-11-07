@@ -16,7 +16,7 @@
 * [TypeScript](https://www.typescriptlang.org) for catching obvious errors at
   compile time.
 
-* [corba-idl](https://www.npmjs.com/package/corba-idl) to generate the CORBA
+* [corba.js](https://www.npmjs.com/package/corba.js) to generate the CORBA
   stubs and value types from `src/shared/workflow.idl`.
 
 * [toad.js](https://www.npmjs.com/package/toad.js) and
@@ -41,13 +41,13 @@ directly, so changes are reflected without rebuilding the application.
 runs the complete unit test suite once. During development use
 
 ```
-    npm run dev:test
+    npm run test:watch
 ```
 
 to run Vitest in watch mode. A single file can be selected with
 
 ```
-    npx vitest test/unit/figuretools/pentool.spec.ts
+    npm run test --file test/unit/figuretools/pentool.spec.ts
 ```
 
 To watch the tests in a visible browser, run
@@ -72,5 +72,5 @@ server as `dist/server.js`.
 ```
 
 As workflow is developed along with toad.js and corba.js, I sometimes use them
-via `npm link toad.js corba.js`; Vite and Vitest will pick up the linked
+via `npm link toad.js toad.jsx corba.js`; Vite and Vitest will pick up the linked
 packages immediately.
