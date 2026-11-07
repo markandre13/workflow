@@ -28,6 +28,7 @@ export default defineConfig({
     },
     test: {
         globals: true,
+        silent: "passed-only",
         include: ["test/unit/**/*.spec.ts", "test/visual/**/*.spec.ts", "test/ui/**/*.spec.ts"],
         setupFiles: ["test/setup.ts"],
         exclude: [
@@ -46,5 +47,8 @@ export default defineConfig({
                 height: 768,
             },
         },
+        reporters: [
+            ['tree', { summary: false }]
+        ]
     },
 })

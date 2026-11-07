@@ -284,7 +284,6 @@ describe("wordwrap", function () {
     })
     describe("placeWordBoxes()", function () {
         const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): Point | undefined => {
-            wordwrap.trace = true
             let boxSource = new IteratingBoxSource()
             wordwrap.placeWordBoxes(boxSource)
 
