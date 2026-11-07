@@ -151,7 +151,7 @@ export class Client_impl extends skel.Client {
         // this.createToolModel() // for figureeditor
         // this.createStrokeAndFillModel()
 
-        homeScreen.appendTo(document.body)
+        document.body.append(...homeScreen)
     }
 
     getHomeScreen(model: DrawingModel) {
@@ -254,7 +254,7 @@ export class Client_impl extends skel.Client {
         // this.createStrokeAndFillModel()
 
         dom.erase(document.body)
-        homeScreen.appendTo(document.body)
+        document.body.append(...homeScreen)
     }
 
     private createMenuActions(fullname: string, email: string) {

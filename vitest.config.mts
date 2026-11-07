@@ -28,14 +28,13 @@ export default defineConfig({
     },
     test: {
         globals: true,
-        include: ["test/unit/**/*.spec.ts"],
+        include: ["test/unit/**/*.spec.ts", "test/visual/**/*.spec.ts", "test/ui/**/*.spec.ts"],
         setupFiles: ["test/setup.ts"],
         exclude: [
             ...configDefaults.exclude,
             "test/unit/math.spec.ts",
             "test/unit/teletype-crdt.spec.ts",
             "test/unit/paths/Path.spec.ts",
-            "test/unit/util/indexeddb.spec.ts",
         ],
         browser: {
             enabled: true,

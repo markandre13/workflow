@@ -1,6 +1,3 @@
-import { expect } from "chai"
-import { annotate } from "karma-mocha-html-annotations-reporter"
-
 import * as value from "shared/workflow_value"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
@@ -12,7 +9,6 @@ import { WordWrap, Slice, WordSource } from "client/wordwrap/wordwrap"
 import { WordBox } from "client/wordwrap/WordBox"
 
 import { TextSource } from "client/wordwrap/TextSource"
-import { TextEditor } from "client/wordwrap/TextEditor"
 
 // FIXME: document attributes
 interface WordWrapTest {
@@ -35,10 +31,8 @@ interface WordWrapTest {
 
 type Strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement) => Point | undefined
 
-function runTest(context: Mocha.Context, strategy: Strategy, test: WordWrapTest): void {
-    const runner = new WordWrapTestRunner("VISUAL-UNIT-TEST", polygon2path(test.polygon), test.boxes, test.result!, test.trace == true, strategy)
-    if (runner.svg)
-        annotate(context, runner.svg)
+function runTest(strategy: Strategy, test: WordWrapTest): void {
+    new WordWrapTestRunner("VISUAL-UNIT-TEST", polygon2path(test.polygon), test.boxes, test.result!, test.trace == true, strategy)
 }
 
 describe("wordwrap", function () {
@@ -48,7 +42,7 @@ describe("wordwrap", function () {
             return slice === -1 ? undefined : point
         }
         it("bottom is below slice", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 110, y: 20 },
                     { x: 300, y: 100 },
@@ -63,7 +57,7 @@ describe("wordwrap", function () {
             })
         })
         it("bottom is below slice with intersection", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 110, y: 20 },
                     { x: 300, y: 100 },
@@ -76,7 +70,7 @@ describe("wordwrap", function () {
             })
         })
         it("evaluate multiple slices to place box", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 10, y: 80 },
                     { x: 60, y: 50 },
@@ -90,7 +84,7 @@ describe("wordwrap", function () {
             })
         })
         it("need move down to place box", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 160, y: 20 },
                     { x: 210, y: 100 },
@@ -102,7 +96,7 @@ describe("wordwrap", function () {
             })
         })
         it("box outside corner left", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 200, y: 100 },
                     { x: 20, y: 20 },
@@ -114,7 +108,7 @@ describe("wordwrap", function () {
             })
         })
         it("box outside corner right", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 200, y: 100 },
                     { x: 20, y: 20 },
@@ -126,7 +120,7 @@ describe("wordwrap", function () {
             })
         })
         it("left dent", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 115, y: 100 },
                     { x: 160, y: 20 },
@@ -138,7 +132,7 @@ describe("wordwrap", function () {
             })
         })
         it("connected", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 115, y: 100 },
                     { x: 160, y: 20 },
@@ -149,7 +143,7 @@ describe("wordwrap", function () {
             })
         })
         it("narrow/open/left&right/inside", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 110, y: 180 },
                     { x: 160, y: 20 },
@@ -159,7 +153,7 @@ describe("wordwrap", function () {
             })
         })
         it("narrow/open/right", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 10, y: 20 },
                     { x: 310, y: 180 },
@@ -169,7 +163,7 @@ describe("wordwrap", function () {
             })
         })
         it("narrow/open/left", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 310, y: 20 },
                     { x: 150, y: 180 },
@@ -179,7 +173,7 @@ describe("wordwrap", function () {
             })
         })
         it("edge/open/left&right/inside", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 70, y: 180 },
                     { x: 160, y: 20 },
@@ -189,7 +183,7 @@ describe("wordwrap", function () {
             })
         })
         it("median/open/right", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 10, y: 20 },
                     { x: 30, y: 20 },
@@ -200,7 +194,7 @@ describe("wordwrap", function () {
             })
         })
         it("median/open/left", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 290, y: 20 },
                     { x: 310, y: 20 },
@@ -211,7 +205,7 @@ describe("wordwrap", function () {
             })
         })
         it("wide/open/left&right/wide", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 70, y: 180 },
                     { x: 110, y: 20 },
@@ -222,7 +216,7 @@ describe("wordwrap", function () {
             })
         })
         it("wide/open/right", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 10, y: 20 },
                     { x: 120, y: 20 },
@@ -233,7 +227,7 @@ describe("wordwrap", function () {
             })
         })
         it("wide/open/left", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 200, y: 20 },
                     { x: 310, y: 20 },
@@ -244,7 +238,7 @@ describe("wordwrap", function () {
             })
         })
         it("2nd slice", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 110, y: 20 },
                     { x: 210, y: 20 },
@@ -258,7 +252,7 @@ describe("wordwrap", function () {
             })
         })
         it("2nd slice with down spike", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 110, y: 20 },
                     { x: 190, y: 20 },
@@ -274,7 +268,7 @@ describe("wordwrap", function () {
             })
         })
         it("1st slice", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 110, y: 20 },
                     { x: 210, y: 20 },
@@ -312,7 +306,7 @@ describe("wordwrap", function () {
         }
 
         it("wordwrap 001", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 trace: true,
                 polygon: [
                     { x: 110, y: 20 },
@@ -326,7 +320,7 @@ describe("wordwrap", function () {
             })
         })
         it("wordwrap 002", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 20, y: 10 },
                     { x: 190, y: 50 },
@@ -364,7 +358,7 @@ describe("wordwrap", function () {
             return boxSource.wordBoxes[boxSource.wordBoxes.length - 1].origin
         }
         it("placeWordBoxes() rounding error box.width & horizontal width", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 20, y: 10 },
                     { x: 190, y: 50 },
@@ -379,7 +373,7 @@ describe("wordwrap", function () {
             })
         })
         it("placeWordBoxes() used slice data as cursor and modified it", function () {
-            runTest(this, strategy, {
+            runTest(strategy, {
                 polygon: [
                     { x: 20, y: 10 },
                     { x: 190, y: 50 },
@@ -402,14 +396,13 @@ describe("wordwrap", function () {
             textSource.initializeWordBoxes(svg)
             wordwrap.placeWordBoxes(textSource)
             textSource.displayWordBoxes()
-            new TextEditor(svg, wordwrap, textSource)
 
             if (textSource.wordBoxes.length === 0)
                 return undefined
             return textSource.wordBoxes[textSource.wordBoxes.length - 1].origin
         }
-        it.only("real text (work in progress)", function () {
-            runTest(this, strategy, {
+        it("real text (work in progress)", function () {
+            runTest(strategy, {
                 polygon: [
                     { x: 20, y: 10 },
                     { x: 190, y: 50 },

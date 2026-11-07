@@ -1,5 +1,6 @@
 import { Layer } from "client/figureeditor/Layer"
 import { ORB } from "corba.js"
+import { Fragment } from "toad.jsx/jsx-runtime"
 import { TextModel } from "toad.js/appkit/TextModel"
 import { closeModalDialog, openModalDialog } from "toad.js/viewkit/dialog"
 import { TextField } from "toad.js/viewkit/TextField"
@@ -27,6 +28,6 @@ export class ExportDrawing {
                 }}>Export</Button>
             </p>
             {download}
-        </>)
+        </> as Fragment)
     }
 }

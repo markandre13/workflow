@@ -143,7 +143,7 @@ async function main() {
 
 class WorkflowServer_impl extends skel.WorkflowServer {
     async getServer() {
-        return new Server_impl(this.orb)
+        return new Server_impl(this._orb)
     }
 }
 
@@ -223,7 +223,7 @@ class Server_impl extends skel.Server {
             throw Error("Server_impl.getProject("+projectID+"): no such project")
         }
         console.log("return restored project "+projectID)
-        project = new Project_impl(this.orb, result[0])
+        project = new Project_impl(this._orb, result[0])
         Server_impl.projects.set(projectID, project)
         return project
     }
@@ -263,7 +263,7 @@ class Project_impl extends skel.Project {
         // result[0].layers = this.orb.deserialize(result[0].layers)
         // let boardmodel = new BoardModel(result[0])
         let boardmodel = new BoardModel()
-        board = new Board_impl(this.orb, boardmodel)
+        board = new Board_impl(this._orb, boardmodel)
         this.boards.set(boardID, board)
         console.log("return restored board "+boardID)
         return board
@@ -288,7 +288,7 @@ class Board_impl extends skel.Board {
         let closing = () => {
             this.removeListener(listener)
         }
-        listener.orb.addEventListener("close", closing)
+        listener._orb.addEventListener("close", closing)
         this.listeners.set(listener, closing)
     }
     
@@ -297,7 +297,7 @@ class Board_impl extends skel.Board {
         if (closing === undefined)
             return
         this.listeners.delete(listener)
-        listener.orb.removeEventListener("close", closing)
+        listener._orb.removeEventListener("close", closing)
     }
     
     async getModel() {
@@ -359,7 +359,7 @@ class Board_impl extends skel.Board {
 class BoardModel implements valuetype.BoardModel {
     bid!: number
     name!: string
-    description!: string
+    comment!: string
     layers!: Array<Layer>
 
     constructor(init?: Partial<BoardModel>) {
@@ -517,7 +517,7 @@ namespace figure {
 
 
     export class Transform extends Group implements valuetype.figure.Transform {
-        override matrix!: Matrix
+        declare matrix: Matrix
 
         constructor(init?: Partial<Transform>) {
             super(init)

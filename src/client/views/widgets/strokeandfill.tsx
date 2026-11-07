@@ -19,7 +19,7 @@
 import { bind } from "client/utils/bind-decorator"
 import { Model } from "toad.js/appkit/Model"
 import { ModelView } from "toad.js/viewkit/ModelView"
-import { ref } from "toad.jsx/lib/jsx-runtime"
+import { ref } from "toad.jsx/jsx-runtime"
 
 let strokeandfillStyle = document.createElement("style")
 strokeandfillStyle.textContent = `
@@ -278,7 +278,7 @@ export class StrokeAndFill extends ModelView<StrokeAndFillModel> {
                     onmousedown={this.assignNone}
                 />
             </svg>
-        )
+        ) as SVGElement
 
         this.attachShadow({ mode: "open" })
         this.shadowRoot!.appendChild(document.importNode(strokeandfillStyle, true))

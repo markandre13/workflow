@@ -35,7 +35,7 @@ import { DrawingEvent } from "./DrawingEvent"
 
 import * as figure from "../figures"
 import { ALL } from "toad.js/appkit/Model"
-import { HTMLElementProps, setInitialProperties } from "toad.jsx/lib/jsx-runtime"
+import { HTMLElementProps, setInitialProperties } from "toad.jsx/jsx-runtime"
 import { ModelView } from "toad.js/viewkit/ModelView"
 
 interface InputEventInit extends UIEventInit {

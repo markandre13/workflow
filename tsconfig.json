@@ -7,7 +7,6 @@
         "moduleResolution": "bundler",
         "traceResolution": false,
         "lib": ["ESNext", "DOM"],
-        "baseUrl": "src",
         "types": [
             "node",
             "vitest/globals",
@@ -16,12 +15,12 @@
             "chai-string"
         ],
         "paths": {
-            "shared/*": ["shared/*"],
-            "client/*": ["client/*"]
+            "shared/*": ["./src/shared/*"],
+            "client/*": ["./src/client/*"]
         },
         "incremental": false,
         "jsx": "react-jsx",
-        "jsxImportSource": "toad.jsx/lib",
+        "jsxImportSource": "toad.jsx",
         "esModuleInterop": true,
         "experimentalDecorators": true,
         "strict": true,
