@@ -1,56 +1,56 @@
 {
-  "name": "workflow",
-  "version": "0.0.1",
-  "description": "a collaborative real-time white- and kanban board",
-  "author": "Mark-André Hopf <mhopf@mark13.org>",
-  "license": "AGPL-3.0-or-later",
-  "engines": {
-    "npm": ">=10.0.0",
-    "node": ">=22.12.0"
-  },
-  "main": "index.html",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/markandre13/workflow.git"
-  },
-  "scripts": {
-    "start": "npm run build:idl && vite",
-    "test": "npm run build:idl && vitest run",
-    "test:watch": "npm run build:idl && vitest",
-    "build": "npm run build:idl && npm run build:client && npm run build:server",
-    "build:idl": "corba-idl -v --ts-all src/shared/workflow.idl",
-    "build:client": "vite build",
-    "build:server": "vite build --config vite.server.config.mts",
-    "typecheck": "tsc --noEmit",
-    "update": "npx npm-check-updates -u && npm install"
-  },
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "knex": "^3.3.0",
-    "sqlite3": "^6.0.1",
-    "websocket": "^1.0.35"
-  },
-  "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/chai": "^5.2.3",
-    "@types/chai-almost": "^1.0.3",
-    "@types/chai-string": "^1.4.5",
-    "@types/node": "^26.6.6",
-    "@types/sqlite3": "^5.1.0",
-    "@types/websocket": "^1.0.10",
-    "@vitest/browser": "^5.1.0",
-    "@vitest/browser-playwright": "^5.1.0",
-    "bind-decorator": "^1.0.11",
-    "chai": "^6.3.0",
-    "chai-almost": "^1.0.1",
-    "chai-as-promised": "^8.0.2",
-    "chai-subset": "^1.6.0",
-    "corba.js": "0.2.0",
-    "playwright": "^1.65.0",
-    "toad.js": "^0.3.8",
-    "toad.jsx": "^0.1.7",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.6",
-    "vitest": "^5.1.0"
-  }
+    "name": "workflow",
+    "version": "0.0.1",
+    "description": "a collaborative real-time white- and kanban board",
+    "author": "Mark-André Hopf <mhopf@mark13.org>",
+    "license": "AGPL-3.0-or-later",
+    "engines": {
+        "npm": ">=10.0.0",
+        "node": ">=22.12.0"
+    },
+    "main": "index.html",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/markandre13/workflow.git"
+    },
+    "scripts": {
+        "start": "npm run build:idl && vite",
+        "test": "npm run build:idl && if test -z \"$npm_config_file\" ; then vitest run ; else vitest --run \"$npm_config_file\" ; fi",
+        "test:watch": "npm run build:idl && if test -z \"$npm_config_file\" ; then vitest --clearScreen false --watch ; else vitest --clearScreen false --watch \"$npm_config_file\" ; fi",
+        "build": "npm run build:idl && npm run build:client && npm run build:server",
+        "build:idl": "corba-idl -v --ts-all src/shared/workflow.idl",
+        "build:client": "vite build",
+        "build:server": "vite build --config vite.server.config.mts",
+        "typecheck": "tsc --noEmit",
+        "update": "npx npm-check-updates -u && npm install"
+    },
+    "dependencies": {
+        "bcrypt": "^6.0.0",
+        "knex": "^3.3.0",
+        "sqlite3": "^6.0.1",
+        "websocket": "^1.0.35"
+    },
+    "devDependencies": {
+        "@types/bcrypt": "^6.0.0",
+        "@types/chai": "^5.2.3",
+        "@types/chai-almost": "^1.0.3",
+        "@types/chai-string": "^1.4.5",
+        "@types/node": "^26.6.6",
+        "@types/sqlite3": "^5.1.0",
+        "@types/websocket": "^1.0.10",
+        "@vitest/browser": "^5.1.0",
+        "@vitest/browser-playwright": "^5.1.0",
+        "bind-decorator": "^1.0.11",
+        "chai": "^6.3.0",
+        "chai-almost": "^1.0.1",
+        "chai-as-promised": "^8.0.2",
+        "chai-subset": "^1.6.0",
+        "corba.js": "0.2.0",
+        "playwright": "^1.65.0",
+        "toad.js": "^0.3.8",
+        "toad.jsx": "^0.1.7",
+        "typescript": "^7.0.2",
+        "vite": "^8.3.6",
+        "vitest": "^5.1.0"
+    }
 }
