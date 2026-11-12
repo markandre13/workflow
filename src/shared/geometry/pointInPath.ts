@@ -8,7 +8,7 @@
 
 // a Point is defined by its coordinates {int x, y;}
 
-import { Point } from "./Point"
+import { Point, PointLike } from "./Point"
 import { Path } from "client/paths/Path"
 import { gslPolySolveCubic } from "./solveCubic"
 import { bez2x, bez2dy } from "./Intersection"
@@ -16,12 +16,12 @@ import { isZero, isEqual } from "../geometry"
 
 // FIXME: this assumes a fill-rule of "evenodd", while the browsers default to "nonzero"
 // https://www.w3.org/TR/SVG2/painting.html#FillRuleProperty
-export function pointInPath(path: Path, pt: Point): boolean {
+export function pointInPath(path: Path, pt: PointLike): boolean {
 
     let wn = 0 // the  winding number counter
 
-    let lastPoint!: Point
-    let firstPoint!: Point
+    let lastPoint!: PointLike
+    let firstPoint!: PointLike
     for (let entry of path.data) {
         switch (entry.type) {
             case "M":
@@ -69,7 +69,7 @@ export function pointInPath(path: Path, pt: Point): boolean {
     return (wn & 1) == 1
 }
 
-function wnLine(wn: number, pt: Point, line: Point[]) {
+function wnLine(wn: number, pt: PointLike, line: PointLike[]) {
     if (line[0].y <= pt.y) {          // start y <= P.y
         if (line[1].y > pt.y)      // an upward crossing
             if (isLeft(line[0], line[1], pt) > 0)  // P left of  edge
@@ -83,7 +83,7 @@ function wnLine(wn: number, pt: Point, line: Point[]) {
     return wn
 }
 
-function wnCurve(wn: number, pt: Point, curve: Point[]) {
+function wnCurve(wn: number, pt: PointLike, curve: PointLike[]) {
     const dy = isLeftOdd(curve, pt)
     if (dy > 0) { // downward crossing
         ++wn
@@ -93,13 +93,13 @@ function wnCurve(wn: number, pt: Point, curve: Point[]) {
     return wn
 }
 
-export function isLeft(P0: Point, P1: Point, P2: Point): number {
+export function isLeft(P0: PointLike, P1: PointLike, P2: PointLike): number {
     return (P1.x - P0.x) * (P2.y - P0.y) - (P2.x - P0.x) * (P1.y - P0.y)
 }
 // aka. signedArea
 //         (p0.x- p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (p0.y - p2.y)
 
-export function intersectCurveX(curve: Point[], y: number) {
+export function intersectCurveX(curve: PointLike[], y: number) {
     if (isEqual(curve[0].y, curve[1].y) &&
         isEqual(curve[0].y, curve[2].y) &&
         isEqual(curve[0].y, curve[3].y)
@@ -148,7 +148,7 @@ export function intersectCurveX(curve: Point[], y: number) {
     return result
 }
 
-export function isLeftOdd(curve: Point[], pt: Point): number {
+export function isLeftOdd(curve: PointLike[], pt: PointLike): number {
     let n = 0
     let dy = 0
     for (let x of intersectCurveX(curve, pt.y)) {

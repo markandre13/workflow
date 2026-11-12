@@ -25,7 +25,7 @@ import { FigureSelectionModel } from "../figureeditor/FigureSelectionModel"
 import { FigureEditor } from "../figureeditor/FigureEditor"
 import { pointPlusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual, pointMinusPoint, squaredLength, rotatePointAroundPointBy } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { parseXML, Tag, TagType, Text } from "client/utils/xml"
 
@@ -146,7 +146,7 @@ export class Tool {
         // console.log(`SelectTool.updateBoundary() DONE`)
     }
 
-    getBoundaryHandle(handle: number): {path: Path, handleDirection: Point} {
+    getBoundaryHandle(handle: number): {path: Path, handleDirection: PointLike} {
         const m = new Matrix(this.transformation)
         m.append(this.boundaryTransformation)
 
@@ -157,7 +157,7 @@ export class Tool {
 
         const figureCenter = m.transformPoint({x: x+w/2, y: y+h/2})
 
-        let handleDirection: Point
+        let handleDirection: PointLike
         switch(handle % 8) {
             case 0:
                 handleDirection = { x: -1, y: -1 }
@@ -301,7 +301,7 @@ export class Tool {
         return { path, handleDirection }
     }
     
-    setCursorForHandle(h: number, handle: {path: Path, handleDirection: Point}, svg: SVGElement) {
+    setCursorForHandle(h: number, handle: {path: Path, handleDirection: PointLike}, svg: SVGElement) {
         const r1 = Math.atan2(handle.handleDirection.y, handle.handleDirection.x)
         const r2 = r1 + (13 - 7.5) / 16 * 2 * Math.PI
         let r3 = ( Math.round(r2 / (2 * Math.PI) * 8) + 8 ) % 8
@@ -500,7 +500,7 @@ export class Tool {
         editor.decoration.innerHTML = ""
     }
 
-    static createAnchor(figureToScreen: Matrix | undefined, p: Point) {
+    static createAnchor(figureToScreen: Matrix | undefined, p: PointLike) {
         if (figureToScreen) {
             p = figureToScreen.transformPoint(p)
         }
@@ -519,7 +519,7 @@ export class Tool {
         return anchor
     }
 
-    static updateAnchor(figureToScreen: Matrix | undefined, p: Point, svg: SVGRectElement) {
+    static updateAnchor(figureToScreen: Matrix | undefined, p: PointLike, svg: SVGRectElement) {
         if (figureToScreen) {
             p = figureToScreen.transformPoint(p)
         }
@@ -531,7 +531,7 @@ export class Tool {
         svg.setAttributeNS("", "y", `${y}`)
     }
 
-    static createHandle(figureToScreen: Matrix | undefined, p: Point) {
+    static createHandle(figureToScreen: Matrix | undefined, p: PointLike) {
         if (figureToScreen) {
             p = figureToScreen.transformPoint(p)
         }
@@ -547,7 +547,7 @@ export class Tool {
         return handle
     }
 
-    static updateHandle(figureToScreen: Matrix | undefined, p: Point, svg: SVGCircleElement) {
+    static updateHandle(figureToScreen: Matrix | undefined, p: PointLike, svg: SVGCircleElement) {
         if (figureToScreen) {
             p = figureToScreen.transformPoint(p)
         }
@@ -557,7 +557,7 @@ export class Tool {
         svg.setAttributeNS("", "cy", `${y}`)
     }
 
-    static createLine(figureToScreen: Matrix | undefined, p0: Point, p1: Point) {
+    static createLine(figureToScreen: Matrix | undefined, p0: PointLike, p1: PointLike) {
         if (figureToScreen) {
             p0 = figureToScreen.transformPoint(p0)
             p1 = figureToScreen.transformPoint(p1)
@@ -571,7 +571,7 @@ export class Tool {
         return line
     }
 
-    static updateLine(figureToScreen: Matrix | undefined, p0: Point, p1: Point, svg: SVGLineElement) {
+    static updateLine(figureToScreen: Matrix | undefined, p0: PointLike, p1: PointLike, svg: SVGLineElement) {
         if (figureToScreen) {
             p0 = figureToScreen.transformPoint(p0)
             p1 = figureToScreen.transformPoint(p1)

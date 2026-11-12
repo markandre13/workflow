@@ -20,7 +20,7 @@ import { FigureEditor, EditorPointerEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
 import { Path } from "../figures/Path"
 import { pointMinusPoint, pointPlusPoint, mirrorPoint, distancePointToPoint, pointMultiplyNumber } from "shared/geometry"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { figure } from "shared/workflow"
 import { EditorKeyboardEvent } from "client/figureeditor/EditorKeyboardEvent"
@@ -243,7 +243,7 @@ class Anchor {
         }
     }
 
-    get pos(): Point {
+    get pos(): PointLike {
         switch (this.outline.types[this.idxType]) {
             case AnchorType.ANCHOR_EDGE:
             case AnchorType.ANCHOR_EDGE_ANGLE:
@@ -258,7 +258,7 @@ class Anchor {
         }
     }
 
-    moveTo(point: Point) {
+    moveTo(point: PointLike) {
         switch (this.anchorElement) {
             case AnchorElement.ANCHOR:
                 this.pos = point
@@ -272,7 +272,7 @@ class Anchor {
         }
     }
 
-    set pos(point: Point) {
+    set pos(point: PointLike) {
         switch (this.outline.types[this.idxType]) {
             case AnchorType.ANCHOR_EDGE: {
                 this.outline.values[this.idxValue] = point.x
@@ -324,7 +324,7 @@ class Anchor {
         path.updateSVG(this.editor.editor.outline, this.editor.outlineSVG)
     }
 
-    set backwardHandle(point: Point) {
+    set backwardHandle(point: PointLike) {
         switch (this.outline.types[this.idxType]) {
             case AnchorType.ANCHOR_EDGE:
                 throw Error("anchor type EDGE has no backward handle to set")
@@ -360,7 +360,7 @@ class Anchor {
         path.updateSVG(this.editor.editor.outline, this.editor.outlineSVG)
     }
 
-    set forwardHandle(point: Point) {
+    set forwardHandle(point: PointLike) {
         switch (this.outline.types[this.idxType]) {
             case AnchorType.ANCHOR_EDGE:
                 throw Error("anchor type EDGE has no forward handle to set")
@@ -439,27 +439,27 @@ abstract class EditToolEditor {
     pointerEvent(event: EditorPointerEvent): boolean { return false }
     keyEvent(event: EditorKeyboardEvent): boolean { return false }
 
-    createAnchor(p: Point) {
+    createAnchor(p: PointLike) {
         return Tool.createAnchor(this.figureToScreen, p)
     }
 
-    updateAnchor(p: Point, svg: SVGRectElement) {
+    updateAnchor(p: PointLike, svg: SVGRectElement) {
         return Tool.updateAnchor(this.figureToScreen, p, svg)
     }
 
-    createHandle(p: Point) {
+    createHandle(p: PointLike) {
         return Tool.createHandle(this.figureToScreen, p)
     }
 
-    updateHandle(p: Point, svg: SVGCircleElement) {
+    updateHandle(p: PointLike, svg: SVGCircleElement) {
         return Tool.updateHandle(this.figureToScreen, p, svg)
     }
 
-    createLine(p0: Point, p1: Point) {
+    createLine(p0: PointLike, p1: PointLike) {
         return Tool.createLine(this.figureToScreen, p0, p1)
     }
 
-    updateLine(p0: Point, p1: Point, svg: SVGLineElement) {
+    updateLine(p0: PointLike, p1: PointLike, svg: SVGLineElement) {
         return Tool.updateLine(this.figureToScreen, p0, p1, svg)
     }
 }

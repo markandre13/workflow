@@ -18,7 +18,7 @@
 
 import { distancePointToLine } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { AbstractPath } from "./AbstractPath"
 import { bezpoint } from "shared/geometry/bezpoint"
@@ -42,8 +42,8 @@ export class Path extends AbstractPath {
     data: Array<Segment>
     constructor()
     constructor(path: Path)
-    constructor(path: Array<Point>)
-    constructor(path?: Path | Array<Point>) {
+    constructor(path: Array<PointLike>)
+    constructor(path?: Path | Array<PointLike>) {
         super()
         this.data = []
         if (path instanceof Array) {
@@ -103,12 +103,12 @@ export class Path extends AbstractPath {
     empty(): boolean {
         return this.data.length == 0
     }
-    contains(point: Point): boolean {
+    contains(point: PointLike): boolean {
         return pointInPath(this, point)
     }
 
-    distance(point: Point) {
-        let startPoint!: Point, p0!: Point, p1!: Point, d = Number.MAX_VALUE
+    distance(point: PointLike) {
+        let startPoint!: PointLike, p0!: PointLike, p1!: PointLike, d = Number.MAX_VALUE
         for (let entry of this.data) {
             switch (entry.type) {
                 case "M":
@@ -167,18 +167,18 @@ export class Path extends AbstractPath {
         }
         return this
     }
-    move(point: Point): Path
+    move(point: PointLike): Path
     move(x: number, y: number): Path
-    move(pointOrX: Point | number, Y?: number): Path {
+    move(pointOrX: PointLike | number, Y?: number): Path {
         if (typeof pointOrX === "object")
             this.data.push({ type: 'M', values: [pointOrX.x, pointOrX.y] })
         else
             this.data.push({ type: 'M', values: [pointOrX, Y!] })
         return this
     }
-    line(point: Point): Path
+    line(point: PointLike): Path
     line(x: number, y: number): Path
-    line(pointOrX: Point | number, Y?: number): Path {
+    line(pointOrX: PointLike | number, Y?: number): Path {
         if (typeof pointOrX === "object")
             this.data.push({ type: 'L', values: [pointOrX.x, pointOrX.y] })
         else
@@ -186,8 +186,8 @@ export class Path extends AbstractPath {
         return this
     }
     curve(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number): Path
-    curve(p0: Point, p1: Point, p2: Point): Path
-    curve(p0OrX0: Point | number, p1OrY0: Point | number, p2OrX1: Point | number, Y1?: number, X2?: number, Y2?: number): Path {
+    curve(p0: PointLike, p1: PointLike, p2: PointLike): Path
+    curve(p0OrX0: PointLike | number, p1OrY0: PointLike | number, p2OrX1: PointLike | number, Y1?: number, X2?: number, Y2?: number): Path {
         if (typeof p0OrX0 === "object" &&
             typeof p1OrY0 === "object" &&
             typeof p2OrX1 === "object") {
@@ -238,7 +238,7 @@ export class Path extends AbstractPath {
     }
     bounds(): Rectangle {
         let isFirstPoint = true
-        let previousPoint!: Point
+        let previousPoint!: PointLike
         let rectangle = new Rectangle()
         for (let segment of this.data) {
             switch (segment.type) {

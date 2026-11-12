@@ -1,4 +1,5 @@
 import { Point, pointMinusPoint, pointMultiplyNumber, dot, squaredLength } from "../geometry"
+import { PointLike } from "./Point"
 
 // NOTE: try to use the one from toad2/fischland/fpath.cc and change it to take a minimum distance at which to abort?
 
@@ -37,7 +38,7 @@ const W_DEGREE = 5         /*  Degree of eqn to find roots of */
  *		Return the point on the curve at that parameter value.
  *
  */
-export function nearestPointOnCurve(P: Point, V: Point[])
+export function nearestPointOnCurve(P: PointLike, V: PointLike[])
 //  Point2 	P;			/* The user-supplied point	  */
 //  Point2 	*V;			/* Control points of cubic Bezier */
 {
@@ -96,14 +97,14 @@ export function nearestPointOnCurve(P: Point, V: Point[])
  *		Bezier-format equation whose solution finds the point on the
  *      curve nearest the user-defined point.
  */
-function ConvertToBezierForm(P: Point, V: Point[]): Point[]
+function ConvertToBezierForm(P: PointLike, V: PointLike[]): PointLike[]
 //  Point2 	P;			/* The point to find t for	*/
 //  Point2 	*V;			/* The control points		*/
 {
     //  int 	i, j, k, m, n, ub, lb;	
     //  int 	row, column;		/* Table indices		*/
-    const c = Array<Point>(DEGREE + 1)		/* V(i)'s - P			*/
-    const d = Array<Point>(DEGREE)		/* V(i+1) - V(i)		*/
+    const c = Array<PointLike>(DEGREE + 1)		/* V(i)'s - P			*/
+    const d = Array<PointLike>(DEGREE)		/* V(i+1) - V(i)		*/
     // let w: Point			/* Ctl pts of 5th-degree curve  */
     //  double 	cdTable[3][4];		/* Dot product of c, d		*/
     const cdTable = Array(3).fill(null).map(() => Array<number>(4))
@@ -138,7 +139,7 @@ function ConvertToBezierForm(P: Point, V: Point[]): Point[]
     /* Now, apply the z's to the dot products, on the skew diagonal*/
     /* Also, set up the x-values, making these "points"		*/
     // w = (Point2 *)malloc((unsigned)(W_DEGREE + 1) * sizeof(Point2))
-    const w = Array<Point>(W_DEGREE + 1)
+    const w = Array<PointLike>(W_DEGREE + 1)
     for (let i = 0; i <= W_DEGREE; i++) {
         w[i] = { x: 0.0, y: i / W_DEGREE }
     }
@@ -163,7 +164,7 @@ function ConvertToBezierForm(P: Point, V: Point[]): Point[]
  *	all of the roots in the interval [0, 1].  Return the number
  *	of roots found.
  */
-function FindRoots(w: Point[], degree: number, t: number[], depth: number): number
+function FindRoots(w: PointLike[], degree: number, t: number[], depth: number): number
 // Point2 * w			/* The control points		*/
 //      int 	degree		/* The degree of the polynomial	*/
 // double * t			/* RETURN candidate t-values	*/
@@ -172,8 +173,8 @@ function FindRoots(w: Point[], degree: number, t: number[], depth: number): numb
     //  int 	i;
     //  Point2 	Left[W_DEGREE + 1],	/* New left and right 		*/
     //     Right[W_DEGREE + 1]	/* control polygons		*/
-    const Left = new Array<Point>(W_DEGREE+1)
-    const Right = new Array<Point>(W_DEGREE+1)
+    const Left = new Array<PointLike>(W_DEGREE+1)
+    const Right = new Array<PointLike>(W_DEGREE+1)
 
     //  int 	left_count,		/* Solution count from		*/
     //     right_count		/* children			*/
@@ -226,7 +227,7 @@ function FindRoots(w: Point[], degree: number, t: number[], depth: number): numb
  *	crosses the 0-axis. This number is >= the number of roots.
  *
  */
-function CrossingCount(V: Point[], degree: number)
+function CrossingCount(V: PointLike[], degree: number)
 // Point2 * V			/*  Control pts of Bezier curve	*/
 //      int		degree			/*  Degreee of Bezier curve 	*/
 {
@@ -289,7 +290,7 @@ left_intercept = 0.0 and right_intercept = 0.9.
  */
 
 /* static int ControlPolygonFlatEnough( const Point2* V, int degree ) */
-function ControlPolygonFlatEnough(V: Point[], degree: number): number
+function ControlPolygonFlatEnough(V: PointLike[], degree: number): number
 // Point2 * V		/* Control points	*/
 //      int 	degree		/* Degree of polynomial	*/
 {
@@ -369,7 +370,7 @@ function ControlPolygonFlatEnough(V: Point[], degree: number): number
  /* NOTE: "T" and "Y" do not have to be computed, and there are many useless
   * operations in the following (e.g. "0.0 - 0.0").
   */
- function ComputeXIntercept(V: Point[], degree: number): number
+ function ComputeXIntercept(V: PointLike[], degree: number): number
 // Point2 * V			/*  Control points	*/
     //  int		degree 		/*  Degree of curve	*/
 {
@@ -404,7 +405,7 @@ function ControlPolygonFlatEnough(V: Point[], degree: number): number
  *	"Right" are non-null.
  * 
  */
-function Bezier(V: Point[], degree: number, t: number, Left?: Point[], Right?: Point[]): Point
+function Bezier(V: PointLike[], degree: number, t: number, Left?: PointLike[], Right?: PointLike[]): PointLike
 //      int 	degree		/* Degree of bezier curve	*/
 // Point2 * V			/* Control pts			*/
 //      double 	t			/* Parameter value		*/
@@ -413,7 +414,7 @@ function Bezier(V: Point[], degree: number, t: number, Left?: Point[], Right?: P
 {
     //  int 	i, j		/* Index variables	*/
     // let Vtemp = Array.from(Array(W_DEGREE + 1), () => new Array<Point>(W_DEGREE + 1))
-    let Vtemp = Array(W_DEGREE + 1).fill(null).map(() => Array<Point>(W_DEGREE + 1))
+    let Vtemp = Array(W_DEGREE + 1).fill(null).map(() => Array<PointLike>(W_DEGREE + 1))
 
     /* Copy control points	*/
     for (let j = 0; j <= degree; j++) {

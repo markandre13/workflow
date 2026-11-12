@@ -26,7 +26,7 @@
  ******************************************************************/
 
  import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent, Operation } from "../figureeditor"
 import { Tool } from "./Tool"
 import * as figures from "../figures"
@@ -50,7 +50,7 @@ export class TextTool extends Tool {
     state: TextToolState
     currentCursor: TextCursorType
 
-    mouseDownAt!: Point
+    mouseDownAt!: PointLike
     defs!: SVGDefsElement
     svgRect!: SVGRectElement
 

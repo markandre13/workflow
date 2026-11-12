@@ -17,7 +17,7 @@
  */
 
 import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { mirrorPoint } from "shared/geometry"
 import { AbstractPath, Path as RawPath } from "../paths"
@@ -49,33 +49,33 @@ export class Path extends Figure implements valuetype.figure.Path {
     }
 
     // Add Anchors
-    addEdge(p0: Point) {
+    addEdge(p0: PointLike) {
         this.types.push(figure.AnchorType.ANCHOR_EDGE)
         this.values.push(p0.x)
         this.values.push(p0.y)
     }
-    addEdgeAngle(p0: Point, p1: Point) {
+    addEdgeAngle(p0: PointLike, p1: PointLike) {
         this.types.push(figure.AnchorType.ANCHOR_EDGE_ANGLE)
         this.values.push(p0.x)
         this.values.push(p0.y)
         this.values.push(p1.x)
         this.values.push(p1.y)
     }
-    addAngleEdge(p0: Point, p1: Point) {
+    addAngleEdge(p0: PointLike, p1: PointLike) {
         this.types.push(figure.AnchorType.ANCHOR_ANGLE_EDGE)
         this.values.push(p0.x)
         this.values.push(p0.y)
         this.values.push(p1.x)
         this.values.push(p1.y)
     }
-    addSymmetric(p0: Point, p1: Point) {
+    addSymmetric(p0: PointLike, p1: PointLike) {
         this.types.push(figure.AnchorType.ANCHOR_SYMMETRIC)
         this.values.push(p0.x)
         this.values.push(p0.y)
         this.values.push(p1.x)
         this.values.push(p1.y)
     }
-    addSmoothAngleAngle(p0: Point, p1: Point, p2: Point) {
+    addSmoothAngleAngle(p0: PointLike, p1: PointLike, p2: PointLike) {
         this.types.push(figure.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE)
         this.values.push(p0.x)
         this.values.push(p0.y)
@@ -84,7 +84,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.values.push(p2.x)
         this.values.push(p2.y)
     }
-    addAngleAngle(p0: Point, p1: Point, p2: Point) {
+    addAngleAngle(p0: PointLike, p1: PointLike, p2: PointLike) {
         this.types.push(figure.AnchorType.ANCHOR_ANGLE_ANGLE)
         this.values.push(p0.x)
         this.values.push(p0.y)
@@ -97,7 +97,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.types.push(figure.AnchorType.CLOSE)
     }
 
-    changeEdgeToSymmetric(backwardHandle: Point) {
+    changeEdgeToSymmetric(backwardHandle: PointLike) {
         if (this.types.length === 0)
             throw Error(`figure.Path.changeEdgeToSymmetric(): figure is empty`)
         if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_EDGE) {
@@ -111,7 +111,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.values.push(x)
         this.values.push(y)
     }
-    changeSymmetricToSmoothAngleAngle(forwardHandle: Point) {
+    changeSymmetricToSmoothAngleAngle(forwardHandle: PointLike) {
         if (this.types.length === 0)
             throw Error(`figure.Path.changeSymmetricToSmoothAngleAngle(): figure is empty`)
         if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_SYMMETRIC) {
@@ -121,7 +121,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.values.push(forwardHandle.x)
         this.values.push(forwardHandle.y)
     }
-    changeEdgeToSmoothAngleAngle(backwardHandle: Point, forwardHandle: Point) {
+    changeEdgeToSmoothAngleAngle(backwardHandle: PointLike, forwardHandle: PointLike) {
         if (this.types.length === 0)
             throw Error(`figure.Path.changeEdgeToSmoothAngleAngle(): figure is empty`)
         if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_EDGE) {
@@ -159,7 +159,7 @@ export class Path extends Figure implements valuetype.figure.Path {
     //     this.values[this.values.length-2] = backwardHandle.x
     //     this.values[this.values.length-1] = backwardHandle.y
     // }
-    updateSymmetric(backwardHandle: Point) {
+    updateSymmetric(backwardHandle: PointLike) {
         if (this.types.length === 0)
             throw Error(`figure.Path.updateSymmetric(): figure is empty`)
         if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_SYMMETRIC) {
@@ -168,7 +168,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.values[this.values.length-4] = backwardHandle.x
         this.values[this.values.length-3] = backwardHandle.y
     }
-    updateAngleEdge(index: number, backwardHandle: Point) {
+    updateAngleEdge(index: number, backwardHandle: PointLike) {
         if (this.types.length === 0)
             throw Error(`figure.Path.updateAngleEdge(): figure is empty`)
         if (this.types[0] !== figure.AnchorType.ANCHOR_ANGLE_EDGE) {
@@ -177,7 +177,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.values[0] = backwardHandle.x
         this.values[1] = backwardHandle.y
     }
-    changeEdgeToEdgeAngle(p0: Point) {
+    changeEdgeToEdgeAngle(p0: PointLike) {
         if (this.types.length === 0)
             throw Error(`figure.Path.changeEdgeToEdgeAngle(): figure is empty`)
         if (this.types[this.types.length - 1] !== figure.AnchorType.ANCHOR_EDGE) {
@@ -198,7 +198,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         }
         this.types[this.types.length - 1] = figure.AnchorType.ANCHOR_SYMMETRIC
     }
-    changeEdgeAngleToSmooth(index: number, beforeAnchor: Point, afterAnchor: Point) {
+    changeEdgeAngleToSmooth(index: number, beforeAnchor: PointLike, afterAnchor: PointLike) {
         if (index !== 0) {
             throw Error("figure.Path.changeEdgeAngleToAngleAngle(): index !== 0 not implemented yet")
         }
@@ -213,7 +213,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.values[4] = afterAnchor.x
         this.values[5] = afterAnchor.y
     }
-    updateSmooth(index: number, beforeAnchor: Point, afterAnchor: Point) {
+    updateSmooth(index: number, beforeAnchor: PointLike, afterAnchor: PointLike) {
         if (index !== 0) {
             throw Error("figure.Path.updateSmooth(): index !== 0 not implemented yet")
         }
@@ -228,7 +228,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.values[4] = afterAnchor.x
         this.values[5] = afterAnchor.y
     }
-    changeEdgeToAngleEdge(index: number, p0: Point) {
+    changeEdgeToAngleEdge(index: number, p0: PointLike) {
         if (index !== 0) {
             throw Error("figure.Path.changeEdgeAngleToAngleAngle(): index !== 0 not implemented yet")
         }
@@ -241,7 +241,7 @@ export class Path extends Figure implements valuetype.figure.Path {
         this.types[index] = figure.AnchorType.ANCHOR_ANGLE_EDGE
         this.values = [p0.x, p0.y].concat(this.values)
     }
-    changeEdgeAngleToAngleAngle(index: number, p0: Point) {
+    changeEdgeAngleToAngleAngle(index: number, p0: PointLike) {
         if (index !== 0) {
             throw Error("figure.Path.changeEdgeAngleToAngleAngle(): index !== 0 not implemented yet")
         }
@@ -463,7 +463,7 @@ export class Path extends Figure implements valuetype.figure.Path {
     }
 
     // TODO: why have a distance method when the RawPath can be used for that?
-    override distance(pt: Point): number {
+    override distance(pt: PointLike): number {
         const path = this.getPath() // FIXME: slow
         // TODO: consider range/scale, or is pt already in figure coordinates?
         if (this.fill !== "none" && path.contains(pt)) {
@@ -491,11 +491,11 @@ export class Path extends Figure implements valuetype.figure.Path {
         return true
     }
 
-    getHandlePosition(i: number): Point | undefined {
+    getHandlePosition(i: number): PointLike | undefined {
         return undefined
     }
 
-    setHandlePosition(handle: number, pt: Point): void {
+    setHandlePosition(handle: number, pt: PointLike): void {
     }
 
     toInternalString() {

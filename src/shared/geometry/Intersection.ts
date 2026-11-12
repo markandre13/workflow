@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point } from "./Point"
+import { Point, PointLike } from "./Point"
 import { solveCubic } from "./solveCubic"
 import { isZero, pointMultiplyNumber, pointPlusPoint } from "../geometry"
 
@@ -31,7 +31,7 @@ import { isZero, pointMultiplyNumber, pointPlusPoint } from "../geometry"
  * \param[in] t ∈[0, 1] position on the bézier curve
  * \return point on the curve at t
  */
-export function bez2point(p: Point[], t: number): Point {
+export function bez2point(p: PointLike[], t: number): Point {
     const u = 1 - t, u2 = u * u, t2 = t * t
     return pointPlusPoint(
         pointPlusPoint(
@@ -48,14 +48,14 @@ export function bez2point(p: Point[], t: number): Point {
 // Beziercurves are invariant to affine transformations
 // NURBS are invariant to projective transformations
 
-export function bez2x(curve: Point[], t: number): number {
+export function bez2x(curve: PointLike[], t: number): number {
     const u = 1 - t,
         u2 = u * u,
         t2 = t * t
     return curve[0].x * u2 * u + curve[1].x * t * u2 * 3 + curve[2].x * t2 * u * 3 + curve[3].x * t2 * t
 }
 
-export function bez2y(p: Point[], t: number): number {
+export function bez2y(p: PointLike[], t: number): number {
     const t2 = t * t, t3 = t2 * t
     return p[0].y * (1 - 3 * t + 3 * t2 - t3)
         + p[1].y * (3 * t - 6 * t2 + 3 * t3)
@@ -63,7 +63,7 @@ export function bez2y(p: Point[], t: number): number {
         + p[3].y * t3
 }
 
-export function bez2dy(p: Point[], t: number): number {
+export function bez2dy(p: PointLike[], t: number): number {
     const t2 = t * t
     return p[0].y * (- 3 + 6 * t - 2 * t2)
         + p[1].y * (3 - 12 * t + 9 * t2)
@@ -74,10 +74,10 @@ export function bez2dy(p: Point[], t: number): number {
 // description of an intersection between path segments
 export class IntersectionPoint {
     type: string	// 'L'line or 'C'urve, as used in Path // FIXME: enum?
-    src: Array<Point>	// data for L or C
+    src: Array<PointLike>	// data for L or C
     u: number		// position of intersection on src within [0, 1]
-    pt: Point		// the actual calculated location of the intersection
-    constructor(type: string, src: Array<Point>, u: number, pt: Point) {
+    pt: PointLike		// the actual calculated location of the intersection
+    constructor(type: string, src: Array<PointLike>, u: number, pt: PointLike) {
         this.type = type
         this.src = src
         this.u = u
@@ -89,14 +89,14 @@ export class Intersection {
     seg0: IntersectionPoint
     seg1: IntersectionPoint
 
-    constructor(t0: string, s0: Array<Point>, u0: number, p0: Point,
-        t1: string, s1: Array<Point>, u1: number, p1: Point) {
+    constructor(t0: string, s0: Array<PointLike>, u0: number, p0: PointLike,
+        t1: string, s1: Array<PointLike>, u1: number, p1: PointLike) {
         this.seg0 = new IntersectionPoint(t0, s0, u0, p0)
         this.seg1 = new IntersectionPoint(t1, s1, u1, p1)
     }
 }
 
-export function _intersectLineLine(lineA: Array<Point>, lineB: Array<Point>): Point | undefined {
+export function _intersectLineLine(lineA: Array<PointLike>, lineB: Array<PointLike>): PointLike | undefined {
     let ax = lineA[1].x - lineA[0].x,
         ay = lineA[1].y - lineA[0].y,
         bx = lineB[1].x - lineB[0].x,
@@ -116,7 +116,7 @@ export function _intersectLineLine(lineA: Array<Point>, lineB: Array<Point>): Po
     return new Point(lineA[0].x + a * ax, lineA[0].y + a * ay)
 }
 
-export function intersectLineLine(ilist: Array<Intersection>, lineA: Array<Point>, lineB: Array<Point>) {
+export function intersectLineLine(ilist: Array<Intersection>, lineA: Array<PointLike>, lineB: Array<PointLike>) {
     let ax = lineA[1].x - lineA[0].x,
         ay = lineA[1].y - lineA[0].y,
         bx = lineB[1].x - lineB[0].x,
@@ -143,7 +143,7 @@ export function intersectLineLine(ilist: Array<Intersection>, lineA: Array<Point
  * \param vl
  *   two points of a line
  */
-export function intersectCurveLine(ilist: Array<Intersection>, curve: Point[], line: Point[]) {
+export function intersectCurveLine(ilist: Array<Intersection>, curve: PointLike[], line: PointLike[]) {
     const lx1 = line[0].x, ly1 = line[0].y,
         lx2 = line[1].x, ly2 = line[1].y,
         // Rotate both curve and line around l1 so that line is on x axis.
@@ -159,7 +159,7 @@ export function intersectCurveLine(ilist: Array<Intersection>, curve: Point[], l
     // rotated line: The curve values for the rotated line.
     // TPoint rvl[2] = {{0, 0}, {rlx2, 0}};
     // rotated curve: Calculate the curve values of the rotated curve.
-    const rvc = Array<Point>(4)
+    const rvc = Array<PointLike>(4)
     for (let i = 0; i < 4; ++i) {
         const x = curve[i].x - lx1,
             y = curve[i].y - ly1

@@ -16,16 +16,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 
 export abstract class AbstractPath {
     abstract transform(matrix: Matrix): AbstractPath
     abstract clone(): AbstractPath
 
-    translate(point: Point): AbstractPath
+    translate(point: PointLike): AbstractPath
     translate(x: number, y: number): AbstractPath
-    translate(pointOrX: Point | number, Y?: number): AbstractPath {
+    translate(pointOrX: PointLike | number, Y?: number): AbstractPath {
         if (typeof pointOrX === "object")
             this.transform(new Matrix({
                 a: 1.0, b: 0.0,

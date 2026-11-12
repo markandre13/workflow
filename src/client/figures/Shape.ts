@@ -18,7 +18,7 @@
 
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "./Figure"
 
@@ -30,7 +30,7 @@ import * as value     from "shared/workflow_value"
  * scale them like rectangle, circle, text, star, ...
  */
 export abstract class Shape extends Figure implements valuetype.figure.Shape {
-    origin!: Point
+    origin!: PointLike
     size!: Size
     
     constructor(init?: Partial<Shape>) {
@@ -50,7 +50,7 @@ export abstract class Shape extends Figure implements valuetype.figure.Shape {
         return new Rectangle(this)
     }
 
-    getHandlePosition(i: number): Point | undefined {
+    getHandlePosition(i: number): PointLike | undefined {
         switch (i) {
             case 0: return { x: this.origin.x, y: this.origin.y }
             case 1: return { x: this.origin.x + this.size.width, y: this.origin.y }
@@ -60,7 +60,7 @@ export abstract class Shape extends Figure implements valuetype.figure.Shape {
         return undefined
     }
 
-    setHandlePosition(handle: number, pt: Point): void {
+    setHandlePosition(handle: number, pt: PointLike): void {
         if (handle < 0 || handle > 3)
             throw Error("yikes")
         if (handle == 0 || handle == 3) {

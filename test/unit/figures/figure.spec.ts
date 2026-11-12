@@ -1,6 +1,6 @@
 import { expect } from "chai"
 
-import { Point } from 'shared/geometry/Point'
+import { PointLike } from 'shared/geometry/Point'
 import { Rectangle } from 'shared/geometry/Rectangle'
 import { Matrix } from 'shared/geometry/Matrix'
 import { Path } from 'client/paths'
@@ -13,16 +13,16 @@ class FigureX extends Figure {
     transform(transform: Matrix): boolean {
         throw Error("not yet implemented")
     }
-    distance(pt: Point): number {
+    distance(pt: PointLike): number {
         throw Error("not yet implemented")
     }
     bounds(): Rectangle {
         throw Error("not yet implemented")
     }
-    getHandlePosition(i: number): Point | undefined {
+    getHandlePosition(i: number): PointLike | undefined {
         throw Error("not yet implemented")
     }
-    setHandlePosition(handle: number, pt: Point): void {
+    setHandlePosition(handle: number, pt: PointLike): void {
         throw Error("not yet implemented")
     }
     getPath(): Path {

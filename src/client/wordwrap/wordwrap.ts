@@ -26,18 +26,18 @@ import { Intersection, intersectLineLine, _intersectLineLine } from "shared/geom
 
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
-import { Point } from "shared/geometry/Point"
+import { Point, PointLike } from "shared/geometry/Point"
 import { Path } from "../paths"
 import { OrderedArray } from "../OrderedArray"
 
 // a path is broken down into sweep events for the sweep algorithm
 export class SweepEvent {
     type: string
-    p: Array<Point>
+    p: Array<PointLike>
 
     constructor(event: SweepEvent)
-    constructor(p0: Point, p1: Point)
-    constructor(p0OrEvent: Point | SweepEvent, p1?: Point) {
+    constructor(p0: PointLike, p1: PointLike)
+    constructor(p0OrEvent: PointLike | SweepEvent, p1?: PointLike) {
         if (p1 === undefined) {
             let e = p0OrEvent as SweepEvent
             this.type = e.type
@@ -453,7 +453,7 @@ export interface WordSource {
     space: number
     reset(): void
     pullBox(): Size | undefined
-    placeBox(origin: Point): void
+    placeBox(origin: PointLike): void
     endOfSlice(): void
     endOfLine(): void
     endOfWrap(): void
@@ -483,7 +483,7 @@ export class WordWrap {
     initializeSweepBufferFrom(path: Path) {
         this.bounds = path.bounds()
         this.sweepBuffer.length = 0
-        let first: Point | undefined, previous: Point | undefined, current: Point | undefined
+        let first: PointLike | undefined, previous: PointLike | undefined, current: PointLike | undefined
         for (let segment of path.data) {
             switch (segment.type) {
                 case 'M':
@@ -503,7 +503,7 @@ export class WordWrap {
         }
     }
 
-    private addSweepLine(p0: Point, p1: Point) {
+    private addSweepLine(p0: PointLike, p1: PointLike) {
         if (isZero(p0.y - p1.y))
             return
 
@@ -611,7 +611,7 @@ export class WordWrap {
         validateSlices(slices)
     }
 
-    pointForBoxInSlices(box: Size, slices: Array<Slice>): [number, Point] {
+    pointForBoxInSlices(box: Size, slices: Array<Slice>): [number, PointLike] {
         if (this.trace)
             console.log("======================== WordWrap.pointForBoxInSlices ========================")
 
@@ -705,7 +705,7 @@ export class WordWrap {
     }
 
     // FIXME: would withinSlices() also cover the check done here?
-    pointForBoxAtTop(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
+    pointForBoxAtTop(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): PointLike | undefined {
         if (this.trace)
             console.log(`WordWrap.pointForBoxInCorner(box: (${box.width}, ${box.height}), left: ${leftEvent}, right: ${rightEvent})`)
 
@@ -758,7 +758,7 @@ export class WordWrap {
         return leftPoint2
     }
 
-    pointForBoxInCornerCore(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
+    pointForBoxInCornerCore(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): PointLike | undefined {
         if (this.trace)
             console.log("WordWrap.pointForBoxInCornerCore")
 
@@ -842,7 +842,7 @@ export class WordWrap {
     //            \ ----
     //             \    ----
     //              X       ----
-    pointForBoxAtEdge(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): Point | undefined {
+    pointForBoxAtEdge(box: Size, leftEvent: SweepEvent, rightEvent: SweepEvent): PointLike | undefined {
         let yMax = Math.max(leftEvent.p[1].y, rightEvent.p[1].y) + 10
         let verticalLine = [new Point(leftEvent.p[1].x, leftEvent.p[0].y),
         new Point(leftEvent.p[1].x, yMax)]
@@ -855,7 +855,7 @@ export class WordWrap {
     }
 
     // pull as much slices as are required for current line
-    extendSlices(cursor: Point, box: Size, slices: Array<Slice>) {
+    extendSlices(cursor: PointLike, box: Size, slices: Array<Slice>) {
         // if (this.trace) {
         //     console.log("============== extendSlices =======================")
         //     console.log("  this.sweepBuffer.length = " + this.sweepBuffer.length)
@@ -998,7 +998,7 @@ export class WordWrap {
         }
     }
 
-    dropEventsInSlices(cursor: Point, box: Size, slices: Array<Slice>) {
+    dropEventsInSlices(cursor: PointLike, box: Size, slices: Array<Slice>) {
         // drop events
         for (let slice of slices) {
             while (slice.left.length > 0 && slice.left[0].p[1].y < cursor.y) {
@@ -1010,7 +1010,7 @@ export class WordWrap {
         }
     }
 
-    mergeAndDropSlices(cursor: Point, box: Size, slices: Array<Slice>) {
+    mergeAndDropSlices(cursor: PointLike, box: Size, slices: Array<Slice>) {
         for (let index = 0; index < slices.length;) {
             if ((slices[index].left.length === 0 || slices[index].left[slices[index].left.length - 1].p[1].y < cursor.y) &&
                 (slices[index].right.length === 0 || slices[index].right[slices[index].right.length - 1].p[1].y < cursor.y)) {
@@ -1029,7 +1029,7 @@ export class WordWrap {
         }
     }
 
-    leftAndRightForAtCursorForBox(cursor: Point, box: Size, slices: Array<Slice>, sliceIndex: number, cornerEvents: CornerEvents): [number, number] {
+    leftAndRightForAtCursorForBox(cursor: PointLike, box: Size, slices: Array<Slice>, sliceIndex: number, cornerEvents: CornerEvents): [number, number] {
         let topY = cursor.y,
             bottomY = cursor.y + box.height,
             horizontalTopLine = [new Point(this.bounds.origin.x - 10, topY),
@@ -1092,7 +1092,7 @@ export class WordWrap {
         return [left!, right!]
     }
 
-    findCornersAtCursorForBoxAtSlice(cursor: Point, box: Size, slice: Slice): CornerEvents {
+    findCornersAtCursorForBoxAtSlice(cursor: PointLike, box: Size, slice: Slice): CornerEvents {
 
         let topY = cursor.y
         let bottomY = cursor.y + box.height

@@ -17,7 +17,7 @@
  */
 
 import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { Path } from "client/paths/Path"
 import { Figure } from "./Figure"
@@ -46,7 +46,7 @@ export class Transform extends Group implements valuetype.figure.Transform {
         this.matrix.prepend(matrix)
         return true
     }
-    override distance(pt: Point): number {
+    override distance(pt: PointLike): number {
         let m = new Matrix(this.matrix)
         m.invert()
         pt = m.transformPoint(pt)
@@ -58,10 +58,10 @@ export class Transform extends Group implements valuetype.figure.Transform {
         path.transform(this.matrix)
         return path.bounds()
     }
-    override getHandlePosition(i: number): Point | undefined {
+    override getHandlePosition(i: number): PointLike | undefined {
         return undefined
     }
-    override setHandlePosition(handle: number, pt: Point): void {
+    override setHandlePosition(handle: number, pt: PointLike): void {
     }
     override getPath(): Path {
         let path = super.getPath()

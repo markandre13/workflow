@@ -30,7 +30,7 @@ import { expect } from "chai"
 import { pointEqualsPoint, rectangleEqualsRectangle, lineCrossesRect2, lineCrossesLine } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
-import { Point } from "shared/geometry/Point"
+import { Point, PointLike } from "shared/geometry/Point"
 import { Path } from "client/paths"
 import { WordWrap, WordSource, Slice, SweepEvent, withinSlices, appendEventAsNewSlice, printSlices, validateSlices } from "client/wordwrap/wordwrap"
 import { OrderedArray } from "client/OrderedArray"
@@ -59,7 +59,7 @@ class BoxSource implements WordSource {
         return this.box
     }
 
-    placeBox(origin: Point): void {
+    placeBox(origin: PointLike): void {
         let rectangle = new WordBox(0, 0, "") // new WordBox(origin, this.box!)
         rectangle.set(origin.x, origin.y, this.box!.width, this.box!.height)
         this.wordBoxes.push(rectangle)

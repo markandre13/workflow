@@ -38,7 +38,7 @@ import { FigureEditor, EditorPointerEvent, Operation } from "../figureeditor"
 import { Path } from "../figures/Path"
 import { distancePointToPoint, pointMinusPoint, pointPlusPoint, pointMultiplyNumber } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 
 import { figure } from "shared/workflow"
 import { EditorKeyboardEvent } from "client/figureeditor/EditorKeyboardEvent"
@@ -86,7 +86,7 @@ enum Handle {
     NEXT_BACKWARD
 }
 
-function mirrorPoint(center: Point, point: Point) {
+function mirrorPoint(center: PointLike, point: PointLike) {
     return pointMinusPoint(center, pointMinusPoint(point, center))
 }
 
@@ -99,7 +99,7 @@ export class PenTool extends Tool {
     figure?: Path // the figure we create
 
     anchors: SVGRectElement[] = []
-    _handlePos = new Array<Point>(4)
+    _handlePos = new Array<PointLike>(4)
     _handles = new Array<SVGCircleElement>(4)
     lines = new Array<SVGLineElement>(4)
 
@@ -482,7 +482,7 @@ export class PenTool extends Tool {
         }
     }
 
-    addAnchor(p: Point) {
+    addAnchor(p: PointLike) {
         if (this.anchors.length > 1) {
             this.anchors[this.anchors.length - 1].style.cursor = ""
         }
@@ -498,7 +498,7 @@ export class PenTool extends Tool {
         this.anchors.push(anchor)
     }
 
-    isFirstAnchor(p: Point) {
+    isFirstAnchor(p: PointLike) {
         if (this.anchors.length === 0)
             return false
         const first = this.anchors[0]
@@ -511,7 +511,7 @@ export class PenTool extends Tool {
         return rect.inside(p)
     }
 
-    isLastAnchor(p: Point) {
+    isLastAnchor(p: PointLike) {
         if (this.anchors.length === 0)
             return false
         const last = this.anchors[this.anchors.length - 1]
@@ -527,8 +527,8 @@ export class PenTool extends Tool {
     // use updateHandle
 
     updateHandle(idx: Handle): void
-    updateHandle(idx: Handle, anchorPos: Point, handlePos: Point): void
-    updateHandle(idx: Handle, anchorPos?: Point, handlePos?: Point): void {
+    updateHandle(idx: Handle, anchorPos: PointLike, handlePos: PointLike): void
+    updateHandle(idx: Handle, anchorPos?: PointLike, handlePos?: PointLike): void {
         if (anchorPos === undefined) {
             if (this._handles[idx] !== undefined) {
                 this._handles[idx].style.display = "none"
@@ -571,7 +571,7 @@ export class PenTool extends Tool {
         this.updateHandle(idxOld)
     }
 
-    getHandlePos(idx: Handle): Point {
+    getHandlePos(idx: Handle): PointLike {
         return this._handlePos[idx]
     }
 

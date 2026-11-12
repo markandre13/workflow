@@ -6,7 +6,8 @@ import { PathEditor } from "client/figuretools/EditTool"
 import { Path } from "client/figures/Path"
 
 import { initializeCORBAValueTypes } from "client/workflow"
-import { Point, pointMinusPoint, pointPlusPoint, pointMultiplyNumber, mirrorPoint } from 'shared/geometry'
+import { pointMinusPoint, pointPlusPoint, pointMultiplyNumber, mirrorPoint } from 'shared/geometry'
+import { PointLike } from 'shared/geometry/Point'
 
 it("\x07") // beep
 
@@ -864,7 +865,7 @@ describe("EditTool", function () {
                     const p0 = { x: 10, y: 50 }
                     let p1 = { x: 40, y: 20 }
                     let p2 = { x: 50, y: 50 }
-                    let p3 = pointMinusPoint(p2, pointMultiplyNumber(pointMinusPoint(p1, p2), 2))
+                    let p3: PointLike = pointMinusPoint(p2, pointMultiplyNumber(pointMinusPoint(p1, p2), 2))
                     const p4 = { x: 90, y: 50 }
                     const p5 = { x: 55, y: 65 }
 
@@ -907,7 +908,7 @@ describe("EditTool", function () {
                     const p0 = { x: 10, y: 50 }
                     let p1 = { x: 40, y: 20 }
                     let p2 = { x: 50, y: 50 }
-                    let p3 = pointMinusPoint(p2, pointMultiplyNumber(pointMinusPoint(p1, p2), 2))
+                    let p3: PointLike = pointMinusPoint(p2, pointMultiplyNumber(pointMinusPoint(p1, p2), 2))
                     const p4 = { x: 90, y: 50 }
                     const p5 = { x: 55, y: 165 }
 
@@ -959,7 +960,7 @@ describe("EditTool", function () {
                     const p0 = { x: 10, y: 50 }
                     let p2 = { x: 50, y: 50 }
                     let p3 = { x: 70, y: 60 }
-                    let p1 = pointMinusPoint(p2, pointMultiplyNumber(pointMinusPoint(p3, p2), 2))
+                    let p1: PointLike = pointMinusPoint(p2, pointMultiplyNumber(pointMinusPoint(p3, p2), 2))
                     const p4 = { x: 90, y: 50 }
                     const p5 = { x: 55, y: 165 }
 
@@ -1167,7 +1168,7 @@ describe("EditTool", function () {
     })
 })
 
-function p(point: Point) {
+function p(point: PointLike) {
     return `${point.x} ${point.y}`
 }
 

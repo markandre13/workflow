@@ -20,11 +20,11 @@ import * as value from "shared/workflow_value"
 import { pointEqualsPoint } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
-import { Point } from "shared/geometry/Point"
+import { Point, PointLike } from "shared/geometry/Point"
 import { Path } from "../paths/Path"
 import { WordWrap } from "./wordwrap"
 
-export type Placer = (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement) => Point|undefined
+export type Placer = (wordwrap: WordWrap, boxes: Array<Size>|undefined, box: Size, svg: SVGElement) => PointLike|undefined
 
 /**
  * Execute a single wordwrap test along with appending a visual
@@ -34,7 +34,7 @@ export class WordWrapTestRunner {
     handles = new Array<SVGElement>()
     handleIndex = -1
     decoration = new Array<SVGElement>()
-    point?: Point
+    point?: PointLike
 
     placer: Placer
 
@@ -148,7 +148,7 @@ export class WordWrapTestRunner {
         }
     }
 
-    selectHandle(path: Path, mouseLocation: Point) {
+    selectHandle(path: Path, mouseLocation: PointLike) {
         this.handleIndex = 0
         for(let entry of path.data) {
             if (entry.type !== "Z") {
@@ -162,7 +162,7 @@ export class WordWrapTestRunner {
         this.handleIndex = -1
     }
 
-    removeHandle(path: Path, mouseLocation: Point): boolean {
+    removeHandle(path: Path, mouseLocation: PointLike): boolean {
         // let index = 0
         // for(let entry of path.data) {
         //     if (entry.type !== "Z") {
@@ -183,7 +183,7 @@ export class WordWrapTestRunner {
         return false
     }
 
-    insertHandle(path: Path, mouseLocation: Point) {
+    insertHandle(path: Path, mouseLocation: PointLike) {
         // let index = 0, p0, p1, pm
         // for(let entry of path.data) {
         //     if (entry.type !== "Z") {

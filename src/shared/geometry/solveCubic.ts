@@ -5,7 +5,8 @@
  * x^3 + a*x^2 + b*x + c = 0
  */
 
-import { Point, isZero } from "../geometry"
+import { isZero } from "../geometry"
+import { PointLike } from "./Point"
 
 // Based on gsl_poly_solve_cubic from the GNU Scientific Library and
 // modified to return only unique solutions.
@@ -91,7 +92,7 @@ export function solveCubic0(a: number, b: number, c: number, d: number, roots: n
 
 // Converts from the point coordinates (p1, c1, c2, p2) for one axis to
 // the polynomial coefficients and solves the polynomial for val
-export function solveCubic(v: Point[], coord: boolean, val: number, roots: number[], min: number, max: number): number {
+export function solveCubic(v: PointLike[], coord: boolean, val: number, roots: number[], min: number, max: number): number {
     let p1, c1, c2, p2
     if (!coord) {
         p1 = v[0].x

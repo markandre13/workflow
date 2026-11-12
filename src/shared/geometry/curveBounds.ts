@@ -1,11 +1,11 @@
-import { Point } from "./Point"
+import { PointLike } from "./Point"
 import { Rectangle } from "./Rectangle"
 import { pointMinusPointAsSize } from "../geometry"
 import { solveQuadratic } from "./solveQuadratic"
 
 // Code ported and further optimised from:
 // http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
-function add(value: number, padding: number, coord: number, min: Point, max: Point): void {
+function add(value: number, padding: number, coord: number, min: PointLike, max: PointLike): void {
     let left = value - padding,
         right = value + padding
     if (coord == 0) {
@@ -21,7 +21,7 @@ function add(value: number, padding: number, coord: number, min: Point, max: Poi
     }
 }
 
-function _addBounds(v0: number, v1: number, v2: number, v3: number, coord: number, padding: number, min: Point, max: Point) {
+function _addBounds(v0: number, v1: number, v2: number, v3: number, coord: number, padding: number, min: PointLike, max: PointLike) {
     // Calculate derivative of our bezier polynomial, divided by 3.
     // Doing so allows for simpler calculations of a, b, c and leads to the
     // same quadratic roots.
@@ -55,7 +55,7 @@ function _addBounds(v0: number, v1: number, v2: number, v3: number, coord: numbe
     }
 }
 
-export function curveBounds(v: Point[]): Rectangle {
+export function curveBounds(v: PointLike[]): Rectangle {
     let min = { x: v[0].x, y: v[0].y },
         max = { x: v[0].x, y: v[0].y }
     _addBounds(v[0].x, v[1].x, v[2].x, v[3].x, 0, 0, min, max)

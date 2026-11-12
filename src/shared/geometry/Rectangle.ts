@@ -25,15 +25,15 @@ import { Size } from "./Size"
 import { pointPlusSize } from "../geometry"
 
 export class Rectangle implements value.Rectangle {
-    origin!: Point
+    origin!: PointLike
     size!: Size
 
     constructor()
     constructor(rectangle: Partial<value.Rectangle>)
-    constructor(origin: Point, size: Size)
+    constructor(origin: PointLike, size: Size)
     constructor(x: number, y: number, width: number, height: number)
     constructor(decoder: GIOPDecoder)
-    constructor(xOrOriginOrRectangle?: number | Point | Partial<value.Rectangle> | GIOPDecoder, yOrSize?: number | Size, width?: number, height?: number) {
+    constructor(xOrOriginOrRectangle?: number | PointLike | Partial<value.Rectangle> | GIOPDecoder, yOrSize?: number | Size, width?: number, height?: number) {
         if (xOrOriginOrRectangle instanceof GIOPDecoder) {
             value.initRectangle(this, xOrOriginOrRectangle)
         }
@@ -54,7 +54,7 @@ export class Rectangle implements value.Rectangle {
                 !yOrSize.hasOwnProperty("height")) {
                 throw Error("yikes")
             }
-            value.initRectangle(this, { origin: xOrOriginOrRectangle as Point, size: yOrSize as Size })
+            value.initRectangle(this, { origin: xOrOriginOrRectangle as PointLike, size: yOrSize as Size })
         } else {
             if (typeof xOrOriginOrRectangle !== "number" ||
                 typeof yOrSize !== "number") {
@@ -75,12 +75,12 @@ export class Rectangle implements value.Rectangle {
         return this
     }
 
-    contains(p: Point): boolean {
+    contains(p: PointLike): boolean {
         return this.origin.x <= p.x && p.x <= this.origin.x + this.size.width &&
             this.origin.y <= p.y && p.y <= this.origin.y + this.size.height
     }
 
-    inside(p: Point): boolean {
+    inside(p: PointLike): boolean {
         return this.origin.x < p.x && p.x < this.origin.x + this.size.width &&
             this.origin.y < p.y && p.y < this.origin.y + this.size.height
     }
@@ -164,7 +164,7 @@ export class Rectangle implements value.Rectangle {
         })
     }
 
-    forAllEdges(callback: (edge: Point) => void, transform?: Matrix) {
+    forAllEdges(callback: (edge: PointLike) => void, transform?: Matrix) {
         if (transform !== undefined) {
             callback(transform.transformPoint(this.origin))
             callback(transform.transformPoint(pointPlusSize(this.origin, { width: this.size.width, height: 0 })))

@@ -20,7 +20,7 @@ import * as value from "../workflow_value"
 import { GIOPDecoder } from "corba.js"
 import { isEqual } from "../geometry"
 import { Size } from "./Size"
-import { Point } from "./Point"
+import { Point, PointLike } from "./Point"
 
 // FIXME: DO A HUGE OVERHAUL: ADOPT FUNCTIONAL STYLE, DON'T LET METHODS RETURNING A MATRIX MODIFY THE MATRIX, RETURN A NEW ONE
 
@@ -100,7 +100,7 @@ export class Matrix implements value.Matrix {
         return this
     }
 
-    translate(point: Point): Matrix {
+    translate(point: PointLike): Matrix {
         let m = new Matrix({
             a: 1.0, c: 0.0, e: point.x,
             b: 0.0, d: 1.0, f: point.y
@@ -138,7 +138,7 @@ export class Matrix implements value.Matrix {
         return this
     }
 
-    postTranslate(point: Point): Matrix {
+    postTranslate(point: PointLike): Matrix {
         let m = new Matrix({
             a: 1.0, c: 0.0, e: point.x,
             b: 0.0, d: 1.0, f: point.y
@@ -165,7 +165,7 @@ export class Matrix implements value.Matrix {
         return this
     }
 
-    transformPoint(point: Point): Point {
+    transformPoint(point: PointLike): Point {
         return new Point({
             x: point.x * this.a + point.y * this.c + this.e,
             y: point.x * this.b + point.y * this.d + this.f

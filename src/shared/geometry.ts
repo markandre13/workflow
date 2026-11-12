@@ -16,52 +16,52 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point } from "./geometry/Point"
+import { Point, PointLike } from "./geometry/Point"
 import { Size } from "./geometry/Size"
 import { Rectangle } from "./geometry/Rectangle"
 import { Matrix } from "./geometry/Matrix"
 export { Point, Size, Matrix }
 
-export function pointPlusSize(point: Point, size: Size): Point {
+export function pointPlusSize(point: PointLike, size: Size): Point {
     return new Point({
         x: point.x + size.width,
         y: point.y + size.height
     })
 }
 
-export function pointMinusSize(point: Point, size: Size): Point {
+export function pointMinusSize(point: PointLike, size: Size): Point {
     return new Point({
         x: point.x - size.width,
         y: point.y - size.height
     })
 }
 
-export function pointPlusPoint(a: Point, b: Point): Point {
+export function pointPlusPoint(a: PointLike, b: PointLike): Point {
     return new Point({
         x: a.x + b.x,
         y: a.y + b.y
     })
 }
 
-export function pointMinusPoint(a: Point, b: Point): Point {
+export function pointMinusPoint(a: PointLike, b: PointLike): Point {
     return new Point({
         x: a.x - b.x,
         y: a.y - b.y
     })
 }
 
-export function mirrorPoint(center: Point, point: Point) {
+export function mirrorPoint(center: PointLike, point: PointLike) {
     return pointMinusPoint(center, pointMinusPoint(point, center))
 }
 
-export function pointMinusPointAsSize(a: Point, b: Point): Size {
+export function pointMinusPointAsSize(a: PointLike, b: PointLike): Size {
     return {
         width: a.x - b.x,
         height: a.y - b.y
     }
 }
 
-export function pointMultiplyNumber(a: Point, b: number): Point {
+export function pointMultiplyNumber(a: PointLike, b: number): Point {
     return new Point({
         x: a.x * b,
         y: a.y * b
@@ -75,14 +75,14 @@ export function sizeMultiplyNumber(a: Size, b: number): Size {
     })
 }
 
-export function pointMinus(a: Point) {
+export function pointMinus(a: PointLike) {
     return new Point({
         x: -a.x,
         y: -a.y
     })
 }
 
-export function rotatePointAroundPointBy(point: Point, center: Point, byRadiant: number): Point {
+export function rotatePointAroundPointBy(point: PointLike, center: PointLike, byRadiant: number): Point {
     let vector = pointMinusPoint(point, center)
     let radiant = Math.atan2(vector.y, vector.x) + byRadiant
     let diameter = Math.sqrt(vector.x*vector.x + vector.y*vector.y)
@@ -121,7 +121,7 @@ export function isLessEqual(a: number, b: number): boolean {
     return Math.abs(a - b) < epsilon
 }
 
-export function pointEqualsPoint(a: Point, b: Point): boolean {
+export function pointEqualsPoint(a: PointLike, b: PointLike): boolean {
     return isZero(a.x-b.x) && isZero(a.y-b.y)
 }
 
@@ -129,24 +129,24 @@ export function sizeEqualsSize(a: Size, b: Size): boolean {
     return isZero(a.width-b.width) && isZero(a.height-b.height)
 }
 
-export function signedArea(p0: Point, p1: Point, p2: Point): number {
+export function signedArea(p0: PointLike, p1: PointLike, p2: PointLike): number {
   return (p0.x- p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (p0.y - p2.y)
 }
 
-export function squaredLength(a: Point): number {
+export function squaredLength(a: PointLike): number {
     return a.x * a.x + a.y * a.y
 }
 
 // angle between a b = arccos( dot(x, y) / len(x) * len(y) )
-export function dot(a: Point, b: Point): number {
+export function dot(a: PointLike, b: PointLike): number {
     return a.x * b.x + a.y * b.y
 }
 
-export function distancePointToPoint(p0: Point, p1: Point): number {
+export function distancePointToPoint(p0: PointLike, p1: PointLike): number {
     return Math.sqrt(squaredLength(pointMinusPoint(p1, p0)))
 }
 
-export function distancePointToLine(q: Point, p0: Point, p1: Point): number {
+export function distancePointToLine(q: PointLike, p0: PointLike, p1: PointLike): number {
     let b = pointMinusPoint(p1, p0),
         a = pointMinusPoint(q, p0),
         lb = squaredLength(b),
@@ -247,7 +247,7 @@ function liang_barsky_clipper(
     */
 }
 
-export function lineCrossesLine(lineA: Array<Point>, lineB: Array<Point>): boolean
+export function lineCrossesLine(lineA: Array<PointLike>, lineB: Array<PointLike>): boolean
 {
     // console.log("lineCrossesLine")
 
@@ -293,14 +293,14 @@ export function lineCrossesRect(
     return false
 }
 
-export function lineCrossesRect2(l: Array<Point>, r: Rectangle): boolean {
+export function lineCrossesRect2(l: Array<PointLike>, r: Rectangle): boolean {
     return lineCrossesRect(
         l[0].x, l[0].y, l[1].x, l[1].y,
         r.origin.x, r.origin.y, r.origin.x + r.size.width, r.origin.y + r.size.height
     )
 }
 
-export function intersectsRectLine(rect: Rectangle, line: Array<Point>): boolean {
+export function intersectsRectLine(rect: Rectangle, line: Array<PointLike>): boolean {
     let xmin = rect.origin.x,
         ymin = rect.origin.y,
         xmax = rect.origin.x + rect.size.width,

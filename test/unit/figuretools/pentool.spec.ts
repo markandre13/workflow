@@ -5,6 +5,7 @@ import { State } from "client/figuretools/PenTool"
 
 import { initializeCORBAValueTypes } from "client/workflow"
 import { Point, mirrorPoint } from 'shared/geometry'
+import { PointLike } from 'shared/geometry/Point'
 
 // it("\x07") // beep
 
@@ -367,7 +368,7 @@ describe("PenTool", function () {
     })
 })
 
-function p(point: Point) {
+function p(point: PointLike) {
     return `${point.x} ${point.y}`
 }
 

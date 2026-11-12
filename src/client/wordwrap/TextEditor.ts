@@ -19,7 +19,7 @@
 import { Text } from "../figures/Text"
 import { Path } from "../paths"
 import { WordBox } from "./WordBox"
-import { Point } from "shared/geometry/Point"
+import { Point, PointLike } from "shared/geometry/Point"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
 import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent } from "../figureeditor"
@@ -36,7 +36,7 @@ export class TextEditor {
 
     timer: undefined | number
 
-    position: Point // x is used when going up/down
+    position: PointLike // x is used when going up/down
     xDuringVerticalMovement: undefined | number
 
     // cursor location

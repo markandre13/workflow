@@ -31,7 +31,7 @@ import * as stub from "shared/workflow_stub"
 
 import { Rectangle } from "../shared/geometry/Rectangle"
 import { Size } from "../shared/geometry/Size"
-import { Point } from "../shared/geometry/Point"
+import { Point, PointLike } from "../shared/geometry/Point"
 import { Matrix } from "../shared/geometry/Matrix"
 
 import * as value     from "shared/workflow_value"
@@ -389,7 +389,7 @@ export abstract class Figure implements valuetype.Figure {
     distance(point: valuetype.Point): number { throw Error("Not implemented on Server")}
 
     abstract transform(matrix: valuetype.Matrix): boolean
-    abstract getHandlePosition(handleId: number): Point | undefined
+    abstract getHandlePosition(handleId: number): PointLike | undefined
     abstract setHandlePosition(handleId: number, position: valuetype.Point): void
 }
 
@@ -403,7 +403,7 @@ export class Layer extends FigureModel implements valuetype.Layer {
         value.initLayer(this, init)
     }
 
-    findFigureAt(point: Point): Figure | undefined {
+    findFigureAt(point: PointLike): Figure | undefined {
         return undefined
     }
     
@@ -441,7 +441,7 @@ namespace figure {
             return true
         }
         
-        getHandlePosition(i: number): Point | undefined {
+        getHandlePosition(i: number): PointLike | undefined {
             switch(i) {
                 case 0: return { x:this.origin.x,                 y:this.origin.y }
                 case 1: return { x:this.origin.x+this.size.width, y:this.origin.y }
@@ -451,7 +451,7 @@ namespace figure {
             return undefined
         }
 
-        setHandlePosition(handle: number, pt: Point): void {
+        setHandlePosition(handle: number, pt: PointLike): void {
             if (handle<0 || handle>3)
                 throw Error("yikes")
 
@@ -507,11 +507,11 @@ namespace figure {
             return true
         }
         
-        getHandlePosition(i: number): Point | undefined {
+        getHandlePosition(i: number): PointLike | undefined {
             return undefined
         }
 
-        setHandlePosition(handle: number, pt: Point): void {
+        setHandlePosition(handle: number, pt: PointLike): void {
         }
     }
 
@@ -529,11 +529,11 @@ namespace figure {
             return true
         }
         
-        override getHandlePosition(i: number): Point | undefined {
+        override getHandlePosition(i: number): PointLike | undefined {
             return undefined
         }
 
-        override setHandlePosition(handle: number, pt: Point): void {
+        override setHandlePosition(handle: number, pt: PointLike): void {
         }
     }
 

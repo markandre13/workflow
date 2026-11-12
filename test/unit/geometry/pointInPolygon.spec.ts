@@ -1,6 +1,6 @@
 import { expect } from "chai"
 import { isLeft, intersectCurveX, pointInPath } from "shared/geometry/pointInPath"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Path } from "client/paths/Path"
 
 describe("geometry", function (this: any) {
@@ -502,14 +502,14 @@ function svg() {
     return svg
 }
 
-function cross(svg: SVGSVGElement, pt: Point) {
+function cross(svg: SVGSVGElement, pt: PointLike) {
     const cross = document.createElementNS("http://www.w3.org/2000/svg", "path")
     cross.setAttributeNS("", "d", `M ${pt.x} ${pt.y} m -5 -5 l 10 10 m -10 0 l 10 -10`)
     cross.setAttributeNS("", "stroke", "#00f")
     svg.appendChild(cross)
 }
 
-function line(svg: SVGSVGElement, a: Point, b: Point, stroke = "#333") {
+function line(svg: SVGSVGElement, a: PointLike, b: PointLike, stroke = "#333") {
     const curve = document.createElementNS("http://www.w3.org/2000/svg", "line")
     curve.setAttributeNS("", "x1", `${a.x}`)
     curve.setAttributeNS("", "y1", `${a.y}`)
@@ -520,7 +520,7 @@ function line(svg: SVGSVGElement, a: Point, b: Point, stroke = "#333") {
     svg.appendChild(curve)
 }
 
-function curve(svg: SVGSVGElement, c: Point[]) {
+function curve(svg: SVGSVGElement, c: PointLike[]) {
     const curve = document.createElementNS("http://www.w3.org/2000/svg", "path")
     curve.setAttributeNS("", "d", `M ${c[0].x} ${c[0].y} C ${c[1].x} ${c[1].y} ${c[2].x} ${c[2].y} ${c[3].x} ${c[3].y}`)
     curve.setAttributeNS("", "stroke", "#333")
@@ -528,7 +528,7 @@ function curve(svg: SVGSVGElement, c: Point[]) {
     svg.appendChild(curve)
 }
 
-function runTest(context: any, pt: Point, c: Point[]) {
+function runTest(context: any, pt: PointLike, c: PointLike[]) {
     const panel = svg()
     cross(panel, pt)
     curve(panel, c)
@@ -537,7 +537,7 @@ function runTest(context: any, pt: Point, c: Point[]) {
 
 function isLeftTest(
     context: any,
-    a: Point, b: Point, pt: Point,
+    a: PointLike, b: PointLike, pt: PointLike,
     check: (r: number) => boolean
 ) {
     const panel = svg()
@@ -550,7 +550,7 @@ function isLeftTest(
 
 function intersectCurveXTest(
     context: any,
-    c: Point[],
+    c: PointLike[],
     y: number
 ) {
     const r = intersectCurveX(c, y)
@@ -567,7 +567,7 @@ function intersectCurveXTest(
 function pointInPathTest(
     context: any,
     expectIsInside: boolean,
-    pt: Point,
+    pt: PointLike,
     path: Path) {
     const panel = svg()
     panel.appendChild(path.createSVG("#000", 1, "#ddd"))

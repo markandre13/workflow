@@ -30,7 +30,7 @@
 
 import { pointMinusPoint, pointMinus } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { Point, PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "../figures/Figure"
 import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent } from "../figureeditor"
@@ -46,18 +46,18 @@ export enum ArrangeToolState {
 export class ArrangeTool extends Tool {
     state: ArrangeToolState
 
-    pointerDownAt?: Point
-    pointerLastAt?: Point
+    pointerDownAt?: PointLike
+    pointerLastAt?: PointLike
 
     marqueeRectangle?: Rectangle
     svgMarquee?: SVGElement
     marqueeOutlines: Map<Figure, SVGElement>
     
     selectedHandle: number
-    handleStart: Point
+    handleStart: PointLike
     oldBoundary: Rectangle
 
-    rotationCenter: Point
+    rotationCenter: PointLike
     rotationStartDirection: number
 
     constructor() {

@@ -1,7 +1,7 @@
 import * as value from "shared/workflow_value"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
-import { Point, PointLike } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Path } from "client/paths/Path"
 
 import { WordWrapTestRunner, Placer } from "client/wordwrap/testrunner"
@@ -19,7 +19,7 @@ interface WordWrapTest {
     //! a title to be shown when rendered
     title?: string
     //! the polygon into which the box is to be placed
-    polygon: Array<Point>
+    polygon: Array<PointLike>
 
     boxes?: Array<Size>
 
@@ -29,7 +29,7 @@ interface WordWrapTest {
     strategy?: Placer
 }
 
-type Strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement) => Point | undefined
+type Strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement) => PointLike | undefined
 
 function runTest(strategy: Strategy, test: WordWrapTest): void {
     new WordWrapTestRunner("VISUAL-UNIT-TEST", polygon2path(test.polygon), test.boxes, test.result!, test.trace == true, strategy)
@@ -37,7 +37,7 @@ function runTest(strategy: Strategy, test: WordWrapTest): void {
 
 describe("wordwrap", function () {
     describe("pointForBoxInSlices: place 1st box in two stripes", function () {
-        const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size): Point | undefined => {
+        const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size): PointLike | undefined => {
             let [slice, point] = wordwrap.pointForBoxInSlices(box, new Array<Slice>())
             return slice === -1 ? undefined : point
         }
@@ -283,7 +283,7 @@ describe("wordwrap", function () {
         })
     })
     describe("placeWordBoxes()", function () {
-        const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): Point | undefined => {
+        const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): PointLike | undefined => {
             let boxSource = new IteratingBoxSource()
             wordwrap.placeWordBoxes(boxSource)
 
@@ -334,7 +334,7 @@ describe("wordwrap", function () {
         })
     })
     describe("Regression Tests", function () {
-        const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): Point | undefined => {
+        const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): PointLike | undefined => {
             // wordwrap.trace = false
             let boxSource = new BoxSource(boxes!)
             wordwrap.placeWordBoxes(boxSource)
@@ -388,7 +388,7 @@ describe("wordwrap", function () {
         })
     })
     describe("render real text", function () {
-        const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): Point | undefined => {
+        const strategy = (wordwrap: WordWrap, boxes: Array<Size> | undefined, box: Size, svg: SVGElement): PointLike | undefined => {
             wordwrap.trace = false
             let textSource = new TextSource()
 
@@ -451,7 +451,7 @@ class BoxSource implements WordSource {
         return this.boxes[this.current]
     }
 
-    placeBox(origin: Point): void {
+    placeBox(origin: PointLike): void {
         let rectangle = new WordBox(this.boxes[this.current].width, this.boxes[this.current].height, "")
         rectangle.origin.x = origin.x
         rectangle.origin.y = origin.y
@@ -489,7 +489,7 @@ class IteratingBoxSource implements WordSource {
         return this.box
     }
 
-    placeBox(origin: Point): void {
+    placeBox(origin: PointLike): void {
         let rectangle = new Rectangle(origin, this.box!)
         this.wordBoxes.push(rectangle)
     }

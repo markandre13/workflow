@@ -17,7 +17,7 @@
  */
 
 import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "./Figure"
 import * as valuetype from "shared/workflow_valuetype"
@@ -36,16 +36,16 @@ export class Group extends Figure implements valuetype.figure.Group {
     transform(transform: Matrix): boolean {
         return false
     }
-    distance(pt: Point): number {
+    distance(pt: PointLike): number {
         throw Error("not yet implemented")
     }
     bounds(): Rectangle {
         throw Error("not yet implemented")
     }
-    getHandlePosition(i: number): Point | undefined {
+    getHandlePosition(i: number): PointLike | undefined {
         return undefined
     }
-    setHandlePosition(handle: number, pt: Point): void {
+    setHandlePosition(handle: number, pt: PointLike): void {
     }
     getPath(): Path {
         throw Error("nope")

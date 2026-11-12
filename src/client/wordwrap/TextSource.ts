@@ -17,7 +17,7 @@
  */
 
 import { Size } from "shared/geometry/Size"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { WordSource } from "./wordwrap"
 import { WordBox } from "./WordBox"
 
@@ -174,7 +174,7 @@ export class TextSource implements WordSource {
         }
     }
 
-    placeBox(origin: Point): void {
+    placeBox(origin: PointLike): void {
         Object.assign(this.wordBoxes[this.current].origin, origin)
         ++this.current
     }

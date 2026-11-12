@@ -27,7 +27,7 @@ import {
     pointEqualsPoint, pointPlusPoint, pointMinusPoint, pointMinus, distancePointToPoint
 } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { Point, PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 
 interface KeyboardOption {
@@ -48,7 +48,7 @@ export class FigureEditorScene {
     id: number
     model: LocalDrawingModel
     figures: Array<Figure>
-    mousePosition: Point // current mouse position
+    mousePosition: PointLike // current mouse position
     protected verbose: boolean
 
     // toggled by keyup and down
@@ -117,7 +117,7 @@ export class FigureEditorScene {
         this.figures.push(figure)
     }
 
-    addRectangle(rectangle?: Rectangle, center?: Point, radiant?: number): void {
+    addRectangle(rectangle?: Rectangle, center?: PointLike, radiant?: number): void {
         if (this.verbose)
             console.log("### ADD RECTANGLE")
         if (rectangle === undefined)
@@ -153,7 +153,7 @@ export class FigureEditorScene {
         // expect(Tool.selection.has(this.figures[index])).to.be.true
     }
 
-    selectionHasPoint(point: Point): void {
+    selectionHasPoint(point: PointLike): void {
         if (Tool.selection.empty())
             throw Error("Error: selection decoration is empty")
         let msg = ""
@@ -166,7 +166,7 @@ export class FigureEditorScene {
         throw Error(`Selection decoration has no edge (${point.x}, ${point.y}). We have${msg}`)
     }
 
-    selectionHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number): void {
+    selectionHasRectangle(rectangle: Rectangle, center?: PointLike, radiant?: number): void {
         // console.log("=== selectionHasRectangle ===")
         // console.log("transformation", this.selectTool.transformation)
         // console.log("boundary", this.selectTool.boundary)
@@ -185,7 +185,7 @@ export class FigureEditorScene {
         }, transform)
     }
 
-    renderHasPoint(point: Point): void {
+    renderHasPoint(point: PointLike): void {
         let msg = ""
         for (let [id, ce] of this.figureeditor.cache) {
             for (let segment of (ce.path as Path).data) {
@@ -204,7 +204,7 @@ export class FigureEditorScene {
         throw Error(`Rendered path has no edge (${point.x}, ${point.y}). We have ${msg}`)
     }
 
-    renderHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number): void {
+    renderHasRectangle(rectangle: Rectangle, center?: PointLike, radiant?: number): void {
         let transform: Matrix | undefined = undefined
         if (center !== undefined && radiant !== undefined) {
             transform = new Matrix()
@@ -218,7 +218,7 @@ export class FigureEditorScene {
         }, transform)
     }
 
-    outlineHasPoint(point: Point): void {
+    outlineHasPoint(point: PointLike): void {
         let outline = this.figureeditor.outline
         let msg = ""
         let min = Number.MAX_VALUE
@@ -245,7 +245,7 @@ export class FigureEditorScene {
         throw Error(`Outline path has no edge (${point.x}, ${point.y}) (min distance = ${min}). We have ${msg}`)
     }
 
-    outlineHasRectangle(rectangle: Rectangle, center?: Point, radiant?: number): void {
+    outlineHasRectangle(rectangle: Rectangle, center?: PointLike, radiant?: number): void {
         let transform: Matrix | undefined = undefined
         if (center !== undefined && radiant !== undefined) {
             transform = new Matrix()
@@ -259,7 +259,7 @@ export class FigureEditorScene {
         }, transform)
     }
 
-    pointerDownAt(point: Point): void {
+    pointerDownAt(point: PointLike): void {
         const e = this.figureeditor.shadowRoot!.elementFromPoint(point.x, point.y)! as SVGElement
         if (this.verbose) {
             console.log(`### POINTER DOWN AT ${point.x}, ${point.y} (${e?.nodeName})`)
@@ -293,7 +293,7 @@ export class FigureEditorScene {
         })
     }
 
-    pointerTo(point: Point) {
+    pointerTo(point: PointLike) {
         if (this.verbose)
             console.log(`### MOVE POINTER TO ${point.x}, ${point.y}`)
         this.mousePosition = new Point(point)
@@ -317,7 +317,7 @@ export class FigureEditorScene {
         })
     }
 
-    movePointerBy(translation: Point): void {
+    movePointerBy(translation: PointLike): void {
         if (this.verbose)
             console.log(`### MOVE POINTER BY ${translation.x}, ${translation.y}`)
         this.mousePosition = pointPlusPoint(this.mousePosition, translation)
@@ -367,7 +367,7 @@ export class FigureEditorScene {
         }
     }
 
-    pointerClickAt(point: Point): void {
+    pointerClickAt(point: PointLike): void {
         if (this.verbose)
             console.log(`### POINTER CLICK AT ${point}`)
         this.pointerDownAt(point)
@@ -389,7 +389,7 @@ export class FigureEditorScene {
         return center
     }
 
-    centerOfNWScaleHandle(index = 0): Point {
+    centerOfNWScaleHandle(index = 0): PointLike {
         // let range = figure.Figure.HANDLE_RANGE/2
         // return this.figures[index].origin // pointMinusPoint(this.figure.bounds().origin, new Point({x: range, y: range}))
         // return this.figures[index].getHandlePosition(0)
@@ -599,7 +599,7 @@ export class FigureEditorScene {
         return [a, h]
     }
 
-    hasAnchorAt(point: Point) {
+    hasAnchorAt(point: PointLike) {
         // const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
         // console.log(this.figureeditor.decorationOverlay)
         const decorations = this.figureeditor.decoration
@@ -620,7 +620,7 @@ export class FigureEditorScene {
         return false
     }
 
-    hasHandleAt(anchor: Point, handle: Point) {
+    hasHandleAt(anchor: PointLike, handle: PointLike) {
         // const decorations = this.figureeditor.shadowRoot?.getElementById("pen-tool-decoration")!
         let foundAnchor = false, foundHandle = false, foundLine = false
         const outlines = this.figureeditor.outline

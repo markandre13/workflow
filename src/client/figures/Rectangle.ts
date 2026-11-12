@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { AbstractPath, Path } from "../paths"
 import { Shape } from "./Shape"
 import * as valuetype from "shared/workflow_valuetype"
@@ -27,7 +27,7 @@ export class Rectangle extends Shape implements valuetype.figure.Rectangle {
         super(init)
         value.figure.initRectangle(this, init)
     }
-    distance(pt: Point): number {
+    distance(pt: PointLike): number {
         // FIXME: not final: RANGE and fill="none" need to be considered
         if (this.origin.x <= pt.x && pt.x < this.origin.x + this.size.width &&
             this.origin.y <= pt.y && pt.y < this.origin.y + this.size.height) {

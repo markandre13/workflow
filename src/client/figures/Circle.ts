@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Path } from "client/paths"
 import { Shape } from "./Shape"
 
@@ -28,7 +28,7 @@ export class Circle extends Shape implements valuetype.figure.Circle {
         super(init)
         value.figure.initCircle(this, init)
     }
-    override distance(pt: Point): number {
+    override distance(pt: PointLike): number {
         let rx = 0.5 * this.size.width, ry = 0.5 * this.size.height, cx = this.origin.x + rx, cy = this.origin.y + ry, dx = pt.x - cx, dy = pt.y - cy, phi = Math.atan((dy * rx) / (dx * ry))
         if (dx < 0.0)
             phi = phi + Math.PI

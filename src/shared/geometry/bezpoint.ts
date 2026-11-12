@@ -2,7 +2,7 @@
  * Numerical nearestPointOnCurve()
  */
 
-import { Point } from "./Point"
+import { PointLike } from "./Point"
 
 function mid(a: number, b: number) {
     return (a + b) / 2.0
@@ -17,7 +17,7 @@ function distance(x: number, y: number, x1: number, y1: number) {
 export interface BezPointDistance {
     distance: number
     u: number
-    point: Point
+    point: PointLike
 }
 
 // find the minimal distance and position of curve to point (px, py)

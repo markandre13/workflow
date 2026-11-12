@@ -21,7 +21,7 @@ import * as value  from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
 import { Path, AbstractPath } from "../paths"
 import { Rectangle } from "shared/geometry/Rectangle"
-import { Point } from "shared/geometry/Point"
+import { Point, PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { GIOPDecoder } from "corba.js"
 import { parseColor } from "client/utils/color"
@@ -153,7 +153,7 @@ export abstract class Figure implements valuetype.Figure
      * Return <=0 when the point is within the figure
      * @param point Point to measure the distance to.
      */
-    abstract distance(point: Point): number
+    abstract distance(point: PointLike): number
     /**
      * Return the figures boundary.
      * (Shouldn't getPath() provide the nessecary data?)
@@ -180,7 +180,7 @@ export abstract class Figure implements valuetype.Figure
      * The implementation of Shape.(get|set)HandlePosition can be used as an example for this approach.
      * @param handleId
      */
-    abstract getHandlePosition(handleId: number): Point | undefined
+    abstract getHandlePosition(handleId: number): PointLike | undefined
     /**
      * This is used to modify a figure's handles.
      * 
@@ -189,5 +189,5 @@ export abstract class Figure implements valuetype.Figure
      * @param handleId 
      * @param position The position to set the handleId to.
      */
-    abstract setHandlePosition(handleId: number, position: Point): void
+    abstract setHandlePosition(handleId: number, position: PointLike): void
 }

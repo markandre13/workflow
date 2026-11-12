@@ -18,7 +18,7 @@
 
 import * as value from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
-import { Point } from "shared/geometry/Point"
+import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { Figure } from "../figures"
 import { GIOPDecoder } from "corba.js"
@@ -39,7 +39,7 @@ export class Layer extends FigureModel implements valuetype.Layer {
         value.initLayer(this, init)
     }
 
-    findFigureAt(point: Point): Figure | undefined {
+    findFigureAt(point: PointLike): Figure | undefined {
         let mindist = Number.POSITIVE_INFINITY
         let nearestFigure: Figure | undefined;
         for (let index = this.data.length - 1; index >= 0; --index) {
