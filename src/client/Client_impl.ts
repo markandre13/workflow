@@ -22,22 +22,22 @@ import { ORB } from "corba.js"
 import * as inf from "shared/workflow"
 import * as skel from "shared/workflow_skel"
 
-import { Rectangle, Circle } from "./figures"
+import { Rectangle, Circle } from "./shapes"
 
-import { ArrangeTool, EditTool, PenTool, ShapeTool, TextTool } from "./figuretools"
-import { ToolModel } from "./figuretools/ToolModel"
+import { ArrangeTool, EditTool, PenTool, ShapeTool, TextTool } from "./shapetools"
+import { ToolModel } from "./shapetools/ToolModel"
 import { StrokeAndFillModel } from "./views/widgets/strokeandfill"
 
 import { BoardModel } from "./BoardModel"
 import { BoardListener_impl } from "./BoardListener_impl"
-import { LocalDrawingModel } from "./figureeditor/LocalDrawingModel"
+import { LocalDrawingModel } from "./shapeeditor/LocalDrawingModel"
 
 import { ColorSwatchModel } from "client/views/widgets/colorswatch"
-import { DrawingModel } from "client/figureeditor"
+import { DrawingModel } from "client/shapeeditor"
 
 import { homeScreen } from "client/views/pages/homescreen"
 import * as xdb from "./utils/indexeddb"
-import { Layer } from "./figureeditor/Layer"
+import { Layer } from "./shapeeditor/Layer"
 import { ExportDrawing } from "./views/dialogs/ExportDrawing"
 import { ImportDrawing } from "./views/dialogs/ImportDrawing"
 import { HtmlModel } from "toad.js/appkit/HtmlModel"
@@ -128,7 +128,7 @@ export class Client_impl extends skel.Client {
 
         this.createMenuActions(fullname, email)
         this.createAvatarModel(avatar)
-        // this.createToolModel() // for figureeditor
+        // this.createToolModel() // for shapeeditor
         // this.createStrokeAndFillModel()
         const model = await this.createBoardModel()
 
@@ -148,7 +148,7 @@ export class Client_impl extends skel.Client {
 
         // this.createMenuActions("Maria Doe", "user@localhost")
         // this.createAvatarModel("img/avatars/whale.svg")
-        // this.createToolModel() // for figureeditor
+        // this.createToolModel() // for shapeeditor
         // this.createStrokeAndFillModel()
 
         document.body.append(...homeScreen)
@@ -229,7 +229,7 @@ export class Client_impl extends skel.Client {
         model.layers.push(layer)
         // bindModel("board", model)
 
-        // FIXME: move into figure editor?
+        // FIXME: move into shape editor?
         action("file|export", () => {
             new ExportDrawing("Untitled.wf", layer, this._orb)
         })
@@ -238,8 +238,8 @@ export class Client_impl extends skel.Client {
         })
         action("file|delete", async ()=> {
             let all: number[] = []
-            for (let figure of model.layers[0].data) {
-                all.push(figure.id)
+            for (let shape of model.layers[0].data) {
+                all.push(shape.id)
             }
             model.delete(model.layers[0].id, all)
             await xdb.deleteDatabase("workflow")
@@ -250,7 +250,7 @@ export class Client_impl extends skel.Client {
 
         // this.createMenuActions("Maria Doe", "user@localhost")
         // this.createAvatarModel("img/avatars/whale.svg")
-        // this.createToolModel() // for figureeditor
+        // this.createToolModel() // for shapeeditor
         // this.createStrokeAndFillModel()
 
         dom.erase(document.body)

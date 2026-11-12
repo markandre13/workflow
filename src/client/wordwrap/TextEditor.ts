@@ -16,13 +16,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Text } from "../figures/Text"
+import { Text } from "../shapes/Text"
 import { Path } from "../paths"
 import { WordBox } from "./WordBox"
 import { Point, PointLike } from "shared/geometry/Point"
 import { WordWrap } from "./wordwrap"
 import { TextSource } from "./TextSource"
-import { FigureEditor, EditorPointerEvent, EditorKeyboardEvent } from "../figureeditor"
+import { ShapeEditor, EditorPointerEvent, EditorKeyboardEvent } from "../shapeeditor"
 
 // FIXME: this class quickly turned into an TextEditor, merge it into TextTool
 export class TextEditor {
@@ -47,7 +47,7 @@ export class TextEditor {
     selectionOffsetWord: number | null = null
     selectionOffsetChar: number = 0
 
-    constructor(editor: FigureEditor, text: Text) {
+    constructor(editor: ShapeEditor, text: Text) {
         this.text = text
         this.svgParent = editor.getSVG(text)!
         this.textSource = text.textSource
@@ -205,7 +205,7 @@ export class TextEditor {
         }
     }
 
-    clipboard(editor: FigureEditor, event: ClipboardEvent) {
+    clipboard(editor: ShapeEditor, event: ClipboardEvent) {
         switch (event.type) {
             case "cut":
                 this.cut(editor, event)
@@ -219,7 +219,7 @@ export class TextEditor {
         }
     }
 
-    protected cut(editor: FigureEditor, event: ClipboardEvent) {
+    protected cut(editor: ShapeEditor, event: ClipboardEvent) {
         if (!event.clipboardData)
             return
 
@@ -257,7 +257,7 @@ export class TextEditor {
         event.preventDefault()
     }
 
-    protected paste(editor: FigureEditor, e: ClipboardEvent) {
+    protected paste(editor: ShapeEditor, e: ClipboardEvent) {
         const item = Array.from(e.clipboardData!.items).filter(e => e.kind === "string" && e.type === "text/plain").shift()
         if (item === undefined)
             return

@@ -29,18 +29,18 @@ new Client_impl // strip the _impl, it's a CORBA convention but inside the app's
 
 flow when working with a server:
                       |                          |
-  FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
+  ShapeEditor -> BoardModel -> Server -> BoardListener_impl -> ShapeEditor.updateView()
                       |                          |
       client                   server                          client
   transform()    transform()               transform()
                                             modified.trigger(...)
-FigureEditor
+ShapeEditor
     transformSelection(matrix: Matrix)
-        this.model.transform(this.selectedLayer!.id, Tool.selection.figureIds(), matrix)
+        this.model.transform(this.selectedLayer!.id, Tool.selection.shapeIds(), matrix)
 
 
-       operation: Operation.TRANSFORM_FIGURES,
-            figures: figureIdArray,
+       operation: Operation.TRANSFORM_SHAPES,
+            shapes: shapeIdArray,
             matrix: matrix
             
             

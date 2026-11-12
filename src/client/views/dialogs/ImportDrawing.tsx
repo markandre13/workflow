@@ -1,4 +1,4 @@
-import { DrawingModel } from "client/figureeditor"
+import { DrawingModel } from "client/shapeeditor"
 import { ORB } from "corba.js"
 
 export class ImportDrawing {

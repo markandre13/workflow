@@ -1,13 +1,13 @@
 // function testMath() {
 //     // GIVEN RECTANGLE { origin: {x:50, y: 50}, size: {width: 20, height: 30}}
-//     let test = new FigureEditorUser()
+//     let test = new ShapeEditorUser()
 //     test.addRectangle()
 
 //     // WHEN ROTATED
-//     test.selectFigure()
+//     test.selectShape()
 
 //     let oldMouseRotate = test.centerOfNWRotateHandle()
-//     let center = test.centerOfFigure()
+//     let center = test.centerOfShape()
 //     let newMouseRotate = rotatePointAroundPointBy(oldMouseRotate, center, Math.PI/8)
 
 //     console.log("=============================================== mouseDown")
@@ -26,7 +26,7 @@
 //     // WHEN DESELECTED & RESELECTED
 //     Tool.selection.clear()
 //     try {
-//         test.selectFigure()
+//         test.selectShape()
 //     }
 //     catch(error) {
 //         console.log("caught error")
@@ -58,9 +58,9 @@
 
 //     // decoration is correct, outline not
 
-//     // check that the decoration is correct before figure is transformed
+//     // check that the decoration is correct before shape is transformed
 //     // test.mouseUp()
-//     // check that the decoration is correct after figure was transformed
+//     // check that the decoration is correct after shape was transformed
 
 //     test.selectionHasPoint({x: 56.77205421043658, y: 27.96825417111798})
 //     test.selectionHasPoint({x: 63.76914188970962, y: 83.33830879375839})
@@ -198,7 +198,7 @@
 //     let svg = document.getElementById("svg")!
 
 //     // red: original rectangle
-//     let rect0 = new figure.Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
+//     let rect0 = new shape.Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
 //     rect0.stroke = "#800"
 //     let path0 = rect0.getPath()
 //     // path0.updateSVG()
@@ -206,9 +206,9 @@
    
 //     // green: rotated rectangle
 //     let r = new Rectangle({origin:{x: 50, y:50}, size: {width: 20, height: 30}})
-//     let rect1 = new figure.Rectangle(r)
+//     let rect1 = new shape.Rectangle(r)
 //     rect1.stroke = "#080"
-//     let trans1 = new figure.Transform()
+//     let trans1 = new shape.Transform()
 //     let c = r.center()
 //     let m1 = new Matrix()
 //     m1.translate(pointMinus(c))
@@ -221,9 +221,9 @@
 //     // svg.appendChild(path1.svg)
 
 //     // blue: rotated rectangle with scaleMatrix
-//     let rect2 = new figure.Rectangle(r)
+//     let rect2 = new shape.Rectangle(r)
 //     rect1.stroke = "#008"
-//     let trans2 = new figure.Transform()
+//     let trans2 = new shape.Transform()
 //     trans2.add(rect2)
 
 //     let scaleMatrix = new Matrix()

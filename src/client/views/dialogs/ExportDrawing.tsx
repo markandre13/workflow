@@ -1,4 +1,4 @@
-import { Layer } from "client/figureeditor/Layer"
+import { Layer } from "client/shapeeditor/Layer"
 import { ORB } from "corba.js"
 import { Fragment } from "toad.jsx/jsx-runtime"
 import { TextModel } from "toad.js/appkit/TextModel"

@@ -21,7 +21,7 @@
         "build:idl": "corba-idl -v --ts-all src/shared/workflow.idl",
         "build:client": "vite build",
         "build:server": "vite build --config vite.server.config.mts",
-        "typecheck": "tsc --noEmit",
+        "typecheck": "npm run build:idl && tsc --noEmit",
         "update": "npx npm-check-updates -u && npm install"
     },
     "dependencies": {

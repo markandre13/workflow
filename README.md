@@ -16,5 +16,5 @@ Take a look 👉 <a href="https://markandre13.github.io/workflow/">Live Demo</a>
 
 * [Goal](doc/GOAL.md)
 * [Development](doc/DEVELOPMENT.md)
-* [Figure Editor Architecture](doc/FIGUREEDITOR.md)
+* [Shape Editor Architecture](doc/SHAPEEDITOR.md)
 * [Server](doc/SERVER.md)

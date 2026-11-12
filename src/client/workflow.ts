@@ -25,10 +25,10 @@ import { Size } from "shared/geometry/Size"
 import { Point } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 
-import * as figure from "./figures.js"
-import { Path } from "./figures/Path"
+import * as shape from "./shapes"
+import { Path } from "./shapes/Path.js"
 
-import { Layer } from "./figureeditor/Layer"
+import { Layer } from "./shapeeditor/Layer.js"
 import { BoardModel } from "./BoardModel"
 import { Client_impl } from "./Client_impl"
 
@@ -78,16 +78,16 @@ export function initializeCORBAValueTypes() {
     ORB.registerValueType("Rectangle", Rectangle)
     ORB.registerValueType("Matrix", Matrix)
 
-    ORB.registerValueType("Figure", figure.Figure);
-    ORB.registerValueType("figure.Shape", figure.Shape)
-    ORB.registerValueType("figure.Rectangle", figure.Rectangle)
-    ORB.registerValueType("figure.Circle", figure.Circle)
-    ORB.registerValueType("figure.Text", figure.Text)
-    ORB.registerValueType("figure.Path", Path);
-    ORB.registerValueType("figure.Group", figure.Group)
-    ORB.registerValueType("figure.Transform", figure.Transform)
+    ORB.registerValueType("Shape", shape.Shape);
+    ORB.registerValueType("shape.BoxShape", shape.BoxShape)
+    ORB.registerValueType("shape.Rectangle", shape.Rectangle)
+    ORB.registerValueType("shape.Circle", shape.Circle)
+    ORB.registerValueType("shape.Text", shape.Text)
+    ORB.registerValueType("shape.Path", Path);
+    ORB.registerValueType("shape.Group", shape.Group)
+    ORB.registerValueType("shape.Transform", shape.Transform)
 
-    // ORB.registerValueType("FigureModel", FigureModel)
+    // ORB.registerValueType("ShapeModel", ShapeModel)
     ORB.registerValueType("Layer", Layer)
     ORB.registerValueType("BoardModel", BoardModel)
 }

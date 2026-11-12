@@ -17,17 +17,17 @@
  */
 
 import { Matrix } from "shared/geometry/Matrix"
-import { Figure } from "./figures/Figure"
-import { Layer } from "./figureeditor/Layer"
-import { DrawingModel } from "./figureeditor/DrawingModel"
+import { Shape } from "./shapes/Shape"
+import { Layer } from "./shapeeditor/Layer"
+import { DrawingModel } from "./shapeeditor/DrawingModel"
 
 import * as inf from "shared/workflow"
 import * as value from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
-import { DrawingEvent } from "./figureeditor/DrawingEvent"
+import { DrawingEvent } from "./shapeeditor/DrawingEvent"
 import { Signal } from "toad.js/reactive/Signal"
 
-// FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
+// ShapeEditor -> BoardModel -> Server -> BoardListener_impl -> ShapeEditor.updateView()
 export class BoardModel extends DrawingModel implements valuetype.BoardModel {
     // BoardModel
     bid!: number
@@ -50,8 +50,8 @@ export class BoardModel extends DrawingModel implements valuetype.BoardModel {
     transform(layerID: number, indices: Array<number>, matrix: Matrix): void {
         this.board!.transform(layerID, indices, matrix)
     }
-    add(layerID: number, figure: Figure) {
-        this.board!.add(layerID, figure)
+    add(layerID: number, shape: Shape) {
+        this.board!.add(layerID, shape)
     }
 
     // these do work over the network

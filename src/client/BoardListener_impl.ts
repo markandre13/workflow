@@ -18,13 +18,13 @@
 
 import { ORB } from "corba.js"
 import { Matrix } from "shared/geometry/Matrix"
-import { Figure } from "./figures"
+import { Shape } from "./shapes"
 import { BoardModel } from "./BoardModel"
-import { Operation } from "./figureeditor/FigureEditor"
+import { Operation } from "./shapeeditor/ShapeEditor"
 
 import * as skel from "shared/workflow_skel"
 
-// FigureEditor -> BoardModel -> Server -> BoardListener_impl -> FigureEditor.updateView()
+// ShapeEditor -> BoardModel -> Server -> BoardListener_impl -> ShapeEditor.updateView()
 export class BoardListener_impl extends skel.BoardListener {
     boardmodel: BoardModel
     constructor(orb: ORB, boardmodel: BoardModel) {
@@ -38,30 +38,30 @@ export class BoardListener_impl extends skel.BoardListener {
         }
         throw Error("BoardListener_impl.layerById(): unknown layer id " + layerID)
     }
-    async add(layerId: number, figure: Figure) {
+    async add(layerId: number, shape: Shape) {
         let layer = this.layerById(layerId)
-        layer.data.push(figure)
+        layer.data.push(shape)
 
         this.boardmodel.signal.emit({
-            operation: Operation.ADD_FIGURES,
-            figures: [figure.id]
+            operation: Operation.ADD_SHAPES,
+            shapes: [shape.id]
         })
     }
-    async transform(layerId: number, figureIdArray: Array<number>, matrix: Matrix, newIds: Array<number>) {    
-        // console.log("BoardListener_impl.transform(", figureIdArray, ", ", matrix, ", ", newIds, ")")
+    async transform(layerId: number, shapeIdArray: Array<number>, matrix: Matrix, newIds: Array<number>) {    
+        // console.log("BoardListener_impl.transform(", shapeIdArray, ", ", matrix, ", ", newIds, ")")
         // FIXME: too many casts
         let layer = this.layerById(layerId)
-        let figureIdSet = new Set<number>()
-        for (let id of figureIdArray)
-            figureIdSet.add(id)
+        let shapeIdSet = new Set<number>()
+        for (let id of shapeIdArray)
+            shapeIdSet.add(id)
         for (let index in layer.data) {
             let fig = layer.data[index]
-            if (!figureIdSet.has(fig.id))
+            if (!shapeIdSet.has(fig.id))
                 continue
-            if (fig.transform(matrix)) // TODO: it doesn't work like this anymore, need to go thru FigureEditor?
+            if (fig.transform(matrix)) // TODO: it doesn't work like this anymore, need to go thru ShapeEditor?
                 continue
             
-            throw Error("BoardListener_impl.transform(): inserting a Transform() figure is not implemented... and should also be deprecated.")
+            throw Error("BoardListener_impl.transform(): inserting a Transform() shape is not implemented... and should also be deprecated.")
             // let transform = new Transform()
             // transform.id = newIds.shift()!
             // transform.transform(matrix)
@@ -77,8 +77,8 @@ export class BoardListener_impl extends skel.BoardListener {
         }
 
         this.boardmodel.signal.emit({
-            operation: Operation.TRANSFORM_FIGURES,
-            figures: figureIdArray,
+            operation: Operation.TRANSFORM_SHAPES,
+            shapes: shapeIdArray,
             matrix: matrix
         })
 

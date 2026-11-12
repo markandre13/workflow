@@ -47,7 +47,7 @@ runs the complete unit test suite once. During development use
 to run Vitest in watch mode. A single file can be selected with
 
 ```
-    npm run test --file test/unit/figuretools/pentool.spec.ts
+    npm run test --file test/unit/shapetools/pentool.spec.ts
 ```
 
 To watch the tests in a visible browser, run

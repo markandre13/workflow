@@ -56,8 +56,8 @@ console.log('database...');
 /*
 let board = new Board(10, "Polisens mobila Utrednings STöd Project Board")
 let layer = new Layer(20, "Scrible")
-layer.data.push(new valuetype.figure.Rectangle(new Point(25.5, 5.5), new Size(50, 80))) // stroke & fill
-layer.data.push(new valuetype.figure.Rectangle(new Point(85.5, 45.5), new Size(50, 80)))
+layer.data.push(new valuetype.shape.Rectangle(new Point(25.5, 5.5), new Size(50, 80))) // stroke & fill
+layer.data.push(new valuetype.shape.Rectangle(new Point(85.5, 45.5), new Size(50, 80)))
 board.layers.push(layer)
 */
 
@@ -108,7 +108,7 @@ async function main() {
         { pid: 1,
           name: "Polisens mobila Utrednings STöd Project Board",
           description: "",
-          layers: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"figure.Rectangle","#V":{"id":1,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}},"fill": "#f80"}},{"#T":"figure.Rectangle","#V":{"id":2,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}},"fill":"#08f"}}],"id":20,"name":"Scrible"}}])
+          layers: JSON.stringify([{"#T":"Layer","#V":{"data":[{"#T":"shape.Rectangle","#V":{"id":1,"origin":{"#T":"Point","#V":{"x":25.5,"y":5.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}},"fill": "#f80"}},{"#T":"shape.Rectangle","#V":{"id":2,"origin":{"#T":"Point","#V":{"x":85.5,"y":45.5}},"size":{"#T":"Size","#V":{"width":50,"height":80}},"fill":"#08f"}}],"id":20,"name":"Scrible"}}])
         }
     ])
 
@@ -123,12 +123,12 @@ async function main() {
     ORB.registerValueType("Size", Size)
     ORB.registerValueType("Matrix", Matrix)
     ORB.registerValueType("Rectangle", Rectangle)
-    ORB.registerValueType("Figure", Figure)
-    ORB.registerValueType("figure.Rectangle", figure.Rectangle)
-    ORB.registerValueType("figure.Circle", figure.Circle)
-    ORB.registerValueType("figure.Group", figure.Group)
-    ORB.registerValueType("figure.Transform", figure.Transform)
-    ORB.registerValueType("FigureModel", FigureModel)
+    ORB.registerValueType("Shape", Shape)
+    ORB.registerValueType("shape.Rectangle", shape.Rectangle)
+    ORB.registerValueType("shape.Circle", shape.Circle)
+    ORB.registerValueType("shape.Group", shape.Group)
+    ORB.registerValueType("shape.Transform", shape.Transform)
+    ORB.registerValueType("ShapeModel", ShapeModel)
     ORB.registerValueType("BoardModel", BoardModel)
     ORB.registerValueType("Layer", Layer)
     
@@ -314,43 +314,43 @@ class Board_impl extends skel.Board {
         throw Error("Board_impl: layerById("+layerID+"): unknown layer id")
     }
     
-    async add(layerID: number, figure: Figure) {
-//        console.log("Board_impl.add(): ", figure)
+    async add(layerID: number, shape: Shape) {
+//        console.log("Board_impl.add(): ", shape)
         let layer = this.layerById(layerID)
-        figure.id = (layer as Layer).createFigureId()
-        layer.data.push(figure)
+        shape.id = (layer as Layer).createShapeId()
+        layer.data.push(shape)
         for (let listener of this.listeners) {
-            listener[0].add(layerID, figure)
+            listener[0].add(layerID, shape)
         }
     }
 
     // FIXME: share code with client (BoardListener_impl.transform)
-    async transform(layerID: number, figureIdArray: Array<number>, matrix: Matrix) {
-//        console.log("Board_impl.transform(", figureIdArray, ", ", matrix, ")")
-        let figureIdSet = new Set<number>()
-        for(let id of figureIdArray)
-            figureIdSet.add(id)
+    async transform(layerID: number, shapeIdArray: Array<number>, matrix: Matrix) {
+//        console.log("Board_impl.transform(", shapeIdArray, ", ", matrix, ")")
+        let shapeIdSet = new Set<number>()
+        for(let id of shapeIdArray)
+            shapeIdSet.add(id)
         let newIdArray = new Array<number>()
         
         let layer = this.layerById(layerID)
         for (let index in layer.data) {
             let fig = layer.data[index]
-            if (!figureIdSet.has(fig.id))
+            if (!shapeIdSet.has(fig.id))
                 continue
                 
             if (fig.transform(matrix))
                 continue
 
-            let transform = new figure.Transform()
-            transform.id = (layer as Layer).createFigureId()
+            let transform = new shape.Transform()
+            transform.id = (layer as Layer).createShapeId()
             newIdArray.push(transform.id)
             transform.matrix = new Matrix(matrix)
-            transform.childFigures.push(fig)
+            transform.childShapes.push(fig)
             layer.data[index] = transform
         }
 
         for (let listener of this.listeners) {
-            listener[0].transform(layerID, figureIdArray, matrix, newIdArray)
+            listener[0].transform(layerID, shapeIdArray, matrix, newIdArray)
         }
     }
 }
@@ -367,21 +367,21 @@ class BoardModel implements valuetype.BoardModel {
     }
 }
 
-export class FigureModel implements valuetype.FigureModel {
-    data!: Array<Figure>
+export class ShapeModel implements valuetype.ShapeModel {
+    data!: Array<Shape>
 
-    constructor(init?: Partial<FigureModel>) {
-        value.initFigureModel(this, init)
+    constructor(init?: Partial<ShapeModel>) {
+        value.initShapeModel(this, init)
     }
 }
 
-export abstract class Figure implements valuetype.Figure {
+export abstract class Shape implements valuetype.Shape {
     id!: number
     matrix!: Matrix | undefined
     attributes!: Array<Attribute>
 
-    constructor(init?: Partial<Figure>) {
-        value.initFigure(this, init)
+    constructor(init?: Partial<Shape>) {
+        value.initShape(this, init)
     }
     getPath(): Path { throw Error("Not implemented on Server")}
     updateSVG(path: AbstractPath, parentSVG: SVGElement, svg: SVGElement | undefined): SVGElement { throw Error("Not implemented on Server")}
@@ -393,44 +393,44 @@ export abstract class Figure implements valuetype.Figure {
     abstract setHandlePosition(handleId: number, position: valuetype.Point): void
 }
 
-export class Layer extends FigureModel implements valuetype.Layer {
+export class Layer extends ShapeModel implements valuetype.Layer {
     id!: number
     name!: string
-    highestFigureId?: number
+    highestShapeId?: number
 
     constructor(init?: Partial<Layer>) {
         super(init)
         value.initLayer(this, init)
     }
 
-    findFigureAt(point: PointLike): Figure | undefined {
+    findShapeAt(point: PointLike): Shape | undefined {
         return undefined
     }
     
-    createFigureId(): number {
-        if (this.highestFigureId === undefined) {
-            this.highestFigureId = 0
-            for(let figure of this.data) {
-                if (figure.id > this.highestFigureId) { // FIXME: recursive
-                    this.highestFigureId = figure.id
+    createShapeId(): number {
+        if (this.highestShapeId === undefined) {
+            this.highestShapeId = 0
+            for(let shape of this.data) {
+                if (shape.id > this.highestShapeId) { // FIXME: recursive
+                    this.highestShapeId = shape.id
                 }
             }
         }
-        return ++this.highestFigureId
+        return ++this.highestShapeId
     }
 }
 
 // FIXME: share with client
-namespace figure {
+namespace shape {
 
-    export abstract class Shape extends Figure implements valuetype.figure.Shape
+    export abstract class BoxShape extends Shape implements valuetype.shape.BoxShape
     {
         origin!: Point
         size!: Size
 
-        constructor(init?: Partial<Shape>) {
+        constructor(init?: Partial<BoxShape>) {
             super(init)
-            value.figure.initShape(this, init)
+            value.shape.initBoxShape(this, init)
         }
 
         transform(transform: Matrix): boolean {
@@ -470,11 +470,11 @@ namespace figure {
         }
     }
 
-    export class Rectangle extends Shape implements valuetype.figure.Rectangle
+    export class Rectangle extends BoxShape implements valuetype.shape.Rectangle
     {
         constructor(init?: Partial<Rectangle>) {
             super(init)
-            value.figure.initRectangle(this, init)
+            value.shape.initRectangle(this, init)
             // this.stroke = "#000"
             // this.strokeWidth = 1.0
             // this.fill = "#fff"
@@ -482,46 +482,46 @@ namespace figure {
         
     }
 
-    export class Circle extends Shape implements valuetype.figure.Circle
+    export class Circle extends BoxShape implements valuetype.shape.Circle
     {
        
         constructor(init?: Partial<Rectangle>) {
             super(init)
-            value.figure.initCircle(this, init)
+            value.shape.initCircle(this, init)
             // this.stroke = "#000"
             // this.fill = "#fff"
         }
         
     }
 
-    export class Group extends Figure implements valuetype.figure.Group
+    export class Group extends Shape implements valuetype.shape.Group
     {
-        childFigures!: Array<Figure>
+        childShapes!: Array<Shape>
 
         constructor(init?: Partial<Group>) {
             super(init)
-            value.figure.initGroup(this, init)
+            value.shape.initGroup(this, init)
         }
 
-        transform(transform: Matrix): boolean {
+        override transform(transform: Matrix): boolean {
             return true
         }
         
-        getHandlePosition(i: number): PointLike | undefined {
+        override getHandlePosition(i: number): PointLike | undefined {
             return undefined
         }
 
-        setHandlePosition(handle: number, pt: PointLike): void {
+        override setHandlePosition(handle: number, pt: PointLike): void {
         }
     }
 
 
-    export class Transform extends Group implements valuetype.figure.Transform {
+    export class Transform extends Group implements valuetype.shape.Transform {
         declare matrix: Matrix
 
         constructor(init?: Partial<Transform>) {
             super(init)
-            value.figure.initTransform(this, init)
+            value.shape.initTransform(this, init)
         }
 
         override transform(transform: Matrix): boolean {
@@ -537,4 +537,4 @@ namespace figure {
         }
     }
 
-} // namespace figure
+} // namespace shape

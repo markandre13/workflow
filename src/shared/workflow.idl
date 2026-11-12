@@ -21,8 +21,8 @@ native AbstractPath;
 native Path;
 native Point_ptr;
 native Matrix_ptr;
-native Figure_ptr;
-native FigureEditor;
+native Shape_ptr;
+native ShapeEditor;
 native SVGElement;
 native SVGElement_ptr;
 
@@ -100,7 +100,7 @@ union Attribute switch(AttributeType) {
     case STROKE_WIDTH: double strokeWidth;
 };
 
-valuetype Figure {
+valuetype Shape {
     public unsigned long id;
     public Matrix_ptr matrix;
     public sequence<Attribute> attributes;
@@ -115,20 +115,20 @@ valuetype Figure {
     void setHandlePosition(in unsigned short handleId, in Point position);
 };
 
-module figure {
+module shape {
 
-    valuetype Shape: Figure {
+    valuetype BoxShape: Shape {
         public Point origin;
         public Size size;
     };
 
-    valuetype Rectangle: Shape {
+    valuetype Rectangle: BoxShape {
     };
 
-    valuetype Circle: Shape {
+    valuetype Circle: BoxShape {
     };
 
-    valuetype Text: Shape {
+    valuetype Text: BoxShape {
         public string text;
     };
 
@@ -145,13 +145,13 @@ module figure {
         // TILT     = 128 ,    // anchor has tilt x/y information (two values)
     };
 
-    valuetype Path: Figure {
+    valuetype Path: Shape {
         private sequence<octet> types; // AnchorType
         private sequence<double> values;
     };
 
-    valuetype Group: Figure {
-	    public sequence<Figure> childFigures;
+    valuetype Group: Shape {
+	    public sequence<Shape> childShapes;
     };
 
     valuetype Transform: Group {
@@ -159,14 +159,14 @@ module figure {
     };
 };
 
-valuetype FigureModel {
-    public sequence<Figure> data; // FIXME: 'data' is a bad name, how about 'figures'?
+valuetype ShapeModel {
+    public sequence<Shape> data; // FIXME: 'data' is a bad name, how about 'Shapes'?
 };
 
-valuetype Layer: FigureModel {
+valuetype Layer: ShapeModel {
     public unsigned long id;
     public string name;
-    Figure_ptr findFigureAt(in Point point);
+    Shape_ptr findShapeAt(in Point point);
 };
 
 valuetype User {
@@ -198,9 +198,9 @@ valuetype BoardModel {
 /////////////////////////////////////////////////////////////////////////////
 
 interface BoardListener {
-    oneway void add(in unsigned long layerID, in Figure figure);
+    oneway void add(in unsigned long layerID, in Shape Shape);
     oneway void transform(in unsigned long layerID,
-                          in sequence<unsigned long> figureIDs,
+                          in sequence<unsigned long> shapeIDs,
                           in Matrix matrix,
                           in sequence<unsigned long> newIDs);
 };
@@ -211,9 +211,9 @@ interface Board {
     oneway void addListener(in BoardListener listener);
     oneway void removeListener(in BoardListener listener);
 
-    oneway void add(in unsigned long layerID, in Figure figure);
-    // FIXME? how about transforming figures on different layers at the same time?
-    oneway void transform(in unsigned long layerID, in sequence<unsigned long> figureIDs, in Matrix matrix);
+    oneway void add(in unsigned long layerID, in Shape shape);
+    // FIXME? how about transforming shapes on different layers at the same time?
+    oneway void transform(in unsigned long layerID, in sequence<unsigned long> shapeIDs, in Matrix matrix);
 };
 
 interface Project {
