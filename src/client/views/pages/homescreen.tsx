@@ -29,6 +29,7 @@ import { Fragment } from "toad.jsx/jsx-runtime"
 import { ToolButton } from "toad.js/viewkit/ToolButton"
 import { Menu } from "toad.js/menu/Menu"
 import { Action } from "toad.js/appkit/Action"
+import { Ruler } from "client/figureeditor/Ruler"
 
 // TODO: make this part of OptionModel & add key=... as an alternative to ToolButton?
 function k2v(model: ToolModel, aKey: string) {
@@ -101,8 +102,10 @@ export function homeScreen(
                 model={drawing}
                 tool={tool}
                 strokeandfill={strokeandfill}
-                style={{ position: "absolute", left: "49px", right: "0px", top: "49px", bottom: "24px" }}
+                style={{ position: "absolute", left: "69px", right: "0px", top: "69px", bottom: "24px" }}
             />
+            <Ruler style={{ position: "absolute", left: "69px", right: "0px", top: "49px", height: "20px" }}/>
+            <Ruler orientation="vertical" style={{ position: "absolute", left: "49px", width: "20px", top: "69px", bottom: "24px" }}/>
             <div id="hint" style={{ position: "absolute", left: "0", right: "0", height: "24px", bottom: "0" }}></div>
             <div style={{ position: "absolute", left: "48px", right: "0", top: "0" }}>
                 <Menu

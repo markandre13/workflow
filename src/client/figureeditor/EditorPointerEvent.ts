@@ -16,10 +16,10 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Point } from "../../shared/geometry/Point"
+import { Point, PointLike } from "../../shared/geometry/Point"
 import { FigureEditor } from "./FigureEditor"
 
-export interface EditorPointerEvent extends Point {
+export interface EditorPointerEvent extends PointLike {
     editor: FigureEditor
     type: "down" | "move" | "up"
     pointerDown: boolean

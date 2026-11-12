@@ -19,6 +19,8 @@
 import * as value from "../workflow_value"
 import { GIOPDecoder } from "corba.js"
 
+export type PointLike = value.Point
+
 export class Point implements value.Point {
     x!: number
     y!: number
@@ -39,6 +41,16 @@ export class Point implements value.Point {
         } else {
             value.initPoint(this, { x: xOrPoint, y: y! })
         }
+    }
+    set(pt: PointLike) {
+        this.x = pt.x
+        this.y = pt.y
+        return this
+    }
+    add(pt: PointLike) {
+        this.x += pt.x
+        this.y += pt.y
+        return this
     }
     toString() {
         return `Point(${this.x}, ${this.y})`

@@ -20,7 +20,7 @@ import * as value from "../workflow_value"
 import * as valuetype from "../workflow_valuetype"
 import { GIOPDecoder } from "corba.js"
 import { Matrix } from "./Matrix"
-import { Point } from "./Point"
+import { Point, PointLike } from "./Point"
 import { Size } from "./Size"
 import { pointPlusSize } from "../geometry"
 
@@ -141,7 +141,7 @@ export class Rectangle implements value.Rectangle {
         return (f0 & f1) == 0
     }
 
-    expandByPoint(p: Point): Rectangle {
+    expandByPoint(p: PointLike): Rectangle {
         if (p.x < this.origin.x) {
             this.size.width += this.origin.x - p.x; this.origin.x = p.x
         }

@@ -1,7 +1,7 @@
 import * as value from "shared/workflow_value"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
-import { Point } from "shared/geometry/Point"
+import { Point, PointLike } from "shared/geometry/Point"
 import { Path } from "client/paths/Path"
 
 import { WordWrapTestRunner, Placer } from "client/wordwrap/testrunner"
@@ -417,7 +417,7 @@ describe("wordwrap", function () {
     })
 })
 
-function polygon2path(polygon: Point[]): Path {
+function polygon2path(polygon: PointLike[]): Path {
     const path = new Path()
     for (let point of polygon!) {
         if (path.empty())
