@@ -766,7 +766,7 @@ export class EditTool extends Tool {
 
     override activate(editor: ShapeEditor) {
         Tool.setHint(`edit tool: under construction, use pointer with <ctrl/> to smooth or with <alt/> to sharpen edges`)
-        editor.svgView.style.cursor = `url(${Tool.cursorPath}edit.svg) 1 1, crosshair`
+        editor.svg.style.cursor = `url(${Tool.cursorPath}edit.svg) 1 1, crosshair`
         Tool.selection.modified.add(() => {
             this.updateSelection(editor)
         }, this)
@@ -774,7 +774,7 @@ export class EditTool extends Tool {
     }
 
     override deactivate(editor: ShapeEditor) {
-        editor.svgView.style.cursor = "default"
+        editor.svg.style.cursor = "default"
         this.removeEditors(editor)
         Tool.selection.modified.remove(this)
         editor.outline.innerHTML = ""

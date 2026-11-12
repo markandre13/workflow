@@ -24,7 +24,7 @@ describe("EditTool", function () {
 
             scene.selectEditTool()
 
-            expect(scene.shapeeditor.svgView.style.cursor).to.contain("edit.svg")
+            expect(scene.shapeeditor.svg.style.cursor).to.contain("edit.svg")
         })
 
         it("select path", function () {
@@ -40,7 +40,7 @@ describe("EditTool", function () {
             scene.pointerClickAt({ x: 50, y: 50 })
 
             expect(Tool.selection.has(path)).to.be.true
-            expect(scene.shapeeditor.svgView.style.cursor).to.contain("edit.svg")
+            expect(scene.shapeeditor.svg.style.cursor).to.contain("edit.svg")
         })
         it("temporarily show all handles on anchor when one handle is grabbed", function () {
             const scene = new ShapeEditorScene()
@@ -533,7 +533,7 @@ describe("EditTool", function () {
 
                     expect(path.toInternalString()).to.equal("E 20 30 E 90 50")
 
-                    expect(scene.shapeeditor.svgView.style.cursor).to.contain("edit.svg")
+                    expect(scene.shapeeditor.svg.style.cursor).to.contain("edit.svg")
                 })
             })
 

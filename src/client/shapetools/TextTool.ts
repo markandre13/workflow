@@ -70,8 +70,8 @@ export class TextTool extends Tool {
 
     override deactivate(editor: ShapeEditor) {
         this.stopEdit(editor)
-        this.setCursor(TextCursorType.NONE, editor.svgView)
-        editor.svgView.style.cursor = "default"
+        this.setCursor(TextCursorType.NONE, editor.svg)
+        editor.svg.style.cursor = "default"
         this.removeOutlines(editor)
         this.removeDecoration(editor)
     }
@@ -170,12 +170,12 @@ export class TextTool extends Tool {
         let shape = event.editor.selectedLayer!.findShapeAt(event)
         // console.log(`at ${event.x},${event.y} found ${shape}`)
         if (shape === undefined) {
-            this.setCursor(TextCursorType.AREA, event.editor.svgView)
+            this.setCursor(TextCursorType.AREA, event.editor.svg)
         } else {
             if (shape instanceof shapes.Text) {
-                this.setCursor(TextCursorType.EDIT, event.editor.svgView)
+                this.setCursor(TextCursorType.EDIT, event.editor.svg)
             } else {
-                this.setCursor(TextCursorType.SHAPE, event.editor.svgView)
+                this.setCursor(TextCursorType.SHAPE, event.editor.svg)
             }
         }
     }
@@ -215,7 +215,7 @@ export class TextTool extends Tool {
                 patternTransform="rotate(45)">
                <line x1="0" y1="0" x2="100" y2="0" style="stroke: rgb(79,128,255)" />
             </pattern>`
-        event.editor.svgView.appendChild(this.defs)
+        event.editor.svg.appendChild(this.defs)
 
         this.svgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
         this.svgRect.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
@@ -235,7 +235,7 @@ export class TextTool extends Tool {
 
     protected stopDrawTextArea(event: EditorPointerEvent) {
         event.editor.decoration.removeChild(this.svgRect)
-        event.editor.svgView.removeChild(this.defs)
+        event.editor.svg.removeChild(this.defs)
     }
 
     protected createTextArea(event: EditorPointerEvent) {

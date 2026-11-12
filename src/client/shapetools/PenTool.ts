@@ -468,16 +468,16 @@ export class PenTool extends Tool {
     setCursor(editor: ShapeEditor, cursor: Cursor) {
         switch (cursor) {
             case Cursor.DEFAULT:
-                editor.svgView.style.cursor = ""
+                editor.svg.style.cursor = ""
                 break
             case Cursor.READY:
-                editor.svgView.style.cursor = `url(${Tool.cursorPath}pen-ready.svg) 5 1, crosshair`
+                editor.svg.style.cursor = `url(${Tool.cursorPath}pen-ready.svg) 5 1, crosshair`
                 break
             case Cursor.ACTIVE:
-                editor.svgView.style.cursor = `url(${Tool.cursorPath}pen-active.svg) 5 1, crosshair`
+                editor.svg.style.cursor = `url(${Tool.cursorPath}pen-active.svg) 5 1, crosshair`
                 break
             case Cursor.DIRECT:
-                editor.svgView.style.cursor = `url(${Tool.cursorPath}edit-cursor.svg) 1 1, crosshair`
+                editor.svg.style.cursor = `url(${Tool.cursorPath}edit-cursor.svg) 1 1, crosshair`
                 break
         }
     }

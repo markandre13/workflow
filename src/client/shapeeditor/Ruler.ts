@@ -294,8 +294,8 @@ export class Ruler extends View {
         // the editor shows canvas coordinates from viewBox (its SVG origin) plus the scroll offset in canvas units,
         // which are pixels. labels are in the unit, so the origin and the spacing are converted to it
         const originPx = this.editor === undefined ? 0 : vertical
-            ? this.editor.svgView.viewBox.baseVal.y + this.editor.scrollTop / zoom
-            : this.editor.svgView.viewBox.baseVal.x + this.editor.scrollLeft / zoom
+            ? this.editor.svg.viewBox.baseVal.y + this.editor.scrollTop / zoom
+            : this.editor.svg.viewBox.baseVal.x + this.editor.scrollLeft / zoom
         const origin = originPx / this._unit
         const perUnit = zoom * this._unit
         if (!(perUnit > 0)) {
