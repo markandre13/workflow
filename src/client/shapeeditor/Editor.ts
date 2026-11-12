@@ -37,19 +37,11 @@ export class Editor extends ModelView<DrawingModel> {
             }
             this.scrolled()
         }
-        // this.onpointerdown = (ev: PointerEvent) => {
-        //     ev.preventDefault()
-        //     if (this.isOnScrollbar(ev)) {
-        //         this.scrollbarHeld = true
-        //         return
-        //     }
-        //     const pos = this.event2Pos(ev)
-        //     this.selected = this.shapeAt(pos)
-        //     if (this.selected) {
-        //         this.setPointerCapture(ev.pointerId)
-        //         this.pointerLastAt.set(pos)
-        //     }
-        // }
+        this.onpointerdown = (ev: PointerEvent) => {
+            if (this.isOnScrollbar(ev)) {
+                this.scrollbarHeld = true
+            }
+        }
         // this.onpointermove = (ev: PointerEvent) => {
         //     ev.preventDefault()
         //     if (this.selected) {
@@ -108,11 +100,11 @@ export class Editor extends ModelView<DrawingModel> {
         this.update()
     }
 
-    // add(shape: Shape) {
-    //     this.shapes.push(shape)
-    //     this.svg.appendChild(shape.updateSVG())
-    //     this.invalidate()
-    // }
+    add(shape: Shape) {
+        this.shapes.push(shape)
+        this.invalidate()
+    }
+
     bbox(): Rectangle | undefined {
         let result: Rectangle | undefined
         for (const shape of this.shapes) {
@@ -123,7 +115,8 @@ export class Editor extends ModelView<DrawingModel> {
             const origin = bbox.origin
             const corner = new Point(bbox.origin.x + bbox.size.width, bbox.origin.y + bbox.size.height)
             if (result === undefined) {
-                result = new Rectangle(bbox)
+                // copy, so that expanding the result does not change the shape
+                result = new Rectangle({ origin: { x: origin.x, y: origin.y }, size: { width: bbox.size.width, height: bbox.size.height } })
             } else {
                 result.expandByPoint(origin).expandByPoint(corner)
             }
@@ -356,3 +349,5 @@ export class Editor extends ModelView<DrawingModel> {
         return nearestShape
     }
 }
+
+window.customElements.define("tx-editor", Editor)
