@@ -183,7 +183,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
     //       layer (err... do we want layers at all? shape.Group would serve the same purpose... )
     //       so, if we can use the transformations on the <svg/> directly, we could get rid of
     //       the decorationOverlay and use this.outline and this.decoration directly
-    private decorationOverlay: SVGGElement
+    private overlay: SVGGElement
     // the <g/> to show outlines
     // * always the second to last element in svgView
     outline: SVGGElement
@@ -214,6 +214,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
 
         // the input catcher's task is to catch events for this view
         this.inputCatcher = document.createElement("div")
+        this.id = "input-catcher"
         this.inputCatcher.classList.add("stretch")
         this.inputCatcher.classList.add("inputCatcher")
         this.inputCatcher.contentEditable = "true"
@@ -230,19 +231,22 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         // this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         // this.scrollView.appendChild(this.svg)
 
-        this.decorationOverlay = document.createElementNS("http://www.w3.org/2000/svg", "g")
-        this.svg.appendChild(this.decorationOverlay)
+        this.overlay = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        this.overlay.id = "overlay"
+        this.svg.appendChild(this.overlay)
 
         this.outline = document.createElementNS("http://www.w3.org/2000/svg", "g")
-        this.decorationOverlay.appendChild(this.outline)
+        this.outline.id = "overlay-outline"
+        this.overlay.appendChild(this.outline)
 
         this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
-        this.decorationOverlay.appendChild(this.decoration)
+        this.decoration.id = "overlay-decoration"
+        this.overlay.appendChild(this.decoration)
 
         // console.log(this.shadowRoot)
         this.shadowRoot!.append(this.inputCatcher)
         // this.shadowRoot!.insertBefore(this.inputCatcher, this.svg)
-        this.svg.appendChild(this.decorationOverlay)
+        this.svg.appendChild(this.overlay)
 
         // FIXME: we've overloaded setModel but it's called by the super class which causes some issues, so we do it here again
         // setInitialProperties(this, props) // this was the earlier workaround???
@@ -360,7 +364,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         if (!this.layer) { // FIXME: this is a kludge to handle one layer, but we want to handle adding/removing multiple layers
             this.layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
             this.layer.style.cursor = "inherit"
-            this.svg.insertBefore(this.layer, this.decorationOverlay)
+            this.svg.insertBefore(this.layer, this.overlay)
         }
         let layer = this.layer
 
