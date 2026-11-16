@@ -19,7 +19,7 @@
 import { bind } from "client/utils/bind-decorator"
 
 import { Rectangle } from "shared/geometry/Rectangle"
-import { PointLike } from "shared/geometry/Point"
+import { Point, PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { AbstractPath } from "client/paths"
 import { Shape } from "shared/workflow_valuetype"
@@ -35,9 +35,8 @@ import { DrawingEvent } from "./DrawingEvent"
 
 import * as shape from "../shapes"
 import { ALL } from "toad.js/appkit/Model"
-import { HTMLElementProps, setInitialProperties } from "toad.jsx/jsx-runtime"
-import { Size } from "shared/geometry"
-import { Editor } from "./Editor"
+import { HTMLElementProps } from "toad.jsx/jsx-runtime"
+import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -170,9 +169,11 @@ interface ShapeEditorProps extends HTMLElementProps {
     strokeandfill?: StrokeAndFillModel
 }
 
-export class ShapeEditor extends Editor {
+let instanceCounter = 0
+
+export class ShapeEditor extends ScrollableVectorGraphics {
+    instance = ++instanceCounter
     inputCatcher: HTMLDivElement
-    scrollView: HTMLDivElement
 
     // <g/> to render outlines, handles, anchors when editing
     // * always the last element in svgView
@@ -189,9 +190,6 @@ export class ShapeEditor extends Editor {
     // the <g/> to show anchors, handles, ...
     // * always the last element in svgView
     decoration: SVGGElement
-
-    bounds: Rectangle // bounds of whut?
-    // zoom: number // zoom factor
 
     tool?: Tool // current tool
     toolModel?: ToolModel // all available tools
@@ -213,8 +211,6 @@ export class ShapeEditor extends Editor {
 
         this.cache = new Map<number, CacheEntry>()
         this.pointerIsDown = false
-        this.bounds = new Rectangle()
-        // this.zoom = 1.0
 
         // the input catcher's task is to catch events for this view
         this.inputCatcher = document.createElement("div")
@@ -227,15 +223,12 @@ export class ShapeEditor extends Editor {
         this.inputCatcher.addEventListener("copy", this.clipboard)
         this.inputCatcher.addEventListener("paste", this.clipboard)
 
-        this.scrollView = document.createElement("div")
-        this.scrollView.classList.add("stretch")
-        this.scrollView.classList.add("scrollView")
-        this.scrollView.addEventListener("pointerdown", this.pointerDown)
-        this.scrollView.addEventListener("pointermove", this.pointerMove)
-        this.scrollView.addEventListener("pointerup", this.pointerUp)
+        this.addEventListener("pointerdown", this.pointerDown)
+        this.addEventListener("pointermove", this.pointerMove)
+        this.addEventListener("pointerup", this.pointerUp)
 
-        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-        this.scrollView.appendChild(this.svg)
+        // this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        // this.scrollView.appendChild(this.svg)
 
         this.decorationOverlay = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.svg.appendChild(this.decorationOverlay)
@@ -246,16 +239,22 @@ export class ShapeEditor extends Editor {
         this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.decorationOverlay.appendChild(this.decoration)
 
-        // this.attachShadow({ mode: 'open' })
-        // this.shadowRoot!.appendChild(document.importNode(style, true))
-        // this.shadowRoot!.appendChild(this.inputCatcher)
-        // this.shadowRoot!.appendChild(this.scrollView)
+        // console.log(this.shadowRoot)
+        this.shadowRoot!.append(this.inputCatcher)
+        // this.shadowRoot!.insertBefore(this.inputCatcher, this.svg)
+        this.svg.appendChild(this.decorationOverlay)
 
-        // setInitialProperties(this, props)
-        if (props?.tool)
+        // FIXME: we've overloaded setModel but it's called by the super class which causes some issues, so we do it here again
+        // setInitialProperties(this, props) // this was the earlier workaround???
+
+        this.setModel(undefined)
+        if (props?.tool) {
             this.setModel(props.tool as any)
-        if (props?.strokeandfill)
+        }
+        if (props?.strokeandfill) {
             this.setModel(props.strokeandfill as any)
+        }
+        this.setModel(props?.model)
 
         // FIXME: get menubar actions working again
         // action("object|arrange|front", () => {
@@ -328,13 +327,22 @@ export class ShapeEditor extends Editor {
             }, this)
         }
         else {
-            super.setModel(model as DrawingModel)
+            if (this.model !== model) {
+                super.setModel(model as DrawingModel)
+                this.selectedLayer = model.layers[0]
+            }
         }
+        this.invalidate()
+    }
+
+    override update(): void {
+        this.updateView(undefined as any)
+        // super.update()
     }
 
     // called whenever the model is modified
     override updateView(xxx: DrawingEvent) {
-        // console.log(`ShapeEditor.updateView(${JSON.stringify(xxx)})`)
+        // console.log(`ShapeEditor[${this.instance}].updateView(${JSON.stringify(xxx)})`)
         if (this.model === undefined || this.model.layers.length === 0) {
             return
         }
@@ -503,17 +511,41 @@ export class ShapeEditor extends Editor {
             } break
 
         }
+        super.update()
 
         // update scrollbars
         // FIXME: replace setTimeout(..., 0) with something like, afterRendering(...)
-        setTimeout(() => {
-            this.bounds.expandByPoint({ x: this.scrollView.offsetWidth, y: this.scrollView.offsetHeight })
-            this.svg.style.width = this.bounds.size.width + "px"
-            this.svg.style.height = this.bounds.size.height + "px"
-            this.adjustBounds()
-            this.scrollView.scrollLeft = -this.bounds.origin.x
-            this.scrollView.scrollTop = -this.bounds.origin.y
-        }, 0)
+        // setTimeout(() => {
+        //     this.bounds.expandByPoint({ x: this.scrollView.offsetWidth, y: this.scrollView.offsetHeight })
+        //     this.svg.style.width = this.bounds.size.width + "px"
+        //     this.svg.style.height = this.bounds.size.height + "px"
+        //     this.adjustBounds()
+        //     this.scrollView.scrollLeft = -this.bounds.origin.x
+        //     this.scrollView.scrollTop = -this.bounds.origin.y
+        // }, 0)
+    }
+
+    override bbox(): Rectangle | undefined {
+        let result: Rectangle | undefined
+        for (const pair of this.cache) {
+            const shape = pair[1].svg
+            let bbox: DOMRect | undefined
+            if (shape instanceof SVGSVGElement || shape instanceof SVGPathElement) {
+                bbox = shape.getBBox()
+            }
+            if (bbox === undefined) {
+                continue
+            }
+            const origin = new Point(bbox.x, bbox.y)
+            const corner = new Point(bbox.x + bbox.width, bbox.y + bbox.height)
+            if (result === undefined) {
+                // copy, so that expanding the result does not change the shape
+                result = new Rectangle({ origin: { x: origin.x, y: origin.y }, size: { width: bbox.width, height: bbox.height } })
+            } else {
+                result.expandByPoint(origin).expandByPoint(corner)
+            }
+        }
+        return result
     }
 
     protected removeFromLayer(layer: SVGElement, shapes: number[]) {
@@ -552,49 +584,49 @@ export class ShapeEditor extends Editor {
         return result
     }
 
-    adjustBounds(): void {
-        if (!this.model)
-            return
-        let bounds = new Rectangle()
-        // include the viewing ports center
-        bounds.expandByPoint({
-            x: this.scrollView.offsetWidth / this.zoom,
-            y: this.scrollView.offsetHeight / this.zoom
-        })
-        // include all shapes
-        for (let shape of this.model.layers[0]!.data) {
-            bounds.expandByRectangle(shape.bounds())
-        }
-        // include visible areas top, left corner
-        bounds.expandByPoint({
-            x: this.bounds.origin.x + this.scrollView.scrollLeft,
-            y: this.bounds.origin.y + this.scrollView.scrollTop
-        })
-        // include visible areas bottom, right corner
-        bounds.expandByPoint({
-            x: this.bounds.origin.x + this.scrollView.scrollLeft + this.scrollView.clientWidth / this.zoom,
-            y: this.bounds.origin.y + this.scrollView.scrollTop + this.scrollView.clientHeight / this.zoom
-        })
-        let x = this.bounds.origin.x + this.scrollView.scrollLeft - bounds.origin.x
-        let y = this.bounds.origin.y + this.scrollView.scrollTop - bounds.origin.y
-        /*
-        console.log("adjustBounds after scrolling")
-        console.log("  old bounds   =("+editor.bounds.origin.x+","+editor.bounds.origin.y+","+editor.bounds.size.width+","+editor.bounds.size.height+")")
-        console.log("  new bounds   =("+bounds.origin.x+","+bounds.origin.y+","+bounds.size.width+","+bounds.size.height+")")
-        console.log("  scroll       =("+editor.window.scrollLeft+","+editor.window.scrollTop+")")
-        console.log("  scroll mapped=("+(editor.bounds.origin.x+editor.window.scrollLeft)+","+(editor.bounds.origin.y+editor.window.scrollTop)+")")
-        console.log("  new scroll   =("+x+","+y+")")
-        */
-        let zoomString = String(this.zoom)
-        let scale = "scale(" + zoomString + " " + zoomString + ")"
-        this.layer!.setAttributeNS("", "transform", "translate(" + (-bounds.origin.x) + " " + (-bounds.origin.y) + ") " + scale)
-        this.decorationOverlay.setAttributeNS("", "transform", "translate(" + (-bounds.origin.x) + " " + (-bounds.origin.y) + ") " + scale)
-        this.svg.style.width = (bounds.size.width * this.zoom) + "px"
-        this.svg.style.height = (bounds.size.height * this.zoom) + "px"
-        this.scrollView.scrollLeft = x
-        this.scrollView.scrollTop = y
-        this.bounds = bounds
-    }
+    // adjustBounds(): void {
+    //     if (!this.model)
+    //         return
+    //     let bounds = new Rectangle()
+    //     // include the viewing ports center
+    //     bounds.expandByPoint({
+    //         x: this.scrollView.offsetWidth / this.zoom,
+    //         y: this.scrollView.offsetHeight / this.zoom
+    //     })
+    //     // include all shapes
+    //     for (let shape of this.model.layers[0]!.data) {
+    //         bounds.expandByRectangle(shape.bounds())
+    //     }
+    //     // include visible areas top, left corner
+    //     bounds.expandByPoint({
+    //         x: this.bounds.origin.x + this.scrollView.scrollLeft,
+    //         y: this.bounds.origin.y + this.scrollView.scrollTop
+    //     })
+    //     // include visible areas bottom, right corner
+    //     bounds.expandByPoint({
+    //         x: this.bounds.origin.x + this.scrollView.scrollLeft + this.scrollView.clientWidth / this.zoom,
+    //         y: this.bounds.origin.y + this.scrollView.scrollTop + this.scrollView.clientHeight / this.zoom
+    //     })
+    //     let x = this.bounds.origin.x + this.scrollView.scrollLeft - bounds.origin.x
+    //     let y = this.bounds.origin.y + this.scrollView.scrollTop - bounds.origin.y
+    //     /*
+    //     console.log("adjustBounds after scrolling")
+    //     console.log("  old bounds   =("+editor.bounds.origin.x+","+editor.bounds.origin.y+","+editor.bounds.size.width+","+editor.bounds.size.height+")")
+    //     console.log("  new bounds   =("+bounds.origin.x+","+bounds.origin.y+","+bounds.size.width+","+bounds.size.height+")")
+    //     console.log("  scroll       =("+editor.window.scrollLeft+","+editor.window.scrollTop+")")
+    //     console.log("  scroll mapped=("+(editor.bounds.origin.x+editor.window.scrollLeft)+","+(editor.bounds.origin.y+editor.window.scrollTop)+")")
+    //     console.log("  new scroll   =("+x+","+y+")")
+    //     */
+    //     let zoomString = String(this.zoom)
+    //     let scale = "scale(" + zoomString + " " + zoomString + ")"
+    //     this.layer!.setAttributeNS("", "transform", "translate(" + (-bounds.origin.x) + " " + (-bounds.origin.y) + ") " + scale)
+    //     this.decorationOverlay.setAttributeNS("", "transform", "translate(" + (-bounds.origin.x) + " " + (-bounds.origin.y) + ") " + scale)
+    //     this.svg.style.width = (bounds.size.width * this.zoom) + "px"
+    //     this.svg.style.height = (bounds.size.height * this.zoom) + "px"
+    //     this.scrollView.scrollLeft = x
+    //     this.scrollView.scrollTop = y
+    //     this.bounds = bounds
+    // }
 
     transformSelection(matrix: Matrix): void {
         // console.log("ShapeEditor.transformSelection()")
@@ -626,11 +658,9 @@ export class ShapeEditor extends Editor {
     //
 
     @bind pointerDown(pointerEvent: PointerEvent) {
-        console.log(`ShapeEditor.pointerDown()`)
-        // console.log(this.tool)
-        // console.log(this.selectedLayer)
+        // console.log(`ShapeEditor[${this.instance}].pointerDown()`)
 
-        this.scrollView.setPointerCapture(pointerEvent.pointerId)
+        this.setPointerCapture(pointerEvent.pointerId)
 
         this.inputCatcher.focus({ preventScroll: true })
         pointerEvent.preventDefault()
@@ -678,13 +708,14 @@ export class ShapeEditor extends Editor {
         }
         // (e.clientX-r.left, e.clientY-r.top) begins at the upper left corner of the editor window
         //                                     scrolling and origin are ignored
-        let r = this.scrollView.getBoundingClientRect()
-        let x = (event.clientX + 0.5 - r.left + this.scrollView.scrollLeft + this.bounds.origin.x) / this.zoom
-        let y = (event.clientY + 0.5 - r.top + this.scrollView.scrollTop + this.bounds.origin.y) / this.zoom
+        let r = this.getBoundingClientRect()
+        // let x = (event.clientX + 0.5 - r.left + this.scrollLeft) / this.zoom
+        // let y = (event.clientY + 0.5 - r.top + this.scrollTop) / this.zoom
+        const pos = this.event2Pos(event)
         return {
             editor: this,
-            x: x,
-            y: y,
+            x: pos.x,
+            y: pos.y,
             shiftKey: event.shiftKey,
             altKey: event.altKey,
             metaKey: event.metaKey,
@@ -739,4 +770,4 @@ export class ShapeEditor extends Editor {
     }
 }
 
-ShapeEditor.define("toad-shapeeditor", ShapeEditor)
+ShapeEditor.define("tx-shapeeditor", ShapeEditor)

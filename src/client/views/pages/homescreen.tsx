@@ -25,7 +25,7 @@ import { ColorSwatchModel } from "../widgets/colorswatch"
 import { ToolModel } from "client/shapetools/ToolModel"
 import { DrawingModel } from "client/shapeeditor"
 import { HtmlModel } from "toad.js/appkit/HtmlModel"
-import { Fragment } from "toad.jsx/jsx-runtime"
+import { Fragment, makeRef } from "toad.jsx/jsx-runtime"
 import { ToolButton } from "toad.js/viewkit/ToolButton"
 import { Menu } from "toad.js/menu/Menu"
 import { Action } from "toad.js/appkit/Action"
@@ -67,7 +67,8 @@ export function homeScreen(
     const setcolor = new Action((data?: any) => {
         strokeandfill.set(data)
     })
-    return (
+    let editor = makeRef<ShapeEditor>(), vruler = makeRef<Ruler>(), hruler = makeRef<Ruler>()
+    let dom = (
         <>
             <img src="img/logo.svg" width="44" height="44" style={{ position: "absolute", left: "2px", top: "2px" }} />
             <div class="toolbar">
@@ -99,13 +100,14 @@ export function homeScreen(
                 <ColorSwatch model={colorswatch} action={setcolor} />
             </div>
             <ShapeEditor
+                ref={editor}
                 model={drawing}
                 tool={tool}
                 strokeandfill={strokeandfill}
                 style={{ position: "absolute", left: "69px", right: "0px", top: "69px", bottom: "24px" }}
             />
-            <Ruler style={{ position: "absolute", left: "69px", right: "0px", top: "49px", height: "20px" }}/>
-            <Ruler orientation="vertical" style={{ position: "absolute", left: "49px", width: "20px", top: "69px", bottom: "24px" }}/>
+            <Ruler ref={hruler} style={{ position: "absolute", left: "69px", right: "0px", top: "49px", height: "20px" }} />
+            <Ruler ref={vruler} orientation="vertical" style={{ position: "absolute", left: "49px", width: "20px", top: "69px", bottom: "24px" }} />
             <div id="hint" style={{ position: "absolute", left: "0", right: "0", height: "24px", bottom: "0" }}></div>
             <div style={{ position: "absolute", left: "48px", right: "0", top: "0" }}>
                 <Menu
@@ -218,4 +220,8 @@ export function homeScreen(
             </div>
         </>
     ) as Fragment
+
+    hruler.current.attach(editor.current)
+    vruler.current.attach(editor.current)
+    return dom
 }

@@ -48,21 +48,21 @@ export async function main(url: string|undefined = undefined) {
     initializeCORBAValueTypes()
  
     // if this fails, fall back to serverless
-    try {
-        const workflowserver = stub.WorkflowServer.narrow(
-            await orb.stringToObject(`corbaname::${window.location.hostname}:8809#WorkflowServer`)
-        )
-        // FIXME: corba.js can't do that yet, but the idea is that the connection re-establishes on it's own
-        orb.onclose = () => {
-            document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
-        }
-        const sessionServerSide = await workflowserver.getServer()
-        const sessionClientSide = new Client_impl(orb, sessionServerSide)
-    }
-    catch(e) {
-        console.log(`Failed to connect to WorkFlow server, falling back to serverless.`)
+    // try {
+    //     const workflowserver = stub.WorkflowServer.narrow(
+    //         await orb.stringToObject(`corbaname::${window.location.hostname}:8809#WorkflowServer`)
+    //     )
+    //     // FIXME: corba.js can't do that yet, but the idea is that the connection re-establishes on it's own
+    //     orb.onclose = () => {
+    //         document.body.innerHTML = "lost connection to workflow server '"+url+"'. please reload."
+    //     }
+    //     const sessionServerSide = await workflowserver.getServer()
+    //     const sessionClientSide = new Client_impl(orb, sessionServerSide)
+    // }
+    // catch(e) {
+        // console.log(`Failed to connect to WorkFlow server, falling back to serverless.`)
         new Client_impl(orb)
-    }
+    // }
 }
 
 export function initializeORB(orb: ORB) {

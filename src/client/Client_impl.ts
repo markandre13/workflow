@@ -22,7 +22,7 @@ import { ORB } from "corba.js"
 import * as inf from "shared/workflow"
 import * as skel from "shared/workflow_skel"
 
-import { Rectangle, Circle } from "./shapes"
+import { Rectangle as RectangleShape, Circle as CircleShape } from "./shapes"
 
 import { ArrangeTool, EditTool, PenTool, ShapeTool, TextTool } from "./shapetools"
 import { ToolModel } from "./shapetools/ToolModel"
@@ -158,7 +158,7 @@ export class Client_impl extends skel.Client {
         // MODEL
         const tool = this.createToolModel()
         const strokeandfill = this.createStrokeAndFillModel()
-        
+
         const colorswatch = new ColorSwatchModel()
         const avatar = this.createAvatarModel("img/avatars/whale.svg") // FIXME: hack which only works only for offline
 
@@ -183,50 +183,55 @@ export class Client_impl extends skel.Client {
         let model = new LocalDrawingModel()
         let layer = new Layer()
 
-        try {
-            const db = await xdb.openDatabase("workflow2", 1, (event: IDBVersionChangeEvent) => {
-                const db = (event.target as IDBOpenDBRequest).result
-                if (event.oldVersion < 1) {
-                    console.log(`IndexedDB: update to version 1`)
-                    db.createObjectStore("document", {keyPath: "name"})
-                } else {
-                    console.log(`IndexedDB: no update required. on version 1`)
-                }
-            })
-            const page = await xdb.get(db, "document", "Untitled.wf") as {name: string, content: ArrayBuffer}
+        // try {
+        //     const db = await xdb.openDatabase("workflow2", 1, (event: IDBVersionChangeEvent) => {
+        //         const db = (event.target as IDBOpenDBRequest).result
+        //         if (event.oldVersion < 1) {
+        //             console.log(`IndexedDB: update to version 1`)
+        //             db.createObjectStore("document", {keyPath: "name"})
+        //         } else {
+        //             console.log(`IndexedDB: no update required. on version 1`)
+        //         }
+        //     })
+        //     const page = await xdb.get(db, "document", "Untitled.wf") as {name: string, content: ArrayBuffer}
 
-            if (page === undefined) {
-                console.log("CREATE INITIAL PAGE")
-                await xdb.add(db, "document", {name: "Untitled.wf", content: new ArrayBuffer(0)})
-            } else {
-                console.log("FOUND PREVIOUS PAGE")
-                // console.log(page)
-                if (page.content.byteLength > 0) {
-                    try {
-                        const layer2 = this._orb.deserialize(page.content) as Layer
-                        layer.data = layer2.data
-                    }
-                    catch(error) {
-                        console.log(`Failed to deserialize 'Untitled.wf': ${error}`) 
-                    }
-                }
-            }
-            model.signal.add( () => {
-                console.log("SAVE")
-                xdb.put(db, "document", {name: "Untitled.wf", content: this._orb.serialize(layer)})
-            })
-        }
-        catch(error) {
-            console.log(`Failed to access workflow's IndexedDB: ${error}`)
-            console.log(error)
-            console.log(`Deleting IndexedDB`)
-            await xdb.deleteDatabase("workflow")
-            await xdb.deleteDatabase("workflow2")
-            let layer = new Layer()
-        }
-
+        //     if (page === undefined) {
+        //         console.log("CREATE INITIAL PAGE")
+        //         await xdb.add(db, "document", {name: "Untitled.wf", content: new ArrayBuffer(0)})
+        //     } else {
+        //         console.log("FOUND PREVIOUS PAGE")
+        //         // console.log(page)
+        //         if (page.content.byteLength > 0) {
+        //             try {
+        //                 const layer2 = this._orb.deserialize(page.content) as Layer
+        //                 layer.data = layer2.data
+        //             }
+        //             catch(error) {
+        //                 console.log(`Failed to deserialize 'Untitled.wf': ${error}`) 
+        //             }
+        //         }
+        //     }
+        //     model.signal.add( () => {
+        //         console.log("SAVE")
+        //         xdb.put(db, "document", {name: "Untitled.wf", content: this._orb.serialize(layer)})
+        //     })
+        // }
+        // catch(error) {
+        //     console.log(`Failed to access workflow's IndexedDB: ${error}`)
+        //     console.log(error)
+        //     console.log(`Deleting IndexedDB`)
+        //     await xdb.deleteDatabase("workflow")
+        //     await xdb.deleteDatabase("workflow2")
+        // }
 
         model.layers.push(layer)
+
+        const r = new RectangleShape({ id: 1, origin: { x: 50.5, y: 70.5 }, size: { width: 80, height: 20 } })
+        r.stroke = "#000"
+        r.strokeWidth = 1
+        r.fill = "#f80"
+        model.add(layer.id, r)
+
         // bindModel("board", model)
 
         // FIXME: move into shape editor?
@@ -236,14 +241,14 @@ export class Client_impl extends skel.Client {
         action("file|import", () => {
             new ImportDrawing(model, this._orb)
         })
-        action("file|delete", async ()=> {
+        action("file|delete", async () => {
             let all: number[] = []
             for (let shape of model.layers[0].data) {
                 all.push(shape.id)
             }
             model.delete(model.layers[0].id, all)
             await xdb.deleteDatabase("workflow")
-            await xdb.deleteDatabase("workflow2")           
+            await xdb.deleteDatabase("workflow2")
         })
 
         const homeScreen = this.getHomeScreen(model)
@@ -285,8 +290,8 @@ export class Client_impl extends skel.Client {
             [arrangeTool, "arrange"],
             [new EditTool(), "edit"],
             [new PenTool(), "pen"],
-            [new ShapeTool(Rectangle), "rectangle"],
-            [new ShapeTool(Circle), "circle"],
+            [new ShapeTool(RectangleShape), "rectangle"],
+            [new ShapeTool(CircleShape), "circle"],
             [new TextTool(), "text"]
         ])
         // bindModel("tool", toolmodel) // for tool buttons

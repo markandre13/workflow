@@ -537,7 +537,7 @@ export class PathEditor extends EditToolEditor {
                 return true
             }
 
-            event.editor.scrollView.style.cursor = `url(${Tool.cursorPath}edit-cursor.svg) 1 1, crosshair`
+            event.editor.style.cursor = `url(${Tool.cursorPath}edit-cursor.svg) 1 1, crosshair`
             this.selectAnchor(event)
             this.updateHandles()
 

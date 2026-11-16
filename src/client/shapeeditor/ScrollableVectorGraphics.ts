@@ -1,15 +1,14 @@
 import { DrawingModel } from "client/shapeeditor"
 import { Point } from "shared/geometry"
-import { PointLike } from "shared/geometry/Point"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Shape } from "shared/workflow_valuetype"
-import { ModelView } from "toad.js/viewkit/ModelView"
-import { HTMLElementProps } from "toad.jsx"
+import { ModelView, ModelViewProps } from "toad.js/viewkit/ModelView"
 import { style } from "./ShapeEditor"
 
-export class Editor extends ModelView<DrawingModel> {
+export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
     svg: SVGSVGElement
-    private shapes: Shape[] = [];
+
+    abstract bbox(): Rectangle | undefined
 
     selected: Shape | undefined = undefined;
     private readonly pointerLastAt = new Point();
@@ -19,7 +18,7 @@ export class Editor extends ModelView<DrawingModel> {
         return { x: pt.x, y: pt.y }
     }
 
-    constructor(props?: HTMLElementProps) {
+    constructor(props?: ModelViewProps<DrawingModel>) {
         super(props)
         const shadow = this.attachShadow({ mode: "open" })
         shadow.appendChild(document.importNode(style, true))
@@ -100,30 +99,6 @@ export class Editor extends ModelView<DrawingModel> {
         this.update()
     }
 
-    add(shape: Shape) {
-        this.shapes.push(shape)
-        this.invalidate()
-    }
-
-    bbox(): Rectangle | undefined {
-        let result: Rectangle | undefined
-        for (const shape of this.shapes) {
-            const bbox = shape.bounds()
-            if (bbox === undefined) {
-                continue
-            }
-            const origin = bbox.origin
-            const corner = new Point(bbox.origin.x + bbox.size.width, bbox.origin.y + bbox.size.height)
-            if (result === undefined) {
-                // copy, so that expanding the result does not change the shape
-                result = new Rectangle({ origin: { x: origin.x, y: origin.y }, size: { width: bbox.size.width, height: bbox.size.height } })
-            } else {
-                result.expandByPoint(origin).expandByPoint(corner)
-            }
-        }
-        return result
-    }
-
     private extent: { x0: number; y0: number; x1: number; y1: number}  | undefined
     private panTarget: { x: number; y: number}  | undefined
     private _zoom = 1;
@@ -151,6 +126,9 @@ export class Editor extends ModelView<DrawingModel> {
         }
         this._invalid = false
         const bbox = this.bbox()
+
+        // console.log(`Editor.update(): bbox=${bbox}`)
+
         if (bbox === undefined) {
             this.svg.style.left = ""
             this.svg.style.top = ""
@@ -193,7 +171,7 @@ export class Editor extends ModelView<DrawingModel> {
         const { x0, y0 } = this.extent
         // the visible area is part of the canvas, but a scrollbar takes space from it. Decide each scrollbar from the
         // box size (which the scrollbars do not change), so the sizes settle in one step instead of oscillating
-        const thickness = Editor.scrollbarThickness()
+        const thickness = ScrollableVectorGraphics.scrollbarThickness()
         const boxW = this.offsetWidth
         const boxH = this.offsetHeight
         const extent = this.extent
@@ -315,39 +293,13 @@ export class Editor extends ModelView<DrawingModel> {
 
     // the width of a vertical scrollbar, which is the height of a horizontal one. zero when scrollbars take no space
     private static scrollbarThickness(): number {
-        if (Editor.thickness === undefined) {
+        if (ScrollableVectorGraphics.thickness === undefined) {
             const probe = document.createElement("div")
             probe.style.cssText = "position: absolute; top: -9999px; width: 100px; height: 100px; overflow: scroll"
             document.body.appendChild(probe)
-            Editor.thickness = probe.offsetWidth - probe.clientWidth
+            ScrollableVectorGraphics.thickness = probe.offsetWidth - probe.clientWidth
             probe.remove()
         }
-        return Editor.thickness
-    }
-
-    shapeAt(pt: PointLike): Shape | undefined {
-        let mindist = Number.POSITIVE_INFINITY
-        let nearestShape: Shape | undefined
-        for (let index = this.shapes.length - 1; index >= 0; --index) {
-            let shape = this.shapes[index]
-            let pointInShapeSpace
-            if (shape.matrix !== undefined) {
-                // pointInShapeSpace = new Matrix(shape.matrix).invert().transformPoint(point)
-                throw Error("yikes")
-            } else {
-                pointInShapeSpace = pt
-            }
-            let d = shape.distance(pointInShapeSpace)
-            if (d < mindist) {
-                mindist = d
-                nearestShape = shape
-            }
-        }
-        if (mindist >= Editor.SHAPE_RANGE) {
-            return undefined
-        }
-        return nearestShape
+        return ScrollableVectorGraphics.thickness
     }
 }
-
-window.customElements.define("tx-editor", Editor)

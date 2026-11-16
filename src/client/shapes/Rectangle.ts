@@ -41,8 +41,11 @@ export class Rectangle extends BoxShape implements valuetype.shape.Rectangle {
         return path
     }
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
-        if (!svg)
+        if (!svg) {
             svg = document.createElementNS("http://www.w3.org/2000/svg", "path") 
+        }
+        // console.log(`Rectangle.updateSVG()`)
+        // console.log(this)
         svg.setAttributeNS("", "d", (path as Path).toString())
         svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
         svg.setAttributeNS("", "stroke", this.stroke)

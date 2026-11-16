@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 
 import { Ruler, Orientation } from "client/shapeeditor/Ruler"
-import { Editor } from "client/shapeeditor/Editor"
+import { ScrollableVectorGraphics } from "client/shapeeditor/ScrollableVectorGraphics"
 import { Rectangle } from "client/shapes"
 import { screenSync } from "./screenSync"
 
@@ -12,7 +12,7 @@ function rectangle(x: number, y: number, width: number, height: number): Rectang
 }
 
 class RulerPage {
-    readonly editor = new Editor()
+    readonly editor = new ScrollableVectorGraphics()
     readonly ruler = new Ruler()
 
     constructor(orientation: Orientation = "horizontal") {

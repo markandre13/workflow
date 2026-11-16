@@ -1,6 +1,6 @@
 import { View } from "toad.js/viewkit/View"
 import { HTMLElementProps } from "toad.jsx/jsx-runtime"
-import { Editor } from "./Editor"
+import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
 
 const style = document.createElement("style")
 style.textContent = `
@@ -198,7 +198,7 @@ interface RulerProps extends HTMLElementProps {
 export class Ruler extends View {
     svg!: SVGSVGElement
     orientation: Orientation = "horizontal"
-    private editor?: Editor
+    private editor?: ScrollableVectorGraphics
     private panAt: { x: number, y: number } | undefined
     private _unit = 1
     private _halves = false
@@ -275,7 +275,7 @@ export class Ruler extends View {
         }
     }
 
-    attach(editor: Editor) {
+    attach(editor: ScrollableVectorGraphics) {
         this.editor = editor
         editor.addEventListener("viewchange", () => this.update())
         // scrolling changes the origin right away, even when the editor defers its update until the button is released
