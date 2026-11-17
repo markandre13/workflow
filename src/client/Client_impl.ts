@@ -26,23 +26,25 @@ import { Rectangle as RectangleShape, Circle as CircleShape } from "./shapes"
 
 import { ArrangeTool, EditTool, PenTool, ShapeTool, TextTool } from "./shapetools"
 import { ToolModel } from "./shapetools/ToolModel"
-import { StrokeAndFillModel } from "./views/widgets/strokeandfill"
+import { StrokeAndFillModel } from "./view/widgets/strokeandfill"
 
 import { BoardModel } from "./BoardModel"
 import { BoardListener_impl } from "./BoardListener_impl"
 import { LocalDrawingModel } from "./shapeeditor/LocalDrawingModel"
 
-import { ColorSwatchModel } from "client/views/widgets/colorswatch"
+import { ColorSwatchModel } from "client/view/widgets/colorswatch"
 import { DrawingModel } from "client/shapeeditor"
 
-import { homeScreen } from "client/views/pages/homescreen"
+import { homeScreen } from "client/view/pages/homescreen"
 import * as xdb from "./utils/indexeddb"
 import { Layer } from "./shapeeditor/Layer"
-import { ExportDrawing } from "./views/dialogs/ExportDrawing"
-import { ImportDrawing } from "./views/dialogs/ImportDrawing"
+import { ExportDrawingDialog } from "./view/dialogs/ExportDrawingDialog"
+import { ImportDrawingDialog } from "./view/dialogs/ImportDrawingDialog"
 import { HtmlModel } from "toad.js/appkit/HtmlModel"
 import { action } from "toad.js/appkit/Action"
 import { TextModel } from "toad.js/appkit/TextModel"
+import { DocumentSettingsDialog } from "./view/dialogs/DocumentSettingsDialog"
+import { DocumentSettings } from "./app/DocumentSettings"
 
 namespace dom {
     export function erase(n: Element): void {
@@ -236,10 +238,10 @@ export class Client_impl extends skel.Client {
 
         // FIXME: move into shape editor?
         action("file|export", () => {
-            new ExportDrawing("Untitled.wf", layer, this._orb)
+            new ExportDrawingDialog("Untitled.wf", layer, this._orb)
         })
         action("file|import", () => {
-            new ImportDrawing(model, this._orb)
+            new ImportDrawingDialog(model, this._orb)
         })
         action("file|delete", async () => {
             let all: number[] = []
@@ -249,6 +251,10 @@ export class Client_impl extends skel.Client {
             model.delete(model.layers[0].id, all)
             await xdb.deleteDatabase("workflow")
             await xdb.deleteDatabase("workflow2")
+        })
+
+        action("file|document-settings", () => {
+            new DocumentSettingsDialog(model.documentSettings)
         })
 
         const homeScreen = this.getHomeScreen(model)

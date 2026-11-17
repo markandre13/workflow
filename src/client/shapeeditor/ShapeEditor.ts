@@ -24,7 +24,7 @@ import { Matrix } from "shared/geometry/Matrix"
 import { AbstractPath } from "client/paths"
 import { Shape } from "shared/workflow_valuetype"
 import { Tool } from "client/shapetools"
-import { StrokeAndFillModel } from "client/views/widgets/strokeandfill"
+import { StrokeAndFillModel } from "client/view/widgets/strokeandfill"
 import { ToolModel } from "client/shapetools/ToolModel"
 import { Layer } from "./Layer"
 import { DrawingModel } from "./DrawingModel"
@@ -37,6 +37,7 @@ import * as shape from "../shapes"
 import { ALL } from "toad.js/appkit/Model"
 import { HTMLElementProps } from "toad.jsx/jsx-runtime"
 import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
+import { unitDefinitions } from "client/app/unitDefinitions"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -190,6 +191,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
     // the <g/> to show anchors, handles, ...
     // * always the last element in svgView
     decoration: SVGGElement
+    documentOutline: SVGGElement
 
     tool?: Tool // current tool
     toolModel?: ToolModel // all available tools
@@ -234,6 +236,10 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         this.overlay = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.overlay.id = "overlay"
         this.svg.appendChild(this.overlay)
+
+        this.documentOutline = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        this.documentOutline.id = "overlay-document"
+        this.overlay.appendChild(this.documentOutline)
 
         this.outline = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.outline.id = "overlay-outline"
@@ -332,11 +338,49 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         }
         else {
             if (this.model !== model) {
+                this.model?.documentSettings.signal.remove(this)
+
                 super.setModel(model as DrawingModel)
                 this.selectedLayer = model.layers[0]
+                
+                this.model?.documentSettings.signal.add(this.updatePaper, this)
+                this.updatePaper()
             }
         }
         this.invalidate()
+    }
+
+    /**
+     * Draw frame representing the document's size and bleed
+     */
+    @bind updatePaper(): void {
+        if (this.documentOutline) {
+            if (this.model === undefined) {
+                this.documentOutline.replaceChildren()
+                return
+            }
+
+            const ds = this.model.documentSettings
+            const scale = unitDefinitions[ds.units.value].scale
+
+            const paper = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            paper.setAttributeNS(null, "x", "0.5")
+            paper.setAttributeNS(null, "y", "0.5")
+            paper.setAttributeNS(null, "width", Math.ceil(ds.width.value * scale).toString())
+            paper.setAttributeNS(null, "height", Math.ceil(ds.height.value * scale).toString())
+            paper.setAttributeNS(null, "stroke", "#000")
+            paper.setAttributeNS(null, "fill", "none")
+
+            const bleed = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            bleed.setAttributeNS(null, "x", (Math.floor(ds.left.value * scale) + 0.5).toString())
+            bleed.setAttributeNS(null, "y", (Math.floor(ds.top.value * scale) + 0.5).toString())
+            bleed.setAttributeNS(null, "width", Math.ceil((ds.width.value - ds.left.value - ds.right.value) * scale).toString())
+            bleed.setAttributeNS(null, "height", Math.ceil((ds.height.value - ds.top.value - ds.bottom.value) * scale).toString())
+            bleed.setAttributeNS(null, "stroke", "#000")
+            bleed.setAttributeNS(null, "fill", "none")
+
+            this.documentOutline.replaceChildren(paper, bleed)
+        }
     }
 
     override update(): void {

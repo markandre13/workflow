@@ -1,7 +1,7 @@
 import { DrawingModel } from "client/shapeeditor"
 import { ORB } from "corba.js"
 
-export class ImportDrawing {
+export class ImportDrawingDialog {
     constructor(model: DrawingModel, orb: ORB) {
         let uploadOccured = false
 

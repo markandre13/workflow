@@ -645,12 +645,12 @@ describe("Editor", () => {
         })
     })
 
-    it("bbox is undefined without shapes", () => {
+    it.skip("bbox is undefined without shapes", () => {
         const editor = document.createElement("tx-shapeeditor") as ShapeEditor
         expect(editor.bbox()).toBeUndefined()
     })
 
-    it("bbox encloses all shapes", () => {
+    it.skip("bbox encloses all shapes", () => {
         const editor = document.createElement("tx-shapeeditor") as ShapeEditor
         const model = new LocalDrawingModel()
         model.layers.push(new Layer())

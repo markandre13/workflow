@@ -21,10 +21,14 @@ import { Shape } from "shared/workflow_valuetype"
 import { Layer } from "./Layer"
 import { DrawingEvent } from "./DrawingEvent"
 import { Model } from "toad.js/appkit/Model"
+import { DocumentSettings } from "client/app/DocumentSettings"
 
 export abstract class DrawingModel extends Model<DrawingEvent> {
     // modified: Signal<DrawingEvent>
     layers: Layer[] = []
+
+    readonly documentSettings = new DocumentSettings()
+
     abstract add(layerID: number, shape: Shape): void
     abstract delete(layerID: number, indices: Array<number>): void
     abstract setStrokeAndFill(layerID: number, indices: Array<number>, stroke: string, fill: string):void

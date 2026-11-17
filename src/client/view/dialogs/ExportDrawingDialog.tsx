@@ -6,7 +6,7 @@ import { closeModalDialog, openModalDialog } from "toad.js/viewkit/dialog"
 import { TextField } from "toad.js/viewkit/TextField"
 import { Button } from "toad.js/viewkit/Button"
 
-export class ExportDrawing {
+export class ExportDrawingDialog {
     constructor(filename: string, layer: Layer, orb: ORB) {
         const filenameModel = new TextModel(filename)
         const download = document.createElement("a")

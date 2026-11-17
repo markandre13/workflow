@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { StrokeAndFill } from "client/views/widgets/strokeandfill"
-import { ColorSwatch } from "client/views/widgets/colorswatch"
+import { StrokeAndFill } from "client/view/widgets/strokeandfill"
+import { ColorSwatch } from "client/view/widgets/colorswatch"
 import { ShapeEditor } from "client/shapeeditor"
 
 import { StrokeAndFillModel } from "../widgets/strokeandfill"
@@ -128,6 +128,7 @@ export function homeScreen(
                                 { name: "import", label: "Import" },
                                 { name: "export", label: "Export" },
                                 { name: "delete", label: "Delete" },
+                                { name: "document-settings", label: "Document Settings" },
                                 { name: "permissions", label: "Permissions" },
                             ],
                         },
