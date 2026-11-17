@@ -64,14 +64,18 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
     // releasing the button ends a scrollbar drag, even when the release happens outside the editor
     private readonly onwindowrelease = () => this.releaseScrollbar();
 
+    private readonly resizeObserver = new ResizeObserver(() => this.update());
+
     override connectedCallback() {
         window.addEventListener("pointerup", this.onwindowrelease)
         window.addEventListener("pointercancel", this.onwindowrelease)
+        this.resizeObserver.observe(this)
     }
 
     override disconnectedCallback() {
         window.removeEventListener("pointerup", this.onwindowrelease)
         window.removeEventListener("pointercancel", this.onwindowrelease)
+        this.resizeObserver.unobserve(this)
     }
 
     // the editor is the scroll container, so a press in the scrollbar area is outside the client area

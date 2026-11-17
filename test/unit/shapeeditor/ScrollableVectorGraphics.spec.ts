@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 
 import { Rectangle } from "client/shapes"
 import { screenSync } from "./screenSync"
@@ -642,6 +642,30 @@ describe("Editor", () => {
             expect(page.editor.svg.getAttribute("viewBox")).to.equal(before)
             expect(page.canvasWidth).to.equal(621)
             expect(page.canvasHeight).to.equal(480)
+        })
+
+        it("resizing the editor updates the canvas", async () => {
+            const page = new EditorPage(620, 480).add(rectangle(50, 50, 10, 10))
+            await page.mount()
+            expect(page.canvasWidth).to.equal(620)
+
+            page.editor.style.width = "800px"
+            await page.settle()
+
+            expect(page.canvasWidth).to.equal(800)
+            expect(page.editor.svg.getAttribute("viewBox")).to.equal("0 0 800 480")
+        })
+
+        it("resizing a removed editor does not update it", async () => {
+            const page = new EditorPage(620, 480).add(rectangle(50, 50, 10, 10))
+            await page.mount()
+            page.editor.remove()
+            const update = vi.spyOn(page.editor, "update")
+
+            page.editor.style.width = "800px"
+            await page.settle()
+
+            expect(update).not.toHaveBeenCalled()
         })
     })
 
