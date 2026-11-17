@@ -9,8 +9,8 @@ import { Model } from "toad.js/appkit/Model"
 import { bind } from "client/utils/bind-decorator"
 
 export class DocumentSettings extends Model {
-    readonly format = new OptionModel<Format>(Format.A3, formatDefinitions.map((def, index) => [index as Format, def.name]) as any, { label: "Size" })
-    readonly orientation = new OptionModel<Orientation>(Orientation.LANDSCAPE, [
+    readonly format = new OptionModel<Format>(Format.A4, formatDefinitions.map((def, index) => [index as Format, def.name]) as any, { label: "Size" })
+    readonly orientation = new OptionModel<Orientation>(Orientation.PORTRAIT, [
         [Orientation.PORTRAIT, "Portrait"],
         [Orientation.LANDSCAPE, "Landscape"],
     ], { label: "Orientation" })

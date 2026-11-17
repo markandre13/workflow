@@ -228,11 +228,11 @@ export class Client_impl extends skel.Client {
 
         model.layers.push(layer)
 
-        const r = new RectangleShape({ id: 1, origin: { x: 50.5, y: 70.5 }, size: { width: 80, height: 20 } })
-        r.stroke = "#000"
-        r.strokeWidth = 1
-        r.fill = "#f80"
-        model.add(layer.id, r)
+        // const r = new RectangleShape({ id: 1, origin: { x: 50.5, y: 70.5 }, size: { width: 80, height: 20 } })
+        // r.stroke = "#000"
+        // r.strokeWidth = 1
+        // r.fill = "#f80"
+        // model.add(layer.id, r)
 
         // bindModel("board", model)
 
