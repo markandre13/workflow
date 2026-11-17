@@ -133,7 +133,7 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
 
         // console.log(`Editor.update(): bbox=${bbox}`)
 
-        if (bbox === undefined) {
+        if (bbox === undefined && this.extent === undefined) {
             this.svg.style.left = ""
             this.svg.style.top = ""
             this.svg.style.width = ""
@@ -150,7 +150,8 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
         const dx = Math.abs(this.scrollDelta.x)
         const dy = Math.abs(this.scrollDelta.y)
         this.scrollDelta = { x: 0, y: 0 }
-        const fit = {
+        // without content the canvas is only the visible area, so the view stays where it is
+        const fit = bbox === undefined ? { x0: 0, y0: 0, x1: 0, y1: 0 } : {
             x0: Math.min(bbox.origin.x, 0),
             y0: Math.min(bbox.origin.y, 0),
             x1: bbox.origin.x + bbox.size.width,

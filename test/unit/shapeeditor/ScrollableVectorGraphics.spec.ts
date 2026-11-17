@@ -599,6 +599,26 @@ describe("Editor", () => {
         })
     })
 
+    describe("deleting a shape", () => {
+        it("deleting a shape outside the visible area keeps the view", async () => {
+            const shape = rectangle(-50.5, 70.5, 80, 20)
+            const page = new EditorPage().add(shape)
+            await page.mount()
+
+            expect(page.editor.scrollLeft).to.equal(51)
+            expect(page.editor.svg.viewBox.baseVal.x).to.equal(-51)
+
+            page.scrollTo(0)
+            await page.settle()
+
+            page.editor.model!.delete(page.editor.selectedLayer!.id, [shape.id])
+            await page.settle()
+
+            expect(page.editor.scrollLeft).to.equal(0)
+            expect(page.editor.svg.viewBox.baseVal.x).to.equal(-51)
+        })
+    })
+
     describe("sizing the canvas", () => {
         it("one pixel past the left edge widens the canvas by one pixel", async () => {
             const page = new EditorPage(620, 480).add(
