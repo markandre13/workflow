@@ -68,8 +68,12 @@ export class ShapeEditorScene {
             document.body.appendChild(testFrame)
         }
 
+        // editors of earlier scenes must not stay in the page, or they take the pointer events of this one
         this.shapeeditor = new ShapeEditor()
-        testFrame.appendChild(this.shapeeditor)
+        this.shapeeditor.style.position = "relative"
+        this.shapeeditor.style.width = "640px"
+        this.shapeeditor.style.height = "480px"
+        testFrame.replaceChildren(this.shapeeditor)
 
         if (Tool.selection)
             Tool.selection.clear()
