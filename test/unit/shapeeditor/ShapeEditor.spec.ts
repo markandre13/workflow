@@ -42,14 +42,15 @@ describe("ShapeEditor", function () {
             const layer = new Layer({ id: 1, name: "Layer 1" })
             drawing.layers.push(layer)
 
+            const editor = new ShapeEditor({model: drawing})
+            document.body.innerHTML = ""
+            document.body.appendChild(editor)
+
             drawing.add(1, new Rectangle({ id: 10, origin: { x: 0, y: 0 }, size: { width: 10, height: 10 } }))
             drawing.add(1, new Rectangle({ id: 20, origin: { x: 1, y: 1 }, size: { width: 10, height: 10 } }))
             drawing.add(1, new Rectangle({ id: 30, origin: { x: 2, y: 2 }, size: { width: 10, height: 10 } }))
             drawing.add(1, new Rectangle({ id: 40, origin: { x: 3, y: 3 }, size: { width: 10, height: 10 } }))
 
-            const editor = new ShapeEditor({model: drawing})
-            document.body.innerHTML = ""
-            document.body.appendChild(editor)
             return { drawing, editor }
         }
     })

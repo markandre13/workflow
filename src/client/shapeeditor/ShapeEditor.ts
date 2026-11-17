@@ -38,6 +38,7 @@ import { ALL } from "toad.js/appkit/Model"
 import { HTMLElementProps } from "toad.jsx/jsx-runtime"
 import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
 import { unitDefinitions } from "client/app/unitDefinitions"
+import { action } from "toad.js/appkit/Action"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -256,7 +257,6 @@ export class ShapeEditor extends ScrollableVectorGraphics {
 
         // FIXME: we've overloaded setModel but it's called by the super class which causes some issues, so we do it here again
         // setInitialProperties(this, props) // this was the earlier workaround???
-
         this.setModel(undefined)
         if (props?.tool) {
             this.setModel(props.tool as any)
@@ -266,23 +266,18 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         }
         this.setModel(props?.model)
 
-        // FIXME: get menubar actions working again
-        // action("object|arrange|front", () => {
-        //     if (this.model)
-        //         this.model.bringToFront(this.selectedLayer!.id, Tool.selection.shapeIds())
-        // })
-        // action("object|arrange|back", () => {
-        //     if (this.model)
-        //         this.model.bringToBack(this.selectedLayer!.id, Tool.selection.shapeIds())
-        // })
-        // action("object|arrange|forward", () => {
-        //     if (this.model)
-        //         this.model.bringForward(this.selectedLayer!.id, Tool.selection.shapeIds())
-        // })
-        // action("object|arrange|backward", () => {
-        //     if (this.model)
-        //         this.model.bringBackward(this.selectedLayer!.id, Tool.selection.shapeIds())
-        // })
+        action("object|arrange|front", () => {
+            this.model?.bringToFront(this.selectedLayer!.id, Tool.selection.shapeIds())
+        })
+        action("object|arrange|back", () => {
+            this.model?.bringToBack(this.selectedLayer!.id, Tool.selection.shapeIds())
+        })
+        action("object|arrange|forward", () => {
+            this.model?.bringForward(this.selectedLayer!.id, Tool.selection.shapeIds())
+        })
+        action("object|arrange|backward", () => {
+            this.model?.bringBackward(this.selectedLayer!.id, Tool.selection.shapeIds())
+        })
     }
 
     setTool(tool?: Tool) {
@@ -342,7 +337,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
 
                 super.setModel(model as DrawingModel)
                 this.selectedLayer = model.layers[0]
-                
+
                 this.model?.documentSettings.signal.add(this.updatePaper, this)
                 this.updatePaper()
             }
