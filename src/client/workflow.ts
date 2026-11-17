@@ -33,9 +33,13 @@ import { BoardModel } from "./BoardModel"
 import { Client_impl } from "./Client_impl"
 
 import { loadFont } from "toad.js/util/loadFont"
-import { loadStyle} from "toad.js/util/loadStyle"
+import { loadStyle } from "toad.js/util/loadStyle"
 
-export async function main(url: string|undefined = undefined) {
+import { Rectangle as RectangleShape } from "./shapes"
+import { ShapeEditor } from "client/shapeeditor"
+
+
+export async function main(url: string | undefined = undefined) {
     console.log("WORKFLOW: MAIN")
 
     loadFont()
@@ -46,7 +50,7 @@ export async function main(url: string|undefined = undefined) {
     orb.addProtocol(new WsProtocol())
     initializeORB(orb)
     initializeCORBAValueTypes()
- 
+
     // if this fails, fall back to serverless
     // try {
     //     const workflowserver = stub.WorkflowServer.narrow(
@@ -60,9 +64,57 @@ export async function main(url: string|undefined = undefined) {
     //     const sessionClientSide = new Client_impl(orb, sessionServerSide)
     // }
     // catch(e) {
-        // console.log(`Failed to connect to WorkFlow server, falling back to serverless.`)
-        new Client_impl(orb)
+    // console.log(`Failed to connect to WorkFlow server, falling back to serverless.`)
+    new Client_impl(orb)
     // }
+
+    // await testCase()
+}
+
+function screenSync() {
+    return new Promise((resolve) => {
+        requestAnimationFrame(() => {
+            resolve("success")
+        })
+    })
+}
+
+async function testCase() {
+
+    const editor = document.querySelector("tx-shapeeditor") as ShapeEditor
+    const model = editor.model!
+
+    // begin test case
+    await screenSync()
+    const r = new RectangleShape({ id: 1, origin: { x: -50.5, y: 70.5 }, size: { width: 80, height: 20 } })
+    console.log(`A editor.scrollLeft = ${editor.scrollLeft}, viewbox.x=${editor.svg.viewBox.baseVal.x}`)
+    // expect: editor.scrollLeft = 0, editor.svg.viewBox.baseVal.x = 0
+
+    // add rectangle left outside the window
+    r.stroke = "#000"
+    r.strokeWidth = 1
+    r.fill = "#f80"
+    model.add(editor.selectedLayer!.id, r)
+    await screenSync()
+    console.log(`B editor.scrollLeft = ${editor.scrollLeft}, viewbox.x=${editor.svg.viewBox.baseVal.x}`)
+    // expect: editor.scrollLeft = 51, editor.svg.viewBox.baseVal.x = -51
+
+    // scroll left
+    editor.scrollLeft = 0
+    await screenSync()
+    console.log(`C editor.scrollLeft = ${editor.scrollLeft}, viewbox.x=${editor.svg.viewBox.baseVal.x}`)
+    // expect: editor.scrollLeft = 0, editor.svg.viewBox.baseVal.x = -51
+
+    // delete rectangle
+    model.delete(editor.selectedLayer!.id, [r.id])
+    await screenSync()
+    console.log(`D editor.scrollLeft = ${editor.scrollLeft}, viewbox.x=${editor.svg.viewBox.baseVal.x}`)
+
+    // FIXME: editor has scrolled back (editor.scrollLeft = 0, editor.svg.viewBox.baseVal.x = 0)
+    // expect: editor.scrollLeft = 0, editor.svg.viewBox.baseVal.x = -51
+    // got   : editor.scrollLeft = 0, editor.svg.viewBox.baseVal.x = 0
+
+    // end test case
 }
 
 export function initializeORB(orb: ORB) {
@@ -78,12 +130,12 @@ export function initializeCORBAValueTypes() {
     ORB.registerValueType("Rectangle", Rectangle)
     ORB.registerValueType("Matrix", Matrix)
 
-    ORB.registerValueType("Shape", shape.Shape);
+    ORB.registerValueType("Shape", shape.Shape)
     ORB.registerValueType("shape.BoxShape", shape.BoxShape)
     ORB.registerValueType("shape.Rectangle", shape.Rectangle)
     ORB.registerValueType("shape.Circle", shape.Circle)
     ORB.registerValueType("shape.Text", shape.Text)
-    ORB.registerValueType("shape.Path", Path);
+    ORB.registerValueType("shape.Path", Path)
     ORB.registerValueType("shape.Group", shape.Group)
     ORB.registerValueType("shape.Transform", shape.Transform)
 
