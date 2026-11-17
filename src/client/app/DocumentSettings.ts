@@ -43,23 +43,25 @@ export class DocumentSettings extends Model {
         if (this.format.value === Format.CUSTOM) {
             return
         }
-        const def = formatDefinitions[this.format.value]
-        this.units.value = def.unit!!
-        // TODO: scaling to units should be part of the view, and the units should be part of toad.js
-        // TODO: NumberModel should use big decimal, at least for calculations
-        // TODO: NumberModel should be able to handle units?
-        const scale = unitDefinitions[def.unit!!].scale
-        function round(n: number) { return Math.round(n * 100 / scale) / 100 }
-        if (this.orientation.value === Orientation.PORTRAIT) {
-            this.width.value = round(def.width!!)
-            this.height.value = round(def.height!!)
-        } else {
-            this.width.value = round(def.height!!)
-            this.height.value = round(def.width!!)
-        }
-        this.top.value = round(def.bleed![0])
-        this.right.value = round(def.bleed![1])
-        this.bottom.value = round(def.bleed![2])
-        this.left.value = round(def.bleed![3])
+        this.signal.withLock(() => {
+            const def = formatDefinitions[this.format.value]
+            this.units.value = def.unit!!
+            // TODO: scaling to units should be part of the view, and the units should be part of toad.js
+            // TODO: NumberModel should use big decimal, at least for calculations
+            // TODO: NumberModel should be able to handle units?
+            const scale = unitDefinitions[def.unit!!].scale
+            function round(n: number) { return Math.round(n * 100 / scale) / 100 }
+            if (this.orientation.value === Orientation.PORTRAIT) {
+                this.width.value = round(def.width!!)
+                this.height.value = round(def.height!!)
+            } else {
+                this.width.value = round(def.height!!)
+                this.height.value = round(def.width!!)
+            }
+            this.top.value = round(def.bleed![0])
+            this.right.value = round(def.bleed![1])
+            this.bottom.value = round(def.bleed![2])
+            this.left.value = round(def.bleed![3])
+        })
     }
 }

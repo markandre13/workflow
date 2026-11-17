@@ -27,7 +27,7 @@ export const formatDefinitions: FormatDefition[] = [
     makeFormatDefinition("A8", Unit.MILLIMETERS, 52, 74, [6, 6, 8, 6]),
 
     makeFormatDefinition("B0", Unit.MILLIMETERS, 1000, 1414, [25, 25, 30, 25]),
-    makeFormatDefinition("B1", Unit.MILLIMETERS, 707, 100, [25, 25, 30, 25]),
+    makeFormatDefinition("B1", Unit.MILLIMETERS, 707, 1000, [25, 25, 30, 25]),
     makeFormatDefinition("B2", Unit.MILLIMETERS, 500, 707, [25, 25, 30, 25]),
     makeFormatDefinition("B3", Unit.MILLIMETERS, 353, 500, [25, 25, 30, 25]),
     makeFormatDefinition("B4", Unit.MILLIMETERS, 250, 353, [25, 25, 30, 25]),

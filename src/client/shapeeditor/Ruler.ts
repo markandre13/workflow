@@ -1,6 +1,9 @@
 import { View } from "toad.js/viewkit/View"
 import { HTMLElementProps } from "toad.jsx/jsx-runtime"
 import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
+import { DocumentSettings } from "client/app/DocumentSettings"
+import { unitDefinitions } from "client/app/unitDefinitions"
+import { bind } from "client/utils/bind-decorator"
 
 const style = document.createElement("style")
 style.textContent = `
@@ -202,24 +205,26 @@ export class Ruler extends View {
     private panAt: { x: number, y: number } | undefined
     private _unit = 1
     private _halves = false
+    private _documentSettings?: DocumentSettings
 
-    // pixels per unit of the labels
-    get unit(): number {
-        return this._unit
+    // the units of the labels are taken from the document's units
+    get documentSettings(): DocumentSettings | undefined {
+        return this._documentSettings
     }
 
-    set unit(pixels: number) {
-        this._unit = pixels
-        this.update()
+    set documentSettings(settings: DocumentSettings | undefined) {
+        this._documentSettings?.units.signal.remove(this)
+        this._documentSettings = settings
+        settings?.units.signal.add(this.updateUnits, this)
+        this.updateUnits()
     }
 
-    // imperial units are divided in sixteenths, metric and other units in tenths
-    get halves(): boolean {
-        return this._halves
-    }
-
-    set halves(halves: boolean) {
-        this._halves = halves
+    @bind
+    private updateUnits() {
+        const definition = this._documentSettings && unitDefinitions[this._documentSettings.units.value]
+        // pixels per unit of the labels, and imperial units are divided in sixteenths, metric and other units in tenths
+        this._unit = definition ? definition.scale : 1
+        this._halves = definition ? definition.halves : false
         this.update()
     }
 

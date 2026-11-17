@@ -222,6 +222,8 @@ export function homeScreen(
         </>
     ) as Fragment
 
+    hruler.current.documentSettings = drawing.documentSettings
+    vruler.current.documentSettings = drawing.documentSettings
     hruler.current.attach(editor.current)
     vruler.current.attach(editor.current)
     return dom

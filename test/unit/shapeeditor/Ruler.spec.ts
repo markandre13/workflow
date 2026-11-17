@@ -3,6 +3,9 @@ import { describe, it, expect } from "vitest"
 import { Ruler, Orientation } from "client/shapeeditor/Ruler"
 import { Layer, ShapeEditor } from "client/shapeeditor"
 import { LocalDrawingModel } from "client/shapeeditor/LocalDrawingModel"
+import { DocumentSettings } from "client/app/DocumentSettings"
+import { Unit } from "client/app/Unit"
+import { unitDefinitions } from "client/app/unitDefinitions"
 import { Rectangle } from "client/shapes"
 import { screenSync } from "./screenSync"
 
@@ -51,6 +54,12 @@ class RulerPage {
     async settle(): Promise<void> {
         await screenSync()
         await screenSync()
+    }
+
+    setUnits(units: Unit): void {
+        const settings = new DocumentSettings()
+        settings.units.value = units
+        this.ruler.documentSettings = settings
     }
 
     labels(): SVGTextElement[] {
@@ -131,7 +140,7 @@ describe("Ruler", () => {
             )
             await page.mount()
             const millimeter = 72 / 25.4
-            page.ruler.unit = millimeter
+            page.setUnits(Unit.MILLIMETERS)
 
             const labels = page.labels()
             expect(labels[0].textContent).to.equal("0")
@@ -146,7 +155,7 @@ describe("Ruler", () => {
                 rectangle(630, 470, 10, 10),
             )
             await page.mount()
-            page.ruler.unit = 72
+            page.setUnits(Unit.INCHES)
 
             const labels = page.labels()
             expect(labels.slice(0, 3).map(label => label.textContent)).to.deep.equal(["0", "1", "2"])
@@ -160,8 +169,7 @@ describe("Ruler", () => {
                 rectangle(630, 470, 10, 10),
             )
             await page.mount()
-            page.ruler.unit = 72
-            page.ruler.halves = true
+            page.setUnits(Unit.INCHES)
 
             // sixteen ticks per inch, 4.5 pixels apart, so the tick path has one move per tick
             const d = page.ruler.shadowRoot!.querySelector("path")!.getAttribute("d")!
@@ -175,7 +183,7 @@ describe("Ruler", () => {
                 rectangle(630, 470, 10, 10),
             )
             await page.mount()
-            page.ruler.unit = 1
+            page.setUnits(Unit.PIXELS)
 
             const x = tickPositions(page)
             expect(x[1] - x[0]).to.be.closeTo(10, 0.01)
@@ -187,8 +195,9 @@ describe("Ruler", () => {
                 rectangle(0, 0, 10, 10),
                 rectangle(630, 470, 10, 10),
             )
+            page.editor.zoomTo(100 / unitDefinitions[Unit.MILLIMETERS].scale)
             await page.mount()
-            page.ruler.unit = 100
+            page.setUnits(Unit.MILLIMETERS)
 
             const labels = page.labels()
             expect(labels.slice(0, 3).map(label => label.textContent)).to.deep.equal(["0", "1", "2"])
@@ -201,9 +210,9 @@ describe("Ruler", () => {
                 rectangle(0, 0, 10, 10),
                 rectangle(630, 470, 10, 10),
             )
+            page.editor.zoomTo(20 / unitDefinitions[Unit.INCHES].scale)
             await page.mount()
-            page.ruler.unit = 20
-            page.ruler.halves = true
+            page.setUnits(Unit.INCHES)
 
             // two inches is 40 pixels, so labels are every two inches and ticks every inch
             const labels = page.labels()
@@ -217,9 +226,9 @@ describe("Ruler", () => {
                 rectangle(0, 0, 10, 10),
                 rectangle(630, 470, 10, 10),
             )
+            page.editor.zoomTo(200 / unitDefinitions[Unit.INCHES].scale)
             await page.mount()
-            page.ruler.unit = 200
-            page.ruler.halves = true
+            page.setUnits(Unit.INCHES)
 
             // an inch is 200 pixels, so labels are every half inch, 100 pixels apart
             const labels = page.labels()
@@ -234,8 +243,7 @@ describe("Ruler", () => {
                 rectangle(630, 470, 10, 10),
             )
             await page.mount()
-            page.ruler.unit = 72
-            page.ruler.halves = true
+            page.setUnits(Unit.INCHES)
 
             // the sixteenth ticks are 4.5 pixels apart: the inch is major, the half inch medium, the quarter small,
             // and the eighths in between minor
@@ -256,7 +264,7 @@ describe("Ruler", () => {
             )
             await page.mount()
             page.editor.zoomTo(2 / 3)
-            page.ruler.unit = 1
+            page.setUnits(Unit.PIXELS)
 
             // a label is 100 pixels, 66.7 on screen, so ticks are 6.7 pixels apart
             const x = tickPositions(page)
@@ -270,8 +278,7 @@ describe("Ruler", () => {
                 rectangle(630, 470, 10, 10),
             )
             await page.mount()
-            page.ruler.unit = 72
-            page.ruler.halves = true
+            page.setUnits(Unit.INCHES)
 
             // an inch is 72 pixels: 16 sixteenths of 4.5 pixels each
             const x = tickPositions(page)
@@ -289,7 +296,7 @@ describe("Ruler", () => {
             // a centimeter at 2x is 56.7 pixels, so its tenths are 5.67 pixels apart
             page.editor.zoomTo(2)
             const centimeter = 1 / 25.4 * 72 * 10
-            page.ruler.unit = centimeter
+            page.setUnits(Unit.CENTIMETERS)
 
             const x = tickPositions(page)
             expect(x[1] - x[0]).to.be.closeTo(centimeter / 10 * 2, 0.01)
@@ -302,13 +309,14 @@ describe("Ruler", () => {
                 rectangle(630, 470, 10, 10),
             )
             await page.mount()
-            for (const halves of [false, true]) {
-                page.ruler.halves = halves
+            for (const units of [Unit.MILLIMETERS, Unit.INCHES]) {
+                page.setUnits(units)
                 for (let unit = 0.01; unit < 5000; unit *= 1.3) {
-                    page.ruler.unit = unit
+                    page.editor.zoomTo(unit / unitDefinitions[units].scale)
+                    page.ruler.update()
                     const x = tickPositions(page)
                     for (let i = 1; i < x.length; i++) {
-                        expect(x[i] - x[i - 1], `halves ${halves}, unit ${unit}, tick ${i}`).to.be.greaterThanOrEqual(4 - 1e-9)
+                        expect(x[i] - x[i - 1], `units ${units}, unit ${unit}, tick ${i}`).to.be.greaterThanOrEqual(4 - 1e-9)
                     }
                 }
             }
@@ -320,16 +328,15 @@ describe("Ruler", () => {
                 rectangle(630, 470, 10, 10),
             )
             await page.mount()
-            for (const [unit, halves] of [[1, false], [72, true], [72 * 12, true], [1 / 25.4 * 72, false]] as const) {
-                page.ruler.halves = halves
-                page.ruler.unit = unit
+            for (const units of [Unit.PIXELS, Unit.INCHES, Unit.FEET, Unit.MILLIMETERS]) {
+                page.setUnits(units)
                 const d = page.ruler.shadowRoot!.querySelector("path")!.getAttribute("d")!
                 // each tick is "M<x> <height>V<end>", so its length is the height less the end
                 const lengths = [...d.matchAll(/M[\d.]+ ([\d.]+)V([\d.]+)/g)].map(m => parseFloat(m[1]) - parseFloat(m[2]))
                 let run = 0
                 for (let i = 0; i < lengths.length; i++) {
                     run = i > 0 && lengths[i] === lengths[i - 1] ? run + 1 : 1
-                    expect(run, `unit ${unit}, tick ${i}`).to.be.lessThanOrEqual(4)
+                    expect(run, `units ${units}, tick ${i}`).to.be.lessThanOrEqual(4)
                 }
             }
         })
