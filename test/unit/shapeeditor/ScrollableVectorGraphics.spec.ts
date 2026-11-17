@@ -597,6 +597,48 @@ describe("Editor", () => {
 
             expect(updates).to.equal(1)
         })
+
+        it("a scroll dragged on the scrollbar updates when the button is released", async () => {
+            const page = new EditorPage().add(
+                rectangle(0, 0, 10, 10),
+                rectangle(1000, 0, 10, 10),
+            )
+            await page.mount()
+            const rect = page.editor.getBoundingClientRect()
+
+            let updates = 0
+            page.editor.addEventListener("viewchange", () => updates++)
+            page.editor.onpointerdown!({
+                button: 0,
+                pointerId: 1,
+                clientX: rect.left + page.editor.clientWidth + 5,
+                clientY: rect.top + 5,
+                preventDefault() { },
+            } as unknown as PointerEvent)
+
+            page.editor.scrollLeft = 30
+            await page.settle()
+            expect(updates).to.equal(0)
+
+            window.dispatchEvent(new PointerEvent("pointerup"))
+
+            expect(updates).to.equal(1)
+        })
+
+        it("a press on the scrollbar does not start a shape interaction", async () => {
+            const page = new EditorPage().add(rectangle(0, 0, 10, 10))
+            await page.mount()
+            const rect = page.editor.getBoundingClientRect()
+            const capture = vi.spyOn(page.editor, "setPointerCapture").mockImplementation(() => { })
+
+            page.editor.dispatchEvent(new PointerEvent("pointerdown", {
+                pointerId: 1,
+                clientX: rect.left + page.editor.clientWidth + 5,
+                clientY: rect.top + 5,
+            }))
+
+            expect(capture).not.toHaveBeenCalled()
+        })
     })
 
     describe("deleting a shape", () => {

@@ -79,7 +79,7 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
     }
 
     // the editor is the scroll container, so a press in the scrollbar area is outside the client area
-    private isOnScrollbar(ev: PointerEvent): boolean {
+    protected isOnScrollbar(ev: PointerEvent): boolean {
         const rect = this.getBoundingClientRect()
         return ev.clientX - rect.left >= this.clientLeft + this.clientWidth ||
             ev.clientY - rect.top >= this.clientTop + this.clientHeight

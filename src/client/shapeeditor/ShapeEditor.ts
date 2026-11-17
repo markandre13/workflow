@@ -657,6 +657,10 @@ export class ShapeEditor extends ScrollableVectorGraphics {
     //
 
     @bind pointerDown(pointerEvent: PointerEvent) {
+        // the scrollbar is handled by ScrollableVectorGraphics, so a press on it must not start a shape interaction
+        if (this.isOnScrollbar(pointerEvent)) {
+            return
+        }
         // console.log(`ShapeEditor[${this.instance}].pointerDown()`)
 
         this.setPointerCapture(pointerEvent.pointerId)
