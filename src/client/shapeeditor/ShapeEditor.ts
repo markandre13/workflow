@@ -397,15 +397,17 @@ export class ShapeEditor extends ScrollableVectorGraphics {
 
                 for (let id of event.shapes) {
                     let cached = this.cache.get(id)
-                    if (!cached)
+                    if (!cached) {
                         throw Error(`ShapeEditor.updateView(): ADD_SHAPES cache lacks id ${id}`)
+                    }
                     if (cached.shape instanceof Group) {
                         throw Error("ShapeEditor.updateView(): ADD_SHAPES for groups not implemented yet")
                     }
                     if (!cached.path) {
                         cached.path = cached.shape.getPath()
-                        if (cached.shape.matrix)
+                        if (cached.shape.matrix) {
                             cached.path.transform(cached.shape.matrix)
+                        }
                     }
                     let svg = cached.shape.updateSVG(cached.path, layer, cached.svg)
                     if (!cached.svg) {
@@ -418,15 +420,18 @@ export class ShapeEditor extends ScrollableVectorGraphics {
             case Operation.TRANSFORM_SHAPES:
                 for (let id of event.shapes) {
                     let cached = this.cache.get(id)
-                    if (!cached)
+                    if (!cached) {
                         throw Error(`ShapeEditor error: TRANSFORM_SHAPES cache lacks id ${id}`)
+                    }
                     if (cached.shape instanceof Group) {
                         throw Error("ShapeEditor.updateView(): ADD_SHAPES for groups not implemented yet")
                     }
-                    if (!cached.path)
+                    if (!cached.path) {
                         throw Error("ShapeEditor.updateView(): expected path in cache")
-                    if (!cached.svg)
+                    }
+                    if (!cached.svg) {
                         throw Error("ShapeEditor.updateView(): expected svg in cache")
+                    }
 
                     // variant i: get a new path
                     // cached.path = cached.shape.getPath()
@@ -448,19 +453,23 @@ export class ShapeEditor extends ScrollableVectorGraphics {
             case Operation.UPDATE_SHAPES:
                 for (let id of event.shapes) {
                     let cached = this.cache.get(id)
-                    if (!cached)
+                    if (!cached) {
                         throw Error(`ShapeEditor error: UPDATE_SHAPES cache lacks id ${id}`)
+                    }
                     if (cached.shape instanceof Group) {
                         throw Error("ShapeEditor.updateView(): UPDATE_SHAPES for groups not implemented yet")
                     }
-                    if (!cached.path)
+                    if (!cached.path) {
                         throw Error("ShapeEditor.updateView(): expected path in cache")
-                    if (!cached.svg)
+                    }
+                    if (!cached.svg) {
                         throw Error("ShapeEditor.updateView(): expected svg in cache")
+                    }
 
                     cached.path = cached.shape.getPath()
-                    if (cached.shape.matrix)
+                    if (cached.shape.matrix) {
                         cached.path.transform(cached.shape.matrix)
+                    }
                     // console.log(`ShapeEditor.updateShape(): shape with id ${id} to ${cached.path}`)
                     cached.svg = cached.shape.updateSVG(cached.path, layer, cached.svg)
                 }
@@ -469,10 +478,12 @@ export class ShapeEditor extends ScrollableVectorGraphics {
             case Operation.DELETE_SHAPES:
                 for (let id of event.shapes) {
                     let cached = this.cache.get(id)
-                    if (!cached)
+                    if (!cached) {
                         throw Error(`ShapeEditor error: DELETE_SHAPES cache lacks id ${id}`)
-                    if (cached.svg !== undefined)
+                    }
+                    if (cached.svg !== undefined) {
                         layer.removeChild(cached.svg)
+                    }
                     this.cache.delete(id)
                 }
                 break
@@ -516,17 +527,6 @@ export class ShapeEditor extends ScrollableVectorGraphics {
 
         }
         super.update()
-
-        // update scrollbars
-        // FIXME: replace setTimeout(..., 0) with something like, afterRendering(...)
-        // setTimeout(() => {
-        //     this.bounds.expandByPoint({ x: this.scrollView.offsetWidth, y: this.scrollView.offsetHeight })
-        //     this.svg.style.width = this.bounds.size.width + "px"
-        //     this.svg.style.height = this.bounds.size.height + "px"
-        //     this.adjustBounds()
-        //     this.scrollView.scrollLeft = -this.bounds.origin.x
-        //     this.scrollView.scrollTop = -this.bounds.origin.y
-        // }, 0)
     }
 
     override bbox(): Rectangle | undefined {
@@ -587,50 +587,6 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         }
         return result
     }
-
-    // adjustBounds(): void {
-    //     if (!this.model)
-    //         return
-    //     let bounds = new Rectangle()
-    //     // include the viewing ports center
-    //     bounds.expandByPoint({
-    //         x: this.scrollView.offsetWidth / this.zoom,
-    //         y: this.scrollView.offsetHeight / this.zoom
-    //     })
-    //     // include all shapes
-    //     for (let shape of this.model.layers[0]!.data) {
-    //         bounds.expandByRectangle(shape.bounds())
-    //     }
-    //     // include visible areas top, left corner
-    //     bounds.expandByPoint({
-    //         x: this.bounds.origin.x + this.scrollView.scrollLeft,
-    //         y: this.bounds.origin.y + this.scrollView.scrollTop
-    //     })
-    //     // include visible areas bottom, right corner
-    //     bounds.expandByPoint({
-    //         x: this.bounds.origin.x + this.scrollView.scrollLeft + this.scrollView.clientWidth / this.zoom,
-    //         y: this.bounds.origin.y + this.scrollView.scrollTop + this.scrollView.clientHeight / this.zoom
-    //     })
-    //     let x = this.bounds.origin.x + this.scrollView.scrollLeft - bounds.origin.x
-    //     let y = this.bounds.origin.y + this.scrollView.scrollTop - bounds.origin.y
-    //     /*
-    //     console.log("adjustBounds after scrolling")
-    //     console.log("  old bounds   =("+editor.bounds.origin.x+","+editor.bounds.origin.y+","+editor.bounds.size.width+","+editor.bounds.size.height+")")
-    //     console.log("  new bounds   =("+bounds.origin.x+","+bounds.origin.y+","+bounds.size.width+","+bounds.size.height+")")
-    //     console.log("  scroll       =("+editor.window.scrollLeft+","+editor.window.scrollTop+")")
-    //     console.log("  scroll mapped=("+(editor.bounds.origin.x+editor.window.scrollLeft)+","+(editor.bounds.origin.y+editor.window.scrollTop)+")")
-    //     console.log("  new scroll   =("+x+","+y+")")
-    //     */
-    //     let zoomString = String(this.zoom)
-    //     let scale = "scale(" + zoomString + " " + zoomString + ")"
-    //     this.layer!.setAttributeNS("", "transform", "translate(" + (-bounds.origin.x) + " " + (-bounds.origin.y) + ") " + scale)
-    //     this.decorationOverlay.setAttributeNS("", "transform", "translate(" + (-bounds.origin.x) + " " + (-bounds.origin.y) + ") " + scale)
-    //     this.svg.style.width = (bounds.size.width * this.zoom) + "px"
-    //     this.svg.style.height = (bounds.size.height * this.zoom) + "px"
-    //     this.scrollView.scrollLeft = x
-    //     this.scrollView.scrollTop = y
-    //     this.bounds = bounds
-    // }
 
     transformSelection(matrix: Matrix): void {
         // console.log("ShapeEditor.transformSelection()")
