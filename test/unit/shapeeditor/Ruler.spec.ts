@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest"
 
 import { Ruler, Orientation } from "client/shapeeditor/Ruler"
-import { ScrollableVectorGraphics } from "client/shapeeditor/ScrollableVectorGraphics"
+import { Layer, ShapeEditor } from "client/shapeeditor"
+import { LocalDrawingModel } from "client/shapeeditor/LocalDrawingModel"
 import { Rectangle } from "client/shapes"
 import { screenSync } from "./screenSync"
 
@@ -12,10 +13,13 @@ function rectangle(x: number, y: number, width: number, height: number): Rectang
 }
 
 class RulerPage {
-    readonly editor = new ScrollableVectorGraphics()
+    readonly editor = new ShapeEditor()
     readonly ruler = new Ruler()
 
     constructor(orientation: Orientation = "horizontal") {
+        const model = new LocalDrawingModel()
+        model.layers.push(new Layer())
+        this.editor.setModel(model)
         this.ruler.orientation = orientation
         if (orientation === "horizontal") {
             this.ruler.style.width = "640px"
@@ -31,13 +35,15 @@ class RulerPage {
 
     add(...shapes: Rectangle[]): this {
         for (const shape of shapes) {
-            this.editor.add(shape)
+            this.editor.addShape(shape)
         }
         return this
     }
 
     async mount(): Promise<void> {
         document.body.replaceChildren(this.ruler, this.editor)
+        // shapes measure themselves while attached, so lay out again now that they are
+        this.editor.invalidate()
         this.ruler.attach(this.editor)
         await this.settle()
     }
