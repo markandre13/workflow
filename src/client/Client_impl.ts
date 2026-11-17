@@ -185,46 +185,46 @@ export class Client_impl extends skel.Client {
         let model = new LocalDrawingModel()
         let layer = new Layer()
 
-        // try {
-        //     const db = await xdb.openDatabase("workflow2", 1, (event: IDBVersionChangeEvent) => {
-        //         const db = (event.target as IDBOpenDBRequest).result
-        //         if (event.oldVersion < 1) {
-        //             console.log(`IndexedDB: update to version 1`)
-        //             db.createObjectStore("document", {keyPath: "name"})
-        //         } else {
-        //             console.log(`IndexedDB: no update required. on version 1`)
-        //         }
-        //     })
-        //     const page = await xdb.get(db, "document", "Untitled.wf") as {name: string, content: ArrayBuffer}
+        try {
+            const db = await xdb.openDatabase("workflow2", 1, (event: IDBVersionChangeEvent) => {
+                const db = (event.target as IDBOpenDBRequest).result
+                if (event.oldVersion < 1) {
+                    console.log(`IndexedDB: update to version 1`)
+                    db.createObjectStore("document", {keyPath: "name"})
+                } else {
+                    console.log(`IndexedDB: no update required. on version 1`)
+                }
+            })
+            const page = await xdb.get(db, "document", "Untitled.wf") as {name: string, content: ArrayBuffer}
 
-        //     if (page === undefined) {
-        //         console.log("CREATE INITIAL PAGE")
-        //         await xdb.add(db, "document", {name: "Untitled.wf", content: new ArrayBuffer(0)})
-        //     } else {
-        //         console.log("FOUND PREVIOUS PAGE")
-        //         // console.log(page)
-        //         if (page.content.byteLength > 0) {
-        //             try {
-        //                 const layer2 = this._orb.deserialize(page.content) as Layer
-        //                 layer.data = layer2.data
-        //             }
-        //             catch(error) {
-        //                 console.log(`Failed to deserialize 'Untitled.wf': ${error}`) 
-        //             }
-        //         }
-        //     }
-        //     model.signal.add( () => {
-        //         console.log("SAVE")
-        //         xdb.put(db, "document", {name: "Untitled.wf", content: this._orb.serialize(layer)})
-        //     })
-        // }
-        // catch(error) {
-        //     console.log(`Failed to access workflow's IndexedDB: ${error}`)
-        //     console.log(error)
-        //     console.log(`Deleting IndexedDB`)
-        //     await xdb.deleteDatabase("workflow")
-        //     await xdb.deleteDatabase("workflow2")
-        // }
+            if (page === undefined) {
+                console.log("CREATE INITIAL PAGE")
+                await xdb.add(db, "document", {name: "Untitled.wf", content: new ArrayBuffer(0)})
+            } else {
+                console.log("FOUND PREVIOUS PAGE")
+                // console.log(page)
+                if (page.content.byteLength > 0) {
+                    try {
+                        const layer2 = this._orb.deserialize(page.content) as Layer
+                        layer.data = layer2.data
+                    }
+                    catch(error) {
+                        console.log(`Failed to deserialize 'Untitled.wf': ${error}`) 
+                    }
+                }
+            }
+            model.signal.add( () => {
+                console.log("SAVE")
+                xdb.put(db, "document", {name: "Untitled.wf", content: this._orb.serialize(layer)})
+            })
+        }
+        catch(error) {
+            console.log(`Failed to access workflow's IndexedDB: ${error}`)
+            console.log(error)
+            console.log(`Deleting IndexedDB`)
+            await xdb.deleteDatabase("workflow")
+            await xdb.deleteDatabase("workflow2")
+        }
 
         model.layers.push(layer)
 
