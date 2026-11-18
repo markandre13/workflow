@@ -85,10 +85,10 @@ export class TextTool extends Tool {
             if (shape instanceof shapes.Text) {
                 this.shape = shape
                 this.state = TextToolState.EDIT
-                this.startEdit(event.editor)
-                this.texteditor!.mousedown(event)
                 Tool.selection.set(shape)
                 this.updateDecorationOfSelection(event.editor)
+                this.startEdit(event.editor)
+                this.texteditor!.mousedown(event)
             } else {
                 // create text within shape
             }

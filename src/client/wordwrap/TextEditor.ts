@@ -74,11 +74,11 @@ export class TextEditor {
 
     stop() {
         if (this.svgCursor) {
-            this.svgCursor.parentElement!.removeChild(this.svgCursor)
+            this.svgCursor.remove()
             this.svgCursor = undefined
         }
         if (this.svgSelection) {
-            this.svgSelection.parentElement!.removeChild(this.svgSelection)
+            this.svgSelection.remove()
             this.svgSelection = undefined
         }
         this.selectionOffsetWord = null

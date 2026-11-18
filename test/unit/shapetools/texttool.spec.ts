@@ -675,6 +675,31 @@ describe("ShapeEditor", function () {
                 })
             })
         })
+        describe("switch tool", function () {
+            it("to ArrangeTool after clicking into the text does not throw", function () {
+                const scene = new ShapeEditorScene()
+                scene.createTextArea()
+
+                // WHEN the text is clicked again while the TextTool is active
+                scene.pointerClickAt(new Point(65, 40))
+
+                // THEN the caret is still part of the page
+                const editor = scene.textTool.texteditor!
+                expect(editor.svgCursor!.isConnected).to.be.true
+
+                // AND switching to the ArrangeTool does not throw
+                expect(() => scene.selectArrangeTool()).not.to.throw()
+                expect(scene.textTool.texteditor).to.be.undefined
+            })
+            it("to ArrangeTool does not throw when the caret was already removed from the page", function () {
+                const scene = new ShapeEditorScene()
+                scene.createTextArea()
+                scene.textTool.texteditor!.svgCursor!.remove()
+
+                expect(() => scene.selectArrangeTool()).not.to.throw()
+                expect(scene.textTool.texteditor).to.be.undefined
+            })
+        })
         describe("select text", function () {
             describe("with keyboard", function () {
                 it("select one character", function () {
