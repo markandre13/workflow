@@ -42,10 +42,10 @@ export class TextSource implements WordSource {
 
     toString(): string {
         let text = ""
-        for(const box of this.wordBoxes) {
-            if (text.length != 0)
-                text += box.lineBreak ? "\n" : " "
-            text += box.word
+        for(let i = 0; i < this.wordBoxes.length; ++i) {
+            if (i > 0)
+                text += this.wordBoxes[i - 1].lineBreak ? "\n" : " "
+            text += this.wordBoxes[i].word
         }
         return text
     }

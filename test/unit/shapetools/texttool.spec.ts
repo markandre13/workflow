@@ -176,6 +176,80 @@ describe("ShapeEditor", function () {
                 expect(editor.offsetChar).to.equal(2)
             })
         })
+        describe("line break", function () {
+            it("Enter at the end of the text", function () {
+                const scene = new ShapeEditorScene()
+                scene.createTextArea()
+                scene.keydown("KeyA")
+                scene.keydown("KeyB")
+                scene.keydown("Enter")
+                scene.keydown("KeyC")
+                scene.keydown("KeyD")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const editor = scene.textTool.texteditor!
+                const wordBoxes = text.textSource.wordBoxes
+
+                expect(wordBoxes.length).to.equal(2)
+                expect(wordBoxes[0].word).to.equal("ab")
+                expect(wordBoxes[0].lineBreak).to.be.true
+                expect(wordBoxes[1].word).to.equal("cd")
+                expect(wordBoxes[1].lineBreak).to.be.false
+                expect(text.textSource.toString()).to.equal("ab\ncd")
+
+                // second line is below the first
+                expect(wordBoxes[1].origin.y).to.be.greaterThan(wordBoxes[0].origin.y)
+
+                // caret at correct position
+                expect(editor.offsetWord).to.equal(1)
+                expect(editor.offsetChar).to.equal(2)
+            })
+            it("Enter in the middle of a word", function () {
+                const scene = new ShapeEditorScene()
+                scene.createTextArea()
+                scene.keydown("KeyA")
+                scene.keydown("KeyB")
+                scene.keydown("KeyC")
+                scene.keydown("KeyD")
+                scene.keydown("ArrowLeft")
+                scene.keydown("ArrowLeft")
+                scene.keydown("Enter")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const editor = scene.textTool.texteditor!
+                const wordBoxes = text.textSource.wordBoxes
+
+                expect(wordBoxes.length).to.equal(2)
+                expect(wordBoxes[0].word).to.equal("ab")
+                expect(wordBoxes[0].lineBreak).to.be.true
+                expect(wordBoxes[1].word).to.equal("cd")
+                expect(text.textSource.toString()).to.equal("ab\ncd")
+
+                // caret at the start of the second line
+                expect(editor.offsetWord).to.equal(1)
+                expect(editor.offsetChar).to.equal(0)
+            })
+            it("Enter replaces selected text", function () {
+                const scene = new ShapeEditorScene()
+                scene.createTextArea()
+                scene.keydown("KeyA")
+                scene.keydown("KeyB")
+                scene.keydown("KeyC")
+                scene.keydown("Home")
+                scene.keydown("ArrowRight")
+                scene.keydown("ArrowRight", { shift: true })
+                scene.keydown("Enter")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const editor = scene.textTool.texteditor!
+                const wordBoxes = text.textSource.wordBoxes
+
+                expect(editor.hasSelection()).to.be.false
+                expect(text.textSource.toString()).to.equal("a\nc")
+                expect(editor.offsetWord).to.equal(1)
+                expect(editor.offsetChar).to.equal(0)
+            })
+        })
         describe("delete text", function () {
             describe("no selection", function () {
                 it("delete first character", function () {

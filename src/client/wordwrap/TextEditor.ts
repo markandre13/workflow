@@ -156,6 +156,17 @@ export class TextEditor {
                 this.textSource.updateSVG()
                 this.updateCursor()
                 break
+            case "Enter":
+            case "NumpadEnter":
+                if (this.selectionOffsetWord !== null) {
+                    this.deleteSelectedText()
+                }
+                this.insertLineBreak()
+                this.textSource.reset()
+                const wordwrap3 = new WordWrap(e.editor.getPath(this.text) as Path, this.textSource)
+                this.textSource.updateSVG()
+                this.updateCursor()
+                break
             case "Delete":
                 if (this.selectionOffsetWord !== null) {
                     this.deleteSelectedText()
@@ -303,6 +314,23 @@ export class TextEditor {
         if (word0.svg) {
             word0.svg.textContent = word0.word
         }
+    }
+
+    insertLineBreak() {
+        const word0 = this.boxes[this.offsetWord]
+        const tail0 = word0.word.substring(this.offsetChar)
+        word0.word = word0.word.substring(0, this.offsetChar)
+        if (word0.svg) {
+            word0.svg.textContent = word0.word
+        }
+
+        const newBox = new WordBox(0, 16, tail0)
+        newBox.lineBreak = word0.lineBreak
+        word0.lineBreak = true
+        this.textSource.wordBoxes.splice(this.offsetWord + 1, 0, newBox)
+
+        ++this.offsetWord
+        this.offsetChar = 0
     }
 
     moveCursorRight() {
