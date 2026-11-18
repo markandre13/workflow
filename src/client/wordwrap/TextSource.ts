@@ -44,7 +44,7 @@ export class TextSource implements WordSource {
         let text = ""
         for(const box of this.wordBoxes) {
             if (text.length != 0)
-                text += " "
+                text += box.lineBreak ? "\n" : " "
             text += box.word
         }
         return text
@@ -54,10 +54,15 @@ export class TextSource implements WordSource {
         let word = ''
         for (let char of text) {
             switch (char) {
+                case '\n':
+                    let lineBreakBox = new WordBox(word.length * 8, 16, word)
+                    lineBreakBox.lineBreak = true
+                    wordBoxes.push(lineBreakBox)
+                    word = ""
+                    break
                 case ' ':
                 case '\t':
                 case '\r':
-                case '\n':
                 case '\v':
                     let rectangle = new WordBox(word.length * 8, 16, word)
                     wordBoxes.push(rectangle)
@@ -189,5 +194,9 @@ export class TextSource implements WordSource {
 
     endOfWrap(): void {
         this.wordBoxes[this.current - 1].endOfWrap = true
+    }
+
+    hasLineBreakAfterPlacedBox(): boolean {
+        return this.wordBoxes[this.current - 1].lineBreak
     }
 }

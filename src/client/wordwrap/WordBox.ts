@@ -23,6 +23,7 @@ export class WordBox extends Rectangle {
     endOfLine: boolean  // to discover line breaks
     endOfSlice: boolean // to discover when to stop drawing selection
     endOfWrap: boolean  // to discover end of visible words
+    lineBreak: boolean  // forced line break (\n) after this word
     svg: SVGTextElement | undefined
     ascent = 0
     constructor(w: number, h: number, word: string) {
@@ -31,6 +32,7 @@ export class WordBox extends Rectangle {
         this.endOfLine = false
         this.endOfSlice = false
         this.endOfWrap = false
+        this.lineBreak = false
     }
 
     reset() {

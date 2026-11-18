@@ -457,6 +457,7 @@ export interface WordSource {
     endOfSlice(): void
     endOfLine(): void
     endOfWrap(): void
+    hasLineBreakAfterPlacedBox?(): boolean
 }
 
 export class WordWrap {
@@ -555,10 +556,23 @@ export class WordWrap {
                 wordsource.placeBox(cursor)
                 cursor.x += box.width + wordsource.space
                 availableHorizontalSpace -= box.width + wordsource.space
+                const lineBreak = wordsource.hasLineBreakAfterPlacedBox?.() ?? false
                 box = wordsource.pullBox()
                 if (this.trace) {
                     console.log(`WordWrap.placeWordBoxes(): PLACED BOX, REDUCED HORIZONTAL SPACE TO ${availableHorizontalSpace}`)
                     this.printSlices(slices)
+                }
+                if (lineBreak) {
+                    // forced line break: continue with the next box on a new line
+                    wordsource.endOfLine()
+                    if (box === undefined)
+                        break
+                    sliceIndex = -1
+                    availableHorizontalSpace = -1
+                    cursor.y += box.height
+                    this.extendSlices(cursor, box, slices)
+                    if (cursor.y + box.height > this.bounds.origin.y + this.bounds.size.height)
+                        break
                 }
                 continue
             }
