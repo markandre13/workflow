@@ -70,7 +70,7 @@ export function homeScreen(
     let editor = makeRef<ShapeEditor>(), vruler = makeRef<Ruler>(), hruler = makeRef<Ruler>()
     let dom = (
         <>
-            <img src="img/logo.svg" width="44" height="44" style={{ position: "absolute", left: "2px", top: "2px" }} />
+            <img src="img/logo.svg" width="44" height="30" style={{ position: "absolute", left: "3px", top: "22px" }} />
             <div class="toolbar">
                 <ToolButton model={tool} value={k2v(tool, "arrange")} title="Arrange (V)">
                     <img src="img/tool/select.svg" />
@@ -104,13 +104,14 @@ export function homeScreen(
                 model={drawing}
                 tool={tool}
                 strokeandfill={strokeandfill}
-                style={{ position: "absolute", left: "69px", right: "0px", top: "69px", bottom: "24px" }}
+                style={{ position: "absolute", left: "69px", right: "0px", top: "47px", bottom: "24px" }}
             />
-            <Ruler ref={hruler} style={{ position: "absolute", left: "69px", right: "0px", top: "49px", height: "20px" }} />
-            <Ruler ref={vruler} orientation="vertical" style={{ position: "absolute", left: "49px", width: "20px", top: "69px", bottom: "24px" }} />
+            <Ruler ref={hruler} style={{ position: "absolute", left: "69px", right: "0px", top: "27px", height: "20px" }} />
+            <Ruler ref={vruler} orientation="vertical" style={{ position: "absolute", left: "49px", width: "20px", top: "47px", bottom: "24px" }} />
             <div id="hint" style={{ position: "absolute", left: "0", right: "0", height: "24px", bottom: "0" }}></div>
-            <div style={{ position: "absolute", left: "48px", right: "0", top: "0" }}>
+            {/* <div style={{ position: "absolute", left: "48px", right: "0", top: "0" }}> */}
                 <Menu
+                    style={{ position: "absolute", left: "0px", right: "0", top: "0" }}
                     config={[
                         {
                             name: "file",
@@ -207,18 +208,17 @@ export function homeScreen(
                         { space: true },
                         { name: "help", label: "Help" },
                         { name: "settings", label: "Settings" },
-                        {
-                            name: "account",
-                            label: "Account",
-                            model: avatar,
-                            sub: [
-                                { name: "preferences", label: "Preferences" },
-                                { name: "logout", label: "Logout" },
-                            ],
-                        },
+                        // {
+                        //     name: "account",
+                        //     label: "Account",
+                        //     model: avatar,
+                        //     sub: [
+                        //         { name: "preferences", label: "Preferences" },
+                        //         { name: "logout", label: "Logout" },
+                        //     ],
+                        // },
                     ]}
                 />
-            </div>
         </>
     ) as Fragment
 
