@@ -249,6 +249,27 @@ describe("ShapeEditor", function () {
                 expect(editor.offsetWord).to.equal(1)
                 expect(editor.offsetChar).to.equal(0)
             })
+            it("delete selection across a line break", function () {
+                const scene = new ShapeEditorScene()
+                scene.createTextArea()
+                scene.keydown("KeyA")
+                scene.keydown("KeyB")
+                scene.keydown("Enter")
+                scene.keydown("KeyC")
+                scene.keydown("KeyD")
+                scene.keydown("ArrowLeft", { shift: true })
+                scene.keydown("ArrowLeft", { shift: true })
+                scene.keydown("ArrowLeft", { shift: true })
+                scene.keydown("ArrowLeft", { shift: true })
+                scene.keydown("Delete")
+
+                const text = scene.model.layers[0].data[0] as Text
+                const wordBoxes = text.textSource.wordBoxes
+                expect(wordBoxes.length).to.equal(1)
+                expect(wordBoxes[0].word).to.equal("a")
+                expect(wordBoxes[0].lineBreak).to.be.false
+                expect(text.textSource.toString()).to.equal("a")
+            })
         })
         describe("delete text", function () {
             describe("no selection", function () {
@@ -943,6 +964,22 @@ describe("ShapeEditor", function () {
                     })
                 })
                 describe("copy", function () {
+                    it("copy across a line break", async function () {
+                        const scene = new ShapeEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyB")
+                        scene.keydown("Enter")
+                        scene.keydown("KeyC")
+                        scene.keydown("KeyD")
+                        scene.keydown("ArrowLeft", { shift: true })
+                        scene.keydown("ArrowLeft", { shift: true })
+                        scene.keydown("ArrowLeft", { shift: true })
+                        scene.keydown("ArrowLeft", { shift: true })
+
+                        const text = await scene.copy()
+                        expect(text).to.equal("b\ncd")
+                    })
                     it("nothing to copy", async function () {
                         const scene = new ShapeEditorScene()
                         scene.createTextArea()
@@ -988,6 +1025,59 @@ describe("ShapeEditor", function () {
                     })
                 })
                 describe("paste", function () {
+                    it("insert text with line break", async function () {
+                        const scene = new ShapeEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyZ")
+                        scene.keydown("ArrowLeft")
+                        await scene.paste("DEAD\nBEEF")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const editor = scene.textTool.texteditor!
+                        const wordBoxes = text.textSource.wordBoxes
+
+                        expect(wordBoxes.length).to.equal(2)
+                        expect(wordBoxes[0].word).to.equal("aDEAD")
+                        expect(wordBoxes[0].lineBreak).to.be.true
+                        expect(wordBoxes[1].word).to.equal("BEEFz")
+                        expect(wordBoxes[1].lineBreak).to.be.false
+                        expect(text.textSource.toString()).to.equal("aDEAD\nBEEFz")
+
+                        expect(editor.offsetWord).equal(1)
+                        expect(editor.offsetChar).equal(4)
+                    })
+                    it("insert text ending with line break", async function () {
+                        const scene = new ShapeEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyZ")
+                        scene.keydown("ArrowLeft")
+                        await scene.paste("DEAD\n")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        const editor = scene.textTool.texteditor!
+                        const wordBoxes = text.textSource.wordBoxes
+
+                        expect(wordBoxes.length).to.equal(2)
+                        expect(text.textSource.toString()).to.equal("aDEAD\nz")
+
+                        // caret at the start of the line that continues with the z
+                        expect(editor.offsetWord).equal(1)
+                        expect(editor.offsetChar).equal(0)
+                    })
+                    it("insert text with CRLF line breaks", async function () {
+                        const scene = new ShapeEditorScene()
+                        scene.createTextArea()
+                        scene.keydown("KeyA")
+                        scene.keydown("KeyZ")
+                        scene.keydown("ArrowLeft")
+                        await scene.paste("DEAD\r\nBEEF")
+
+                        const text = scene.model.layers[0].data[0] as Text
+                        expect(text.textSource.wordBoxes.length).to.equal(2)
+                        expect(text.textSource.toString()).to.equal("aDEAD\nBEEFz")
+                    })
                     it("insert", async function () {
                         const scene = new ShapeEditorScene()
                         scene.createTextArea()

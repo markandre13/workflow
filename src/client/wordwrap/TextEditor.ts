@@ -258,11 +258,11 @@ export class TextEditor {
             event.clipboardData.setData('text/plain', word.substr(offsetChar0, offsetChar1 - offsetChar0))
         } else {
             const words = this.text.textSource.wordBoxes
-            let text = words[offsetWord0].word.substr(offsetChar0) + " "
+            let text = words[offsetWord0].word.substr(offsetChar0)
             for (let i = offsetWord0 + 1; i < offsetWord1; ++i) {
-                text += words[i].word + " "
+                text += (words[i - 1].lineBreak ? "\n" : " ") + words[i].word
             }
-            text += words[offsetWord1].word.substr(0, offsetChar1)
+            text += (words[offsetWord1 - 1].lineBreak ? "\n" : " ") + words[offsetWord1].word.substr(0, offsetChar1)
             event.clipboardData.setData('text/plain', text)
         }
         event.preventDefault()
@@ -273,7 +273,7 @@ export class TextEditor {
         if (item === undefined)
             return
         item.getAsString(clipText => {
-            this.insertText(clipText)
+            this.insertText(clipText.replace(/\r\n?/g, "\n"))
             this.text.textSource.reset()
             const wordwrap = new WordWrap(editor.getPath(this.text) as Path, this.text.textSource)
             this.text.textSource.updateSVG()
@@ -288,27 +288,28 @@ export class TextEditor {
 
         let newBoxes: WordBox[] = []
         TextSource.splitTextIntoWordBoxes(newBoxes, value)
+        // a trailing separator needs an empty box to hold the text behind the caret
+        if (/[ \t\r\n\v]$/.test(value))
+            newBoxes.push(new WordBox(0, 16, ""))
 
-        if (newBoxes.length === 0)
-            return
+        const word0 = this.boxes[this.offsetWord]
+        const lineBreak0 = word0.lineBreak
+        const tail0 = word0.word.substr(this.offsetChar)
+        word0.word = word0.word.substr(0, this.offsetChar) + newBoxes[0].word
+        word0.lineBreak = newBoxes[0].lineBreak
 
-        let word0 = this.boxes[this.offsetWord]
-        let tail0 = word0.word.substr(this.offsetChar)
-        word0.word = word0.word.substr(0, this.offsetChar)
-        word0.word += newBoxes[0].word
-
-        if (newBoxes.length > 1 || newBoxes[0].word.length == 0) {
-            if (newBoxes.length > 1) {
-                newBoxes.splice(0, 1)
-            }
-            this.offsetChar = newBoxes[newBoxes.length - 1].word.length
-            this.offsetWord = this.offsetWord += newBoxes.length
-
-            newBoxes[newBoxes.length - 1].word += tail0
-            this.textSource.wordBoxes.splice(this.offsetWord + 1, 0, ...newBoxes)
-        } else {
+        if (newBoxes.length === 1) {
             this.offsetChar = word0.word.length
             word0.word += tail0
+            word0.lineBreak = lineBreak0
+        } else {
+            const rest = newBoxes.slice(1)
+            const last = rest[rest.length - 1]
+            this.offsetChar = last.word.length
+            last.word += tail0
+            last.lineBreak = lineBreak0
+            this.textSource.wordBoxes.splice(this.offsetWord + 1, 0, ...rest)
+            this.offsetWord += rest.length
         }
 
         if (word0.svg) {
@@ -394,11 +395,12 @@ export class TextEditor {
             const word0 = this.textSource.wordBoxes[offsetWord0]
             const word1 = this.textSource.wordBoxes[offsetWord1]
             word0.word = word0.word.substring(0, offsetChar0) + word1.word.substring(offsetChar1)
+            word0.lineBreak = word1.lineBreak
             if (word0.svg !== undefined) {
                 word0.svg.textContent = word0.word
             }
 
-            for (let i = offsetWord0 + 1; i < offsetWord1; ++i) {
+            for (let i = offsetWord0 + 1; i <= offsetWord1; ++i) {
                 const word = this.textSource.wordBoxes[i]
                 if (word.svg) {
                     word.svg.parentElement?.removeChild(word.svg)
