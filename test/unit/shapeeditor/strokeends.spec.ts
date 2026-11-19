@@ -6,6 +6,7 @@ import { Layer, ShapeEditor } from "client/shapeeditor"
 import { LocalDrawingModel } from "client/shapeeditor/LocalDrawingModel"
 import { Tool } from "client/shapetools"
 import { ShapeSelectionModel } from "client/shapeeditor/ShapeSelectionModel"
+import { Path } from "client/shapes/Path"
 import { StrokeEndType } from "shared/workflow"
 
 let nextId = 1
@@ -21,6 +22,32 @@ function strokeEndModel() {
 function rectangle(): Rectangle {
     return new Rectangle({ id: nextId++, origin: { x: 0, y: 0 }, size: { width: 10, height: 10 } })
 }
+
+describe("Path shows its stroke ends when they change", () => {
+    it("adding and removing stroke ends replaces the element in the layer", () => {
+        const layer = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        document.body.append(layer)
+        const path = new Path()
+        path.addEdge({ x: 10, y: 20 })
+        path.addEdge({ x: 100, y: 20 })
+        const raw = path.getPath()
+
+        const plain = path.updateSVG(raw, layer, undefined)
+        layer.appendChild(plain)
+
+        path.strokeEnd = StrokeEndType.SIMPLE
+        const withEnd = path.updateSVG(raw, layer, plain)
+        expect(withEnd).to.be.instanceOf(SVGGElement)
+        expect(Array.from(layer.children)).to.deep.equal([withEnd])
+
+        path.strokeEnd = undefined
+        const without = path.updateSVG(raw, layer, withEnd)
+        expect(without).to.be.instanceOf(SVGPathElement)
+        expect(Array.from(layer.children)).to.deep.equal([without])
+
+        layer.remove()
+    })
+})
 
 describe("LocalDrawingModel emits only on change", () => {
     it("setStrokeEnds emits when a stroke end changes but not when it stays the same", () => {

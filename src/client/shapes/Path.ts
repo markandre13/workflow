@@ -556,9 +556,13 @@ export class Path extends Shape implements valuetype.shape.Path {
 
         if (sGroup) {
             sGroup.replaceChildren(...([sPath, sEnd, sStart].filter(it => it !== undefined)))
-            return sGroup
         }
-        return sPath
+        const result = sGroup ?? sPath
+        // the element type changes when stroke ends are added or removed, so put the new element where the old one was
+        if (svg !== undefined && svg !== result) {
+            svg.replaceWith(result)
+        }
+        return result
     }
 
     // TODO: why have a distance method when the RawPath can be used for that?
