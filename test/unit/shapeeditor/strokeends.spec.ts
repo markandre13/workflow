@@ -22,6 +22,43 @@ function rectangle(): Rectangle {
     return new Rectangle({ id: nextId++, origin: { x: 0, y: 0 }, size: { width: 10, height: 10 } })
 }
 
+describe("LocalDrawingModel emits only on change", () => {
+    it("setStrokeEnds emits when a stroke end changes but not when it stays the same", () => {
+        const model = new LocalDrawingModel()
+        const layer = new Layer()
+        model.layers.push(layer)
+        const shape = rectangle()
+        shape.strokeStart = StrokeEndType.FILLED
+        layer.data.push(shape)
+        let emits = 0
+        model.signal.add(() => emits++)
+
+        model.setStrokeEnds(layer.id, [shape.id], StrokeEndType.FILLED, undefined)
+        expect(emits).to.equal(0)
+
+        model.setStrokeEnds(layer.id, [shape.id], StrokeEndType.SIMPLE, undefined)
+        expect(emits).to.equal(1)
+    })
+
+    it("setStrokeAndFill emits when the stroke changes but not when it stays the same", () => {
+        const model = new LocalDrawingModel()
+        const layer = new Layer()
+        model.layers.push(layer)
+        const shape = rectangle()
+        shape.stroke = "#000"
+        shape.fill = "#fff"
+        layer.data.push(shape)
+        let emits = 0
+        model.signal.add(() => emits++)
+
+        model.setStrokeAndFill(layer.id, [shape.id], "#000", "#fff")
+        expect(emits).to.equal(0)
+
+        model.setStrokeAndFill(layer.id, [shape.id], "#f00", "#fff")
+        expect(emits).to.equal(1)
+    })
+})
+
 describe("stroke ends follow the selection", () => {
     beforeEach(() => {
         // a new selection drops the listeners of the editors created by earlier tests

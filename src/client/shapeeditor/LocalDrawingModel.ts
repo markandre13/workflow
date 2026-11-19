@@ -61,19 +61,35 @@ export class LocalDrawingModel extends DrawingModel {
     }
 
     setStrokeAndFill(layerID: number, shapeIds: Array<number>, stroke: string, fill: string): void {
+        let changed = false
         this.forAllShapes(layerID, shapeIds, (shape) => {
+            const oldStroke = shape.stroke
+            const oldFill = shape.fill
             shape.stroke = stroke
             shape.fill = fill
+            if (shape.stroke !== oldStroke || shape.fill !== oldFill) {
+                changed = true
+            }
         })
-        this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: shapeIds })
+        if (changed) {
+            this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: shapeIds })
+        }
     }
 
     setStrokeEnds(layerID: number, shapeIds: Array<number>, start: StrokeEndType | undefined, end: StrokeEndType | undefined): void {
+        let changed = false
         this.forAllShapes(layerID, shapeIds, (shape) => {
+            const oldStart = shape.strokeStart
+            const oldEnd = shape.strokeEnd
             shape.strokeStart = start
             shape.strokeEnd = end
+            if (shape.strokeStart !== oldStart || shape.strokeEnd !== oldEnd) {
+                changed = true
+            }
         })
-        this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: shapeIds })
+        if (changed) {
+            this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: shapeIds })
+        }
     }
 
     forAllShapes(layerID: number, shapeIds: Array<number>, callback: (shape: Shape) => void) {
