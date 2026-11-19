@@ -40,6 +40,8 @@ import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
 import { unitDefinitions } from "client/app/unitDefinitions"
 import { action } from "toad.js/appkit/Action"
 import { StrokeEndModel } from "client/StrokeEndModel"
+import { StrokeEndType } from "shared/workflow"
+import { ShapeSelectionModel } from "./ShapeSelectionModel"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -269,6 +271,11 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         }
         this.setModel(props?.model)
 
+        //
+        // handle stroke ends
+        //
+
+        // update selected shapes when stroke models change
         const updateStrokeEnds = () => {
             this.model!.setStrokeEnds(
                 this.selectedLayer!.id,
@@ -276,9 +283,28 @@ export class ShapeEditor extends ScrollableVectorGraphics {
                 props?.strokeStart?.value,
                 props?.strokeEnd?.value
             )
-        } 
+        }
         props?.strokeStart?.signal.add(updateStrokeEnds)
         props?.strokeEnd?.signal.add(updateStrokeEnds)
+
+        // update stroke models when a single shape is selected
+        if (Tool.selection === undefined) Tool.selection = new ShapeSelectionModel()
+        Tool.selection.modified.add(() => {
+            if (Tool.selection.selection.size !== 1) {
+                return
+            }
+            const [shape] = Tool.selection.selection
+            props?.strokeStart?.signal.lock()
+            props?.strokeEnd?.signal.lock()
+            if (props?.strokeStart) {
+                props.strokeStart.value = shape.strokeStart ?? StrokeEndType.NONE
+            }
+            if (props?.strokeEnd) {
+                props.strokeEnd.value = shape.strokeEnd ?? StrokeEndType.NONE
+            }
+            props?.strokeStart?.signal.unlock()
+            props?.strokeEnd?.signal.unlock()
+        }, this)
 
         action("object|arrange|front", () => {
             this.model?.bringToFront(this.selectedLayer!.id, Tool.selection.shapeIds())

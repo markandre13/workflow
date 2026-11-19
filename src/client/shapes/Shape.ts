@@ -77,7 +77,7 @@ export abstract class Shape implements valuetype.Shape {
     }
 
     set strokeStart(type: StrokeEndType | undefined) {
-        if (type === undefined) {
+        if (type === undefined || type === StrokeEndType.NONE) {
             this._clearAttribute(AttributeType.STROKE_START)
         } else {
             this._setAttribute({
@@ -93,7 +93,7 @@ export abstract class Shape implements valuetype.Shape {
     }
 
     set strokeEnd(type: StrokeEndType | undefined) {
-        if (type === undefined) {
+        if (type === undefined || type === StrokeEndType.NONE) {
             this._clearAttribute(AttributeType.STROKE_END)
         } else {
             this._setAttribute({
