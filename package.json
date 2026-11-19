@@ -38,19 +38,19 @@
         "@types/node": "^26.6.6",
         "@types/sqlite3": "^5.1.0",
         "@types/websocket": "^1.0.10",
-        "@vitest/browser": "^5.1.0",
-        "@vitest/browser-playwright": "^5.1.0",
+        "@vitest/browser": "^5.1.1",
+        "@vitest/browser-playwright": "^5.1.1",
         "bind-decorator": "^1.0.11",
         "chai": "^6.3.0",
         "chai-almost": "^1.0.1",
         "chai-as-promised": "^8.0.2",
         "chai-subset": "^1.6.0",
         "corba.js": "0.2.0",
-        "playwright": "^1.65.0",
-        "toad.js": "^0.3.8",
-        "toad.jsx": "^0.1.7",
+        "playwright": "^1.65.1",
+        "toad.js": "^0.4.0",
+        "toad.jsx": "^0.2.0",
         "typescript": "^7.0.2",
-        "vite": "^8.3.6",
-        "vitest": "^5.1.0"
+        "vite": "^8.3.8",
+        "vitest": "^5.1.1"
     }
 }
