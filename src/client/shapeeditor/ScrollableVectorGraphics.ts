@@ -230,20 +230,12 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
     // move the visible area by (dx, dy) screen pixels, dragging the content along
     pan(dx: number, dy: number) {
         const visible = this.visibleOrigin()
-        if (visible === undefined) {
-            return
-        }
         this.viewTo(visible.x - dx / this._zoom, visible.y - dy / this._zoom)
     }
 
     // zoom around the center of the viewport, so the canvas point in the middle stays in the middle
     zoomTo(zoom: number) {
         const visible = this.visibleOrigin()
-        if (visible === undefined) {
-            this._zoom = zoom
-            this.invalidate()
-            return
-        }
         const center = {
             x: visible.x + this.clientWidth / 2 / this._zoom,
             y: visible.y + this.clientHeight / 2 / this._zoom,
@@ -253,25 +245,20 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
     }
 
     // the canvas coordinates at the top left of the visible area
-    private visibleOrigin(): { x: number; y: number}  | undefined {
+    private visibleOrigin(): { x: number; y: number} {
+        // without a canvas yet, the visible area starts at the origin
         const e = this.extent
-        if (e === undefined || this.bbox() === undefined) {
-            return undefined
-        }
         return {
-            x: Math.floor(e.x0) + this.scrollLeft / this._zoom,
-            y: Math.floor(e.y0) + this.scrollTop / this._zoom,
+            x: (e === undefined ? 0 : Math.floor(e.x0)) + this.scrollLeft / this._zoom,
+            y: (e === undefined ? 0 : Math.floor(e.y0)) + this.scrollTop / this._zoom,
         }
     }
 
     // show the canvas from (x, y), growing or shrinking it to cover the visible area and the content
     private viewTo(x: number, y: number) {
         const bbox = this.bbox()
-        if (bbox === undefined) {
-            return
-        }
-        // the canvas is the union of the content and the new visible area, so it shrinks back when panning home
-        const fit = {
+        // without content the canvas is only the visible area, as in update()
+        const fit = bbox === undefined ? { x0: 0, y0: 0, x1: 0, y1: 0 } : {
             x0: Math.min(bbox.origin.x, 0),
             y0: Math.min(bbox.origin.y, 0),
             x1: bbox.origin.x + bbox.size.width,

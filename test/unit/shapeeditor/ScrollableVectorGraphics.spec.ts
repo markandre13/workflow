@@ -572,6 +572,16 @@ describe("Editor", () => {
 
             expect(page.editor.scrollLeft).to.equal(before + 20)
         })
+
+        it("panning works without shapes", async () => {
+            const page = new EditorPage()
+            await page.mount()
+            expect(page.editor.bbox()).toBeUndefined()
+
+            page.editor.pan(-20, 0)
+
+            expect(page.editor.scrollLeft).to.equal(20)
+        })
     })
 
     describe("scrolling", () => {
