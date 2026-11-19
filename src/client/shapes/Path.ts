@@ -22,9 +22,10 @@ import { Matrix } from "shared/geometry/Matrix"
 import { mirrorPoint } from "shared/geometry"
 import { AbstractPath, Path as RawPath } from "../paths"
 import { Shape } from "./Shape"
-import { shape } from "shared/workflow"
+import { shape, StrokeEndType } from "shared/workflow"
 import * as valuetype from "shared/workflow_valuetype"
 import * as value from "shared/workflow_value"
+import { arrow2path } from "client/view/pages/arrow2path"
 const AnchorType = shape.AnchorType
 
 export class Path extends Shape implements valuetype.shape.Path {
@@ -104,10 +105,10 @@ export class Path extends Shape implements valuetype.shape.Path {
             throw Error(`shape.Path.changeEdgeToSymmetric(): last anchor is not an edge`)
         }
         this.types[this.types.length - 1] = shape.AnchorType.ANCHOR_SYMMETRIC
-        const x = this.values[this.values.length-2]
-        const y = this.values[this.values.length-1]
-        this.values[this.values.length-2] = backwardHandle.x
-        this.values[this.values.length-1] = backwardHandle.y
+        const x = this.values[this.values.length - 2]
+        const y = this.values[this.values.length - 1]
+        this.values[this.values.length - 2] = backwardHandle.x
+        this.values[this.values.length - 1] = backwardHandle.y
         this.values.push(x)
         this.values.push(y)
     }
@@ -128,9 +129,9 @@ export class Path extends Shape implements valuetype.shape.Path {
             throw Error(`shape.Path.changeEdgeToSmoothAngleAngle(): last anchor is not an edge`)
         }
         this.types[this.types.length - 1] = shape.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE
-        const anchor = {x: this.values[this.values.length-2], y: this.values[this.values.length-1]}
-        this.values[this.values.length-2] = backwardHandle.x
-        this.values[this.values.length-1] = backwardHandle.y
+        const anchor = { x: this.values[this.values.length - 2], y: this.values[this.values.length - 1] }
+        this.values[this.values.length - 2] = backwardHandle.x
+        this.values[this.values.length - 1] = backwardHandle.y
         this.values.push(anchor.x)
         this.values.push(anchor.y)
         this.values.push(forwardHandle.x)
@@ -143,11 +144,11 @@ export class Path extends Shape implements valuetype.shape.Path {
             throw Error(`shape.Path.changeSmoothAngleAngleToSymmetric(): unexpected last anchor type ${shape.AnchorType[this.types[this.types.length - 1]]}`)
         }
         this.types[this.types.length - 1] = shape.AnchorType.ANCHOR_SYMMETRIC
-        const anchor = {x: this.values[this.values.length-4], y: this.values[this.values.length-3]}
-        const forwardHandle = {x: this.values[this.values.length-2], y: this.values[this.values.length-1]}
+        const anchor = { x: this.values[this.values.length - 4], y: this.values[this.values.length - 3] }
+        const forwardHandle = { x: this.values[this.values.length - 2], y: this.values[this.values.length - 1] }
         const backwardHandle = mirrorPoint(anchor, forwardHandle)
-        this.values[this.values.length-4] = backwardHandle.x
-        this.values[this.values.length-3] = backwardHandle.y
+        this.values[this.values.length - 4] = backwardHandle.x
+        this.values[this.values.length - 3] = backwardHandle.y
         this.values.length -= 2
     }
     // updateSmoothAngleAngle(backwardHandle: Point) {
@@ -165,8 +166,8 @@ export class Path extends Shape implements valuetype.shape.Path {
         if (this.types[this.types.length - 1] !== shape.AnchorType.ANCHOR_SYMMETRIC) {
             throw Error(`shape.Path.updateSymmetric(): last anchor is not symmetric`)
         }
-        this.values[this.values.length-4] = backwardHandle.x
-        this.values[this.values.length-3] = backwardHandle.y
+        this.values[this.values.length - 4] = backwardHandle.x
+        this.values[this.values.length - 3] = backwardHandle.y
     }
     updateAngleEdge(index: number, backwardHandle: PointLike) {
         if (this.types.length === 0)
@@ -419,7 +420,7 @@ export class Path extends Shape implements valuetype.shape.Path {
                                 this.values[idxValue], this.values[idxValue + 1],
                                 this.values[idxValue + 2], this.values[idxValue + 3]
                             )
-                            idxValue += 6    
+                            idxValue += 6
                         } break
                         case shape.AnchorType.ANCHOR_SYMMETRIC: {
                             const p0 = { x: this.values[prevValue - 4], y: this.values[prevValue - 3] }
@@ -430,7 +431,7 @@ export class Path extends Shape implements valuetype.shape.Path {
                                 this.values[idxValue], this.values[idxValue + 1],
                                 this.values[idxValue + 2], this.values[idxValue + 3]
                             )
-                            idxValue += 6    
+                            idxValue += 6
                         } break
                         default:
                             throw Error("yikes 4")
@@ -453,13 +454,111 @@ export class Path extends Shape implements valuetype.shape.Path {
         }
     }
     override updateSVG(path: AbstractPath, parentSVG: SVGElement, svg?: SVGElement): SVGElement {
-        if (!svg)
-            svg = document.createElementNS("http://www.w3.org/2000/svg", "path")
-        svg.setAttributeNS("", "d", (path as RawPath).toString())
-        svg.setAttributeNS("", "stroke-width", String(this.strokeWidth))
-        svg.setAttributeNS("", "stroke", this.stroke)
-        svg.setAttributeNS("", "fill", this.fill)
-        return svg
+        let sGroup: SVGGElement | undefined,
+            sPath: SVGPathElement | undefined,
+            sStart: SVGPathElement | undefined,
+            sEnd: SVGPathElement | undefined
+
+        let start = this.strokeStart
+        let end = this.strokeEnd
+
+        const rawPath = (path as RawPath)
+        const data = rawPath.data
+        const isClosed = data.length > 0 && data[data.length-1].type === "Z"
+        if (isClosed) {
+            start = end = undefined
+        }
+
+        if (start !== undefined || end !== undefined) {
+            if (svg instanceof SVGGElement) {
+                sGroup = svg
+                sPath = sGroup.children[0] as SVGPathElement
+            } else {
+                sGroup = document.createElementNS("http://www.w3.org/2000/svg", "g")
+                sPath = document.createElementNS("http://www.w3.org/2000/svg", "path")
+                sGroup.appendChild(sPath)
+            }
+        } else {
+            if (svg instanceof SVGPathElement) {
+                sPath = svg
+            }
+        }
+        if (!sPath) {
+            sPath = document.createElementNS("http://www.w3.org/2000/svg", "path")
+        }
+
+        if (start) {
+            sStart = document.createElementNS("http://www.w3.org/2000/svg", "path")
+            const d = arrow2path(start,
+                { x: data[0].values![0], y: data[0].values![1] },
+                { x: data[1].values![0], y: data[1].values![1] },
+                10, 10
+            )
+            sStart.setAttributeNS(null, "d", d)
+            sStart.setAttributeNS(null, "stroke-width", String(this.strokeWidth))
+            sStart.setAttributeNS(null, "stroke", this.stroke)
+            switch (start) {
+                case StrokeEndType.SIMPLE:
+                    sStart.setAttributeNS(null, "fill", "none")
+                    break
+                case StrokeEndType.FILLED:
+                case StrokeEndType.FILLED_CONCAVE:
+                case StrokeEndType.FILLED_CONVEX:
+                    sStart.setAttributeNS(null, "fill", this.stroke)
+                    break
+                default:
+                    sStart.setAttributeNS(null, "fill", this.fill)
+            }
+        }
+        if (end) {
+            sEnd = document.createElementNS("http://www.w3.org/2000/svg", "path")
+            let i = data.length - 1
+            let d: string
+            if (data[i].type === 'C') {
+                d = arrow2path(end,
+                    { x: data[i].values![4], y: data[i].values![5] },
+                    { x: data[i].values![2], y: data[i].values![3] },
+                    10, 10
+                )
+            } else {
+                d = arrow2path(end,
+                    { x: data[1].values![0], y: data[1].values![1] },
+                    { x: data[0].values![0], y: data[0].values![1] },
+                    10, 10
+                )
+            }
+            sEnd.setAttributeNS(null, "d", d)
+            sEnd.setAttributeNS(null, "stroke-width", String(this.strokeWidth))
+            sEnd.setAttributeNS(null, "stroke", this.stroke)
+            switch (end) {
+                case StrokeEndType.SIMPLE:
+                    sEnd.setAttributeNS(null, "fill", "none")
+                    break
+                case StrokeEndType.FILLED:
+                case StrokeEndType.FILLED_CONCAVE:
+                case StrokeEndType.FILLED_CONVEX:
+                    sEnd.setAttributeNS(null, "fill", this.stroke)
+                    break
+                default:
+                    sEnd.setAttributeNS(null, "fill", this.fill)
+            }
+
+        }
+        sPath.setAttributeNS(null, "d", rawPath.toString())
+        sPath.setAttributeNS(null, "stroke-width", String(this.strokeWidth))
+        sPath.setAttributeNS(null, "stroke", this.stroke)
+
+        if (isClosed) {
+            sPath.setAttributeNS(null, "fill", this.fill)
+        } else {
+            sPath.setAttributeNS(null, "fill", "none")
+        }
+
+        if (sGroup) {
+            sGroup.replaceChildren(...([sPath, sEnd, sStart].filter(it => it !== undefined)))
+            return sGroup
+        }
+        return sPath
     }
 
     // TODO: why have a distance method when the RawPath can be used for that?
@@ -467,7 +566,7 @@ export class Path extends Shape implements valuetype.shape.Path {
         const path = this.getPath() // FIXME: slow
         // TODO: consider range/scale, or is pt already in shape coordinates?
         if (this.fill !== "none" && path.contains(pt)) {
-            return Shape.SHAPE_RANGE/4*3 // TODO: path.distance() is in shape coordinates, this one should be in screen coordinates
+            return Shape.SHAPE_RANGE / 4 * 3 // TODO: path.distance() is in shape coordinates, this one should be in screen coordinates
         }
         return path.distance(pt)
     }
@@ -517,7 +616,7 @@ export class Path extends Shape implements valuetype.shape.Path {
                     break
                 case shape.AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
                     d += `SAA ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
-                    break   
+                    break
                 case shape.AnchorType.ANCHOR_ANGLE_ANGLE:
                     d += `AA ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} ${this.values[idxValue++]} `
                     break

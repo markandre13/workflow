@@ -39,6 +39,7 @@ import { HTMLElementProps } from "toad.jsx/jsx-runtime"
 import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
 import { unitDefinitions } from "client/app/unitDefinitions"
 import { action } from "toad.js/appkit/Action"
+import { StrokeEndModel } from "client/StrokeEndModel"
 
 interface InputEventInit extends UIEventInit {
     inputType: string
@@ -169,6 +170,8 @@ interface ShapeEditorProps extends HTMLElementProps {
     model?: DrawingModel
     tool?: ToolModel
     strokeandfill?: StrokeAndFillModel
+    strokeStart?: StrokeEndModel
+    strokeEnd?: StrokeEndModel
 }
 
 let instanceCounter = 0
@@ -265,6 +268,17 @@ export class ShapeEditor extends ScrollableVectorGraphics {
             this.setModel(props.strokeandfill as any)
         }
         this.setModel(props?.model)
+
+        const updateStrokeEnds = () => {
+            this.model!.setStrokeEnds(
+                this.selectedLayer!.id,
+                Tool.selection.shapeIds(),
+                props?.strokeStart?.value,
+                props?.strokeEnd?.value
+            )
+        } 
+        props?.strokeStart?.signal.add(updateStrokeEnds)
+        props?.strokeEnd?.signal.add(updateStrokeEnds)
 
         action("object|arrange|front", () => {
             this.model?.bringToFront(this.selectedLayer!.id, Tool.selection.shapeIds())

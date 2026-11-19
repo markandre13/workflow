@@ -54,9 +54,10 @@ export class BoardModel extends DrawingModel implements valuetype.BoardModel {
         this.board!.add(layerID, shape)
     }
 
-    // these do work over the network
+    // TODO: these do not work over the network yet
     delete(layerID: number, indices: Array<number>): void {}
     setStrokeAndFill(layerID: number, indices: Array<number>, stroke: string, fill: string):void {}
+    setStrokeEnds(layerID: number, shapeIds: Array<number>, start: inf.StrokeEndType, end: inf.StrokeEndType): void {}
     bringToFront(layerID: number, indices: Array<number>): void {}
     bringToBack(layerID: number, indices: Array<number>): void {}
     bringForward(layerID: number, indices: Array<number>): void {}

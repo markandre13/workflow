@@ -19,7 +19,7 @@
 import { bind } from "client/utils/bind-decorator"
 import { Model } from "toad.js/appkit/Model"
 import { ModelView } from "toad.js/viewkit/ModelView"
-import { ref } from "toad.jsx/jsx-runtime"
+import { ref } from "toad.jsx"
 
 let strokeandfillStyle = document.createElement("style")
 strokeandfillStyle.textContent = `

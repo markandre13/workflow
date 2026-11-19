@@ -22,6 +22,7 @@ import { Layer } from "./Layer"
 import { DrawingEvent } from "./DrawingEvent"
 import { Model } from "toad.js/appkit/Model"
 import { DocumentSettings } from "client/app/DocumentSettings"
+import { StrokeEndType } from "shared/workflow"
 
 export abstract class DrawingModel extends Model<DrawingEvent> {
     // modified: Signal<DrawingEvent>
@@ -31,7 +32,8 @@ export abstract class DrawingModel extends Model<DrawingEvent> {
 
     abstract add(layerID: number, shape: Shape): void
     abstract delete(layerID: number, indices: Array<number>): void
-    abstract setStrokeAndFill(layerID: number, indices: Array<number>, stroke: string, fill: string):void
+    abstract setStrokeAndFill(layerID: number, indices: Array<number>, stroke: string, fill: string): void
+    abstract setStrokeEnds(layerID: number, shapeIds: Array<number>, start: StrokeEndType | undefined, end: StrokeEndType | undefined): void
     abstract transform(layerID: number, indices: Array<number>, matrix: Matrix): void
     abstract bringToFront(layerID: number, indices: Array<number>): void
     abstract bringToBack(layerID: number, indices: Array<number>): void

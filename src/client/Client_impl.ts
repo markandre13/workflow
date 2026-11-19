@@ -45,6 +45,10 @@ import { action } from "toad.js/appkit/Action"
 import { TextModel } from "toad.js/appkit/TextModel"
 import { DocumentSettingsDialog } from "./view/dialogs/DocumentSettingsDialog"
 import { DocumentSettings } from "./app/DocumentSettings"
+import { OptionModel } from "toad.js/appkit/OptionModel"
+import { makeArrowOption } from "./view/pages/makeArrowOption"
+import { StrokeEndType } from "shared/workflow"
+import { StrokeEndModel } from "./StrokeEndModel"
 
 namespace dom {
     export function erase(n: Element): void {
@@ -162,10 +166,32 @@ export class Client_impl extends skel.Client {
         const strokeandfill = this.createStrokeAndFillModel()
 
         const colorswatch = new ColorSwatchModel()
+
+        const strokeStart: StrokeEndModel = new OptionModel(StrokeEndType.NONE, [
+            makeArrowOption(StrokeEndType.NONE),
+            makeArrowOption(StrokeEndType.SIMPLE),
+            makeArrowOption(StrokeEndType.EMPTY),
+            makeArrowOption(StrokeEndType.FILLED),
+            makeArrowOption(StrokeEndType.EMPTY_CONCAVE),
+            makeArrowOption(StrokeEndType.FILLED_CONCAVE),
+            makeArrowOption(StrokeEndType.EMPTY_CONVEX),
+            makeArrowOption(StrokeEndType.FILLED_CONVEX),
+        ])
+        const strokeEnd: StrokeEndModel = new OptionModel(StrokeEndType.NONE, [
+            makeArrowOption(StrokeEndType.NONE, false),
+            makeArrowOption(StrokeEndType.SIMPLE, false),
+            makeArrowOption(StrokeEndType.EMPTY, false),
+            makeArrowOption(StrokeEndType.FILLED, false),
+            makeArrowOption(StrokeEndType.EMPTY_CONCAVE, false),
+            makeArrowOption(StrokeEndType.FILLED_CONCAVE, false),
+            makeArrowOption(StrokeEndType.EMPTY_CONVEX, false),
+            makeArrowOption(StrokeEndType.FILLED_CONVEX, false),
+        ])
+
         const avatar = this.createAvatarModel("img/avatars/whale.svg") // FIXME: hack which only works only for offline
 
         // VIEW FIXME: move into separate file
-        return homeScreen(model, tool, strokeandfill, colorswatch, avatar)
+        return homeScreen(model, tool, strokeandfill, strokeStart, strokeEnd, colorswatch, avatar)
     }
 
     private async createBoardModel() {
@@ -190,16 +216,16 @@ export class Client_impl extends skel.Client {
                 const db = (event.target as IDBOpenDBRequest).result
                 if (event.oldVersion < 1) {
                     console.log(`IndexedDB: update to version 1`)
-                    db.createObjectStore("document", {keyPath: "name"})
+                    db.createObjectStore("document", { keyPath: "name" })
                 } else {
                     console.log(`IndexedDB: no update required. on version 1`)
                 }
             })
-            const page = await xdb.get(db, "document", "Untitled.wf") as {name: string, content: ArrayBuffer}
+            const page = await xdb.get(db, "document", "Untitled.wf") as { name: string, content: ArrayBuffer }
 
             if (page === undefined) {
                 console.log("CREATE INITIAL PAGE")
-                await xdb.add(db, "document", {name: "Untitled.wf", content: new ArrayBuffer(0)})
+                await xdb.add(db, "document", { name: "Untitled.wf", content: new ArrayBuffer(0) })
             } else {
                 console.log("FOUND PREVIOUS PAGE")
                 // console.log(page)
@@ -208,17 +234,17 @@ export class Client_impl extends skel.Client {
                         const layer2 = this._orb.deserialize(page.content) as Layer
                         layer.data = layer2.data
                     }
-                    catch(error) {
-                        console.log(`Failed to deserialize 'Untitled.wf': ${error}`) 
+                    catch (error) {
+                        console.log(`Failed to deserialize 'Untitled.wf': ${error}`)
                     }
                 }
             }
-            model.signal.add( () => {
+            model.signal.add(() => {
                 console.log("SAVE")
-                xdb.put(db, "document", {name: "Untitled.wf", content: this._orb.serialize(layer)})
+                xdb.put(db, "document", { name: "Untitled.wf", content: this._orb.serialize(layer) })
             })
         }
-        catch(error) {
+        catch (error) {
             console.log(`Failed to access workflow's IndexedDB: ${error}`)
             console.log(error)
             console.log(`Deleting IndexedDB`)
@@ -320,3 +346,4 @@ export class Client_impl extends skel.Client {
         return model
     }
 }
+

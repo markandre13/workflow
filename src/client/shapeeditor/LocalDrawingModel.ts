@@ -24,6 +24,7 @@ import { DrawingModel } from "./DrawingModel"
 import { Operation } from "./ShapeEditor"
 import { Group } from 'client/shapes/Group'
 import { Layer } from './Layer'
+import { StrokeEndType } from "shared/workflow"
 
 /**
  * Drawing model for when there is no server.
@@ -59,10 +60,18 @@ export class LocalDrawingModel extends DrawingModel {
         this.signal.emit({ operation: Operation.DELETE_SHAPES, shapes: shapeIds })
     }
 
-    setStrokeAndFill(layerID: number, shapeIds: Array<number>, stroke: string, fill: string):void {
+    setStrokeAndFill(layerID: number, shapeIds: Array<number>, stroke: string, fill: string): void {
         this.forAllShapes(layerID, shapeIds, (shape) => {
             shape.stroke = stroke
             shape.fill = fill
+        })
+        this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: shapeIds })
+    }
+
+    setStrokeEnds(layerID: number, shapeIds: Array<number>, start: StrokeEndType | undefined, end: StrokeEndType | undefined): void {
+        this.forAllShapes(layerID, shapeIds, (shape) => {
+            shape.strokeStart = start
+            shape.strokeEnd = end
         })
         this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: shapeIds })
     }
@@ -137,7 +146,7 @@ export class LocalDrawingModel extends DrawingModel {
         removed.index.reverse()
 
         for (let i = 0; i < shapeIds.length; ++i) {
-            layer.data.splice(removed.index[i]+1, 0, removed.shapes[i])
+            layer.data.splice(removed.index[i] + 1, 0, removed.shapes[i])
         }
 
         this.signal.emit({ operation: Operation.BRING_SHAPES_FORWARD, shapes: shapeIds })
@@ -150,9 +159,9 @@ export class LocalDrawingModel extends DrawingModel {
         const removed = this.removeFromLayer(layer, fastShapeIds)
         removed.shapes.reverse()
         removed.index.reverse()
-        
+
         for (let i = 0; i < shapeIds.length; ++i) {
-            let idx = removed.index[i]-1
+            let idx = removed.index[i] - 1
             if (idx < 0)
                 idx = 0
             layer.data.splice(idx, 0, removed.shapes[i])
@@ -187,8 +196,8 @@ export class LocalDrawingModel extends DrawingModel {
         throw Error("LocalLayerModel.layerById(): unknown layer id " + layerID)
     }
 
-    protected removeFromLayer(layer: Layer, shapeIds: Set<number>): {shapes: Shape[], index: number[]} {
-        const result: {shapes: Shape[], index: number[]} = {shapes: [], index: []}
+    protected removeFromLayer(layer: Layer, shapeIds: Set<number>): { shapes: Shape[], index: number[] } {
+        const result: { shapes: Shape[], index: number[] } = { shapes: [], index: [] }
         for (let i = layer.data.length - 1; i >= 0; --i) {
             if (!shapeIds.has(layer.data[i].id))
                 continue

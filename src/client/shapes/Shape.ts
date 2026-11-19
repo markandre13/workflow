@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Attribute, AttributeType, _Attribute_strokeRGBA, _Attribute_fillRGBA, _Attribute_strokeWidth } from "shared/workflow"
-import * as value  from "shared/workflow_value"
+import { Attribute, AttributeType, _Attribute_strokeRGBA, _Attribute_fillRGBA, _Attribute_strokeWidth, StrokeEndType } from "shared/workflow"
+import * as value from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
 import { Path, AbstractPath } from "../paths"
 import { Rectangle } from "shared/geometry/Rectangle"
@@ -29,8 +29,7 @@ import { parseColor } from "client/utils/color"
 /**
  * The base class of a shapes like rectangle, circle, bezier curve, text, image, etc
  */
-export abstract class Shape implements valuetype.Shape
-{
+export abstract class Shape implements valuetype.Shape {
     // each shape has an id shared by all clients
     id!: number
 
@@ -43,13 +42,14 @@ export abstract class Shape implements valuetype.Shape
     public static readonly HANDLE_RANGE = 5.0
     // when a pressed point is moved more than this distance, we start dragging
     public static readonly DRAG_START_DISTANCE = 1.0
-    
-    constructor(init?: Partial<value.Shape>|GIOPDecoder) {
+
+    constructor(init?: Partial<value.Shape> | GIOPDecoder) {
         value.initShape(this, init)
     }
 
+    // TODO: the attribute code is much too complicated
     protected _getAttribute(type: AttributeType): Attribute | undefined {
-        for(let i=0; i<this.attributes.length; ++i) {
+        for (let i = 0; i < this.attributes.length; ++i) {
             if (this.attributes[i].type === type) {
                 return this.attributes[i]
             }
@@ -58,7 +58,7 @@ export abstract class Shape implements valuetype.Shape
     }
 
     protected _setAttribute(attribute: Attribute) {
-        for(let i=0; i<this.attributes.length; ++i) {
+        for (let i = 0; i < this.attributes.length; ++i) {
             if (this.attributes[i].type === attribute.type) {
                 this.attributes[i] = attribute
                 return
@@ -68,7 +68,7 @@ export abstract class Shape implements valuetype.Shape
     }
 
     protected _clearAttribute(type: AttributeType) {
-        for(let i=0; i<this.attributes.length; ++i) {
+        for (let i = 0; i < this.attributes.length; ++i) {
             if (this.attributes[i].type === type) {
                 this.attributes.splice(i, 1)
                 return
@@ -76,11 +76,43 @@ export abstract class Shape implements valuetype.Shape
         }
     }
 
+    set strokeStart(type: StrokeEndType | undefined) {
+        if (type === undefined) {
+            this._clearAttribute(AttributeType.STROKE_START)
+        } else {
+            this._setAttribute({
+                type: AttributeType.STROKE_START,
+                strokeStart: type
+            })
+        }
+    }
+
+    get strokeEnd(): StrokeEndType | undefined {
+        const a = this._getAttribute(AttributeType.STROKE_END)
+        return a?.type === AttributeType.STROKE_END ? a.strokeEnd : undefined
+    }
+
+    set strokeEnd(type: StrokeEndType | undefined) {
+        if (type === undefined) {
+            this._clearAttribute(AttributeType.STROKE_END)
+        } else {
+            this._setAttribute({
+                type: AttributeType.STROKE_END,
+                strokeEnd: type
+            })
+        }
+    }
+
+    get strokeStart(): StrokeEndType | undefined {
+        const a = this._getAttribute(AttributeType.STROKE_START)
+        return a?.type === AttributeType.STROKE_START ? a.strokeStart : undefined
+    }
+
     get stroke(): string {
         const a = this._getAttribute(AttributeType.STROKE_RGBA)
         if (a?.type !== AttributeType.STROKE_RGBA)
             return "none"
-        return `rgba(${a.strokeRGBA.r},${a.strokeRGBA.g},${a.strokeRGBA.b},${a.strokeRGBA.a/255})`
+        return `rgba(${a.strokeRGBA.r},${a.strokeRGBA.g},${a.strokeRGBA.b},${a.strokeRGBA.a / 255})`
     }
 
     set stroke(color: string) {
@@ -105,7 +137,7 @@ export abstract class Shape implements valuetype.Shape
 
     set strokeWidth(width: number) {
         if (width === 1) {
-            this._clearAttribute(AttributeType.STROKE_WIDTH) 
+            this._clearAttribute(AttributeType.STROKE_WIDTH)
         } else {
             this._setAttribute({
                 type: AttributeType.STROKE_WIDTH,
@@ -118,7 +150,7 @@ export abstract class Shape implements valuetype.Shape
         const a = this._getAttribute(AttributeType.FILL_RGBA)
         if (a?.type !== AttributeType.FILL_RGBA)
             return "none"
-        return `rgba(${a.fillRGBA.r},${a.fillRGBA.g},${a.fillRGBA.b},${a.fillRGBA.a/255})`
+        return `rgba(${a.fillRGBA.r},${a.fillRGBA.g},${a.fillRGBA.b},${a.fillRGBA.a / 255})`
     }
 
     set fill(color: string) {

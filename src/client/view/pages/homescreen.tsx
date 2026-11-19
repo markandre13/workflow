@@ -25,73 +25,14 @@ import { ColorSwatchModel } from "../widgets/colorswatch"
 import { ToolModel } from "client/shapetools/ToolModel"
 import { DrawingModel } from "client/shapeeditor"
 import { HtmlModel } from "toad.js/appkit/HtmlModel"
-import { Fragment, JSX, makeRef } from "toad.jsx"
+import { Fragment, makeRef } from "toad.jsx"
 import { Select } from "toad.js/viewkit/Select"
 import { ToolButton } from "toad.js/viewkit/ToolButton"
 import { Menu } from "toad.js/menu/Menu"
 import { Action } from "toad.js/appkit/Action"
 import { Ruler } from "client/shapeeditor/Ruler"
 import { OptionModel } from "toad.js/appkit/OptionModel"
-import { PointLike } from "shared/geometry/Point"
-
-// this are the arrow types https://en.wikipedia.org/wiki/Xfig used to offer
-enum ArrowType {
-    NONE,
-    SIMPLE,
-    EMPTY,
-    FILLED,
-    EMPTY_CONCAVE,
-    FILLED_CONCAVE,
-    EMPTY_CONVEX,
-    FILLED_CONVEX,
-}
-
-function makeArrowOption(type: ArrowType, left: boolean = true): [ArrowType, JSX.Element] {
-    let fill: string
-    switch (type) {
-        case ArrowType.FILLED:
-        case ArrowType.FILLED_CONCAVE:
-        case ArrowType.FILLED_CONVEX:
-            fill = "#fff"
-            break
-        default:
-            fill = "none"
-    }
-    let p0: PointLike, p1: PointLike
-    if (left) {
-        p0 = { x: 2, y: 4.5 }
-        p1 = { x: 12, y: 4.5 }
-    } else {
-        p0 = { x: 12, y: 4.5 }
-        p1 = { x: 2, y: 4.5 }
-    }
-    return [type, <div>
-        <svg width="14" height="10">
-            <path stroke="#fff" fill={fill} d={arrow2path(type, p0, p1, 9, 9)} />
-        </svg>
-    </div>]
-}
-
-const arrowLeft = new OptionModel(ArrowType.NONE, [
-    makeArrowOption(ArrowType.NONE),
-    makeArrowOption(ArrowType.SIMPLE),
-    makeArrowOption(ArrowType.EMPTY),
-    makeArrowOption(ArrowType.FILLED),
-    makeArrowOption(ArrowType.EMPTY_CONCAVE),
-    makeArrowOption(ArrowType.FILLED_CONCAVE),
-    makeArrowOption(ArrowType.EMPTY_CONVEX),
-    makeArrowOption(ArrowType.FILLED_CONVEX),
-])
-const arrowRight = new OptionModel(ArrowType.NONE, [
-    makeArrowOption(ArrowType.NONE, false),
-    makeArrowOption(ArrowType.SIMPLE, false),
-    makeArrowOption(ArrowType.EMPTY, false),
-    makeArrowOption(ArrowType.FILLED, false),
-    makeArrowOption(ArrowType.EMPTY_CONCAVE, false),
-    makeArrowOption(ArrowType.FILLED_CONCAVE, false),
-    makeArrowOption(ArrowType.EMPTY_CONVEX, false),
-    makeArrowOption(ArrowType.FILLED_CONVEX, false),
-])
+import { StrokeEndModel } from "client/StrokeEndModel"
 
 // TODO: make this part of OptionModel & add key=... as an alternative to ToolButton?
 function k2v(model: ToolModel, aKey: string) {
@@ -121,6 +62,8 @@ export function homeScreen(
     drawing: DrawingModel,
     tool: ToolModel,
     strokeandfill: StrokeAndFillModel,
+    strokeStart: StrokeEndModel,
+    strokeEnd: StrokeEndModel,
     colorswatch: ColorSwatchModel,
     avatar: HtmlModel
 ): Fragment {
@@ -244,8 +187,8 @@ export function homeScreen(
 
             /* Control Panel */
             <div style={{ position: "absolute", left: "0px", right: "0", top: "26px" }}>
-                <Select model={arrowLeft} style={{ width: "60px" }} />
-                <Select model={arrowRight} style={{ width: "60px" }} />
+                <Select model={strokeStart} style={{ width: "60px" }} />
+                <Select model={strokeEnd} style={{ width: "60px" }} />
             </div>
 
             /* Toolbar */
@@ -289,6 +232,8 @@ export function homeScreen(
                 model={drawing}
                 tool={tool}
                 strokeandfill={strokeandfill}
+                strokeStart={strokeStart}
+                strokeEnd={strokeEnd}
                 style={{ position: "absolute", left: "69px", right: "0px", top: "78px", bottom: "24px" }}
             />
 
@@ -303,63 +248,4 @@ export function homeScreen(
     hruler.current.attach(editor.current)
     vruler.current.attach(editor.current)
     return dom
-}
-
-function arrow2path(
-    type: ArrowType,
-    p1: PointLike,
-    p2: PointLike,
-    w: number,
-    h: number
-) {
-    const d = Math.atan2(p2.y - p1.y, p2.x - p1.x)
-
-    let height = h
-    const width = 0.5 * w
-
-    const p0 = {
-        x: Math.cos(d) * height + p1.x,
-        y: Math.sin(d) * height + p1.y
-    }
-
-    const p = Array(4)
-    p[0] = p1
-
-    const r = 90.0 / 360.0 * (2.0 * Math.PI)
-    p[1] = {
-        x: p0.x + Math.cos(d - r) * width,
-        y: p0.y + Math.sin(d - r) * width
-    }
-    p[3] = {
-        x: p0.x + Math.cos(d + r) * width,
-        y: p0.y + Math.sin(d + r) * width
-    }
-
-    switch (type) {
-        case ArrowType.NONE:
-            return ""
-        case ArrowType.SIMPLE:
-            return `M ${p[1].x} ${p[1].y} L ${p[0].x} ${p[0].y} L ${p[3].x} ${p[3].y}`
-        case ArrowType.EMPTY:
-        case ArrowType.FILLED:
-            p[2] = p0
-            break
-        case ArrowType.EMPTY_CONCAVE:
-        case ArrowType.FILLED_CONCAVE:
-            height -= height / 3
-            p[2] = {
-                x: Math.cos(d) * height + p1.x,
-                y: Math.sin(d) * height + p1.y
-            }
-            break
-        case ArrowType.EMPTY_CONVEX:
-        case ArrowType.FILLED_CONVEX:
-            height += height / 3
-            p[2] = {
-                x: Math.cos(d) * height + p1.x,
-                y: Math.sin(d) * height + p1.y
-            }
-            break
-    }
-    return `M ${p[0].x} ${p[0].y} L ${p[1].x} ${p[1].y} L ${p[2].x} ${p[2].y} L ${p[3].x} ${p[3].y} Z`
 }

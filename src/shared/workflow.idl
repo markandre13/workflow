@@ -89,15 +89,35 @@ valuetype Rectangle {
 enum AttributeType {
     STROKE_RGBA,
     FILL_RGBA,
-    STROKE_WIDTH
+    STROKE_WIDTH,
+    STROKE_START,
+    STROKE_END
 };
+
 struct RGBA {
     octet r, g, b, a;
 };
+
+/**
+ * these are the arrow types https://en.wikipedia.org/wiki/Xfig used to offer
+ */
+enum StrokeEndType {
+    NONE,
+    SIMPLE,
+    EMPTY,
+    FILLED,
+    EMPTY_CONCAVE,
+    FILLED_CONCAVE,
+    EMPTY_CONVEX,
+    FILLED_CONVEX
+};
+
 union Attribute switch(AttributeType) {
     case STROKE_RGBA: RGBA strokeRGBA;
     case FILL_RGBA: RGBA fillRGBA;
     case STROKE_WIDTH: double strokeWidth;
+    case STROKE_START: StrokeEndType strokeStart;
+    case STROKE_END: StrokeEndType strokeEnd;
 };
 
 valuetype Shape {
