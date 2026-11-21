@@ -47,7 +47,7 @@ export class LocalDrawingModel extends DrawingModel {
         this.signal.emit({ operation: Operation.ADD_SHAPES, shapes: [shape.id] })
     }
 
-    delete(layerID: number, shapeIds: Array<number>): void {
+    delete(layerID: number, shapeIds: number[]): void {
         // console.log(`LocalLayerModel.delete(${layerID}, ${shapeIds})`)
 
         // remove from data model
@@ -60,39 +60,37 @@ export class LocalDrawingModel extends DrawingModel {
         this.signal.emit({ operation: Operation.DELETE_SHAPES, shapes: shapeIds })
     }
 
-    setStrokeAndFill(layerID: number, shapeIds: Array<number>, stroke: string, fill: string): void {
-        let changed = false
+    setStrokeAndFill(layerID: number, shapeIds: number[], stroke: string, fill: string): void {
+        let changedShapes: number[] = []
         this.forAllShapes(layerID, shapeIds, (shape) => {
-            const oldStroke = shape.stroke
-            const oldFill = shape.fill
             shape.stroke = stroke
             shape.fill = fill
-            if (shape.stroke !== oldStroke || shape.fill !== oldFill) {
-                changed = true
+            if (shape.stroke !== stroke || shape.fill !== fill) {
+                shape.stroke = stroke
+                shape.fill = fill
+                changedShapes.push(shape.id)
             }
         })
-        if (changed) {
-            this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: shapeIds })
+        if (changedShapes.length > 0) {
+            this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: changedShapes })
         }
     }
 
-    setStrokeEnds(layerID: number, shapeIds: Array<number>, start: StrokeEndType | undefined, end: StrokeEndType | undefined): void {
-        let changed = false
+    setStrokeEnds(layerID: number, shapeIds: number[], start: StrokeEndType | undefined, end: StrokeEndType | undefined): void {
+        let changedShapes: number[] = []
         this.forAllShapes(layerID, shapeIds, (shape) => {
-            const oldStart = shape.strokeStart
-            const oldEnd = shape.strokeEnd
-            shape.strokeStart = start
-            shape.strokeEnd = end
-            if (shape.strokeStart !== oldStart || shape.strokeEnd !== oldEnd) {
-                changed = true
+            if (shape.strokeStart !== start || shape.strokeEnd !== end) {
+                shape.strokeStart = start
+                shape.strokeEnd = end
+                changedShapes.push(shape.id)
             }
         })
-        if (changed) {
-            this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: shapeIds })
+        if (changedShapes.length > 0) {
+            this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: changedShapes })
         }
     }
 
-    forAllShapes(layerID: number, shapeIds: Array<number>, callback: (shape: Shape) => void) {
+    forAllShapes(layerID: number, shapeIds: number[], callback: (shape: Shape) => void) {
         let fastShapeIds = this.shapeIdsAsSet(shapeIds) // FIXME: could use the ShapeEditor cache instead
         let layer = this.layerById(layerID)
         for (let index in layer.data) {
@@ -120,15 +118,16 @@ export class LocalDrawingModel extends DrawingModel {
                 continue
             }
 
-            if (fig.matrix === undefined)
+            if (fig.matrix === undefined) {
                 fig.matrix = new Matrix()
+            }
             fig.matrix.prepend(matrix)
             // console.log(`LocalLayerModel.transform(${layerID}, ${shapeIds}, ${matrix}) -> trigger with TRANSFORM_SHAPES`)
             this.signal.emit({ operation: Operation.TRANSFORM_SHAPES, matrix: matrix, shapes: [fig.id] })
         }
     }
 
-    bringToFront(layerID: number, shapeIds: Array<number>): void {
+    bringToFront(layerID: number, shapeIds: number[]): void {
         const fastShapeIds = this.shapeIdsAsSet(shapeIds) // FIXME: could use the ShapeEditor cache instead
         const layer = this.layerById(layerID)
 
