@@ -117,7 +117,7 @@ export class ShapeEditorScene {
     addShape(shape: Shape): void {
         if (this.verbose)
             console.log("### ADD SHAPE")
-        this.model.add(0, shape)
+        this.model.add(this.model.layers[0], shape)
         this.shapes.push(shape)
     }
 
@@ -142,7 +142,7 @@ export class ShapeEditorScene {
                 transform.translate(center)
                 fig.matrix = transform
             }
-        this.model.add(0, fig)
+        this.model.add(this.model.layers[0], fig)
         this.shapes.push(fig)
     }
 
@@ -191,7 +191,7 @@ export class ShapeEditorScene {
 
     renderHasPoint(point: PointLike): void {
         let msg = ""
-        for (let [id, ce] of this.shapeeditor.cache) {
+        for (let ce of this.shapeeditor.cache.values()) {
             for (let segment of (ce.path as Path).data) {
                 switch (segment.type) {
                     case 'M':

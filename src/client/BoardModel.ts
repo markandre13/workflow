@@ -47,19 +47,19 @@ export class BoardModel extends DrawingModel implements valuetype.BoardModel {
         console.log("BoardModel.constructor()")
     }
     // FIXME: too many functions to do stuff
-    transform(layerID: number, indices: Array<number>, matrix: Matrix): void {
-        this.board!.transform(layerID, indices, matrix)
+    transform(layer: Layer, shapes: Array<Shape>, matrix: Matrix): void {
+        this.board!.transform(layer.id, shapes.map(shape => shape.id), matrix)
     }
-    add(layerID: number, shape: Shape) {
-        this.board!.add(layerID, shape)
+    add(layer: Layer, shape: Shape) {
+        this.board!.add(layer.id, shape)
     }
 
     // TODO: these do not work over the network yet
-    delete(layerID: number, indices: Array<number>): void {}
-    setStrokeAndFill(layerID: number, indices: Array<number>, stroke: string, fill: string):void {}
-    setStrokeEnds(layerID: number, shapeIds: Array<number>, start: inf.StrokeEndType, end: inf.StrokeEndType): void {}
-    bringToFront(layerID: number, indices: Array<number>): void {}
-    bringToBack(layerID: number, indices: Array<number>): void {}
-    bringForward(layerID: number, indices: Array<number>): void {}
-    bringBackward(layerID: number, indices: Array<number>): void {}
+    delete(layer: Layer, shapes: Array<Shape>): void {}
+    setStrokeAndFill(layer: Layer, shapes: Array<Shape>, stroke: string, fill: string):void {}
+    setStrokeEnds(layer: Layer, shapes: Array<Shape>, start: inf.StrokeEndType, end: inf.StrokeEndType): void {}
+    bringToFront(layer: Layer, shapes: Array<Shape>): void {}
+    bringToBack(layer: Layer, shapes: Array<Shape>): void {}
+    bringForward(layer: Layer, shapes: Array<Shape>): void {}
+    bringBackward(layer: Layer, shapes: Array<Shape>): void {}
 }

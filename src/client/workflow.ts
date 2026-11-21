@@ -94,7 +94,7 @@ async function testCase() {
     r.stroke = "#000"
     r.strokeWidth = 1
     r.fill = "#f80"
-    model.add(editor.selectedLayer!.id, r)
+    model.add(editor.selectedLayer!, r)
     await screenSync()
     console.log(`B editor.scrollLeft = ${editor.scrollLeft}, viewbox.x=${editor.svg.viewBox.baseVal.x}`)
     // expect: editor.scrollLeft = 51, editor.svg.viewBox.baseVal.x = -51
@@ -106,7 +106,7 @@ async function testCase() {
     // expect: editor.scrollLeft = 0, editor.svg.viewBox.baseVal.x = -51
 
     // delete rectangle
-    model.delete(editor.selectedLayer!.id, [r.id])
+    model.delete(editor.selectedLayer!, [r])
     await screenSync()
     console.log(`D editor.scrollLeft = ${editor.scrollLeft}, viewbox.x=${editor.svg.viewBox.baseVal.x}`)
 

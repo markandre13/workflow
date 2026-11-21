@@ -309,7 +309,7 @@ describe("ShapeEditor", function() {
                     fig.id = ++scene.id
                     fig.stroke = "#000"
                     fig.fill = "rgba(255,0,0,0.2)"
-                    scene.model.add(0, fig)
+                    scene.model.add(scene.model.layers[0], fig)
                     scene.shapes.push(fig)
 
                     expect(scene.model.layers[0].data[0].toString())
@@ -864,7 +864,7 @@ describe("ShapeEditor", function() {
             // cache should contain shape, path & svg
             let cache = test.shapeeditor.cache
             expect(cache.size).to.equal(1)
-            let ce = cache.get(1)!!
+            let ce = cache.get(fig1)!!
             expect(ce.shape).to.equal(fig1)
             expect(ce.path).to.not.undefined
             expect(ce.svg).to.not.undefined
@@ -884,12 +884,12 @@ describe("ShapeEditor", function() {
             // cache should contain shape, path & svg
             let cache = scene.shapeeditor.cache
             expect(cache.size).to.equal(2)
-            let ce1 = cache.get(1)!
+            let ce1 = cache.get(fig1)!
             expect(ce1.shape).to.equal(fig1)
             expect(ce1.path).to.not.undefined
             expect(ce1.svg).to.not.undefined
 
-            let ce2 = cache.get(2)!
+            let ce2 = cache.get(fig2)!
             expect(ce2.shape).to.equal(fig2)
             expect(ce2.path).to.not.undefined
             expect(ce2.svg).to.not.undefined

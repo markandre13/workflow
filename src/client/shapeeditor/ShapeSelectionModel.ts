@@ -54,10 +54,7 @@ export class ShapeSelectionModel {
         this.selection.clear()
         this.modified.emit()
     }
-    shapeIds(): Array<number> {
-        let result = new Array<number>()
-        for (let shape of this.selection)
-            result.push(shape.id)
-        return result
+    shapes(): Array<Shape> {
+        return Array.from(this.selection)
     }
 }

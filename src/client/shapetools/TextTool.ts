@@ -127,7 +127,7 @@ export class TextTool extends Tool {
             this.texteditor!.keydown(event)
             event.editor.model?.signal.emit({
                 operation: Operation.UPDATE_SHAPES,
-                shapes: [this.shape.id]
+                shapes: [this.shape]
             })
         }
     }
@@ -137,7 +137,7 @@ export class TextTool extends Tool {
             this.texteditor!.clipboard(editor, event)
             editor.model?.signal.emit({
                 operation: Operation.UPDATE_SHAPES,
-                shapes: [this.shape.id]
+                shapes: [this.shape]
             })
         }
     }
@@ -196,7 +196,7 @@ export class TextTool extends Tool {
         this.texteditor = undefined
         editor.model?.signal.emit({
             operation: Operation.UPDATE_SHAPES,
-            shapes: [this.shape.id]
+            shapes: [this.shape]
         })
     }
 

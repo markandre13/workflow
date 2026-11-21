@@ -60,10 +60,10 @@ describe("LocalDrawingModel emits only on change", () => {
         let emits = 0
         model.signal.add(() => emits++)
 
-        model.setStrokeEnds(layer.id, [shape.id], StrokeEndType.FILLED, undefined)
+        model.setStrokeEnds(layer, [shape], StrokeEndType.FILLED, undefined)
         expect(emits).to.equal(0)
 
-        model.setStrokeEnds(layer.id, [shape.id], StrokeEndType.SIMPLE, undefined)
+        model.setStrokeEnds(layer, [shape], StrokeEndType.SIMPLE, undefined)
         expect(emits).to.equal(1)
     })
 
@@ -78,10 +78,10 @@ describe("LocalDrawingModel emits only on change", () => {
         let emits = 0
         model.signal.add(() => emits++)
 
-        model.setStrokeAndFill(layer.id, [shape.id], "#000", "#fff")
+        model.setStrokeAndFill(layer, [shape], "#000", "#fff")
         expect(emits).to.equal(0)
 
-        model.setStrokeAndFill(layer.id, [shape.id], "#f00", "#fff")
+        model.setStrokeAndFill(layer, [shape], "#f00", "#fff")
         expect(emits).to.equal(1)
     })
 })

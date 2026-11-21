@@ -7,26 +7,26 @@ import { ShapeEditor, Layer } from "client/shapeeditor"
 describe("ShapeEditor", function () {
     describe("arrange", function () {
         it("bring to front", function() {
-            const { drawing, editor } = setup()
-            drawing.bringToFront(1, [10, 30])
+            const { drawing, layer, editor, shape } = setup()
+            drawing.bringToFront(layer, [shape(10), shape(30)])
             expect(svgsToNumbers(editor)).to.deep.equal([1, 3, 0, 2])
         })
 
         it("bring to back", function() {
-            const { drawing, editor } = setup()
-            drawing.bringToBack(1, [20, 40])
+            const { drawing, layer, editor, shape } = setup()
+            drawing.bringToBack(layer, [shape(20), shape(40)])
             expect(svgsToNumbers(editor)).to.deep.equal([1, 3, 0, 2])
         })
 
         it("bring forward", function() {
-            const { drawing, editor } = setup()
-            drawing.bringForward(1, [10, 30])
+            const { drawing, layer, editor, shape } = setup()
+            drawing.bringForward(layer, [shape(10), shape(30)])
             expect(svgsToNumbers(editor)).to.deep.equal([1, 0, 3, 2])
         })
 
         it("bring backward", function() {
-            const { drawing, editor } = setup()
-            drawing.bringBackward(1, [20, 40])
+            const { drawing, layer, editor, shape } = setup()
+            drawing.bringBackward(layer, [shape(20), shape(40)])
             expect(svgsToNumbers(editor)).to.deep.equal([1, 0, 3, 2])
         })
 
@@ -46,12 +46,13 @@ describe("ShapeEditor", function () {
             document.body.innerHTML = ""
             document.body.appendChild(editor)
 
-            drawing.add(1, new Rectangle({ id: 10, origin: { x: 0, y: 0 }, size: { width: 10, height: 10 } }))
-            drawing.add(1, new Rectangle({ id: 20, origin: { x: 1, y: 1 }, size: { width: 10, height: 10 } }))
-            drawing.add(1, new Rectangle({ id: 30, origin: { x: 2, y: 2 }, size: { width: 10, height: 10 } }))
-            drawing.add(1, new Rectangle({ id: 40, origin: { x: 3, y: 3 }, size: { width: 10, height: 10 } }))
+            drawing.add(layer, new Rectangle({ id: 10, origin: { x: 0, y: 0 }, size: { width: 10, height: 10 } }))
+            drawing.add(layer, new Rectangle({ id: 20, origin: { x: 1, y: 1 }, size: { width: 10, height: 10 } }))
+            drawing.add(layer, new Rectangle({ id: 30, origin: { x: 2, y: 2 }, size: { width: 10, height: 10 } }))
+            drawing.add(layer, new Rectangle({ id: 40, origin: { x: 3, y: 3 }, size: { width: 10, height: 10 } }))
 
-            return { drawing, editor }
+            const shape = (id: number) => layer.data.find(s => s.id === id)!
+            return { drawing, layer, editor, shape }
         }
     })
 })

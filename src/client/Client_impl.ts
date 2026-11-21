@@ -270,11 +270,7 @@ export class Client_impl extends skel.Client {
             new ImportDrawingDialog(model, this._orb)
         })
         action("file|delete", async () => {
-            let all: number[] = []
-            for (let shape of model.layers[0].data) {
-                all.push(shape.id)
-            }
-            model.delete(model.layers[0].id, all)
+            model.delete(model.layers[0], [...model.layers[0].data])
             await xdb.deleteDatabase("workflow")
             await xdb.deleteDatabase("workflow2")
         })

@@ -56,7 +56,7 @@ class EditorPage {
     reposition(shape: Rectangle, dx: number, dy: number): void {
         reposition(shape, dx, dy)
         // render the new position without laying out, so a pending scroll is still handled before the update
-        const cached = this.editor.cache.get(shape.id)!
+        const cached = this.editor.cache.get(shape)!
         cached.path = shape.getPath()
         if (shape.matrix) {
             cached.path.transform(shape.matrix)
@@ -663,7 +663,7 @@ describe("Editor", () => {
             page.scrollTo(0)
             await page.settle()
 
-            page.editor.model!.delete(page.editor.selectedLayer!.id, [shape.id])
+            page.editor.model!.delete(page.editor.selectedLayer!, [shape])
             await page.settle()
 
             expect(page.editor.scrollLeft).to.equal(0)

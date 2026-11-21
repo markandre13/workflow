@@ -36,39 +36,33 @@ export class LocalDrawingModel extends DrawingModel {
     // modified = new Signal<DrawingEvent>()
     // layers: Layer[] = []
 
-    add(layerId: number, shape: Shape) {
-        let layer = this.layerById(layerId)
+    add(layer: Layer, shape: Shape) {
         if (shape.id === 0) {
             if (this.idCounter === -1)
                 this.initializeIdCounter()
             shape.id = ++this.idCounter
         }
         layer.data.push(shape)
-        this.signal.emit({ operation: Operation.ADD_SHAPES, shapes: [shape.id] })
+        this.signal.emit({ operation: Operation.ADD_SHAPES, shapes: [shape] })
     }
 
-    delete(layerID: number, shapeIds: number[]): void {
-        // console.log(`LocalLayerModel.delete(${layerID}, ${shapeIds})`)
-
+    delete(layer: Layer, shapes: Shape[]): void {
         // remove from data model
-        const fastShapeIds = this.shapeIdsAsSet(shapeIds) // FIXME: could use the ShapeEditor cache instead
-        const layer = this.layerById(layerID)
-
-        this.removeFromLayer(layer, fastShapeIds)
+        this.removeFromLayer(layer, new Set(shapes))
 
         // inform views to update
-        this.signal.emit({ operation: Operation.DELETE_SHAPES, shapes: shapeIds })
+        this.signal.emit({ operation: Operation.DELETE_SHAPES, shapes: shapes })
     }
 
-    setStrokeAndFill(layerID: number, shapeIds: number[], stroke: string, fill: string): void {
-        let changedShapes: number[] = []
-        this.forAllShapes(layerID, shapeIds, (shape) => {
+    setStrokeAndFill(layer: Layer, shapes: Shape[], stroke: string, fill: string): void {
+        let changedShapes: Shape[] = []
+        this.forAllShapes(layer, shapes, (shape) => {
             shape.stroke = stroke
             shape.fill = fill
             if (shape.stroke !== stroke || shape.fill !== fill) {
                 shape.stroke = stroke
                 shape.fill = fill
-                changedShapes.push(shape.id)
+                changedShapes.push(shape)
             }
         })
         if (changedShapes.length > 0) {
@@ -76,13 +70,13 @@ export class LocalDrawingModel extends DrawingModel {
         }
     }
 
-    setStrokeEnds(layerID: number, shapeIds: number[], start: StrokeEndType | undefined, end: StrokeEndType | undefined): void {
-        let changedShapes: number[] = []
-        this.forAllShapes(layerID, shapeIds, (shape) => {
+    setStrokeEnds(layer: Layer, shapes: Shape[], start: StrokeEndType | undefined, end: StrokeEndType | undefined): void {
+        let changedShapes: Shape[] = []
+        this.forAllShapes(layer, shapes, (shape) => {
             if (shape.strokeStart !== start || shape.strokeEnd !== end) {
                 shape.strokeStart = start
                 shape.strokeEnd = end
-                changedShapes.push(shape.id)
+                changedShapes.push(shape)
             }
         })
         if (changedShapes.length > 0) {
@@ -90,31 +84,27 @@ export class LocalDrawingModel extends DrawingModel {
         }
     }
 
-    forAllShapes(layerID: number, shapeIds: number[], callback: (shape: Shape) => void) {
-        let fastShapeIds = this.shapeIdsAsSet(shapeIds) // FIXME: could use the ShapeEditor cache instead
-        let layer = this.layerById(layerID)
+    forAllShapes(layer: Layer, shapes: Shape[], callback: (shape: Shape) => void) {
+        let fastShapes = new Set(shapes)
         for (let index in layer.data) {
             let fig = layer.data[index]
-            if (fastShapeIds.has(fig.id)) {
+            if (fastShapes.has(fig)) {
                 callback(fig)
             }
         }
     }
 
-    // layerId: layer containing shapes to be transformed
-    // shapeIds: shapes to be transformed
-    transform(layerID: number, shapeIds: Array<number>, matrix: Matrix /*, newIds: Array<number>*/) {
-        // console.log(`LocalLayerModel.transform(${layerID}, ${shapeIds}, ${matrix})`)
-        let fastShapeIds = this.shapeIdsAsSet(shapeIds) // FIXME: could use the ShapeEditor cache instead
-        let layer = this.layerById(layerID)
+    // layer: layer containing shapes to be transformed
+    // shapes: shapes to be transformed
+    transform(layer: Layer, shapes: Shape[], matrix: Matrix /*, newIds: Array<number>*/) {
+        let fastShapes = new Set(shapes)
         for (let index in layer.data) {
             let fig = layer.data[index]
-            if (!fastShapeIds.has(fig.id))
+            if (!fastShapes.has(fig))
                 continue
 
             if (fig.matrix === undefined && fig.transform(matrix)) {
-                // console.log(`LocalLayerModel.transform(${layerID}, ${shapeIds}, ${matrix}) -> trigger with UPDATE_SHAPES`)
-                this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: [fig.id] })
+                this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: [fig] })
                 continue
             }
 
@@ -122,67 +112,54 @@ export class LocalDrawingModel extends DrawingModel {
                 fig.matrix = new Matrix()
             }
             fig.matrix.prepend(matrix)
-            // console.log(`LocalLayerModel.transform(${layerID}, ${shapeIds}, ${matrix}) -> trigger with TRANSFORM_SHAPES`)
-            this.signal.emit({ operation: Operation.TRANSFORM_SHAPES, matrix: matrix, shapes: [fig.id] })
+            this.signal.emit({ operation: Operation.TRANSFORM_SHAPES, matrix: matrix, shapes: [fig] })
         }
     }
 
-    bringToFront(layerID: number, shapeIds: number[]): void {
-        const fastShapeIds = this.shapeIdsAsSet(shapeIds) // FIXME: could use the ShapeEditor cache instead
-        const layer = this.layerById(layerID)
-
-        const removed = this.removeFromLayer(layer, fastShapeIds)
+    bringToFront(layer: Layer, shapes: Shape[]): void {
+        const removed = this.removeFromLayer(layer, new Set(shapes))
 
         removed.shapes.reverse()
         layer.data.push(...removed.shapes)
 
-        this.signal.emit({ operation: Operation.BRING_SHAPES_TO_FRONT, shapes: shapeIds })
+        this.signal.emit({ operation: Operation.BRING_SHAPES_TO_FRONT, shapes: shapes })
     }
 
-    bringToBack(layerID: number, shapeIds: Array<number>): void {
-        const fastShapeIds = this.shapeIdsAsSet(shapeIds) // FIXME: could use the ShapeEditor cache instead
-        const layer = this.layerById(layerID)
-
-        const removed = this.removeFromLayer(layer, fastShapeIds)
+    bringToBack(layer: Layer, shapes: Shape[]): void {
+        const removed = this.removeFromLayer(layer, new Set(shapes))
 
         // insert at head
         removed.shapes.reverse()
         layer.data.splice(0, 0, ...removed.shapes)
 
-        this.signal.emit({ operation: Operation.BRING_SHAPES_TO_BACK, shapes: shapeIds })
+        this.signal.emit({ operation: Operation.BRING_SHAPES_TO_BACK, shapes: shapes })
     }
 
-    bringForward(layerID: number, shapeIds: Array<number>): void {
-        const fastShapeIds = this.shapeIdsAsSet(shapeIds) // FIXME: could use the ShapeEditor cache instead
-        const layer = this.layerById(layerID)
-
-        const removed = this.removeFromLayer(layer, fastShapeIds)
+    bringForward(layer: Layer, shapes: Shape[]): void {
+        const removed = this.removeFromLayer(layer, new Set(shapes))
         removed.shapes.reverse()
         removed.index.reverse()
 
-        for (let i = 0; i < shapeIds.length; ++i) {
+        for (let i = 0; i < shapes.length; ++i) {
             layer.data.splice(removed.index[i] + 1, 0, removed.shapes[i])
         }
 
-        this.signal.emit({ operation: Operation.BRING_SHAPES_FORWARD, shapes: shapeIds })
+        this.signal.emit({ operation: Operation.BRING_SHAPES_FORWARD, shapes: shapes })
     }
 
-    bringBackward(layerID: number, shapeIds: Array<number>): void {
-        const fastShapeIds = this.shapeIdsAsSet(shapeIds) // FIXME: could use the ShapeEditor cache instead
-        const layer = this.layerById(layerID)
-
-        const removed = this.removeFromLayer(layer, fastShapeIds)
+    bringBackward(layer: Layer, shapes: Shape[]): void {
+        const removed = this.removeFromLayer(layer, new Set(shapes))
         removed.shapes.reverse()
         removed.index.reverse()
 
-        for (let i = 0; i < shapeIds.length; ++i) {
+        for (let i = 0; i < shapes.length; ++i) {
             let idx = removed.index[i] - 1
             if (idx < 0)
                 idx = 0
             layer.data.splice(idx, 0, removed.shapes[i])
         }
 
-        this.signal.emit({ operation: Operation.BRING_SHAPES_BACKWARD, shapes: shapeIds })
+        this.signal.emit({ operation: Operation.BRING_SHAPES_BACKWARD, shapes: shapes })
     }
 
     protected initializeIdCounter() {
@@ -203,33 +180,17 @@ export class LocalDrawingModel extends DrawingModel {
         }
     }
 
-    protected layerById(layerID: number) {
-        for (let layer of this.layers) {
-            if (layer.id === layerID)
-                return layer
-        }
-        throw Error("LocalLayerModel.layerById(): unknown layer id " + layerID)
-    }
-
-    protected removeFromLayer(layer: Layer, shapeIds: Set<number>): { shapes: Shape[], index: number[] } {
+    protected removeFromLayer(layer: Layer, shapes: Set<Shape>): { shapes: Shape[], index: number[] } {
         const result: { shapes: Shape[], index: number[] } = { shapes: [], index: [] }
         for (let i = layer.data.length - 1; i >= 0; --i) {
-            if (!shapeIds.has(layer.data[i].id))
+            if (!shapes.has(layer.data[i]))
                 continue
             result.shapes.push(layer.data[i])
             result.index.push(i)
             layer.data.splice(i, 1)
         }
-        if (result.shapes.length !== shapeIds.size)
-            throw Error(`Unknown shape Ids`)
+        if (result.shapes.length !== shapes.size)
+            throw Error(`Unknown shapes`)
         return result
-    }
-
-    protected shapeIdsAsSet(shapeIds: Array<number>): Set<number> {
-        // console.log(`LocalLayerModel.shapeIdsAsSet(${shapeIds})`)
-        let shapeIdSet = new Set<number>()
-        for (let id of shapeIds)
-            shapeIdSet.add(id)
-        return shapeIdSet
     }
 }

@@ -30,13 +30,13 @@ export abstract class DrawingModel extends Model<DrawingEvent> {
 
     readonly documentSettings = new DocumentSettings()
 
-    abstract add(layerID: number, shape: Shape): void
-    abstract delete(layerID: number, indices: Array<number>): void
-    abstract setStrokeAndFill(layerID: number, indices: Array<number>, stroke: string, fill: string): void
-    abstract setStrokeEnds(layerID: number, shapeIds: Array<number>, start: StrokeEndType | undefined, end: StrokeEndType | undefined): void
-    abstract transform(layerID: number, indices: Array<number>, matrix: Matrix): void
-    abstract bringToFront(layerID: number, indices: Array<number>): void
-    abstract bringToBack(layerID: number, indices: Array<number>): void
-    abstract bringForward(layerID: number, indices: Array<number>): void
-    abstract bringBackward(layerID: number, indices: Array<number>): void
+    abstract add(layer: Layer, shape: Shape): void
+    abstract delete(layer: Layer, shapes: Array<Shape>): void
+    abstract setStrokeAndFill(layer: Layer, shapes: Array<Shape>, stroke: string, fill: string): void
+    abstract setStrokeEnds(layer: Layer, shapes: Array<Shape>, start: StrokeEndType | undefined, end: StrokeEndType | undefined): void
+    abstract transform(layer: Layer, shapes: Array<Shape>, matrix: Matrix): void
+    abstract bringToFront(layer: Layer, shapes: Array<Shape>): void
+    abstract bringToBack(layer: Layer, shapes: Array<Shape>): void
+    abstract bringForward(layer: Layer, shapes: Array<Shape>): void
+    abstract bringBackward(layer: Layer, shapes: Array<Shape>): void
 }

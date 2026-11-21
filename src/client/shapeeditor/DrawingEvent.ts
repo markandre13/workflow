@@ -18,9 +18,10 @@
 
 import { Operation } from "./ShapeEditor"
 import { Matrix } from "shared/geometry/Matrix"
+import { Shape } from "shared/workflow_valuetype"
 
 export interface DrawingEvent {
     operation: Operation
-    shapes: number[]
+    shapes: Shape[]
     matrix?: Matrix
 }

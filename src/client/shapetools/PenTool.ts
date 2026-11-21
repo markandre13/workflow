@@ -260,7 +260,7 @@ export class PenTool extends Tool {
                         this.state = State.ACTIVE
                         event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_SHAPES,
-                            shapes: [this.shape!.id]
+                            shapes: [this.shape!]
                         })
                     } break
                 } break
@@ -286,7 +286,7 @@ export class PenTool extends Tool {
                         this.shape!.changeEdgeToSymmetric(backwardHandle)
                         event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_SHAPES,
-                            shapes: [this.shape!.id]
+                            shapes: [this.shape!]
                         })
                     } break
                 } break
@@ -306,7 +306,7 @@ export class PenTool extends Tool {
                         this.shape!.changeEdgeToSmoothAngleAngle(backwardHandle, forwardHandle)
                         event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_SHAPES,
-                            shapes: [this.shape!.id]
+                            shapes: [this.shape!]
                         })
                     }break
                 } break
@@ -329,7 +329,7 @@ export class PenTool extends Tool {
                         this.shape!.addClose()
                         event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_SHAPES,
-                            shapes: [this.shape!.id]
+                            shapes: [this.shape!]
                         })
                         break
                 } break
@@ -356,7 +356,7 @@ export class PenTool extends Tool {
                         this.shape!.changeEdgeToAngleEdge(0, backwardHandle)
                         event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_SHAPES,
-                            shapes: [this.shape!.id]
+                            shapes: [this.shape!]
                         })
                     } break
                 } break
@@ -388,7 +388,7 @@ export class PenTool extends Tool {
                         this.shape!.addClose()
                         event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_SHAPES,
-                            shapes: [this.shape!.id]
+                            shapes: [this.shape!]
                         })
                         break
                 } break
@@ -429,7 +429,7 @@ export class PenTool extends Tool {
                         this.shape!.changeEdgeAngleToSmooth(0, backwardHandle, forwardHandle)
                         event.editor.model!.signal.emit({
                             operation: Operation.UPDATE_SHAPES,
-                            shapes: [this.shape!.id]
+                            shapes: [this.shape!]
                         })
                     } break
                 } break

@@ -552,7 +552,7 @@ export class PathEditor extends EditToolEditor {
                     this.currentAnchor.apply()
                     event.editor.model!.signal.emit({
                         operation: Operation.UPDATE_SHAPES,
-                        shapes: [this.currentAnchor!.shape.id]
+                        shapes: [this.currentAnchor!.shape]
                     })
                     this.currentAnchor = undefined
                     this.updateHandles()

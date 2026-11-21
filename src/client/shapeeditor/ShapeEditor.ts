@@ -140,8 +140,8 @@ export enum Operation {
 
 // The ShapeEditor's Cache
 // ------------------------
-// the cache maps shape.id to a CacheEntry. this is used to
-// * locate shapes by id
+// the cache maps a shape to its CacheEntry. this is used to
+// * locate shapes
 // * store the shape's path (shapes create the path with getPath(), then it undergoes
 //   various transformations (move, scale, deform, perspective, boolean operations, ...),
 //   and is then stored here. this transformed path is then provided to the shape
@@ -154,7 +154,7 @@ export enum Operation {
 // * the shapeeditor will apply all other transformations to to path
 // * the shapeeditor will provide the path during Shape.updateSVG(), where the
 //   shape will then squezze the bitmap into the provided path
-type Cache = Map<number, CacheEntry>
+type Cache = Map<Shape, CacheEntry>
 class CacheEntry {
     shape: shape.Shape
     parent?: CacheEntry
@@ -217,7 +217,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
     constructor(props?: ShapeEditorProps) {
         super(props)
 
-        this.cache = new Map<number, CacheEntry>()
+        this.cache = new Map<Shape, CacheEntry>()
         this.pointerIsDown = false
 
         // the input catcher's task is to catch events for this view
@@ -278,8 +278,8 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         // update selected shapes when stroke models change
         const updateStrokeEnds = () => {
             this.model!.setStrokeEnds(
-                this.selectedLayer!.id,
-                Tool.selection.shapeIds(),
+                this.selectedLayer!,
+                Tool.selection.shapes(),
                 props?.strokeStart?.value,
                 props?.strokeEnd?.value
             )
@@ -307,16 +307,16 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         }, this)
 
         action("object|arrange|front", () => {
-            this.model?.bringToFront(this.selectedLayer!.id, Tool.selection.shapeIds())
+            this.model?.bringToFront(this.selectedLayer!, Tool.selection.shapes())
         })
         action("object|arrange|back", () => {
-            this.model?.bringToBack(this.selectedLayer!.id, Tool.selection.shapeIds())
+            this.model?.bringToBack(this.selectedLayer!, Tool.selection.shapes())
         })
         action("object|arrange|forward", () => {
-            this.model?.bringForward(this.selectedLayer!.id, Tool.selection.shapeIds())
+            this.model?.bringForward(this.selectedLayer!, Tool.selection.shapes())
         })
         action("object|arrange|backward", () => {
-            this.model?.bringBackward(this.selectedLayer!.id, Tool.selection.shapeIds())
+            this.model?.bringBackward(this.selectedLayer!, Tool.selection.shapes())
         })
     }
 
@@ -364,8 +364,8 @@ export class ShapeEditor extends ScrollableVectorGraphics {
             this.strokeAndFillModel = model
             this.strokeAndFillModel.signal.add(() => {
                 this.model!.setStrokeAndFill(
-                    this.selectedLayer!.id,
-                    Tool.selection.shapeIds(),
+                    this.selectedLayer!,
+                    Tool.selection.shapes(),
                     this.strokeAndFillModel!.stroke,
                     this.strokeAndFillModel!.fill
                 )
@@ -452,8 +452,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
             if (this.model) {
                 // console.log(`### ShapeEditor.updateView(): NEW MODEL, FAKE ADD_SHAPES MESSAGE`)
                 let shapes = this.model.layers[0].data
-                    .filter(shape => !this.cache.has(shape.id)) // FIXME: cache should be empty
-                    .map(shape => shape.id)
+                    .filter(shape => !this.cache.has(shape)) // FIXME: cache should be empty
                 event = {
                     operation: Operation.ADD_SHAPES,
                     shapes: shapes
@@ -468,16 +467,16 @@ export class ShapeEditor extends ScrollableVectorGraphics {
             case Operation.ADD_SHAPES:
                 // add new shapes to cache
                 this.model.layers[0].data.forEach((shape) => {
-                    let notInCache = !this.cache.has(shape.id)
+                    let notInCache = !this.cache.has(shape)
                     if (notInCache) {
-                        this.cache.set(shape.id, new CacheEntry(shape))
+                        this.cache.set(shape, new CacheEntry(shape))
                     }
                 })
 
-                for (let id of event.shapes) {
-                    let cached = this.cache.get(id)
+                for (let shape of event.shapes) {
+                    let cached = this.cache.get(shape)
                     if (!cached) {
-                        throw Error(`ShapeEditor.updateView(): ADD_SHAPES cache lacks id ${id}`)
+                        throw Error(`ShapeEditor.updateView(): ADD_SHAPES cache lacks shape ${shape.id}`)
                     }
                     if (cached.shape instanceof Group) {
                         throw Error("ShapeEditor.updateView(): ADD_SHAPES for groups not implemented yet")
@@ -497,10 +496,10 @@ export class ShapeEditor extends ScrollableVectorGraphics {
                 break
 
             case Operation.TRANSFORM_SHAPES:
-                for (let id of event.shapes) {
-                    let cached = this.cache.get(id)
+                for (let shape of event.shapes) {
+                    let cached = this.cache.get(shape)
                     if (!cached) {
-                        throw Error(`ShapeEditor error: TRANSFORM_SHAPES cache lacks id ${id}`)
+                        throw Error(`ShapeEditor error: TRANSFORM_SHAPES cache lacks shape ${shape.id}`)
                     }
                     if (cached.shape instanceof Group) {
                         throw Error("ShapeEditor.updateView(): ADD_SHAPES for groups not implemented yet")
@@ -530,10 +529,10 @@ export class ShapeEditor extends ScrollableVectorGraphics {
                 } break
 
             case Operation.UPDATE_SHAPES:
-                for (let id of event.shapes) {
-                    let cached = this.cache.get(id)
+                for (let shape of event.shapes) {
+                    let cached = this.cache.get(shape)
                     if (!cached) {
-                        throw Error(`ShapeEditor error: UPDATE_SHAPES cache lacks id ${id}`)
+                        throw Error(`ShapeEditor error: UPDATE_SHAPES cache lacks shape ${shape.id}`)
                     }
                     if (cached.shape instanceof Group) {
                         throw Error("ShapeEditor.updateView(): UPDATE_SHAPES for groups not implemented yet")
@@ -555,15 +554,15 @@ export class ShapeEditor extends ScrollableVectorGraphics {
                 break
 
             case Operation.DELETE_SHAPES:
-                for (let id of event.shapes) {
-                    let cached = this.cache.get(id)
+                for (let shape of event.shapes) {
+                    let cached = this.cache.get(shape)
                     if (!cached) {
-                        throw Error(`ShapeEditor error: DELETE_SHAPES cache lacks id ${id}`)
+                        throw Error(`ShapeEditor error: DELETE_SHAPES cache lacks shape ${shape.id}`)
                     }
                     if (cached.svg !== undefined) {
                         layer.removeChild(cached.svg)
                     }
-                    this.cache.delete(id)
+                    this.cache.delete(shape)
                 }
                 break
 
@@ -631,13 +630,13 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         return result
     }
 
-    protected removeFromLayer(layer: SVGElement, shapes: number[]) {
+    protected removeFromLayer(layer: SVGElement, shapes: Shape[]) {
         const removedShapes: SVGElement[] = []
 
-        for (let id of shapes) {
-            let cached = this.cache.get(id)
+        for (let shape of shapes) {
+            let cached = this.cache.get(shape)
             if (!cached)
-                throw Error(`ShapeEditor error: removeFromLayer() cache lacks id ${id}`)
+                throw Error(`ShapeEditor error: removeFromLayer() cache lacks shape ${shape.id}`)
             if (cached.svg === undefined)
                 throw Error("yikes")
             layer.removeChild(cached.svg)
@@ -647,17 +646,17 @@ export class ShapeEditor extends ScrollableVectorGraphics {
     }
 
     // Array.from(element.parentNode.children).indexOf(element)
-    protected removeFromLayerWithIndex(layer: SVGElement, shapes: number[]): { shapes: SVGElement[], index: number[] } {
+    protected removeFromLayerWithIndex(layer: SVGElement, shapes: Shape[]): { shapes: SVGElement[], index: number[] } {
         const result: { shapes: SVGElement[], index: number[] } = { shapes: [], index: [] }
         // const removedShapes: SVGElement[] = []
 
         const index = new Map<Shape, number>()
         this.selectedLayer!.data.forEach((shape, idx) => index.set(shape, idx))
 
-        for (let id of shapes) {
-            let cached = this.cache.get(id)
+        for (let shape of shapes) {
+            let cached = this.cache.get(shape)
             if (!cached)
-                throw Error(`ShapeEditor error: removeFromLayerWithIndex() cache lacks id ${id}`)
+                throw Error(`ShapeEditor error: removeFromLayerWithIndex() cache lacks shape ${shape.id}`)
             if (cached.svg === undefined)
                 throw Error("yikes")
             layer.removeChild(cached.svg)
@@ -669,23 +668,23 @@ export class ShapeEditor extends ScrollableVectorGraphics {
 
     transformSelection(matrix: Matrix): void {
         // console.log("ShapeEditor.transformSelection()")
-        this.model!.transform(this.selectedLayer!.id, Tool.selection.shapeIds(), matrix)
+        this.model!.transform(this.selectedLayer!, Tool.selection.shapes(), matrix)
     }
 
     deleteSelection(): void {
-        this.model!.delete(this.selectedLayer!.id, Tool.selection.shapeIds())
+        this.model!.delete(this.selectedLayer!, Tool.selection.shapes())
     }
 
     addShape(shape: Shape): void {
-        this.model!.add(this.selectedLayer!.id, shape)
+        this.model!.add(this.selectedLayer!, shape)
     }
 
     getPath(shape: Shape): Path | undefined {
-        return this.cache.get(shape.id)?.path
+        return this.cache.get(shape)?.path
     }
 
     getSVG(shape: Shape): SVGElement | undefined {
-        return this.cache.get(shape.id)?.svg
+        return this.cache.get(shape)?.svg
     }
 
     override focus(options?: FocusOptions) {

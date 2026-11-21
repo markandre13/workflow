@@ -20,7 +20,7 @@ export class ImportDrawingDialog {
 
                 // this is a very nasty hack!
                 const layer = model.layers[0]
-                model.delete(layer.id, layer.data.map((f) => f.id))
+                model.delete(layer, [...layer.data])
                 layer.data = loadedLayer.data
                 model.signal.emit(undefined as any)
 

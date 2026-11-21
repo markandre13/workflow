@@ -44,7 +44,7 @@ export class BoardListener_impl extends skel.BoardListener {
 
         this.boardmodel.signal.emit({
             operation: Operation.ADD_SHAPES,
-            shapes: [shape.id]
+            shapes: [shape]
         })
     }
     async transform(layerId: number, shapeIdArray: Array<number>, matrix: Matrix, newIds: Array<number>) {    
@@ -54,10 +54,12 @@ export class BoardListener_impl extends skel.BoardListener {
         let shapeIdSet = new Set<number>()
         for (let id of shapeIdArray)
             shapeIdSet.add(id)
+        let shapes: Shape[] = []
         for (let index in layer.data) {
             let fig = layer.data[index]
             if (!shapeIdSet.has(fig.id))
                 continue
+            shapes.push(fig)
             if (fig.transform(matrix)) // TODO: it doesn't work like this anymore, need to go thru ShapeEditor?
                 continue
             
@@ -78,7 +80,7 @@ export class BoardListener_impl extends skel.BoardListener {
 
         this.boardmodel.signal.emit({
             operation: Operation.TRANSFORM_SHAPES,
-            shapes: shapeIdArray,
+            shapes: shapes,
             matrix: matrix
         })
 
