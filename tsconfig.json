@@ -34,7 +34,7 @@
         "src/**/*.ts",
         "src/client/view/**/*.tsx",
         "test/**/*.ts",
-        "test/**/*.tsx",
+        "test/**/*.tsx", "src/client/app/StrokeAndFilll.tsx",
     ],
     "exclude": [
         "node_modules"

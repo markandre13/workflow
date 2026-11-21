@@ -1,4 +1,4 @@
-import { Unit } from "./Unit"
+import { Unit } from "../unit/Unit"
 
 export interface FormatDefition {
     readonly name: string

@@ -16,11 +16,11 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { StrokeAndFill } from "client/view/widgets/strokeandfill"
+import { StrokeAndFill } from "client/view/widgets/StrokeAndFillWidget"
 import { ColorSwatch } from "client/view/widgets/colorswatch"
 import { ShapeEditor } from "client/shapeeditor"
 
-import { StrokeAndFillModel } from "../widgets/strokeandfill"
+import { StrokeAndFillModel } from "../../app/StrokeAndFilll"
 import { ColorSwatchModel } from "../widgets/colorswatch"
 import { ToolModel } from "client/shapetools/ToolModel"
 import { DrawingModel } from "client/shapeeditor"

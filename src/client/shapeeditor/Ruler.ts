@@ -2,7 +2,7 @@ import { View } from "toad.js/viewkit/View"
 import { HTMLElementProps } from "toad.jsx/jsx-runtime"
 import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
 import { DocumentSettings } from "client/app/DocumentSettings"
-import { unitDefinitions } from "client/app/unitDefinitions"
+import { unitDefinitions } from "client/app/unit/unitDefinitions"
 import { bind } from "client/utils/bind-decorator"
 
 const style = document.createElement("style")

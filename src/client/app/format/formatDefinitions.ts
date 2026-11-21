@@ -1,6 +1,6 @@
 import { FormatDefition } from "./FormatDefition"
-import { Unit } from "./Unit"
-import { unitDefinitions } from "./unitDefinitions"
+import { Unit } from "../unit/Unit"
+import { unitDefinitions } from "../unit/unitDefinitions"
 
 function makeFormatDefinition(name: string, unit: Unit, width: number, height: number, bleed: number[]) {
     const scale = unitDefinitions[unit].scale

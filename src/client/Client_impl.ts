@@ -26,7 +26,7 @@ import { Rectangle as RectangleShape, Circle as CircleShape } from "./shapes"
 
 import { ArrangeTool, EditTool, PenTool, ShapeTool, TextTool } from "./shapetools"
 import { ToolModel } from "./shapetools/ToolModel"
-import { StrokeAndFillModel } from "./view/widgets/strokeandfill"
+import { StrokeAndFillModel } from "./app/StrokeAndFilll"
 
 import { BoardModel } from "./BoardModel"
 import { BoardListener_impl } from "./BoardListener_impl"
