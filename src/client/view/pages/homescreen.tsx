@@ -17,11 +17,10 @@
  */
 
 import { StrokeAndFill } from "client/view/widgets/StrokeAndFillWidget"
+import { ShapeAttributes } from "client/app/ShapeAttributes"
 import { ColorSwatch } from "client/view/widgets/colorswatch"
 import { ShapeEditor } from "client/shapeeditor"
 
-import { StrokeAndFillModel } from "../../app/StrokeAndFilll"
-import { ColorSwatchModel } from "../widgets/colorswatch"
 import { ToolModel } from "client/shapetools/ToolModel"
 import { DrawingModel } from "client/shapeeditor"
 import { HtmlModel } from "toad.js/appkit/HtmlModel"
@@ -32,8 +31,6 @@ import { Menu } from "toad.js/menu/Menu"
 import { Action } from "toad.js/appkit/Action"
 import { Ruler } from "client/shapeeditor/Ruler"
 import { OptionModel } from "toad.js/appkit/OptionModel"
-import { StrokeEndModel } from "client/StrokeEndModel"
-import { NumberModel } from "toad.js/appkit/NumberModel"
 import { TextField } from "toad.js/viewkit/TextField"
 import { Slider } from "toad.js/viewkit/Slider"
 
@@ -72,20 +69,17 @@ function zoomModel() {
 export function homeScreen(
     drawing: DrawingModel,
     tool: ToolModel,
-    strokeandfill: StrokeAndFillModel,
-    strokeStart: StrokeEndModel,
-    strokeEnd: StrokeEndModel,
-    colorswatch: ColorSwatchModel,
+    attributes: ShapeAttributes,
     avatar: HtmlModel
 ): Fragment {
+    const { strokeAndFill, colorSwatch, strokeStart, strokeEnd, strokeWidth } = attributes
     // FIXME: let ColorSwatch take a closure
     // FIXME: make it possible to use Action directly
     const setcolor = new Action((data?: any) => {
-        strokeandfill.set(data)
+        strokeAndFill.set(data)
     })
     let editor = makeRef<ShapeEditor>(), vruler = makeRef<Ruler>(), hruler = makeRef<Ruler>()
     const zoom = zoomModel()
-    const strokeWidth = new NumberModel(1, {label: "Stroke Width", min: 1, max: 32, step: 1})
     let dom = (
         <>
             <Menu
@@ -245,8 +239,8 @@ export function homeScreen(
                 <ToolButton model={tool} value={k2v(tool, "zoom")} title="Zoom (Z)">
                     <img src="img/tool/zoom.svg" />
                 </ToolButton>
-                <StrokeAndFill model={strokeandfill} />
-                <ColorSwatch model={colorswatch} action={setcolor} />
+                <StrokeAndFill model={strokeAndFill} />
+                <ColorSwatch model={colorSwatch} action={setcolor} />
             </div>
 
             <Ruler ref={hruler} style={{ position: "absolute", left: "69px", right: "0px", top: "58px", height: "20px" }} />
@@ -255,10 +249,7 @@ export function homeScreen(
                 ref={editor}
                 model={drawing}
                 tool={tool}
-                strokeandfill={strokeandfill}
-                strokeStart={strokeStart}
-                strokeEnd={strokeEnd}
-                strokeWidth={strokeWidth}
+                attributes={attributes}
                 style={{ position: "absolute", left: "69px", right: "0px", top: "78px", bottom: "24px" }}
             />
 

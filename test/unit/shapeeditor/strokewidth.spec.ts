@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest"
-import { NumberModel } from "toad.js/appkit/NumberModel"
 
 import { Rectangle } from "client/shapes"
 import { Layer, ShapeEditor } from "client/shapeeditor"
 import { LocalDrawingModel } from "client/shapeeditor/LocalDrawingModel"
 import { Tool } from "client/shapetools"
 import { ShapeSelectionModel } from "client/shapeeditor/ShapeSelectionModel"
+import { ShapeAttributes } from "client/app/ShapeAttributes"
 
 let nextId = 1
 
@@ -20,8 +20,9 @@ describe("stroke width follows the selection", () => {
     })
 
     it("changing the stroke width sets it on the selected shapes", () => {
-        const strokeWidth = new NumberModel(1, { min: 1, max: 32, step: 1 })
-        const editor = new ShapeEditor({ strokeWidth })
+        const attributes = new ShapeAttributes()
+        const { strokeWidth } = attributes
+        const editor = new ShapeEditor({ attributes })
         const model = new LocalDrawingModel()
         model.layers.push(new Layer())
         editor.setModel(model)
@@ -40,8 +41,9 @@ describe("stroke width follows the selection", () => {
     })
 
     it("selecting a single shape sets the stroke width model to its width", () => {
-        const strokeWidth = new NumberModel(1, { min: 1, max: 32, step: 1 })
-        const editor = new ShapeEditor({ strokeWidth })
+        const attributes = new ShapeAttributes()
+        const { strokeWidth } = attributes
+        const editor = new ShapeEditor({ attributes })
         const model = new LocalDrawingModel()
         model.layers.push(new Layer())
         editor.setModel(model)
@@ -56,8 +58,9 @@ describe("stroke width follows the selection", () => {
     })
 
     it("a shape keeps its width when the selection changes to several shapes", () => {
-        const strokeWidth = new NumberModel(1, { min: 1, max: 32, step: 1 })
-        const editor = new ShapeEditor({ strokeWidth })
+        const attributes = new ShapeAttributes()
+        const { strokeWidth } = attributes
+        const editor = new ShapeEditor({ attributes })
         const model = new LocalDrawingModel()
         model.layers.push(new Layer())
         editor.setModel(model)

@@ -40,8 +40,7 @@ import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
 import { Decoration } from "./Decoration"
 import { unitDefinitions } from "client/app/unit/unitDefinitions"
 import { action } from "toad.js/appkit/Action"
-import { StrokeEndModel } from "client/StrokeEndModel"
-import { NumberModel } from "toad.js/appkit/NumberModel"
+import type { ShapeAttributes } from "client/app/ShapeAttributes"
 import { StrokeEndType } from "shared/workflow"
 import { ShapeSelectionModel } from "./ShapeSelectionModel"
 
@@ -208,10 +207,7 @@ class CacheEntry {
 interface ShapeEditorProps extends HTMLElementProps {
     model?: DrawingModel
     tool?: ToolModel
-    strokeandfill?: StrokeAndFillModel
-    strokeStart?: StrokeEndModel
-    strokeEnd?: StrokeEndModel
-    strokeWidth?: NumberModel
+    attributes?: ShapeAttributes
 }
 
 let instanceCounter = 0
@@ -317,10 +313,10 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         // setInitialProperties(this, props) // this was the earlier workaround???
         this.setModel(undefined)
         if (props?.tool) {
-            this.setModel(props.tool as any)
+            this.setToolModel(props.tool)
         }
-        if (props?.strokeandfill) {
-            this.setModel(props.strokeandfill as any)
+        if (props?.attributes) {
+            this.setStrokeAndFillModel(props.attributes.strokeAndFill)
         }
         this.setModel(props?.model)
 
@@ -328,27 +324,29 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         // handle stroke ends
         //
 
+        const attributes = props?.attributes
+
         // update selected shapes when stroke models change
         const updateStrokeEnds = () => {
             this.model!.setStrokeEnds(
                 this.selectedLayer!,
                 Tool.selection.shapes(),
-                props?.strokeStart?.value,
-                props?.strokeEnd?.value
+                attributes?.strokeStart.value,
+                attributes?.strokeEnd.value
             )
         }
-        props?.strokeStart?.signal.add(updateStrokeEnds)
-        props?.strokeEnd?.signal.add(updateStrokeEnds)
+        attributes?.strokeStart.signal.add(updateStrokeEnds)
+        attributes?.strokeEnd.signal.add(updateStrokeEnds)
 
         // update selected shapes when the stroke width changes
         const updateStrokeWidth = () => {
             this.model!.setStrokeWidth(
                 this.selectedLayer!,
                 Tool.selection.shapes(),
-                props!.strokeWidth!.value
+                attributes!.strokeWidth.value
             )
         }
-        props?.strokeWidth?.signal.add(updateStrokeWidth)
+        attributes?.strokeWidth.signal.add(updateStrokeWidth)
 
         // update stroke models when a single shape is selected
         if (Tool.selection === undefined) Tool.selection = new ShapeSelectionModel()
@@ -357,21 +355,18 @@ export class ShapeEditor extends ScrollableVectorGraphics {
                 return
             }
             const [shape] = Tool.selection.selection
-            props?.strokeStart?.signal.lock()
-            props?.strokeEnd?.signal.lock()
-            props?.strokeWidth?.signal.lock()
-            if (props?.strokeStart) {
-                props.strokeStart.value = shape.strokeStart ?? StrokeEndType.NONE
+            if (!attributes) {
+                return
             }
-            if (props?.strokeEnd) {
-                props.strokeEnd.value = shape.strokeEnd ?? StrokeEndType.NONE
-            }
-            if (props?.strokeWidth) {
-                props.strokeWidth.value = shape.strokeWidth
-            }
-            props?.strokeStart?.signal.unlock()
-            props?.strokeEnd?.signal.unlock()
-            props?.strokeWidth?.signal.unlock()
+            attributes.strokeStart.signal.lock()
+            attributes.strokeEnd.signal.lock()
+            attributes.strokeWidth.signal.lock()
+            attributes.strokeStart.value = shape.strokeStart ?? StrokeEndType.NONE
+            attributes.strokeEnd.value = shape.strokeEnd ?? StrokeEndType.NONE
+            attributes.strokeWidth.value = shape.strokeWidth
+            attributes.strokeStart.signal.unlock()
+            attributes.strokeEnd.signal.unlock()
+            attributes.strokeWidth.signal.unlock()
         }, this)
 
         action("object|arrange|front", () => {
@@ -405,50 +400,44 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         }
     }
 
-    override setModel(model?: DrawingModel | ToolModel | StrokeAndFillModel): void {
+    private setToolModel(model: ToolModel) {
+        if (this.toolModel === model)
+            return
+        this.toolModel = model
+        this.toolModel.signal.add(() => {
+            this.setTool(this.toolModel!.value)
+        }, this)
+        this.setTool(this.toolModel.value)
+        this.invalidate()
+    }
+
+    private setStrokeAndFillModel(model: StrokeAndFillModel) {
+        if (this.strokeAndFillModel === model)
+            return
+        this.strokeAndFillModel = model
+        this.strokeAndFillModel.signal.add(() => {
+            this.model!.setStrokeAndFill(
+                this.selectedLayer!,
+                Tool.selection.shapes(),
+                this.strokeAndFillModel!.stroke,
+                this.strokeAndFillModel!.fill
+            )
+        }, this)
+        this.invalidate()
+    }
+
+    override setModel(model?: DrawingModel): void {
         if (model === undefined) {
-            if (this.toolModel) {
-                this.toolModel.signal.remove(this)
-                this.toolModel = undefined
-            }
-            if (this.strokeAndFillModel) {
-                this.strokeAndFillModel.signal.remove(this)
-                this.strokeAndFillModel = undefined
-            }
             super.setModel(undefined)
         }
-        else if (model instanceof ToolModel) {
-            if (this.toolModel === model)
-                return
-            this.toolModel = model
-            this.toolModel.signal.add(() => {
-                this.setTool(this.toolModel!.value)
-            }, this)
-            this.setTool(this.toolModel!.value)
-        }
-        else if (model instanceof StrokeAndFillModel) {
-            if (this.strokeAndFillModel === model)
-                return
-            this.strokeAndFillModel = model
-            this.strokeAndFillModel.signal.add(() => {
-                this.model!.setStrokeAndFill(
-                    this.selectedLayer!,
-                    Tool.selection.shapes(),
-                    this.strokeAndFillModel!.stroke,
-                    this.strokeAndFillModel!.fill
-                )
-            }, this)
-        }
-        else {
-            if (this.model !== model) {
-                this.model?.documentSettings.signal.remove(this)
+        else if (this.model !== model) {
+            this.model?.documentSettings.signal.remove(this)
 
-                super.setModel(model as DrawingModel)
-                this.selectedLayer = model.layers[0]
+            super.setModel(model)
+            this.selectedLayer = model.layers[0]
 
-                this.model?.documentSettings.signal.add(this.updatePaper, this)
-                this.updatePaper()
-            }
+            this.model?.documentSettings.signal.add(this.updatePaper, this)
+            this.updatePaper()
         }
         this.invalidate()
     }

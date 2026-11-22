@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach } from "vitest"
-import { OptionModel } from "toad.js/appkit/OptionModel"
 
 import { Rectangle } from "client/shapes"
 import { Layer, ShapeEditor } from "client/shapeeditor"
@@ -8,16 +7,9 @@ import { Tool } from "client/shapetools"
 import { ShapeSelectionModel } from "client/shapeeditor/ShapeSelectionModel"
 import { Path } from "client/shapes/Path"
 import { StrokeEndType } from "shared/workflow"
+import { ShapeAttributes } from "client/app/ShapeAttributes"
 
 let nextId = 1
-
-function strokeEndModel() {
-    return new OptionModel(StrokeEndType.NONE, [
-        [StrokeEndType.NONE, "none"],
-        [StrokeEndType.SIMPLE, "simple"],
-        [StrokeEndType.FILLED, "filled"],
-    ])
-}
 
 function rectangle(): Rectangle {
     return new Rectangle({ id: nextId++, origin: { x: 0, y: 0 }, size: { width: 10, height: 10 } })
@@ -93,9 +85,9 @@ describe("stroke ends follow the selection", () => {
     })
 
     it("selecting a single shape sets the stroke end models to its stroke ends", () => {
-        const strokeStart = strokeEndModel()
-        const strokeEnd = strokeEndModel()
-        const editor = new ShapeEditor({ strokeStart, strokeEnd })
+        const attributes = new ShapeAttributes()
+        const { strokeStart, strokeEnd } = attributes
+        const editor = new ShapeEditor({ attributes })
         const model = new LocalDrawingModel()
         model.layers.push(new Layer())
         editor.setModel(model)
@@ -112,9 +104,9 @@ describe("stroke ends follow the selection", () => {
     })
 
     it("a shape without stroke ends selects NONE", () => {
-        const strokeStart = strokeEndModel()
-        const strokeEnd = strokeEndModel()
-        const editor = new ShapeEditor({ strokeStart, strokeEnd })
+        const attributes = new ShapeAttributes()
+        const { strokeStart, strokeEnd } = attributes
+        const editor = new ShapeEditor({ attributes })
         const model = new LocalDrawingModel()
         model.layers.push(new Layer())
         editor.setModel(model)
@@ -130,9 +122,9 @@ describe("stroke ends follow the selection", () => {
     })
 
     it("selecting several shapes leaves the stroke end models unchanged", () => {
-        const strokeStart = strokeEndModel()
-        const strokeEnd = strokeEndModel()
-        const editor = new ShapeEditor({ strokeStart, strokeEnd })
+        const attributes = new ShapeAttributes()
+        const { strokeStart, strokeEnd } = attributes
+        const editor = new ShapeEditor({ attributes })
         const model = new LocalDrawingModel()
         model.layers.push(new Layer())
         editor.setModel(model)

@@ -26,16 +26,15 @@ import { Rectangle as RectangleShape, Circle as CircleShape } from "./shapes"
 
 import { ArrangeTool, PenTool, ShapeTool, TextTool } from "./shapetools"
 import { ToolModel } from "./shapetools/ToolModel"
-import { StrokeAndFillModel } from "./app/StrokeAndFilll"
 
 import { BoardModel } from "./BoardModel"
 import { BoardListener_impl } from "./BoardListener_impl"
 import { LocalDrawingModel } from "./shapeeditor/LocalDrawingModel"
 
-import { ColorSwatchModel } from "client/view/widgets/colorswatch"
 import { DrawingModel } from "client/shapeeditor"
 
 import { homeScreen } from "client/view/pages/homescreen"
+import { ShapeAttributes } from "./app/ShapeAttributes"
 import * as xdb from "./utils/indexeddb"
 import { Layer } from "./shapeeditor/Layer"
 import { ExportDrawingDialog } from "./view/dialogs/ExportDrawingDialog"
@@ -45,10 +44,6 @@ import { action } from "toad.js/appkit/Action"
 import { TextModel } from "toad.js/appkit/TextModel"
 import { DocumentSettingsDialog } from "./view/dialogs/DocumentSettingsDialog"
 import { DocumentSettings } from "./app/DocumentSettings"
-import { OptionModel } from "toad.js/appkit/OptionModel"
-import { makeArrowOption } from "./view/pages/makeArrowOption"
-import { StrokeEndType } from "shared/workflow"
-import { StrokeEndModel } from "./StrokeEndModel"
 import { EditTool } from "./shapetools/edittool/EditTool"
 
 namespace dom {
@@ -164,33 +159,15 @@ export class Client_impl extends skel.Client {
     getHomeScreen(model: DrawingModel) {
         // MODEL
         const tool = this.createToolModel()
-        const strokeandfill = this.createStrokeAndFillModel()
-        const colorswatch = new ColorSwatchModel()
-        const strokeStart: StrokeEndModel = new OptionModel(StrokeEndType.NONE, [
-            makeArrowOption(StrokeEndType.NONE),
-            makeArrowOption(StrokeEndType.SIMPLE),
-            makeArrowOption(StrokeEndType.EMPTY),
-            makeArrowOption(StrokeEndType.FILLED),
-            makeArrowOption(StrokeEndType.EMPTY_CONCAVE),
-            makeArrowOption(StrokeEndType.FILLED_CONCAVE),
-            makeArrowOption(StrokeEndType.EMPTY_CONVEX),
-            makeArrowOption(StrokeEndType.FILLED_CONVEX),
-        ])
-        const strokeEnd: StrokeEndModel = new OptionModel(StrokeEndType.NONE, [
-            makeArrowOption(StrokeEndType.NONE, false),
-            makeArrowOption(StrokeEndType.SIMPLE, false),
-            makeArrowOption(StrokeEndType.EMPTY, false),
-            makeArrowOption(StrokeEndType.FILLED, false),
-            makeArrowOption(StrokeEndType.EMPTY_CONCAVE, false),
-            makeArrowOption(StrokeEndType.FILLED_CONCAVE, false),
-            makeArrowOption(StrokeEndType.EMPTY_CONVEX, false),
-            makeArrowOption(StrokeEndType.FILLED_CONVEX, false),
-        ])
+        const attributes = new ShapeAttributes()
+        action("setcolor", (data?: any) => {
+            attributes.strokeAndFill.set(data)
+        })
 
         const avatar = this.createAvatarModel("img/avatars/whale.svg") // FIXME: hack which only works only for offline
 
         // VIEW FIXME: move into separate file
-        return homeScreen(model, tool, strokeandfill, strokeStart, strokeEnd, colorswatch, avatar)
+        return homeScreen(model, tool, attributes, avatar)
     }
 
     private async createBoardModel() {
@@ -299,16 +276,6 @@ export class Client_impl extends skel.Client {
         })
         action("account|logout", () => {
         })
-    }
-
-    private createStrokeAndFillModel(): StrokeAndFillModel {
-        const strokeandfillmodel = new StrokeAndFillModel()
-        // bindModel("strokeandfill", strokeandfillmodel)
-        // bindModel("board", strokeandfillmodel)
-        action("setcolor", (data?: any) => {
-            strokeandfillmodel.set(data)
-        })
-        return strokeandfillmodel
     }
 
     private createToolModel(): ToolModel {
