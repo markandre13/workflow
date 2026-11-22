@@ -18,10 +18,12 @@
 
 import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
+import { Rectangle } from "shared/geometry/Rectangle"
 
 export abstract class AbstractPath {
     abstract transform(matrix: Matrix): AbstractPath
     abstract clone(): AbstractPath
+    abstract bounds(): Rectangle
 
     translate(point: PointLike): AbstractPath
     translate(x: number, y: number): AbstractPath

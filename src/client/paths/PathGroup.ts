@@ -17,6 +17,8 @@
  */
 
 import { Matrix } from "shared/geometry/Matrix"
+import { PointLike } from "shared/geometry/Point"
+import { Rectangle } from "shared/geometry/Rectangle"
 import { AbstractPath } from "./AbstractPath"
 
 // PathGroup represents a group of paths
@@ -42,6 +44,20 @@ export class PathGroup extends AbstractPath {
     }
     clone(): AbstractPath {
         return new PathGroup(this)
+    }
+    bounds(): Rectangle {
+        const points: PointLike[] = []
+        for (const path of this.data) {
+            path.bounds().forAllEdges((point) => points.push(point), this.matrix)
+        }
+        if (points.length === 0) {
+            return new Rectangle(0, 0, 0, 0)
+        }
+        const x0 = Math.min(...points.map(p => p.x))
+        const y0 = Math.min(...points.map(p => p.y))
+        const x1 = Math.max(...points.map(p => p.x))
+        const y1 = Math.max(...points.map(p => p.y))
+        return new Rectangle(x0, y0, x1 - x0, y1 - y0)
     }
     clear(): void {
         this.data.length = 0

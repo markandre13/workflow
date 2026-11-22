@@ -161,10 +161,8 @@ export enum Operation {
  */
 type Cache = Map<Shape, CacheEntry>
 class CacheEntry {
-    /**
-     * the patch returned by the shape
-     */
-    path?: AbstractPath
+    private _path?: AbstractPath
+    private _bounds?: Rectangle
     /**
      * the SVG shape returned by the shape
      */
@@ -177,6 +175,31 @@ class CacheEntry {
         this.parent = parent
         this.path = undefined
         this.svg = undefined
+    }
+
+    /**
+     * the patch returned by the shape
+     */
+    get path(): AbstractPath | undefined {
+        return this._path
+    }
+    set path(path: AbstractPath | undefined) {
+        this._path = path
+        this._bounds = undefined
+    }
+
+    // transforms the path in place, so the cached bounds are no longer valid
+    transform(matrix: Matrix) {
+        this._path?.transform(matrix)
+        this._bounds = undefined
+    }
+
+    get bounds(): Rectangle | undefined {
+        if (this._path === undefined) {
+            return undefined
+        }
+        this._bounds ??= this._path.bounds()
+        return this._bounds
     }
 }
 
@@ -506,7 +529,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
                     if (!cached.path) {
                         cached.path = cached.shape.getPath()
                         if (cached.shape.matrix) {
-                            cached.path.transform(cached.shape.matrix)
+                            cached.transform(cached.shape.matrix)
                         }
                     }
                     let svg = cached.shape.updateSVG(cached.path, layer, cached.svg)
@@ -543,7 +566,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
                     // console.log(`  before transform ${JSON.stringify(path)}`)
                     let m = event.matrix
                     // console.log(`ShapeEditor.updateView(): transform path of shape ${id} by rotate ${m.getRotation()}, translate=${m.e}, ${m.f}`)
-                    cached.path.transform(event.matrix!)
+                    cached.transform(event.matrix!)
                     // console.log(`  after transform ${JSON.stringify(path)}`)
                     cached.svg = cached.shape.updateSVG(cached.path, layer, cached.svg)
 
@@ -568,7 +591,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
 
                     cached.path = cached.shape.getPath()
                     if (cached.shape.matrix) {
-                        cached.path.transform(cached.shape.matrix)
+                        cached.transform(cached.shape.matrix)
                     }
                     // console.log(`ShapeEditor.updateShape(): shape with id ${id} to ${cached.path}`)
                     cached.svg = cached.shape.updateSVG(cached.path, layer, cached.svg)
@@ -642,19 +665,15 @@ export class ShapeEditor extends ScrollableVectorGraphics {
     override bbox(): Rectangle | undefined {
         let result: Rectangle | undefined
         for (const pair of this.cache) {
-            const shape = pair[1].svg
-            let bbox: DOMRect | undefined
-            if (shape instanceof SVGSVGElement || shape instanceof SVGPathElement) {
-                bbox = shape.getBBox()
-            }
-            if (bbox === undefined) {
+            const bounds = pair[1].bounds
+            if (bounds === undefined) {
                 continue
             }
-            const origin = new Point(bbox.x, bbox.y)
-            const corner = new Point(bbox.x + bbox.width, bbox.y + bbox.height)
+            const origin = new Point(bounds.origin.x, bounds.origin.y)
+            const corner = new Point(bounds.origin.x + bounds.size.width, bounds.origin.y + bounds.size.height)
             if (result === undefined) {
-                // copy, so that expanding the result does not change the shape
-                result = new Rectangle({ origin: { x: origin.x, y: origin.y }, size: { width: bbox.width, height: bbox.height } })
+                // copy, so that expanding the result does not change the cached bounds
+                result = new Rectangle({ origin: { x: origin.x, y: origin.y }, size: { width: bounds.size.width, height: bounds.size.height } })
             } else {
                 result.expandByPoint(origin).expandByPoint(corner)
             }

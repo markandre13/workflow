@@ -236,7 +236,7 @@ export class Path extends AbstractPath {
         this.close()
         return this
     }
-    bounds(): Rectangle {
+    override bounds(): Rectangle {
         let isFirstPoint = true
         let previousPoint!: PointLike
         let rectangle = new Rectangle()
@@ -247,6 +247,7 @@ export class Path extends AbstractPath {
                     if (isFirstPoint) {
                         rectangle.origin.x = segment.values[0]
                         rectangle.origin.y = segment.values[1]
+                        isFirstPoint = false
                     } else {
                         rectangle.expandByPoint(previousPoint)
                     }
