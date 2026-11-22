@@ -129,6 +129,10 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
             this.frame = undefined
         }
         this._invalid = false
+        // without a size the scroll position cannot be set, so wait for the resize observer
+        if (this.offsetWidth === 0 && this.offsetHeight === 0) {
+            return
+        }
         const bbox = this.bbox()
 
         // console.log(`Editor.update(): bbox=${bbox}`)
