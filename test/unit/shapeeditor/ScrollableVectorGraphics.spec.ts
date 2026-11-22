@@ -722,6 +722,8 @@ describe("Editor", () => {
             expect(page.canvasWidth).to.equal(620)
 
             page.editor.style.width = "800px"
+            // the resize observer schedules the update for the frame after the resize
+            await page.settle()
             await page.settle()
 
             expect(page.canvasWidth).to.equal(800)

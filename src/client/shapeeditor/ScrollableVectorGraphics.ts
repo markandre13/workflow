@@ -64,7 +64,9 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
     // releasing the button ends a scrollbar drag, even when the release happens outside the editor
     private readonly onwindowrelease = () => this.releaseScrollbar();
 
-    private readonly resizeObserver = new ResizeObserver(() => this.update());
+    // update() can show or hide scrollbars, which resizes this element again, so it runs in the next frame
+    // instead of inside the observer callback; otherwise Safari reports a ResizeObserver loop
+    private readonly resizeObserver = new ResizeObserver(() => this.invalidate());
 
     override connectedCallback() {
         window.addEventListener("pointerup", this.onwindowrelease)
@@ -208,7 +210,7 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
         for (; ;) {
             const needH = rb.w * zoom > rb.viewW
             const needV = rb.h * zoom > rb.viewH
-            if (needH === hBar && needV === vBar) {
+            if ((!needH || hBar) && (!needV || vBar)) {
                 break
             }
             hBar ||= needH
