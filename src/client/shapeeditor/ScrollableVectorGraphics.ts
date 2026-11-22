@@ -5,6 +5,9 @@ import { Shape } from "shared/workflow_valuetype"
 import { ModelView, ModelViewProps } from "toad.js/viewkit/ModelView"
 import { style } from "./ShapeEditor"
 
+// update() settles the scrollbars in two passes; this is a safety limit so that it can never loop forever
+const MAX_LAYOUT_PASSES = 10
+
 export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
     svg: SVGSVGElement
 
@@ -202,20 +205,25 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
                 viewH,
             }
         }
-        // a scrollbar only ever turns on, so this stops after at most two steps. a scrollbar that is on may
+        // a scrollbar only ever turns on, so this normally stops after at most two steps. a scrollbar that is on may
         // no longer be needed after the other one turned on (rounding), and that must not keep the loop going
         let hBar = false
         let vBar = false
         let rb = layout(hBar, vBar)
-        for (; ;) {
+        let settled = false
+        for (let pass = 0; pass < MAX_LAYOUT_PASSES; ++pass) {
             const needH = rb.w * zoom > rb.viewW
             const needV = rb.h * zoom > rb.viewH
             if ((!needH || hBar) && (!needV || vBar)) {
+                settled = true
                 break
             }
             hBar ||= needH
             vBar ||= needV
             rb = layout(hBar, vBar)
+        }
+        if (!settled) {
+            console.error(`ScrollableVectorGraphics.update(): scrollbars did not settle after ${MAX_LAYOUT_PASSES} passes`)
         }
         this.applyLayout(rb, hBar, vBar, visibleX, visibleY, zoom)
     }
