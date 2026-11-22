@@ -35,6 +35,7 @@ import { DrawingModel } from "client/shapeeditor"
 
 import { homeScreen } from "client/view/pages/homescreen"
 import { ShapeAttributes } from "./app/ShapeAttributes"
+import { ColorSwatchModel } from "client/view/widgets/colorswatch"
 import * as xdb from "./utils/indexeddb"
 import { Layer } from "./shapeeditor/Layer"
 import { ExportDrawingDialog } from "./view/dialogs/ExportDrawingDialog"
@@ -160,6 +161,7 @@ export class Client_impl extends skel.Client {
         // MODEL
         const tool = this.createToolModel()
         const attributes = new ShapeAttributes()
+        const colorSwatch = new ColorSwatchModel()
         action("setcolor", (data?: any) => {
             attributes.strokeAndFill.set(data)
         })
@@ -167,7 +169,7 @@ export class Client_impl extends skel.Client {
         const avatar = this.createAvatarModel("img/avatars/whale.svg") // FIXME: hack which only works only for offline
 
         // VIEW FIXME: move into separate file
-        return homeScreen(model, tool, attributes, avatar)
+        return homeScreen(model, tool, attributes, colorSwatch, avatar)
     }
 
     private async createBoardModel() {

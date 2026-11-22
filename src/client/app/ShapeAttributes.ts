@@ -2,7 +2,6 @@ import { StrokeEndType } from "shared/workflow"
 import { OptionModel } from "toad.js/appkit/OptionModel"
 import { NumberModel } from "toad.js/appkit/NumberModel"
 import { StrokeAndFillModel } from "./StrokeAndFilll"
-import { ColorSwatchModel } from "client/view/widgets/colorswatch"
 import { StrokeEndModel } from "client/StrokeEndModel"
 import { makeArrowOption } from "client/view/pages/makeArrowOption"
 
@@ -12,7 +11,6 @@ import { makeArrowOption } from "client/view/pages/makeArrowOption"
  */
 export class ShapeAttributes {
     readonly strokeAndFill = new StrokeAndFillModel()
-    readonly colorSwatch = new ColorSwatchModel()
     readonly strokeStart: StrokeEndModel = new OptionModel(StrokeEndType.NONE, [
         makeArrowOption(StrokeEndType.NONE),
         makeArrowOption(StrokeEndType.SIMPLE),

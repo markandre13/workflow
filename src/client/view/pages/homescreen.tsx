@@ -18,6 +18,7 @@
 
 import { StrokeAndFill } from "client/view/widgets/StrokeAndFillWidget"
 import { ShapeAttributes } from "client/app/ShapeAttributes"
+import { ColorSwatchModel } from "client/view/widgets/colorswatch"
 import { ColorSwatch } from "client/view/widgets/colorswatch"
 import { ShapeEditor } from "client/shapeeditor"
 
@@ -70,9 +71,10 @@ export function homeScreen(
     drawing: DrawingModel,
     tool: ToolModel,
     attributes: ShapeAttributes,
+    colorSwatch: ColorSwatchModel,
     avatar: HtmlModel
 ): Fragment {
-    const { strokeAndFill, colorSwatch, strokeStart, strokeEnd, strokeWidth } = attributes
+    const { strokeAndFill, strokeStart, strokeEnd, strokeWidth } = attributes
     // FIXME: let ColorSwatch take a closure
     // FIXME: make it possible to use Action directly
     const setcolor = new Action((data?: any) => {
