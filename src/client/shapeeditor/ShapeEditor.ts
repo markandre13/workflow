@@ -756,7 +756,17 @@ export class ShapeEditor extends ScrollableVectorGraphics {
     }
 
     override focus(options?: FocusOptions) {
-        this.inputCatcher.focus(options)
+        this.focusInputCatcher()
+    }
+
+    // focusing the input catcher puts the caret at its start, which is the origin, and WebKit scrolls to show the
+    // caret even with preventScroll, so the scroll position is kept
+    private focusInputCatcher() {
+        const left = this.scrollLeft
+        const top = this.scrollTop
+        this.inputCatcher.focus({ preventScroll: true })
+        this.scrollLeft = left
+        this.scrollTop = top
     }
 
     //
@@ -772,7 +782,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
 
         this.setPointerCapture(pointerEvent.pointerId)
 
-        this.inputCatcher.focus({ preventScroll: true })
+        this.focusInputCatcher()
         pointerEvent.preventDefault()
 
         this.pointerIsDown = true
