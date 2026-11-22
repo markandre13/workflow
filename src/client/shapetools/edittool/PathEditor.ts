@@ -44,6 +44,16 @@ export class PathEditor extends EditToolEditor {
         this.createAnchors()
     }
 
+    override get handleSize(): number {
+        return this.editor.handleSize
+    }
+
+    override zoomChanged(): void {
+        this.anchors.forEach(anchor => {
+            anchor.zoomChanged()
+        })
+    }
+
     override destructor(): void {
         this.anchors.forEach(anchor => {
             anchor.destructor()

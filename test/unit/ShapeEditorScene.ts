@@ -162,7 +162,7 @@ export class ShapeEditorScene {
             throw Error("Error: selection decoration is empty")
         let msg = ""
         for (let i of [0, 2, 4, 6]) {
-            const handleInfo = this.shapeeditor.tool!.getBoundaryHandle(i)
+            const handleInfo = this.shapeeditor.tool!.getBoundaryHandle(i, this.shapeeditor.handleSize)
             if (handleInfo.path.contains(point))
                 return
             msg = `${msg} (${handleInfo.path.data[0].values![0]+1.5},${handleInfo.path.data[0].values![1]+1.5})`

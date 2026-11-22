@@ -99,6 +99,7 @@ export class PenTool extends Tool {
     shape?: Path // the shape we create
 
     anchors: SVGRectElement[] = []
+    anchorPos: PointLike[] = []
     _handlePos = new Array<PointLike>(4)
     _handles = new Array<SVGCircleElement>(4)
     lines = new Array<SVGLineElement>(4)
@@ -460,6 +461,7 @@ export class PenTool extends Tool {
     clear(editor: ShapeEditor) {
         this.state = State.READY
         this.anchors = []
+        this.anchorPos = []
         this._handles = new Array<SVGCircleElement>(4)
         this.lines = new Array<SVGLineElement>(4)
         this._outline = undefined
@@ -488,7 +490,7 @@ export class PenTool extends Tool {
         if (this.anchors.length > 1) {
             this.anchors[this.anchors.length - 1].style.cursor = ""
         }
-        const anchor = Tool.createAnchor(undefined, p)
+        const anchor = Tool.createAnchor(undefined, p, this.editor.handleSize)
         if (this.anchors.length === 0) {
             anchor.style.cursor = `url(${Tool.cursorPath}pen-close.svg) 5 1, crosshair`
         } else {
@@ -498,6 +500,17 @@ export class PenTool extends Tool {
 
         // this.decoration!.appendChild(anchor)
         this.anchors.push(anchor)
+        this.anchorPos.push(p)
+    }
+
+    override zoomChanged(editor: ShapeEditor): void {
+        const size = editor.handleSize
+        this.anchors.forEach((anchor, idx) => {
+            Tool.updateAnchor(undefined, this.anchorPos[idx], anchor, size)
+        })
+        this._handles.forEach((handle, idx) => {
+            Tool.updateHandle(undefined, this._handlePos[idx], handle, size)
+        })
     }
 
     isFirstAnchor(p: PointLike) {
@@ -545,12 +558,12 @@ export class PenTool extends Tool {
         if (this._handles[idx] === undefined) {
             this.lines[idx] = Tool.createLine(undefined, anchorPos, handlePos)
             this.editor.outline.appendChild(this.lines[idx])
-            this._handles[idx] = Tool.createHandle(undefined, handlePos)
+            this._handles[idx] = Tool.createHandle(undefined, handlePos, this.editor.handleSize)
             this.editor.decoration.appendChild(this._handles[idx])
         } else {
             this._handles[idx].style.display = ""
             this.lines[idx].style.display = ""
-            Tool.updateHandle(undefined, handlePos, this._handles[idx])
+            Tool.updateHandle(undefined, handlePos, this._handles[idx], this.editor.handleSize)
             Tool.updateLine(undefined, anchorPos, handlePos, this.lines[idx])
         }
     }

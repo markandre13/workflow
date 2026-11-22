@@ -7,24 +7,27 @@ export abstract class EditToolEditor {
     shapeToScreen?: Matrix
     screenToShape?: Matrix
 
+    abstract get handleSize(): number
+
     destructor(): void { }
     pointerEvent(event: EditorPointerEvent): boolean { return false }
     keyEvent(event: EditorKeyboardEvent): boolean { return false }
+    zoomChanged(): void { }
 
     createAnchor(p: PointLike) {
-        return Tool.createAnchor(this.shapeToScreen, p)
+        return Tool.createAnchor(this.shapeToScreen, p, this.handleSize)
     }
 
     updateAnchor(p: PointLike, svg: SVGRectElement) {
-        return Tool.updateAnchor(this.shapeToScreen, p, svg)
+        return Tool.updateAnchor(this.shapeToScreen, p, svg, this.handleSize)
     }
 
     createHandle(p: PointLike) {
-        return Tool.createHandle(this.shapeToScreen, p)
+        return Tool.createHandle(this.shapeToScreen, p, this.handleSize)
     }
 
     updateHandle(p: PointLike, svg: SVGCircleElement) {
-        return Tool.updateHandle(this.shapeToScreen, p, svg)
+        return Tool.updateHandle(this.shapeToScreen, p, svg, this.handleSize)
     }
 
     createLine(p0: PointLike, p1: PointLike) {

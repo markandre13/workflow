@@ -89,6 +89,13 @@ export class ArrangeTool extends Tool {
         this.removeDecoration(editor)
     }
 
+    override zoomChanged(editor: ShapeEditor): void {
+        // the marquee is part of the decoration, so the decoration is rebuilt when the marquee ends
+        if (this.svgMarquee === undefined) {
+            this.updateDecoration(editor)
+        }
+    }
+
     override pointerdown(event: EditorPointerEvent) {
         this.pointerDownAt = event
         this.pointerLastAt = event
@@ -382,6 +389,8 @@ export class ArrangeTool extends Tool {
         this.removeMarquee(event.editor)
         this.removeMarqueeOutlines(event.editor)
         Tool.selection.modified.unlock()
+        // a zoom during the drag did not rebuild the decoration, so do it now
+        this.updateDecoration(event.editor)
 
         this.pointerDownAt = undefined
     }
@@ -392,6 +401,7 @@ export class ArrangeTool extends Tool {
         this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
         this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
         this.svgMarquee.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
+        Tool.nonScalingStroke(this.svgMarquee)
         editor.decoration.appendChild(this.svgMarquee)
     }
     

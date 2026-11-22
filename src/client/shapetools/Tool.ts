@@ -146,7 +146,7 @@ export class Tool {
         // console.log(`SelectTool.updateBoundary() DONE`)
     }
 
-    getBoundaryHandle(handle: number): {path: Path, handleDirection: PointLike} {
+    getBoundaryHandle(handle: number, handleSize: number): {path: Path, handleDirection: PointLike} {
         const m = new Matrix(this.transformation)
         m.append(this.boundaryTransformation)
 
@@ -233,7 +233,7 @@ export class Tool {
             const toCenter = pointMultiplyNumber(toCenterX, 1/Math.sqrt(squaredLength(toCenterX)))
 
             const scale1 = m.transformPoint({x:0, y: 0})
-            const scale2 = m.transformPoint({x: Shape.HANDLE_RANGE, y: 0})
+            const scale2 = m.transformPoint({x: handleSize, y: 0})
             const size = Math.sqrt(squaredLength(pointMinusPoint(scale2, scale1)))
 
             let start = pointPlusPoint(center, pointMultiplyNumber(toCenter, -size * 2))
@@ -287,11 +287,11 @@ export class Tool {
                 v = { x: -1, y:  0}
                 break
         }
-        const r = new Rectangle(x, y, Shape.HANDLE_RANGE, Shape.HANDLE_RANGE)
+        const r = new Rectangle(x, y, handleSize, handleSize)
 
         const center = r.origin = m.transformPoint(r.origin)
-        r.origin.x -= Shape.HANDLE_RANGE / 2.0
-        r.origin.y -= Shape.HANDLE_RANGE / 2.0
+        r.origin.x -= handleSize / 2.0
+        r.origin.y -= handleSize / 2.0
 
         r.origin.x = Math.round(r.origin.x-0.5)+0.5
         r.origin.y = Math.round(r.origin.y-0.5)+0.5
@@ -425,6 +425,7 @@ export class Tool {
             svg.setAttributeNS("", "stroke-width", "1")
             svg.setAttributeNS("", "stroke", "#4f80ff")
             svg.setAttributeNS("", "fill", "none")
+            Tool.nonScalingStroke(svg)
         }
     }
 
@@ -441,6 +442,14 @@ export class Tool {
         this.createDecorationRectangle(editor)
         this.createDecorationHandles(editor)
     }
+
+    // decoration strokes keep their width on screen, whatever the zoom
+    static nonScalingStroke(svg: Element) {
+        svg.setAttributeNS("", "vector-effect", "non-scaling-stroke")
+    }
+
+    // called when the zoom of the editor changes, so decorations can resize
+    zoomChanged(editor: ShapeEditor): void {}
 
     createDecorationRectangle(editor: ShapeEditor) {
         // adjust boundary to nice looking screen coordinates
@@ -461,6 +470,7 @@ export class Tool {
     
         // display path
         let svg = path.createSVG("rgb(79,128,255)")
+        Tool.nonScalingStroke(svg)
         editor.outline.appendChild(svg)
     }
     
@@ -468,7 +478,7 @@ export class Tool {
         for(let h=15; h>=0; --h) {
             // let path = new Path()
             // path.appendRect(this.getBoundaryHandle(handle))
-            const handle = this.getBoundaryHandle(h)
+            const handle = this.getBoundaryHandle(h, editor.handleSize)
             let svg: SVGElement
             if (h<8) {
                 // if (!this.debug) {
@@ -484,6 +494,7 @@ export class Tool {
                 //     svg = handle.path.createSVG("#333", 1, "#ccc")
                 // }
             }
+            Tool.nonScalingStroke(svg)
             this.setCursorForHandle(h, handle, svg)
             svg.onpointerenter = () => { 
                 this.insideHandle = h
@@ -500,54 +511,39 @@ export class Tool {
         editor.decoration.replaceChildren()
     }
 
-    static createAnchor(shapeToScreen: Matrix | undefined, p: PointLike) {
-        if (shapeToScreen) {
-            p = shapeToScreen.transformPoint(p)
-        }
-        let x = p.x - Shape.HANDLE_RANGE / 2.0
-        let y = p.y - Shape.HANDLE_RANGE / 2.0
-        x = Math.round(x - 0.5) + 0.5
-        y = Math.round(y - 0.5) + 0.5
-
+    static createAnchor(shapeToScreen: Matrix | undefined, p: PointLike, size: number) {
         let anchor = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-        anchor.setAttributeNS("", "x", `${x}`)
-        anchor.setAttributeNS("", "y", `${y}`)
-        anchor.setAttributeNS("", "width", `${Shape.HANDLE_RANGE}`)
-        anchor.setAttributeNS("", "height", `${Shape.HANDLE_RANGE}`)
+        Tool.updateAnchor(shapeToScreen, p, anchor, size)
         anchor.setAttributeNS("", "stroke", "rgb(79,128,255)")
         anchor.setAttributeNS("", "fill", "#fff")
+        Tool.nonScalingStroke(anchor)
         return anchor
     }
 
-    static updateAnchor(shapeToScreen: Matrix | undefined, p: PointLike, svg: SVGRectElement) {
+    static updateAnchor(shapeToScreen: Matrix | undefined, p: PointLike, svg: SVGRectElement, size: number) {
         if (shapeToScreen) {
             p = shapeToScreen.transformPoint(p)
         }
-        let x = p.x - Shape.HANDLE_RANGE / 2.0
-        let y = p.y - Shape.HANDLE_RANGE / 2.0
+        let x = p.x - size / 2.0
+        let y = p.y - size / 2.0
         x = Math.round(x - 0.5) + 0.5
         y = Math.round(y - 0.5) + 0.5
         svg.setAttributeNS("", "x", `${x}`)
         svg.setAttributeNS("", "y", `${y}`)
+        svg.setAttributeNS("", "width", `${size}`)
+        svg.setAttributeNS("", "height", `${size}`)
     }
 
-    static createHandle(shapeToScreen: Matrix | undefined, p: PointLike) {
-        if (shapeToScreen) {
-            p = shapeToScreen.transformPoint(p)
-        }
-        const x = Math.round(p.x - 0.5) + 0.5
-        const y = Math.round(p.y - 0.5) + 0.5
-
+    static createHandle(shapeToScreen: Matrix | undefined, p: PointLike, size: number) {
         const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle")
-        handle.setAttributeNS("", "cx", `${x}`)
-        handle.setAttributeNS("", "cy", `${y}`)
-        handle.setAttributeNS("", "r", `${Shape.HANDLE_RANGE / 2.0}`)
+        Tool.updateHandle(shapeToScreen, p, handle, size)
         handle.setAttributeNS("", "stroke", `rgb(79,128,255)`)
         handle.setAttributeNS("", "fill", `rgb(79,128,255)`)
+        Tool.nonScalingStroke(handle)
         return handle
     }
 
-    static updateHandle(shapeToScreen: Matrix | undefined, p: PointLike, svg: SVGCircleElement) {
+    static updateHandle(shapeToScreen: Matrix | undefined, p: PointLike, svg: SVGCircleElement, size: number) {
         if (shapeToScreen) {
             p = shapeToScreen.transformPoint(p)
         }
@@ -555,6 +551,7 @@ export class Tool {
         const y = Math.round(p.y - 0.5) + 0.5
         svg.setAttributeNS("", "cx", `${x}`)
         svg.setAttributeNS("", "cy", `${y}`)
+        svg.setAttributeNS("", "r", `${size / 2.0}`)
     }
 
     static createLine(shapeToScreen: Matrix | undefined, p0: PointLike, p1: PointLike) {
@@ -568,6 +565,7 @@ export class Tool {
         line.setAttributeNS("", "x2", `${p1.x}`)
         line.setAttributeNS("", "y2", `${p1.y}`)
         line.setAttributeNS("", "stroke", `rgb(79,128,255)`)
+        Tool.nonScalingStroke(line)
         return line
     }
 

@@ -64,6 +64,11 @@ export class Anchor {
         this.editor.editor.decoration.appendChild(this.svgAnchor)
     }
 
+    zoomChanged() {
+        this.editor.updateAnchor(this.pos, this.svgAnchor)
+        this.updateHandles()
+    }
+
     destructor() {
         this.editor.editor.decoration.removeChild(this.svgAnchor)
         this.hideBackwardHandle()
