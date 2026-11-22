@@ -2,7 +2,7 @@ import { expect } from "chai"
 
 import { ShapeEditorScene } from "../ShapeEditorScene"
 import { Tool } from "client/shapetools/Tool"
-import { PathEditor } from "client/shapetools/EditTool"
+import { PathEditor } from "client/shapetools/edittool/PathEditor"
 import { Path } from "client/shapes/Path"
 
 import { initializeCORBAValueTypes } from "client/workflow"

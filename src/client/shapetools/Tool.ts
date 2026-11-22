@@ -411,7 +411,7 @@ export class Tool {
     }
 
     removeOutlines(editor: ShapeEditor): void {
-        editor.outline.innerHTML = ""
+        editor.outline.replaceChildren()
     }
     
     setOutlineColors(svg: SVGElement): void {
@@ -497,7 +497,7 @@ export class Tool {
 
     // FIXME: this belongs in ShapeEditor
     removeDecoration(editor: ShapeEditor) {
-        editor.decoration.innerHTML = ""
+        editor.decoration.replaceChildren()
     }
 
     static createAnchor(shapeToScreen: Matrix | undefined, p: PointLike) {

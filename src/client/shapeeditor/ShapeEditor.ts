@@ -215,6 +215,10 @@ export class ShapeEditor extends ScrollableVectorGraphics {
      * always the last element in svgView
      */
     decoration: SVGGElement
+
+    /**
+     * to render the paper and bleed
+     */
     documentOutline: SVGGElement
 
     tool?: Tool // current tool

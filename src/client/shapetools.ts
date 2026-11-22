@@ -18,7 +18,7 @@
 
 export * from "./shapetools/Tool"
 export * from "./shapetools/ArrangeTool"
-export * from "./shapetools/EditTool"
+export * from "./shapetools/edittool/EditTool"
 export * from "./shapetools/PenTool"
 export * from "./shapetools/ShapeTool"
 export * from "./shapetools/TextTool"

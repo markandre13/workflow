@@ -24,7 +24,7 @@ import * as skel from "shared/workflow_skel"
 
 import { Rectangle as RectangleShape, Circle as CircleShape } from "./shapes"
 
-import { ArrangeTool, EditTool, PenTool, ShapeTool, TextTool } from "./shapetools"
+import { ArrangeTool, PenTool, ShapeTool, TextTool } from "./shapetools"
 import { ToolModel } from "./shapetools/ToolModel"
 import { StrokeAndFillModel } from "./app/StrokeAndFilll"
 
@@ -49,6 +49,7 @@ import { OptionModel } from "toad.js/appkit/OptionModel"
 import { makeArrowOption } from "./view/pages/makeArrowOption"
 import { StrokeEndType } from "shared/workflow"
 import { StrokeEndModel } from "./StrokeEndModel"
+import { EditTool } from "./shapetools/edittool/EditTool"
 
 namespace dom {
     export function erase(n: Element): void {
