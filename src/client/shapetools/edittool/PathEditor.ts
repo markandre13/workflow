@@ -7,6 +7,7 @@ import { AnchorElement } from "./AnchorElement"
 import { AnchorType } from "./Anchor"
 import { EditTool } from "./EditTool"
 import { EditToolEditor } from "./EditToolEditor"
+import { Decoration } from "client/shapeeditor/Decoration"
 
 export class PathEditor extends EditToolEditor {
     anchors: Anchor[] = [];
@@ -44,14 +45,8 @@ export class PathEditor extends EditToolEditor {
         this.createAnchors()
     }
 
-    override get handleSize(): number {
-        return this.editor.handleSize
-    }
-
-    override zoomChanged(): void {
-        this.anchors.forEach(anchor => {
-            anchor.zoomChanged()
-        })
+    override get decorations(): Decoration {
+        return this.editor.decorations
     }
 
     override destructor(): void {

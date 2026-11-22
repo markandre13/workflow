@@ -35,6 +35,7 @@
 import { Tool } from "./Tool"
 import { Shape } from "../shapes/Shape"
 import { ShapeEditor, EditorPointerEvent, Operation } from "../shapeeditor"
+import { AnchorItem, HandleItem, LineItem } from "../shapeeditor/Decoration"
 import { Path } from "../shapes/Path"
 import { distancePointToPoint, pointMinusPoint, pointPlusPoint, pointMultiplyNumber } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
@@ -98,11 +99,9 @@ export class PenTool extends Tool {
     _outline?: Path // the outline during editing
     shape?: Path // the shape we create
 
-    anchors: SVGRectElement[] = []
-    anchorPos: PointLike[] = []
-    _handlePos = new Array<PointLike>(4)
-    _handles = new Array<SVGCircleElement>(4)
-    lines = new Array<SVGLineElement>(4)
+    anchors: AnchorItem[] = []
+    _handles = new Array<HandleItem>(4)
+    lines = new Array<LineItem>(4)
 
     constructor() {
         super()
@@ -461,12 +460,12 @@ export class PenTool extends Tool {
     clear(editor: ShapeEditor) {
         this.state = State.READY
         this.anchors = []
-        this.anchorPos = []
-        this._handles = new Array<SVGCircleElement>(4)
-        this.lines = new Array<SVGLineElement>(4)
+        this._handles = new Array<HandleItem>(4)
+        this.lines = new Array<LineItem>(4)
         this._outline = undefined
         this.svg = undefined
         this.removeOutlines(editor)
+        this.removeDecoration(editor)
     }
 
     setCursor(editor: ShapeEditor, cursor: Cursor) {
@@ -488,29 +487,15 @@ export class PenTool extends Tool {
 
     addAnchor(p: PointLike) {
         if (this.anchors.length > 1) {
-            this.anchors[this.anchors.length - 1].style.cursor = ""
+            this.anchors[this.anchors.length - 1].element.style.cursor = ""
         }
-        const anchor = Tool.createAnchor(undefined, p, this.editor.handleSize)
+        const anchor = this.editor.decorations.anchor(p)
         if (this.anchors.length === 0) {
-            anchor.style.cursor = `url(${Tool.cursorPath}pen-close.svg) 5 1, crosshair`
+            anchor.element.style.cursor = `url(${Tool.cursorPath}pen-close.svg) 5 1, crosshair`
         } else {
-            anchor.style.cursor = `url(${Tool.cursorPath}pen-edge.svg) 5 1, crosshair`
+            anchor.element.style.cursor = `url(${Tool.cursorPath}pen-edge.svg) 5 1, crosshair`
         }
-        this.editor.decoration.appendChild(anchor)
-
-        // this.decoration!.appendChild(anchor)
         this.anchors.push(anchor)
-        this.anchorPos.push(p)
-    }
-
-    override zoomChanged(editor: ShapeEditor): void {
-        const size = editor.handleSize
-        this.anchors.forEach((anchor, idx) => {
-            Tool.updateAnchor(undefined, this.anchorPos[idx], anchor, size)
-        })
-        this._handles.forEach((handle, idx) => {
-            Tool.updateHandle(undefined, this._handlePos[idx], handle, size)
-        })
     }
 
     isFirstAnchor(p: PointLike) {
@@ -518,10 +503,10 @@ export class PenTool extends Tool {
             return false
         const first = this.anchors[0]
         const rect = new Rectangle(
-            Number.parseFloat(first.getAttributeNS(null, "x")!),
-            Number.parseFloat(first.getAttributeNS(null, "y")!),
-            Number.parseFloat(first.getAttributeNS(null, "width")!),
-            Number.parseFloat(first.getAttributeNS(null, "height")!)
+            Number.parseFloat(first.element.getAttributeNS(null, "x")!),
+            Number.parseFloat(first.element.getAttributeNS(null, "y")!),
+            Number.parseFloat(first.element.getAttributeNS(null, "width")!),
+            Number.parseFloat(first.element.getAttributeNS(null, "height")!)
         )
         return rect.inside(p)
     }
@@ -531,10 +516,10 @@ export class PenTool extends Tool {
             return false
         const last = this.anchors[this.anchors.length - 1]
         const rect = new Rectangle(
-            Number.parseFloat(last.getAttributeNS(null, "x")!),
-            Number.parseFloat(last.getAttributeNS(null, "y")!),
-            Number.parseFloat(last.getAttributeNS(null, "width")!),
-            Number.parseFloat(last.getAttributeNS(null, "height")!)
+            Number.parseFloat(last.element.getAttributeNS(null, "x")!),
+            Number.parseFloat(last.element.getAttributeNS(null, "y")!),
+            Number.parseFloat(last.element.getAttributeNS(null, "width")!),
+            Number.parseFloat(last.element.getAttributeNS(null, "height")!)
         )
         return rect.inside(p)
     }
@@ -545,26 +530,21 @@ export class PenTool extends Tool {
     updateHandle(idx: Handle, anchorPos: PointLike, handlePos: PointLike): void
     updateHandle(idx: Handle, anchorPos?: PointLike, handlePos?: PointLike): void {
         if (anchorPos === undefined) {
-            if (this._handles[idx] !== undefined) {
-                this._handles[idx].style.display = "none"
-                this.lines[idx].style.display = "none"
-            }
+            this._handles[idx]?.hide()
+            this.lines[idx]?.hide()
             return
         }
         if (handlePos === undefined)
             throw Error("yikes")
 
-        this._handlePos[idx] = handlePos
         if (this._handles[idx] === undefined) {
-            this.lines[idx] = Tool.createLine(undefined, anchorPos, handlePos)
-            this.editor.outline.appendChild(this.lines[idx])
-            this._handles[idx] = Tool.createHandle(undefined, handlePos, this.editor.handleSize)
-            this.editor.decoration.appendChild(this._handles[idx])
+            this.lines[idx] = this.editor.decorations.line(anchorPos, handlePos)
+            this._handles[idx] = this.editor.decorations.handle(handlePos)
         } else {
-            this._handles[idx].style.display = ""
-            this.lines[idx].style.display = ""
-            Tool.updateHandle(undefined, handlePos, this._handles[idx], this.editor.handleSize)
-            Tool.updateLine(undefined, anchorPos, handlePos, this.lines[idx])
+            this._handles[idx].show()
+            this.lines[idx].show()
+            this._handles[idx].move(handlePos)
+            this.lines[idx].move(anchorPos, handlePos)
         }
     }
     switchHandle(idxOld: Handle, idxNew: Handle) {
@@ -573,21 +553,17 @@ export class PenTool extends Tool {
             this._handles[idxNew],
             this.lines[idxOld],
             this.lines[idxNew],
-            this._handlePos[idxOld],
-            this._handlePos[idxNew]
         ] = [
                 this._handles[idxNew],
                 this._handles[idxOld],
                 this.lines[idxNew],
                 this.lines[idxOld],
-                this._handlePos[idxNew],
-                this._handlePos[idxOld]
             ]
         this.updateHandle(idxOld)
     }
 
     getHandlePos(idx: Handle): PointLike {
-        return this._handlePos[idx]
+        return this._handles[idx]!.p
     }
 
     updateSVG(editor: ShapeEditor) {

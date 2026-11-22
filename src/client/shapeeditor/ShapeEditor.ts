@@ -37,6 +37,7 @@ import * as shape from "../shapes"
 import { ALL } from "toad.js/appkit/Model"
 import { HTMLElementProps } from "toad.jsx/jsx-runtime"
 import { ScrollableVectorGraphics } from "./ScrollableVectorGraphics"
+import { Decoration } from "./Decoration"
 import { unitDefinitions } from "client/app/unit/unitDefinitions"
 import { action } from "toad.js/appkit/Action"
 import { StrokeEndModel } from "client/StrokeEndModel"
@@ -238,6 +239,10 @@ export class ShapeEditor extends ScrollableVectorGraphics {
      * always the last element in svgView
      */
     decoration: SVGGElement
+    /**
+     * anchors, handles, frame and marquee, which keep their size at every zoom
+     */
+    readonly decorations: Decoration
 
     /**
      * to render the paper and bleed
@@ -299,6 +304,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         this.decoration = document.createElementNS("http://www.w3.org/2000/svg", "g")
         this.decoration.id = "overlay-decoration"
         this.overlay.appendChild(this.decoration)
+        this.decorations = new Decoration(this)
 
         // console.log(this.shadowRoot)
         this.shadowRoot!.append(this.inputCatcher)
@@ -737,6 +743,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
 
     override zoomTo(zoom: number) {
         super.zoomTo(zoom)
+        this.decorations.refresh()
         this.tool?.zoomChanged(this)
     }
 

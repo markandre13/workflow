@@ -1,40 +1,43 @@
 import { EditorPointerEvent, EditorKeyboardEvent } from "client/shapeeditor"
+import { AnchorItem, Decoration, HandleItem, LineItem } from "client/shapeeditor/Decoration"
 import { Matrix } from "shared/geometry"
 import { PointLike } from "shared/geometry/Point"
-import { Tool } from "../Tool"
 
 export abstract class EditToolEditor {
     shapeToScreen?: Matrix
     screenToShape?: Matrix
 
-    abstract get handleSize(): number
+    abstract get decorations(): Decoration
 
     destructor(): void { }
     pointerEvent(event: EditorPointerEvent): boolean { return false }
     keyEvent(event: EditorKeyboardEvent): boolean { return false }
-    zoomChanged(): void { }
 
-    createAnchor(p: PointLike) {
-        return Tool.createAnchor(this.shapeToScreen, p, this.handleSize)
+    protected toScreen(p: PointLike): PointLike {
+        return this.shapeToScreen ? this.shapeToScreen.transformPoint(p) : p
     }
 
-    updateAnchor(p: PointLike, svg: SVGRectElement) {
-        return Tool.updateAnchor(this.shapeToScreen, p, svg, this.handleSize)
+    createAnchor(p: PointLike): AnchorItem {
+        return this.decorations.anchor(this.toScreen(p))
     }
 
-    createHandle(p: PointLike) {
-        return Tool.createHandle(this.shapeToScreen, p, this.handleSize)
+    moveAnchor(anchor: AnchorItem, p: PointLike) {
+        anchor.move(this.toScreen(p))
     }
 
-    updateHandle(p: PointLike, svg: SVGCircleElement) {
-        return Tool.updateHandle(this.shapeToScreen, p, svg, this.handleSize)
+    createHandle(p: PointLike): HandleItem {
+        return this.decorations.handle(this.toScreen(p))
     }
 
-    createLine(p0: PointLike, p1: PointLike) {
-        return Tool.createLine(this.shapeToScreen, p0, p1)
+    moveHandle(handle: HandleItem, p: PointLike) {
+        handle.move(this.toScreen(p))
     }
 
-    updateLine(p0: PointLike, p1: PointLike, svg: SVGLineElement) {
-        return Tool.updateLine(this.shapeToScreen, p0, p1, svg)
+    createLine(p0: PointLike, p1: PointLike): LineItem {
+        return this.decorations.line(this.toScreen(p0), this.toScreen(p1))
+    }
+
+    moveLine(line: LineItem, p0: PointLike, p1: PointLike) {
+        line.move(this.toScreen(p0), this.toScreen(p1))
     }
 }

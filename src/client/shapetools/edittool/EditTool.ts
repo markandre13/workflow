@@ -77,12 +77,6 @@ export class EditTool extends Tool {
 
     editors: EditToolEditor[] = [];
 
-    override zoomChanged(): void {
-        this.editors.forEach(editor => {
-            editor.zoomChanged()
-        })
-    }
-
     updateSelection(editor: ShapeEditor) {
         this.removeEditors(editor)
         this.addEditors(editor)

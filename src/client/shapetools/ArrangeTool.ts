@@ -35,6 +35,7 @@ import { Matrix } from "shared/geometry/Matrix"
 import { Shape } from "../shapes/Shape"
 import { ShapeEditor, EditorPointerEvent, EditorKeyboardEvent } from "../shapeeditor"
 import { Tool } from "./Tool"
+import { nonScalingStroke } from "../shapeeditor/Decoration"
 
 export enum ArrangeToolState {
     NONE,
@@ -401,7 +402,7 @@ export class ArrangeTool extends Tool {
         this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
         this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
         this.svgMarquee.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
-        Tool.nonScalingStroke(this.svgMarquee)
+        nonScalingStroke(this.svgMarquee)
         editor.decoration.appendChild(this.svgMarquee)
     }
     

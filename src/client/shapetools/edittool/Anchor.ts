@@ -3,6 +3,7 @@ import { mirrorPoint, pointPlusPoint, pointMinusPoint, distancePointToPoint, poi
 import { PointLike } from "shared/geometry/Point"
 import { shape } from "shared/workflow"
 import { Tool } from "../Tool"
+import { AnchorItem, HandleItem, LineItem } from "client/shapeeditor/Decoration"
 import { AnchorElement } from "./AnchorElement"
 import { EditTool } from "./EditTool"
 import { PathEditor } from "./PathEditor"
@@ -27,12 +28,12 @@ export class Anchor {
     idxType: number
     idxValue: number
 
-    // SVG elements managed by this class
-    private svgAnchor: SVGRectElement
-    private svgBackwardLine?: SVGLineElement
-    private svgBackwardHandle?: SVGCircleElement
-    private svgForwardLine?: SVGLineElement
-    private svgForwardHandle?: SVGCircleElement
+    // decoration managed by this class
+    private anchorItem: AnchorItem
+    private backwardLine?: LineItem
+    private backwardHandleItem?: HandleItem
+    private forwardLine?: LineItem
+    private forwardHandleItem?: HandleItem
 
     constructor(tool: EditTool, editor: PathEditor, shape: Path, outline: Path, idxType: number, idxValue: number) {
         this.tool = tool
@@ -51,26 +52,20 @@ export class Anchor {
         // o now we just need a nice API to handle this
         // o add group/ungroup to be able to write a complete test!
         //   (also, edit usually goes inside the group)
-        this.svgAnchor = editor.createAnchor(this.pos)
-        this.svgAnchor.style.cursor = `url(${Tool.cursorPath}edit-anchor.svg) 1 1, crosshair`
-        this.svgAnchor.onpointerenter = () => {
+        this.anchorItem = editor.createAnchor(this.pos)
+        this.anchorItem.element.style.cursor = `url(${Tool.cursorPath}edit-anchor.svg) 1 1, crosshair`
+        this.anchorItem.element.onpointerenter = () => {
             editor.insideAnchor = this
             this.anchorElement = AnchorElement.ANCHOR
         }
-        this.svgAnchor.onpointerleave = () => {
+        this.anchorItem.element.onpointerleave = () => {
             editor.insideAnchor = undefined
             this.anchorElement = AnchorElement.ANCHOR
         }
-        this.editor.editor.decoration.appendChild(this.svgAnchor)
-    }
-
-    zoomChanged() {
-        this.editor.updateAnchor(this.pos, this.svgAnchor)
-        this.updateHandles()
     }
 
     destructor() {
-        this.editor.editor.decoration.removeChild(this.svgAnchor)
+        this.anchorItem.remove()
         this.hideBackwardHandle()
         this.hideForwardHandle()
     }
@@ -81,12 +76,10 @@ export class Anchor {
 
     set selected(selected: boolean) {
         this._selected = selected
-        if (this.svgAnchor) {
-            if (this._selected) {
-                this.svgAnchor.setAttributeNS("", "fill", "rgb(79,128,255)")
-            } else {
-                this.svgAnchor.setAttributeNS("", "fill", "#fff")
-            }
+        if (this._selected) {
+            this.anchorItem.element.setAttributeNS("", "fill", "rgb(79,128,255)")
+        } else {
+            this.anchorItem.element.setAttributeNS("", "fill", "#fff")
         }
     }
 
@@ -96,10 +89,10 @@ export class Anchor {
     }
 
     updateHandles() {
-        if (this.svgBackwardHandle) {
+        if (this.backwardHandleItem) {
             this.showBackwardHandle()
         }
-        if (this.svgForwardHandle) {
+        if (this.forwardHandleItem) {
             this.showForwardHandle()
         }
     }
@@ -116,33 +109,31 @@ export class Anchor {
             case AnchorType.ANCHOR_SMOOTH_ANGLE_ANGLE:
             case AnchorType.ANCHOR_ANGLE_ANGLE:
                 const pos = { x: this.outline.values[this.idxValue], y: this.outline.values[this.idxValue + 1] }
-                if (this.svgBackwardHandle) {
-                    this.editor.updateLine(this.pos, pos, this.svgBackwardLine!)
-                    this.editor.updateHandle(pos, this.svgBackwardHandle)
+                if (this.backwardHandleItem) {
+                    this.editor.moveLine(this.backwardLine!, this.pos, pos)
+                    this.editor.moveHandle(this.backwardHandleItem, pos)
                 } else {
-                    this.svgBackwardLine = this.editor.createLine(this.pos, pos)
-                    this.editor.editor.outline.appendChild(this.svgBackwardLine)
-                    this.svgBackwardHandle = this.editor.createHandle(pos)
-                    this.editor.editor.decoration.appendChild(this.svgBackwardHandle)
-                    this.svgBackwardHandle.onpointerenter = () => {
+                    this.backwardLine = this.editor.createLine(this.pos, pos)
+                    this.backwardHandleItem = this.editor.createHandle(pos)
+                    this.backwardHandleItem.element.onpointerenter = () => {
                         this.editor.insideAnchor = this
                         this.anchorElement = AnchorElement.BACKWARD_HANDLE
                     }
-                    this.svgBackwardHandle.onpointerleave = () => {
+                    this.backwardHandleItem.element.onpointerleave = () => {
                         this.editor.insideAnchor = undefined
                         this.anchorElement = AnchorElement.BACKWARD_HANDLE
                     }
-                    this.svgBackwardHandle.style.cursor = `url(${Tool.cursorPath}edit-handle.svg) 1 1, crosshair`
+                    this.backwardHandleItem.element.style.cursor = `url(${Tool.cursorPath}edit-handle.svg) 1 1, crosshair`
                 }
         }
     }
 
     hideBackwardHandle() {
-        if (this.svgBackwardHandle) {
-            this.editor.editor.outline.removeChild(this.svgBackwardLine!)
-            this.editor.editor.decoration.removeChild(this.svgBackwardHandle)
-            this.svgBackwardHandle = undefined
-            this.svgBackwardLine = undefined
+        if (this.backwardHandleItem) {
+            this.backwardLine!.remove()
+            this.backwardHandleItem.remove()
+            this.backwardHandleItem = undefined
+            this.backwardLine = undefined
         }
     }
 
@@ -169,32 +160,30 @@ export class Anchor {
                 pos = { x: this.outline.values[this.idxValue + 4], y: this.outline.values[this.idxValue + 5] }
         }
 
-        if (this.svgForwardHandle) {
-            this.editor.updateLine(anchor, pos, this.svgForwardLine!)
-            this.editor.updateHandle(pos, this.svgForwardHandle)
+        if (this.forwardHandleItem) {
+            this.editor.moveLine(this.forwardLine!, anchor, pos)
+            this.editor.moveHandle(this.forwardHandleItem, pos)
         } else {
-            this.svgForwardLine = this.editor.createLine(anchor, pos)
-            this.editor.editor.outline.appendChild(this.svgForwardLine)
-            this.svgForwardHandle = this.editor.createHandle(pos)
-            this.editor.editor.decoration.appendChild(this.svgForwardHandle)
-            this.svgForwardHandle.onpointerenter = () => {
+            this.forwardLine = this.editor.createLine(anchor, pos)
+            this.forwardHandleItem = this.editor.createHandle(pos)
+            this.forwardHandleItem.element.onpointerenter = () => {
                 this.editor.insideAnchor = this
                 this.anchorElement = AnchorElement.FORWARD_HANDLE
             }
-            this.svgForwardHandle.onpointerleave = () => {
+            this.forwardHandleItem.element.onpointerleave = () => {
                 this.editor.insideAnchor = undefined
                 this.anchorElement = AnchorElement.FORWARD_HANDLE
             }
-            this.svgForwardHandle.style.cursor = `url(${Tool.cursorPath}edit-handle.svg) 1 1, crosshair`
+            this.forwardHandleItem.element.style.cursor = `url(${Tool.cursorPath}edit-handle.svg) 1 1, crosshair`
         }
     }
 
     hideForwardHandle() {
-        if (this.svgForwardHandle) {
-            this.editor.editor.outline.removeChild(this.svgForwardLine!)
-            this.editor.editor.decoration.removeChild(this.svgForwardHandle)
-            this.svgForwardHandle = undefined
-            this.svgForwardLine = undefined
+        if (this.forwardHandleItem) {
+            this.forwardLine!.remove()
+            this.forwardHandleItem.remove()
+            this.forwardHandleItem = undefined
+            this.forwardLine = undefined
         }
     }
 
@@ -290,7 +279,7 @@ export class Anchor {
                 throw Error(`anchor type CLOSE has no position to set`)
         }
 
-        this.editor.updateAnchor(point, this.svgAnchor)
+        this.editor.moveAnchor(this.anchorItem, point)
         this.updateHandles()
 
         const path = this.outline.getPath()

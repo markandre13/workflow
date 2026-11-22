@@ -28,6 +28,7 @@ import { Rectangle } from "shared/geometry/Rectangle"
 import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { parseXML, Tag, TagType, Text } from "client/utils/xml"
+import { nonScalingStroke } from "../shapeeditor/Decoration"
 
 export class Tool {
     static selection: ShapeSelectionModel // = new ShapeSelectionModel()
@@ -425,7 +426,7 @@ export class Tool {
             svg.setAttributeNS("", "stroke-width", "1")
             svg.setAttributeNS("", "stroke", "#4f80ff")
             svg.setAttributeNS("", "fill", "none")
-            Tool.nonScalingStroke(svg)
+            nonScalingStroke(svg)
         }
     }
 
@@ -441,11 +442,6 @@ export class Tool {
         this.updateBoundary() // FIXME: side effect
         this.createDecorationRectangle(editor)
         this.createDecorationHandles(editor)
-    }
-
-    // decoration strokes keep their width on screen, whatever the zoom
-    static nonScalingStroke(svg: Element) {
-        svg.setAttributeNS("", "vector-effect", "non-scaling-stroke")
     }
 
     // called when the zoom of the editor changes, so decorations can resize
@@ -470,7 +466,7 @@ export class Tool {
     
         // display path
         let svg = path.createSVG("rgb(79,128,255)")
-        Tool.nonScalingStroke(svg)
+        nonScalingStroke(svg)
         editor.outline.appendChild(svg)
     }
     
@@ -494,7 +490,7 @@ export class Tool {
                 //     svg = handle.path.createSVG("#333", 1, "#ccc")
                 // }
             }
-            Tool.nonScalingStroke(svg)
+            nonScalingStroke(svg)
             this.setCursorForHandle(h, handle, svg)
             svg.onpointerenter = () => { 
                 this.insideHandle = h
@@ -508,76 +504,7 @@ export class Tool {
 
     // FIXME: this belongs in ShapeEditor
     removeDecoration(editor: ShapeEditor) {
-        editor.decoration.replaceChildren()
-    }
-
-    static createAnchor(shapeToScreen: Matrix | undefined, p: PointLike, size: number) {
-        let anchor = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-        Tool.updateAnchor(shapeToScreen, p, anchor, size)
-        anchor.setAttributeNS("", "stroke", "rgb(79,128,255)")
-        anchor.setAttributeNS("", "fill", "#fff")
-        Tool.nonScalingStroke(anchor)
-        return anchor
-    }
-
-    static updateAnchor(shapeToScreen: Matrix | undefined, p: PointLike, svg: SVGRectElement, size: number) {
-        if (shapeToScreen) {
-            p = shapeToScreen.transformPoint(p)
-        }
-        let x = p.x - size / 2.0
-        let y = p.y - size / 2.0
-        x = Math.round(x - 0.5) + 0.5
-        y = Math.round(y - 0.5) + 0.5
-        svg.setAttributeNS("", "x", `${x}`)
-        svg.setAttributeNS("", "y", `${y}`)
-        svg.setAttributeNS("", "width", `${size}`)
-        svg.setAttributeNS("", "height", `${size}`)
-    }
-
-    static createHandle(shapeToScreen: Matrix | undefined, p: PointLike, size: number) {
-        const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle")
-        Tool.updateHandle(shapeToScreen, p, handle, size)
-        handle.setAttributeNS("", "stroke", `rgb(79,128,255)`)
-        handle.setAttributeNS("", "fill", `rgb(79,128,255)`)
-        Tool.nonScalingStroke(handle)
-        return handle
-    }
-
-    static updateHandle(shapeToScreen: Matrix | undefined, p: PointLike, svg: SVGCircleElement, size: number) {
-        if (shapeToScreen) {
-            p = shapeToScreen.transformPoint(p)
-        }
-        const x = Math.round(p.x - 0.5) + 0.5
-        const y = Math.round(p.y - 0.5) + 0.5
-        svg.setAttributeNS("", "cx", `${x}`)
-        svg.setAttributeNS("", "cy", `${y}`)
-        svg.setAttributeNS("", "r", `${size / 2.0}`)
-    }
-
-    static createLine(shapeToScreen: Matrix | undefined, p0: PointLike, p1: PointLike) {
-        if (shapeToScreen) {
-            p0 = shapeToScreen.transformPoint(p0)
-            p1 = shapeToScreen.transformPoint(p1)
-        }
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line")
-        line.setAttributeNS("", "x1", `${p0.x}`)
-        line.setAttributeNS("", "y1", `${p0.y}`)
-        line.setAttributeNS("", "x2", `${p1.x}`)
-        line.setAttributeNS("", "y2", `${p1.y}`)
-        line.setAttributeNS("", "stroke", `rgb(79,128,255)`)
-        Tool.nonScalingStroke(line)
-        return line
-    }
-
-    static updateLine(shapeToScreen: Matrix | undefined, p0: PointLike, p1: PointLike, svg: SVGLineElement) {
-        if (shapeToScreen) {
-            p0 = shapeToScreen.transformPoint(p0)
-            p1 = shapeToScreen.transformPoint(p1)
-        }
-        svg.setAttributeNS("", "x1", `${p0.x}`)
-        svg.setAttributeNS("", "y1", `${p0.y}`)
-        svg.setAttributeNS("", "x2", `${p1.x}`)
-        svg.setAttributeNS("", "y2", `${p1.y}`)
+        editor.decorations.clear()
     }
 
     static setHint(hint: string) {
