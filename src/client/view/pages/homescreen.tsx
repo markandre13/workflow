@@ -58,6 +58,13 @@ function k2v(model: ToolModel, aKey: string) {
     return valueOut
 }
 
+function zoomModel() {
+    const factors = [1 / 32, 1 / 24, 1 / 20, 1 / 16, 1 / 12, 1 / 8, 1 / 6, 1 / 4, 1 / 3, 1 / 2, 2 / 3, 1, 2, 3, 4, 6, 8, 16, 32, 64]
+    return new OptionModel(1, factors.map((factor) =>
+        [factor, `${Math.round(factor * 10000) / 100}%`]
+    ))
+}
+
 export function homeScreen(
     drawing: DrawingModel,
     tool: ToolModel,
@@ -73,6 +80,7 @@ export function homeScreen(
         strokeandfill.set(data)
     })
     let editor = makeRef<ShapeEditor>(), vruler = makeRef<Ruler>(), hruler = makeRef<Ruler>()
+    const zoom = zoomModel()
     let dom = (
         <>
             <Menu
@@ -186,7 +194,14 @@ export function homeScreen(
             />
 
             /* Control Panel */
-            <div style={{ position: "absolute", left: "0px", right: "0", top: "26px" }}>
+            <div style={{ position: "absolute", left: "0px", right: "0", top: "26px", lineHeight: "32px" }}>
+                &nbsp;
+                Zoom:
+                &nbsp;
+                <Select model={zoom} style={{ width: "88px" }}/>
+                &nbsp;
+                Arrow:
+                &nbsp;
                 <Select model={strokeStart} style={{ width: "60px" }} />
                 <Select model={strokeEnd} style={{ width: "60px" }} />
             </div>

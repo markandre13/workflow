@@ -165,9 +165,7 @@ export class Client_impl extends skel.Client {
         // MODEL
         const tool = this.createToolModel()
         const strokeandfill = this.createStrokeAndFillModel()
-
         const colorswatch = new ColorSwatchModel()
-
         const strokeStart: StrokeEndModel = new OptionModel(StrokeEndType.NONE, [
             makeArrowOption(StrokeEndType.NONE),
             makeArrowOption(StrokeEndType.SIMPLE),
