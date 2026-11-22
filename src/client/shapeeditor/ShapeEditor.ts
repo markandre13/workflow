@@ -575,18 +575,28 @@ export class ShapeEditor extends ScrollableVectorGraphics {
                 }
                 break
 
-            case Operation.DELETE_SHAPES:
+            case Operation.DELETE_SHAPES: {
+                let deletedFromSelection = false
                 for (let shape of event.shapes) {
                     let cached = this.cache.get(shape)
                     if (!cached) {
                         throw Error(`ShapeEditor error: DELETE_SHAPES cache lacks shape ${shape.id}`)
                     }
+                    if (Tool.selection.has(cached.shape)) {
+                        Tool.selection.remove(cached.shape)
+                        deletedFromSelection = true
+                    }
+
                     if (cached.svg !== undefined) {
                         layer.removeChild(cached.svg)
                     }
                     this.cache.delete(shape)
                 }
-                break
+                if (deletedFromSelection && this.tool) {
+                    this.tool.deactivate(this)
+                    this.tool.activate(this)
+                }
+            } break
 
             case Operation.BRING_SHAPES_TO_FRONT: {
                 const shapes = this.removeFromLayer(layer, event.shapes)
