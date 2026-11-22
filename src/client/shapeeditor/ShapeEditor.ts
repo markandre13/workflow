@@ -138,28 +138,40 @@ export enum Operation {
     MOVE_HANDLE
 }
 
-// The ShapeEditor's Cache
-// ------------------------
-// the cache maps a shape to its CacheEntry. this is used to
-// * locate shapes
-// * store the shape's path (shapes create the path with getPath(), then it undergoes
-//   various transformations (move, scale, deform, perspective, boolean operations, ...),
-//   and is then stored here. this transformed path is then provided to the shape
-//   in the updateSVG() call
-// * stores the shape's SVGElement (shapes create the SVGElement with updateSVG() but do
-//   not store it. this SVG is then also provided so updateSVG() to update an existing SVG
-//
-// this pattern was choosen to be able to transform bitmap images:
-// * the bitmap image will provide a path with Shape.getPath()
-// * the shapeeditor will apply all other transformations to to path
-// * the shapeeditor will provide the path during Shape.updateSVG(), where the
-//   shape will then squezze the bitmap into the provided path
+/**
+ * The ShapeEditor's Cache
+ *
+ * the cache maps a shape to its CacheEntry. this is used to
+ * * locate shapes (not yet? we use Shape.distance(), which will not work if the shape
+ *   is modified later)
+ * * store the shape's path (shapes create the path with getPath(), then it undergoes
+ *   various transformations (move, scale, deform, perspective, boolean operations, ...),
+ *   and is then stored here. this transformed path is then provided to the shape
+ *   in the updateSVG() call
+ * * stores the shape's SVGElement (shapes create the SVGElement with updateSVG() but do
+ *   not store it. this SVG is then also provided so updateSVG() to update an existing SVG.
+ *   (storing the SVG outside the shape enables us to have multiple shape editor's displaying
+ *   the same shape)
+ *
+ * this pattern was choosen to be able to transform bitmap images:
+ * * the bitmap image shape will provide a path with Shape.getPath()
+ * * the shapeeditor will apply all other transformations to to path
+ * * the shapeeditor will provide the path during Shape.updateSVG(), where the
+ *   shape will then squezze the bitmap into the provided path
+ */
 type Cache = Map<Shape, CacheEntry>
 class CacheEntry {
+    /**
+     * the patch returned by the shape
+     */
+    path?: AbstractPath
+    /**
+     * the SVG shape returned by the shape
+     */
+    svg?: SVGElement
+
     shape: shape.Shape
     parent?: CacheEntry
-    path?: AbstractPath
-    svg?: SVGElement
     constructor(shape: shape.Shape, parent: CacheEntry | undefined = undefined) {
         this.shape = shape
         this.parent = parent
@@ -182,20 +194,26 @@ export class ShapeEditor extends ScrollableVectorGraphics {
     instance = ++instanceCounter
     inputCatcher: HTMLDivElement
 
-    // <g/> to render outlines, handles, anchors when editing
-    // * always the last element in svgView
-    // * all other elements must be added before this one
-    // TODO: for scrolling, transformation is applied to the layer AND decorationOverlay
-    //       this might be a stupid idea. especially when we start to have more than one
-    //       layer (err... do we want layers at all? shape.Group would serve the same purpose... )
-    //       so, if we can use the transformations on the <svg/> directly, we could get rid of
-    //       the decorationOverlay and use this.outline and this.decoration directly
+    /**
+     * <g/> to render outlines, handles, anchors when editing
+     * * always the last element in svgView
+     * * all other elements must be added before this one
+     * TODO: for scrolling, transformation is applied to the layer AND decorationOverlay
+     *       this might be a stupid idea. especially when we start to have more than one
+     *       layer (err... do we want layers at all? shape.Group would serve the same purpose... )
+     *       so, if we can use the transformations on the <svg/> directly, we could get rid of
+     *       the decorationOverlay and use this.outline and this.decoration directly
+     */
     private overlay: SVGGElement
-    // the <g/> to show outlines
-    // * always the second to last element in svgView
+    /**
+     * the <g/> to show outlines
+     * always the second to last element in svgView
+     */
     outline: SVGGElement
-    // the <g/> to show anchors, handles, ...
-    // * always the last element in svgView
+    /**
+     * the <g/> to show anchors, handles, ...
+     * always the last element in svgView
+     */
     decoration: SVGGElement
     documentOutline: SVGGElement
 
