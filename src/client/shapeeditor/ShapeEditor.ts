@@ -41,6 +41,7 @@ import { Decoration } from "./Decoration"
 import { unitDefinitions } from "client/app/unit/unitDefinitions"
 import { action } from "toad.js/appkit/Action"
 import { StrokeEndModel } from "client/StrokeEndModel"
+import { NumberModel } from "toad.js/appkit/NumberModel"
 import { StrokeEndType } from "shared/workflow"
 import { ShapeSelectionModel } from "./ShapeSelectionModel"
 
@@ -210,6 +211,7 @@ interface ShapeEditorProps extends HTMLElementProps {
     strokeandfill?: StrokeAndFillModel
     strokeStart?: StrokeEndModel
     strokeEnd?: StrokeEndModel
+    strokeWidth?: NumberModel
 }
 
 let instanceCounter = 0
@@ -338,6 +340,16 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         props?.strokeStart?.signal.add(updateStrokeEnds)
         props?.strokeEnd?.signal.add(updateStrokeEnds)
 
+        // update selected shapes when the stroke width changes
+        const updateStrokeWidth = () => {
+            this.model!.setStrokeWidth(
+                this.selectedLayer!,
+                Tool.selection.shapes(),
+                props!.strokeWidth!.value
+            )
+        }
+        props?.strokeWidth?.signal.add(updateStrokeWidth)
+
         // update stroke models when a single shape is selected
         if (Tool.selection === undefined) Tool.selection = new ShapeSelectionModel()
         Tool.selection.modified.add(() => {
@@ -347,14 +359,19 @@ export class ShapeEditor extends ScrollableVectorGraphics {
             const [shape] = Tool.selection.selection
             props?.strokeStart?.signal.lock()
             props?.strokeEnd?.signal.lock()
+            props?.strokeWidth?.signal.lock()
             if (props?.strokeStart) {
                 props.strokeStart.value = shape.strokeStart ?? StrokeEndType.NONE
             }
             if (props?.strokeEnd) {
                 props.strokeEnd.value = shape.strokeEnd ?? StrokeEndType.NONE
             }
+            if (props?.strokeWidth) {
+                props.strokeWidth.value = shape.strokeWidth
+            }
             props?.strokeStart?.signal.unlock()
             props?.strokeEnd?.signal.unlock()
+            props?.strokeWidth?.signal.unlock()
         }, this)
 
         action("object|arrange|front", () => {

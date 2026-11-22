@@ -84,6 +84,19 @@ export class LocalDrawingModel extends DrawingModel {
         }
     }
 
+    setStrokeWidth(layer: Layer, shapes: Shape[], width: number): void {
+        let changedShapes: Shape[] = []
+        this.forAllShapes(layer, shapes, (shape) => {
+            if (shape.strokeWidth !== width) {
+                shape.strokeWidth = width
+                changedShapes.push(shape)
+            }
+        })
+        if (changedShapes.length > 0) {
+            this.signal.emit({ operation: Operation.UPDATE_SHAPES, shapes: changedShapes })
+        }
+    }
+
     forAllShapes(layer: Layer, shapes: Shape[], callback: (shape: Shape) => void) {
         let fastShapes = new Set(shapes)
         for (let index in layer.data) {

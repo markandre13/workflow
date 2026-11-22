@@ -58,6 +58,7 @@ export class BoardModel extends DrawingModel implements valuetype.BoardModel {
     delete(layer: Layer, shapes: Array<Shape>): void {}
     setStrokeAndFill(layer: Layer, shapes: Array<Shape>, stroke: string, fill: string):void {}
     setStrokeEnds(layer: Layer, shapes: Array<Shape>, start: inf.StrokeEndType, end: inf.StrokeEndType): void {}
+    setStrokeWidth(layer: Layer, shapes: Array<Shape>, width: number): void {}
     bringToFront(layer: Layer, shapes: Array<Shape>): void {}
     bringToBack(layer: Layer, shapes: Array<Shape>): void {}
     bringForward(layer: Layer, shapes: Array<Shape>): void {}

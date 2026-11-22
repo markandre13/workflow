@@ -34,6 +34,7 @@ export abstract class DrawingModel extends Model<DrawingEvent> {
     abstract delete(layer: Layer, shapes: Array<Shape>): void
     abstract setStrokeAndFill(layer: Layer, shapes: Array<Shape>, stroke: string, fill: string): void
     abstract setStrokeEnds(layer: Layer, shapes: Array<Shape>, start: StrokeEndType | undefined, end: StrokeEndType | undefined): void
+    abstract setStrokeWidth(layer: Layer, shapes: Array<Shape>, width: number): void
     abstract transform(layer: Layer, shapes: Array<Shape>, matrix: Matrix): void
     abstract bringToFront(layer: Layer, shapes: Array<Shape>): void
     abstract bringToBack(layer: Layer, shapes: Array<Shape>): void
