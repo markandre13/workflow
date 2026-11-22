@@ -522,8 +522,8 @@ export class Path extends Shape implements valuetype.shape.Path {
                 )
             } else {
                 d = arrow2path(end,
-                    { x: data[1].values![0], y: data[1].values![1] },
-                    { x: data[0].values![0], y: data[0].values![1] },
+                    { x: data[i].values![0], y: data[i].values![1] },
+                    { x: data[i-1].values![0], y: data[i-1].values![1] },
                     10, 10
                 )
             }
