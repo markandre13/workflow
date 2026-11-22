@@ -198,7 +198,7 @@ export function homeScreen(
                 &nbsp;
                 Zoom:
                 &nbsp;
-                <Select model={zoom} style={{ width: "88px" }}/>
+                <Select model={zoom} style={{ width: "88px" }} />
                 &nbsp;
                 Arrow:
                 &nbsp;
@@ -262,5 +262,8 @@ export function homeScreen(
     vruler.current.documentSettings = drawing.documentSettings
     hruler.current.attach(editor.current)
     vruler.current.attach(editor.current)
+    zoom.signal.add(() => {
+        editor.current.zoomTo(zoom.value)
+    })
     return dom
 }
