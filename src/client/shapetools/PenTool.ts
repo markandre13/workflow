@@ -117,6 +117,8 @@ export class PenTool extends Tool {
     override deactivate(editor: ShapeEditor) {
         this.clear(editor)
         this.setCursor(editor, Cursor.DEFAULT)
+        this.removeOutlines(editor)
+        this.removeDecoration(editor)
     }
 
     override keydown(event: EditorKeyboardEvent): void {
