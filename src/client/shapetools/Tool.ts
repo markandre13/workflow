@@ -23,12 +23,19 @@ import { EditorPointerEvent } from "../shapeeditor/EditorPointerEvent"
 import { EditorKeyboardEvent } from "../shapeeditor/EditorKeyboardEvent"
 import { ShapeSelectionModel } from "../shapeeditor/ShapeSelectionModel"
 import { ShapeEditor } from "../shapeeditor/ShapeEditor"
-import { pointPlusPoint, pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual, pointMinusPoint, squaredLength, rotatePointAroundPointBy } from "shared/geometry"
+import { pointMultiplyNumber, pointMinus, pointMinusSize, sizeMultiplyNumber, isEqual, pointMinusPoint, squaredLength } from "shared/geometry"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { parseXML, Tag, TagType, Text } from "client/utils/xml"
 import { nonScalingStroke } from "../shapeeditor/Decoration"
+
+// where a boundary handle is, and how it rotates, in canvas units
+export interface BoundaryHandle {
+    center: PointLike
+    handleDirection: PointLike
+    rotation?: { toCenter: PointLike, flipped: boolean, factor: number }
+}
 
 export class Tool {
     static selection: ShapeSelectionModel // = new ShapeSelectionModel()
@@ -147,7 +154,7 @@ export class Tool {
         // console.log(`SelectTool.updateBoundary() DONE`)
     }
 
-    getBoundaryHandle(handle: number, handleSize: number): {path: Path, handleDirection: PointLike} {
+    getBoundaryHandle(handle: number): BoundaryHandle {
         const m = new Matrix(this.transformation)
         m.append(this.boundaryTransformation)
 
@@ -233,21 +240,12 @@ export class Tool {
             const toCenterX = pointMinusPoint(center, previous)
             const toCenter = pointMultiplyNumber(toCenterX, 1/Math.sqrt(squaredLength(toCenterX)))
 
+            // the size of the handle in canvas units, per handle size
             const scale1 = m.transformPoint({x:0, y: 0})
-            const scale2 = m.transformPoint({x: handleSize, y: 0})
-            const size = Math.sqrt(squaredLength(pointMinusPoint(scale2, scale1)))
+            const scale2 = m.transformPoint({x: 1, y: 0})
+            const factor = Math.sqrt(squaredLength(pointMinusPoint(scale2, scale1)))
 
-            let start = pointPlusPoint(center, pointMultiplyNumber(toCenter, -size * 2))
-            if (handle % 2 !== 0)
-                start = rotatePointAroundPointBy(start, center, -Math.PI/4)
-
-            const path = new Path()
-            path.move(center)
-            for(let i=0, r=Math.PI/2; i <= 8; ++i, r+=Math.PI/16) {
-                path.line(rotatePointAroundPointBy(start, center, r))
-            }
-            path.close()
-            return { path, handleDirection }
+            return { center, handleDirection, rotation: { toCenter, flipped: handle % 2 !== 0, factor } }
         }
 
         //
@@ -288,21 +286,11 @@ export class Tool {
                 v = { x: -1, y:  0}
                 break
         }
-        const r = new Rectangle(x, y, handleSize, handleSize)
-
-        const center = r.origin = m.transformPoint(r.origin)
-        r.origin.x -= handleSize / 2.0
-        r.origin.y -= handleSize / 2.0
-
-        r.origin.x = Math.round(r.origin.x-0.5)+0.5
-        r.origin.y = Math.round(r.origin.y-0.5)+0.5
-        
-        const path = new Path()
-        path.appendRect(r)
-        return { path, handleDirection }
+        const center = m.transformPoint({x, y})
+        return { center, handleDirection }
     }
     
-    setCursorForHandle(h: number, handle: {path: Path, handleDirection: PointLike}, svg: SVGElement) {
+    setCursorForHandle(h: number, handle: {handleDirection: PointLike}, svg: SVGElement) {
         const r1 = Math.atan2(handle.handleDirection.y, handle.handleDirection.x)
         const r2 = r1 + (13 - 7.5) / 16 * 2 * Math.PI
         let r3 = ( Math.round(r2 / (2 * Math.PI) * 8) + 8 ) % 8
@@ -444,9 +432,6 @@ export class Tool {
         this.createDecorationHandles(editor)
     }
 
-    // called when the zoom of the editor changes, so decorations can resize
-    zoomChanged(editor: ShapeEditor): void {}
-
     createDecorationRectangle(editor: ShapeEditor) {
         // adjust boundary to nice looking screen coordinates
         let rectangle = new Rectangle(this.boundary)
@@ -463,42 +448,24 @@ export class Tool {
         let m = new Matrix(this.transformation)
         m.append(this.boundaryTransformation)
         path.transform(m)
-    
-        // display path
-        let svg = path.createSVG("rgb(79,128,255)")
-        nonScalingStroke(svg)
-        editor.outline.appendChild(svg)
+
+        editor.decorations.frame(path)
     }
-    
+
     createDecorationHandles(editor: ShapeEditor) {
         for(let h=15; h>=0; --h) {
-            // let path = new Path()
-            // path.appendRect(this.getBoundaryHandle(handle))
-            const handle = this.getBoundaryHandle(h, editor.handleSize)
-            let svg: SVGElement
-            if (h<8) {
-                // if (!this.debug) {
-                    svg = handle.path.createSVG("rgb(79,128,255)", 1, "#fff")
-                // } else {
-                //     svg = handle.path.createSVG("#333", 1, "#ccc")
-                // }
-            } else {
-                // transparent SVGElement can not be seen but clicked
-                // if (!this.debug) {
-                    svg = handle.path.createSVG("rgba(0,0,0,0)", 1, "rgba(0,0,0,0)")
-                // } else {
-                //     svg = handle.path.createSVG("#333", 1, "#ccc")
-                // }
-            }
-            nonScalingStroke(svg)
-            this.setCursorForHandle(h, handle, svg)
-            svg.onpointerenter = () => { 
+            const handle = this.getBoundaryHandle(h)
+            // rotation handles are transparent, they can be clicked but not seen
+            const item = handle.rotation
+                ? editor.decorations.rotateHandle(handle.center, handle.rotation.toCenter, handle.rotation.flipped, handle.rotation.factor)
+                : editor.decorations.scaleHandle(handle.center)
+            this.setCursorForHandle(h, handle, item.element)
+            item.element.onpointerenter = () => {
                 this.insideHandle = h
             }
-            svg.onpointerleave = () => {
+            item.element.onpointerleave = () => {
                 this.insideHandle = undefined
             }
-            editor.decoration.appendChild(svg)
         }
     }
 

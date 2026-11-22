@@ -736,15 +736,9 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         this.model!.add(this.selectedLayer!, shape)
     }
 
-    // size of anchors and handles in canvas units, so that they keep their size on screen at every zoom
-    get handleSize(): number {
-        return shape.Shape.HANDLE_RANGE / this.zoom
-    }
-
     override zoomTo(zoom: number) {
         super.zoomTo(zoom)
         this.decorations.refresh()
-        this.tool?.zoomChanged(this)
     }
 
     getPath(shape: Shape): Path | undefined {

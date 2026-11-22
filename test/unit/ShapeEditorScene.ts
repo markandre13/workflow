@@ -161,11 +161,19 @@ export class ShapeEditorScene {
         if (Tool.selection.empty())
             throw Error("Error: selection decoration is empty")
         let msg = ""
+        const size = this.shapeeditor.decorations.handleSize
         for (let i of [0, 2, 4, 6]) {
-            const handleInfo = this.shapeeditor.tool!.getBoundaryHandle(i, this.shapeeditor.handleSize)
-            if (handleInfo.path.contains(point))
+            const { center } = this.shapeeditor.tool!.getBoundaryHandle(i)
+            // the same pixel alignment as the decoration uses
+            const handle = new Rectangle(
+                Math.round(center.x - size / 2 - 0.5) + 0.5,
+                Math.round(center.y - size / 2 - 0.5) + 0.5,
+                size,
+                size
+            )
+            if (handle.inside(point))
                 return
-            msg = `${msg} (${handleInfo.path.data[0].values![0]+1.5},${handleInfo.path.data[0].values![1]+1.5})`
+            msg = `${msg} (${handle.origin.x+1.5},${handle.origin.y+1.5})`
         }
         throw Error(`Selection decoration has no edge (${point.x}, ${point.y}). We have${msg}`)
     }

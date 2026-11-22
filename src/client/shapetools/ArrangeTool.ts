@@ -34,8 +34,8 @@ import { Point, PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { Shape } from "../shapes/Shape"
 import { ShapeEditor, EditorPointerEvent, EditorKeyboardEvent } from "../shapeeditor"
+import { MarqueeItem } from "../shapeeditor/Decoration"
 import { Tool } from "./Tool"
-import { nonScalingStroke } from "../shapeeditor/Decoration"
 
 export enum ArrangeToolState {
     NONE,
@@ -51,7 +51,7 @@ export class ArrangeTool extends Tool {
     pointerLastAt?: PointLike
 
     marqueeRectangle?: Rectangle
-    svgMarquee?: SVGElement
+    svgMarquee?: MarqueeItem
     marqueeOutlines: Map<Shape, SVGElement>
     
     selectedHandle: number
@@ -88,13 +88,6 @@ export class ArrangeTool extends Tool {
         Tool.selection.modified.remove(this)
         this.removeOutlines(editor)
         this.removeDecoration(editor)
-    }
-
-    override zoomChanged(editor: ShapeEditor): void {
-        // the marquee is part of the decoration, so the decoration is rebuilt when the marquee ends
-        if (this.svgMarquee === undefined) {
-            this.updateDecoration(editor)
-        }
     }
 
     override pointerdown(event: EditorPointerEvent) {
@@ -390,8 +383,6 @@ export class ArrangeTool extends Tool {
         this.removeMarquee(event.editor)
         this.removeMarqueeOutlines(event.editor)
         Tool.selection.modified.unlock()
-        // a zoom during the drag did not rebuild the decoration, so do it now
-        this.updateDecoration(event.editor)
 
         this.pointerDownAt = undefined
     }
@@ -399,17 +390,13 @@ export class ArrangeTool extends Tool {
     private createMarquee(editor: ShapeEditor) {
         if (this.svgMarquee !== undefined)
             return
-        this.svgMarquee = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-        this.svgMarquee.setAttributeNS("", 'stroke', 'rgb(79,128,255)')
-        this.svgMarquee.setAttributeNS("", 'fill', 'rgba(79,128,255,0.2)')
-        nonScalingStroke(this.svgMarquee)
-        editor.decoration.appendChild(this.svgMarquee)
+        this.svgMarquee = editor.decorations.marquee(new Rectangle(0, 0, 0, 0))
     }
     
     private removeMarquee(editor: ShapeEditor) {
         if (this.svgMarquee === undefined)
             return
-        editor.decoration.removeChild(this.svgMarquee)
+        this.svgMarquee.remove()
         this.svgMarquee = undefined
     }
     
@@ -424,10 +411,7 @@ export class ArrangeTool extends Tool {
         if (x1<x0) [x0,x1] = [x1,x0]
         if (y1<y0) [y0,y1] = [y1,y0]
         this.marqueeRectangle = new Rectangle({origin: { x: x0, y: y0 }, size: { width: x1-x0, height: y1-y0 }})
-        this.svgMarquee!.setAttributeNS("", "x", String(Math.round(x0)+0.5)) // FIXME: just a hunch for nice rendering
-        this.svgMarquee!.setAttributeNS("", "y", String(Math.round(y0)+0.5))
-        this.svgMarquee!.setAttributeNS("", "width", String(Math.round(x1-x0)))
-        this.svgMarquee!.setAttributeNS("", "height", String(Math.round(y1-y0)))
+        this.svgMarquee!.move(this.marqueeRectangle)
     }
 
     private createMarqueeOutlines(editor: ShapeEditor) {
