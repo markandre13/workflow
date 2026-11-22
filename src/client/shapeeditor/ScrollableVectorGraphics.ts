@@ -200,7 +200,8 @@ export abstract class ScrollableVectorGraphics extends ModelView<DrawingModel> {
                 viewH,
             }
         }
-        // a scrollbar only ever turns on, so this stops after at most two steps
+        // a scrollbar only ever turns on, so this stops after at most two steps. a scrollbar that is on may
+        // no longer be needed after the other one turned on (rounding), and that must not keep the loop going
         let hBar = false
         let vBar = false
         let rb = layout(hBar, vBar)
