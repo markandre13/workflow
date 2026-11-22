@@ -33,6 +33,9 @@ import { Action } from "toad.js/appkit/Action"
 import { Ruler } from "client/shapeeditor/Ruler"
 import { OptionModel } from "toad.js/appkit/OptionModel"
 import { StrokeEndModel } from "client/StrokeEndModel"
+import { NumberModel } from "toad.js/appkit/NumberModel"
+import { TextField } from "toad.js/viewkit/TextField"
+import { Slider } from "toad.js/viewkit/Slider"
 
 // TODO: make this part of OptionModel & add key=... as an alternative to ToolButton?
 function k2v(model: ToolModel, aKey: string) {
@@ -61,8 +64,9 @@ function k2v(model: ToolModel, aKey: string) {
 function zoomModel() {
     const factors = [1 / 32, 1 / 24, 1 / 20, 1 / 16, 1 / 12, 1 / 8, 1 / 6, 1 / 4, 1 / 3, 1 / 2, 2 / 3, 1, 2, 3, 4, 6, 8, 16, 32, 64]
     return new OptionModel(1, factors.map((factor) =>
-        [factor, `${Math.round(factor * 10000) / 100}%`]
-    ))
+        [factor, `${Math.round(factor * 10000) / 100}%`],
+        { label: "Zoom" })
+    )
 }
 
 export function homeScreen(
@@ -81,6 +85,7 @@ export function homeScreen(
     })
     let editor = makeRef<ShapeEditor>(), vruler = makeRef<Ruler>(), hruler = makeRef<Ruler>()
     const zoom = zoomModel()
+    const strokeWidth = new NumberModel(1, {label: "Stroke Width", min: 1, max: 32, step: 1})
     let dom = (
         <>
             <Menu
@@ -200,6 +205,10 @@ export function homeScreen(
                 &nbsp;
                 <Select model={zoom} style={{ width: "88px" }} />
                 &nbsp;
+                Stroke Width:
+                <TextField model={strokeWidth} style={{width: "48px"}}/>
+                {/* <Slider orientation="horizontal" style={{width: "100px"}} model={strokeWidth}/> */}
+                &nbsp;
                 Arrow:
                 &nbsp;
                 <Select model={strokeStart} style={{ width: "60px" }} />
@@ -249,6 +258,7 @@ export function homeScreen(
                 strokeandfill={strokeandfill}
                 strokeStart={strokeStart}
                 strokeEnd={strokeEnd}
+                strokeWidth={strokeWidth}
                 style={{ position: "absolute", left: "69px", right: "0px", top: "78px", bottom: "24px" }}
             />
 
