@@ -34,6 +34,35 @@ valuetype Size {
     public double width, height;
 };
 
+valuetype Rectangle {
+    public Point origin;
+    public Size size;
+
+    Rectangle set(in double x, in double y, in double width, in double height);
+
+    boolean contains(in Point point);
+    boolean containsRectangle(in Rectangle rectangle);
+
+    boolean inside(in Point point);
+    boolean intersects(in Rectangle rectangle);
+    /**
+     * return the center of the rectangle
+     */
+    Point center();
+    /**
+     * expand rectangle to include the given point
+     */
+    Rectangle expandByPoint(in Point point);
+    /**
+     * expand rectangle to include the given point rectangle
+     */
+    Rectangle expandByRectangle(in Rectangle rectangle);
+    /**
+     * expand the rectangle by the given amount on all four sides
+     */
+    Rectangle inflate(in double expansion);
+};
+
 // This class is equivalent to the SVGMatrix/DOMMatrix
 // ⎡a c e⎤   ⎡x⎤   ⎡x'⎤
 // ⎢b d f⎥ ∙ ⎢y⎥ = ⎢y'⎥
@@ -68,22 +97,6 @@ valuetype Matrix {
 
     double getRotation();
     */
-};
-
-valuetype Rectangle {
-    public Point origin;
-    public Size size;
-
-    Rectangle set(in double x, in double y, in double width, in double height);
-    boolean contains(in Point point);
-    boolean containsRectangle(in Rectangle rectangle);
-    boolean inside(in Point point);
-    boolean intersects(in Rectangle rectangle);
-    Rectangle expandByPoint(in Point point);
-    Point center();
-    Rectangle expandByRectangle(in Rectangle rectangle);
-    Rectangle inflate(in double expansion);
-
 };
 
 enum AttributeType {
@@ -136,7 +149,9 @@ valuetype Shape {
 };
 
 module shape {
-
+    /**
+     * a box shape is rectangular shape with origin and size
+     */
     valuetype BoxShape: Shape {
         public Point origin;
         public Size size;
@@ -153,13 +168,34 @@ module shape {
     };
 
     enum AnchorType {
+        /**
+         * anchor without tangents (1 point)
+         */
         ANCHOR_EDGE,        // anchor without handles (1 point)
+        /**
+         * anchor with forward tangent
+         */
         ANCHOR_EDGE_ANGLE,  // handle after anchor (2 points)
+        /**
+         * anchor with backward tangent
+         */
         ANCHOR_ANGLE_EDGE,  // handle before anchor (2 points)
+        /**
+         * anchor with mirrored forward and backward tangents
+         */
         ANCHOR_SYMMETRIC,   // handle before anchor and mirrored at anchor for handle after anchor (2 points)
+        /**
+         * anchor with parallel forward and backward tangents
+         */
         ANCHOR_SMOOTH_ANGLE_ANGLE, // handle before and after anchor are on a straight line (3 points)
+        /**
+         * anchor with forward and backward tangents
+         */
         ANCHOR_ANGLE_ANGLE, // handle before and after anchor (3 points)
         CLOSE               // close path (0 points)
+
+        // the last 3 bits, we store this in an octet, are intended to be used
+        // as follows:
         // PRESSURE = 32,      // anchor has pressure information (one value)
         // ROTATION = 64,      // anchor has rotation information (one value)
         // TILT     = 128 ,    // anchor has tilt x/y information (two values)

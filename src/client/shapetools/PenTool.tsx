@@ -61,7 +61,6 @@ enum Cursor {
     // CONTINUE, // this is a handle cursor
     // CLOSE // this is a handle cursor
 }
-
 export enum State {
     READY,
 
