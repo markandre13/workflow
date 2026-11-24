@@ -26,8 +26,6 @@ const bcryptRounds = 10
 import { ORB } from 'corba.js'
 import { WsProtocol } from 'corba.js/net/ws'
 import { Attribute } from 'shared/workflow'
-import * as skel from "shared/workflow_skel"
-import * as stub from "shared/workflow_stub"
 
 import { Rectangle } from "../shared/geometry/Rectangle"
 import { Size } from "../shared/geometry/Size"
@@ -36,6 +34,8 @@ import { Matrix } from "../shared/geometry/Matrix"
 
 import * as value     from "shared/workflow_value"
 import * as valuetype from "shared/workflow_valuetype"
+import { BoardListener_stub, Client_stub } from 'shared/workflow_stub'
+import { Board_skel, Project_skel, Server_skel, WorkflowServer_skel } from 'shared/workflow_skel'
 
 let testing = true
 
@@ -117,8 +117,8 @@ async function main() {
 //    orb.register("Server", Server_impl)
 //    orb.register("Project", Project_impl)
 //    orb.register("Board", Board_impl)
-    orb.registerStubClass(stub.Client)
-    orb.registerStubClass(stub.BoardListener)
+    orb.registerStubClass(Client_stub)
+    orb.registerStubClass(BoardListener_stub)
     ORB.registerValueType("Point", Point)
     ORB.registerValueType("Size", Size)
     ORB.registerValueType("Matrix", Matrix)
@@ -141,14 +141,14 @@ async function main() {
     console.log("listening on port 8809...")
 }
 
-class WorkflowServer_impl extends skel.WorkflowServer {
+class WorkflowServer_impl extends WorkflowServer_skel {
     async getServer() {
         return new Server_impl(this._orb)
     }
 }
 
-class Server_impl extends skel.Server {
-    client?: stub.Client
+class Server_impl extends Server_skel {
+    client?: Client_stub
     static projects = new Map<number, Project_impl>()
 
     constructor(orb: ORB) {
@@ -161,7 +161,7 @@ class Server_impl extends skel.Server {
 //        this.board.unregisterWatcher(this)
     }
     
-    async setClient(client: stub.Client) {
+    async setClient(client: Client_stub) {
         console.log("Server_impl.setClient()")
         this.client = client
     }
@@ -235,7 +235,7 @@ interface ProjectData {
     description: string
 }
 
-class Project_impl extends skel.Project {
+class Project_impl extends Project_skel {
     data: ProjectData
 
     boards: Map<number, Board_impl>
@@ -270,18 +270,18 @@ class Project_impl extends skel.Project {
     }
 }
 
-class Board_impl extends skel.Board {
+class Board_impl extends Board_skel {
     model: BoardModel
-    listeners: Map<stub.BoardListener, EventListener>
+    listeners: Map<BoardListener_stub, EventListener>
 
     constructor(orb: ORB, model: BoardModel) {
         super(orb)
         this.model = model
-        this.listeners = new Map<stub.BoardListener, EventListener>()
+        this.listeners = new Map<BoardListener_stub, EventListener>()
         console.log("Board_impl.constructor()")
     }
     
-    async addListener(listener: stub.BoardListener) {
+    async addListener(listener: BoardListener_stub) {
         if (this.listeners.has(listener))
             return
 
@@ -292,7 +292,7 @@ class Board_impl extends skel.Board {
         this.listeners.set(listener, closing)
     }
     
-    async removeListener(listener: stub.BoardListener) {
+    async removeListener(listener: BoardListener_stub) {
         let closing = this.listeners.get(listener)
         if (closing === undefined)
             return

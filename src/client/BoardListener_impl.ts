@@ -21,11 +21,10 @@ import { Matrix } from "shared/geometry/Matrix"
 import { Shape } from "./shapes"
 import { BoardModel } from "./BoardModel"
 import { Operation } from "./shapeeditor/ShapeEditor"
-
-import * as skel from "shared/workflow_skel"
+import { BoardListener_skel } from "shared/workflow_skel"
 
 // ShapeEditor -> BoardModel -> Server -> BoardListener_impl -> ShapeEditor.updateView()
-export class BoardListener_impl extends skel.BoardListener {
+export class BoardListener_impl extends BoardListener_skel {
     boardmodel: BoardModel
     constructor(orb: ORB, boardmodel: BoardModel) {
         super(orb)

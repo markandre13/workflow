@@ -19,7 +19,6 @@
 import { ORB } from "corba.js"
 import { WsProtocol } from "corba.js/net/browser"
 
-import * as stub from "shared/workflow_stub"
 import { Rectangle } from "shared/geometry/Rectangle"
 import { Size } from "shared/geometry/Size"
 import { Point } from "shared/geometry/Point"
@@ -37,6 +36,7 @@ import { loadStyle } from "toad.js/util/loadStyle"
 
 import { Rectangle as RectangleShape } from "./shapes"
 import { ShapeEditor } from "client/shapeeditor"
+import { Board_stub, Project_stub, Server_stub, WorkflowServer_stub } from "shared/workflow_stub"
 
 
 export async function main(url: string | undefined = undefined) {
@@ -53,7 +53,7 @@ export async function main(url: string | undefined = undefined) {
 
     // if this fails, fall back to serverless
     // try {
-    //     const workflowserver = stub.WorkflowServer.narrow(
+    //     const workflowserver = stub.WorkflowServer_stub.narrow(
     //         await orb.stringToObject(`corbaname::${window.location.hostname}:8809#WorkflowServer`)
     //     )
     //     // FIXME: corba.js can't do that yet, but the idea is that the connection re-establishes on it's own
@@ -118,10 +118,10 @@ async function testCase() {
 }
 
 export function initializeORB(orb: ORB) {
-    orb.registerStubClass(stub.WorkflowServer)
-    orb.registerStubClass(stub.Server)
-    orb.registerStubClass(stub.Project)
-    orb.registerStubClass(stub.Board)
+    orb.registerStubClass(WorkflowServer_stub)
+    orb.registerStubClass(Server_stub)
+    orb.registerStubClass(Project_stub)
+    orb.registerStubClass(Board_stub)
 }
 
 export function initializeCORBAValueTypes() {

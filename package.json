@@ -45,7 +45,7 @@
         "chai-almost": "^1.0.1",
         "chai-as-promised": "^8.0.2",
         "chai-subset": "^1.6.0",
-        "corba.js": "0.2.0",
+        "corba.js": "0.3.0",
         "playwright": "^1.65.1",
         "toad.js": "^0.4.0",
         "toad.jsx": "^0.2.0",

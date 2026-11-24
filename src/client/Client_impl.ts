@@ -20,7 +20,6 @@
 
 import { ORB } from "corba.js"
 import * as inf from "shared/workflow"
-import * as skel from "shared/workflow_skel"
 
 import { Rectangle as RectangleShape, Circle as CircleShape } from "./shapes"
 
@@ -46,6 +45,7 @@ import { TextModel } from "toad.js/appkit/TextModel"
 import { DocumentSettingsDialog } from "./view/dialogs/DocumentSettingsDialog"
 import { DocumentSettings } from "./app/DocumentSettings"
 import { EditTool } from "./shapetools/edittool/EditTool"
+import { Client_skel } from "shared/workflow_skel"
 
 namespace dom {
     export function erase(n: Element): void {
@@ -68,7 +68,7 @@ namespace dom {
     }
 }
 
-export class Client_impl extends skel.Client {
+export class Client_impl extends Client_skel {
     server: inf.Server | undefined
 
     constructor(orb: ORB, server?: inf.Server) {
