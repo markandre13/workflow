@@ -29,6 +29,7 @@ import { PointLike } from "shared/geometry/Point"
 import { Matrix } from "shared/geometry/Matrix"
 import { parseXML, Tag, TagType, Text } from "client/utils/xml"
 import { nonScalingStroke } from "../shapeeditor/Decoration"
+import { JSX, replaceChildren } from "toad.jsx/jsx-runtime"
 
 // where a boundary handle is, and how it rotates, in canvas units
 export interface BoundaryHandle {
@@ -50,30 +51,30 @@ export class Tool {
 
     handles: Map<Shape, Array<AbstractPath>>
 
-    activate(editor: ShapeEditor) {}
-    deactivate(editor: ShapeEditor) {}
+    activate(editor: ShapeEditor) { }
+    deactivate(editor: ShapeEditor) { }
 
     pointerEvent(event: EditorPointerEvent) {
-        switch(event.type) {
-            case "down": return this.pointerdown(event);
-            case "move": return this.pointermove(event);
-            case "up": return this.pointerup(event);
+        switch (event.type) {
+            case "down": return this.pointerdown(event)
+            case "move": return this.pointermove(event)
+            case "up": return this.pointerup(event)
         }
     }
-    pointerdown(event: EditorPointerEvent) {}
-    pointermove(event: EditorPointerEvent) {}
-    pointerup(event: EditorPointerEvent) {}
+    pointerdown(event: EditorPointerEvent) { }
+    pointermove(event: EditorPointerEvent) { }
+    pointerup(event: EditorPointerEvent) { }
 
     keyEvent(event: EditorKeyboardEvent) {
-        switch(event.type) {
+        switch (event.type) {
             case "down": return this.keydown(event)
             case "up": return this.keyup(event)
         }
     }
-    keydown(event: EditorKeyboardEvent) {}
-    keyup(event: EditorKeyboardEvent) {}
-    clipboard(editor: ShapeEditor, event: ClipboardEvent) {}
-    
+    keydown(event: EditorKeyboardEvent) { }
+    keyup(event: EditorKeyboardEvent) { }
+    clipboard(editor: ShapeEditor, event: ClipboardEvent) { }
+
     constructor() {
         if (Tool.selection === undefined) Tool.selection = new ShapeSelectionModel() // FIXME: initialization via static doesn't work
         this.transformation = new Matrix()
@@ -95,7 +96,7 @@ export class Tool {
         // get rotation of the selected shapes
         let firstRotation = true
         let rotation = 0.0
-        for(let shape of Tool.selection.selection) {
+        for (let shape of Tool.selection.selection) {
             let r: number
             if (shape.matrix === undefined) {
                 r = 0.0
@@ -111,7 +112,7 @@ export class Tool {
                 firstRotation = false
                 rotation = r
             } else {
-                if (!isEqual(r % (Math.PI/2), rotation % (Math.PI/2))) {
+                if (!isEqual(r % (Math.PI / 2), rotation % (Math.PI / 2))) {
                     rotation = 0.0
                     break
                 }
@@ -124,21 +125,21 @@ export class Tool {
         let inverseRotationAroundOrigin = new Matrix(rotationAroundOrigin).invert()
         let boundary = new Rectangle()
         let firstEdge = true
-        for(let shape of Tool.selection.selection) {
+        for (let shape of Tool.selection.selection) {
             let shapeBoundary = shape.bounds()
             // console.log(`shape ${shape.id} matrix`, shape.matrix)
-            shapeBoundary.forAllEdges( (edge)=>{
+            shapeBoundary.forAllEdges((edge) => {
                 // console.log(`shape ${shape.id} edge ${edge.x}, ${edge.y}`)
                 edge = inverseRotationAroundOrigin.transformPoint(edge)
                 if (firstEdge) {
                     firstEdge = false
-                    boundary.origin = edge   
+                    boundary.origin = edge
                 } else {
                     boundary.expandByPoint(edge)
                 }
             }, shape.matrix)
         }
-        
+
         // get center in real coordinate system
         let center = rotationAroundOrigin.transformPoint(boundary.center())
 
@@ -158,15 +159,15 @@ export class Tool {
         const m = new Matrix(this.transformation)
         m.append(this.boundaryTransformation)
 
-        let   x = this.boundary.origin.x,
-              y = this.boundary.origin.y,
-              w = this.boundary.size.width,
-              h = this.boundary.size.height
+        let x = this.boundary.origin.x,
+            y = this.boundary.origin.y,
+            w = this.boundary.size.width,
+            h = this.boundary.size.height
 
-        const shapeCenter = m.transformPoint({x: x+w/2, y: y+h/2})
+        const shapeCenter = m.transformPoint({ x: x + w / 2, y: y + h / 2 })
 
         let handleDirection: PointLike
-        switch(handle % 8) {
+        switch (handle % 8) {
             case 0:
                 handleDirection = { x: -1, y: -1 }
                 break
@@ -190,9 +191,9 @@ export class Tool {
                 break
             case 7:
                 handleDirection = { x: -1, y: 0 }
-                break                                                                                                                                                                                                                        
+                break
         }
-        const origin = m.transformPoint({x: 0, y: 0})
+        const origin = m.transformPoint({ x: 0, y: 0 })
         handleDirection = pointMinusPoint(m.transformPoint(handleDirection!), origin)
 
         //
@@ -200,49 +201,49 @@ export class Tool {
         //
         if (handle >= 8) {
             let previous, center
-            switch(handle) {
+            switch (handle) {
                 case 8:
-                    previous = m.transformPoint({x: x, y: y+h})
-                    center = m.transformPoint({x: x, y: y})
+                    previous = m.transformPoint({ x: x, y: y + h })
+                    center = m.transformPoint({ x: x, y: y })
                     break
                 case 9:
-                    previous = m.transformPoint({x: x, y: y})
-                    center = m.transformPoint({x: x+w/2, y: y})
+                    previous = m.transformPoint({ x: x, y: y })
+                    center = m.transformPoint({ x: x + w / 2, y: y })
                     break
                 case 10:
-                    previous = m.transformPoint({x: x, y: y})
-                    center = m.transformPoint({x: x+w, y: y})
+                    previous = m.transformPoint({ x: x, y: y })
+                    center = m.transformPoint({ x: x + w, y: y })
                     break
                 case 11:
-                    previous = m.transformPoint({x: x+w, y: y})
-                    center = m.transformPoint({x: x+w, y: y + h/2})
+                    previous = m.transformPoint({ x: x + w, y: y })
+                    center = m.transformPoint({ x: x + w, y: y + h / 2 })
                     break
                 case 12:
-                    previous = m.transformPoint({x: x+w, y: y})
-                    center = m.transformPoint({x: x+w, y: y+h})
+                    previous = m.transformPoint({ x: x + w, y: y })
+                    center = m.transformPoint({ x: x + w, y: y + h })
                     break
                 case 13:
-                    previous = m.transformPoint({x: x+w, y: y+h})
-                    center = m.transformPoint({x: x+w/2, y: y+h})
+                    previous = m.transformPoint({ x: x + w, y: y + h })
+                    center = m.transformPoint({ x: x + w / 2, y: y + h })
                     break
                 case 14:
-                    previous = m.transformPoint({x: x+w, y: y+h})
-                    center = m.transformPoint({x: x, y: y+h})
+                    previous = m.transformPoint({ x: x + w, y: y + h })
+                    center = m.transformPoint({ x: x, y: y + h })
                     break
                 case 15:
-                    previous = m.transformPoint({x: x, y: y+h})
-                    center = m.transformPoint({x: x, y: y+h/2})
+                    previous = m.transformPoint({ x: x, y: y + h })
+                    center = m.transformPoint({ x: x, y: y + h / 2 })
                     break
                 default:
                     throw Error("yikes")
             }
 
             const toCenterX = pointMinusPoint(center, previous)
-            const toCenter = pointMultiplyNumber(toCenterX, 1/Math.sqrt(squaredLength(toCenterX)))
+            const toCenter = pointMultiplyNumber(toCenterX, 1 / Math.sqrt(squaredLength(toCenterX)))
 
             // the size of the handle in canvas units, per handle size
-            const scale1 = m.transformPoint({x:0, y: 0})
-            const scale2 = m.transformPoint({x: 1, y: 0})
+            const scale1 = m.transformPoint({ x: 0, y: 0 })
+            const scale2 = m.transformPoint({ x: 1, y: 0 })
             const factor = Math.sqrt(squaredLength(pointMinusPoint(scale2, scale1)))
 
             return { center, handleDirection, rotation: { toCenter, flipped: handle % 2 !== 0, factor } }
@@ -251,56 +252,56 @@ export class Tool {
         //
         // HANDLES FOR SCALING SCALE
         //
-        let v = { x: 0, y: 0} // FIXME: pre-store x in an array
-        switch(handle % 8) {
-            case  0:
-                [x, y] = [x       ,y      ]
-                v = { x: -1, y: -1}
+        let v = { x: 0, y: 0 } // FIXME: pre-store x in an array
+        switch (handle % 8) {
+            case 0:
+                [x, y] = [x, y]
+                v = { x: -1, y: -1 }
                 break
-            case  1:
-                [x, y] = [x+w/2.0, y      ]
-                v = { x:  0, y: -1}
+            case 1:
+                [x, y] = [x + w / 2.0, y]
+                v = { x: 0, y: -1 }
                 break
-            case  2:
-                [x, y] = [x+w    , y      ]
-                v = { x:  1, y: -1}
+            case 2:
+                [x, y] = [x + w, y]
+                v = { x: 1, y: -1 }
                 break
-            case  3:
-                [x, y] = [x+w    , y+h/2.0]
-                v = { x:  1, y:  0}
+            case 3:
+                [x, y] = [x + w, y + h / 2.0]
+                v = { x: 1, y: 0 }
                 break
-            case  4:
-                [x, y] = [x+w    , y+h    ]
-                v = { x:  1, y:  1}
+            case 4:
+                [x, y] = [x + w, y + h]
+                v = { x: 1, y: 1 }
                 break
-            case  5:
-                [x, y] = [x+w/2.0, y+h    ]
-                v = { x:  0, y:  1}
+            case 5:
+                [x, y] = [x + w / 2.0, y + h]
+                v = { x: 0, y: 1 }
                 break
-            case  6:
-                [x, y] = [x      , y+h    ]
-                v = { x: -1, y:  1}
+            case 6:
+                [x, y] = [x, y + h]
+                v = { x: -1, y: 1 }
                 break
-            case  7:
-                [x, y] = [x      , y+h/2.0]
-                v = { x: -1, y:  0}
+            case 7:
+                [x, y] = [x, y + h / 2.0]
+                v = { x: -1, y: 0 }
                 break
         }
-        const center = m.transformPoint({x, y})
+        const center = m.transformPoint({ x, y })
         return { center, handleDirection }
     }
-    
-    setCursorForHandle(h: number, handle: {handleDirection: PointLike}, svg: SVGElement) {
+
+    setCursorForHandle(h: number, handle: { handleDirection: PointLike }, svg: SVGElement) {
         const r1 = Math.atan2(handle.handleDirection.y, handle.handleDirection.x)
         const r2 = r1 + (13 - 7.5) / 16 * 2 * Math.PI
-        let r3 = ( Math.round(r2 / (2 * Math.PI) * 8) + 8 ) % 8
+        let r3 = (Math.round(r2 / (2 * Math.PI) * 8) + 8) % 8
 
         // console.log(`h=${h}, r1=${r1}, r2=${r2}, r3=${r3}`)
 
         if (h >= 8)
             r3 += 8
 
-        switch(r3) {
+        switch (r3) {
             case 0:
                 svg.setAttributeNS("", "style", `cursor: url(${Tool.cursorPath}select-resize-nw.svg) 6 6, move`)
                 break
@@ -377,13 +378,13 @@ export class Tool {
     updateDecorationOfSelection(editor: ShapeEditor): void {
         // console.log(`Tool.updateOutlineAndDecorationOfSelection() for selection of ${Tool.selection.selection.size} shapes`)
         this.removeDecoration(editor)
-        this.createDecoration(editor)            
+        this.createDecoration(editor)
     }
 
     createOutlines(editor: ShapeEditor): void { // FIXME: rename into createOutlinesForSelection()
         // this.outline.setAttributeNS("", "transform", "translate(-1, 1)")
 
-        for(let shape of Tool.selection.selection) {
+        for (let shape of Tool.selection.selection) {
             editor.outline.appendChild(this.createOutline(editor, shape))
         }
 
@@ -402,11 +403,11 @@ export class Tool {
     removeOutlines(editor: ShapeEditor): void {
         editor.outline.replaceChildren()
     }
-    
+
     setOutlineColors(svg: SVGElement): void {
         if (svg instanceof SVGGElement) {
             // for(let child of svg.childNodes) {
-            for(let i=0; i<svg.childNodes.length; ++i) {
+            for (let i = 0; i < svg.childNodes.length; ++i) {
                 let child = svg.childNodes[i] as SVGElement
                 this.setOutlineColors(child)
             }
@@ -422,11 +423,11 @@ export class Tool {
         this.removeDecoration(editor)
         this.createDecoration(editor)
     }
-    
+
     createDecoration(editor: ShapeEditor) {
         if (Tool.selection.empty())
             return
-    
+
         this.updateBoundary() // FIXME: side effect
         this.createDecorationRectangle(editor)
         this.createDecorationHandles(editor)
@@ -435,9 +436,9 @@ export class Tool {
     createDecorationRectangle(editor: ShapeEditor) {
         // adjust boundary to nice looking screen coordinates
         let rectangle = new Rectangle(this.boundary)
-        rectangle.origin.x    = Math.round(rectangle.origin.x-0.5)+0.5
-        rectangle.origin.y    = Math.round(rectangle.origin.y-0.5)+0.5
-        rectangle.size.width  = Math.round(rectangle.size.width)
+        rectangle.origin.x = Math.round(rectangle.origin.x - 0.5) + 0.5
+        rectangle.origin.y = Math.round(rectangle.origin.y - 0.5) + 0.5
+        rectangle.size.width = Math.round(rectangle.size.width)
         rectangle.size.height = Math.round(rectangle.size.height)
 
         // convert to path
@@ -453,7 +454,7 @@ export class Tool {
     }
 
     createDecorationHandles(editor: ShapeEditor) {
-        for(let h=15; h>=0; --h) {
+        for (let h = 15; h >= 0; --h) {
             const handle = this.getBoundaryHandle(h)
             // rotation handles are transparent, they can be clicked but not seen
             const item = handle.rotation
@@ -474,14 +475,18 @@ export class Tool {
         editor.decorations.clear()
     }
 
-    static setHint(hint: string) {
+    static setHint(hint: string | JSX.Element) {
         const hintView = document.getElementById("hint")
         if (!hintView) {
             return
         }
-        const xml = parseXML("Tool.setHint()", hint)
-        Tool.transform(xml)
-        hintView.innerHTML = xml.toString()
+        if (typeof hint === "string") {
+            const xml = parseXML("Tool.setHint()", hint)
+            Tool.transform(xml)
+            hintView.innerHTML = xml.toString()
+        } else {
+            replaceChildren(hintView, hint)
+        }
     }
 
     static clearHint() {

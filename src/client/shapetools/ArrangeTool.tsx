@@ -36,6 +36,7 @@ import { Shape } from "../shapes/Shape"
 import { ShapeEditor, EditorPointerEvent, EditorKeyboardEvent } from "../shapeeditor"
 import { MarqueeItem } from "../shapeeditor/Decoration"
 import { Tool } from "./Tool"
+import { IconMouseLeft, IconMouseLeftDrag, IconShift } from "client/view/InputIcons"
 
 export enum ArrangeToolState {
     NONE,
@@ -53,7 +54,7 @@ export class ArrangeTool extends Tool {
     marqueeRectangle?: Rectangle
     svgMarquee?: MarqueeItem
     marqueeOutlines: Map<Shape, SVGElement>
-    
+
     selectedHandle: number
     handleStart: PointLike
     oldBoundary: Rectangle
@@ -66,23 +67,29 @@ export class ArrangeTool extends Tool {
         this.debug = false
         this.state = ArrangeToolState.NONE
         this.marqueeOutlines = new Map<Shape, SVGElement>()
-        
+
         this.selectedHandle = 0
         this.handleStart = new Point()
         this.oldBoundary = new Rectangle()
         this.rotationCenter = new Point()
         this.rotationStartDirection = 0
     }
-    
+
     override activate(editor: ShapeEditor) {
         editor.svg.style.cursor = `url(${Tool.cursorPath}arrange.svg) 1 1, crosshair`
-        Tool.selection.modified.add( () => {
+        Tool.selection.modified.add(() => {
             this.updateOutlineAndDecorationOfSelection(editor)
         }, this)
         Tool.selection.modified.emit()
-        Tool.setHint(`arrange tool: <pointer>click</pointer>: select at cursor, <pointer>drag</pointer>: select within rectangle, <shift/>: add to selection`)
+        // Tool.setHint(`arrange tool: <pointer>click</pointer>: select at cursor, <pointer>drag</pointer>: select within rectangle, <shift/>: add to selection`)
+        Tool.setHint(<>
+            Arrange:
+            &nbsp;<IconMouseLeft /> Select
+            &nbsp;<IconMouseLeftDrag /> Select Rectangle
+            &nbsp;<IconShift /> Add to selection
+        </>)
     }
-    
+
     override deactivate(editor: ShapeEditor) {
         editor.svg.style.cursor = "default"
         Tool.selection.modified.remove(this)
@@ -105,7 +112,7 @@ export class ArrangeTool extends Tool {
         this.transformation.identity()
 
         let shape = event.editor.selectedLayer!.findShapeAt(event)
-        
+
         if (shape === undefined) {
             if (!event.shiftKey) {
                 Tool.selection.clear()
@@ -116,7 +123,7 @@ export class ArrangeTool extends Tool {
             this.state = ArrangeToolState.DRAG_MARQUEE
             return
         }
-        
+
         this.state = ArrangeToolState.MOVE_SELECTION
         if (this.debug) {
             console.log(`  ArrangeTool.pointerdown(): down at handle ${event.x}, ${event.y} => state := MOVE_SELECTION`)
@@ -125,7 +132,7 @@ export class ArrangeTool extends Tool {
         if (Tool.selection.has(shape)) {
             return
         }
-        
+
         Tool.selection.modified.lock()
         if (!event.shiftKey)
             Tool.selection.clear()
@@ -146,7 +153,7 @@ export class ArrangeTool extends Tool {
         // }
         if (!event.pointerDown)
             return
-        switch(this.state) {
+        switch (this.state) {
             case ArrangeToolState.MOVE_HANDLE:
                 this.moveHandle(event)
                 break
@@ -160,7 +167,7 @@ export class ArrangeTool extends Tool {
     }
 
     override pointerup(event: EditorPointerEvent) {
-        switch(this.state) {
+        switch (this.state) {
             case ArrangeToolState.DRAG_MARQUEE:
                 this.stopMarquee(event)
                 break
@@ -197,27 +204,27 @@ export class ArrangeTool extends Tool {
      *                   M O V E   S E L E C T I O N                   *
      *                                                                 *
      *******************************************************************/
-    
+
     private moveSelection(event: EditorPointerEvent) {
         let moveAbsolute = pointMinusPoint(event, this.pointerDownAt!)
         this.transformation.identity()
-        this.transformation.translate(moveAbsolute)        
+        this.transformation.translate(moveAbsolute)
         this.updateOutlineAndDecorationOfSelection(event.editor)
         // this.mouseLastAt = event
     }
-    
+
     private stopMove(event: EditorPointerEvent) {
         this.moveSelection(event)
         event.editor.transformSelection(this.transformation)
         this.pointerDownAt = undefined
     }
-         
+
     /*******************************************************************
      *                                                                 *
      *                           H A N D L E                           *
      *                                                                 *
      *******************************************************************/
-    
+
     private downHandle(event: EditorPointerEvent): boolean {
         // console.log(`SelectTool.downHandle(): (${event.x}, ${event.y})`)
         const handle = this.findHandle(event)
@@ -231,7 +238,7 @@ export class ArrangeTool extends Tool {
         if (handle >= 8) {
             this.rotationCenter = this.boundary.center()
             this.rotationStartDirection = Math.atan2(event.y - this.rotationCenter.y,
-                                                     event.x - this.rotationCenter.x)
+                event.x - this.rotationCenter.x)
         }
         return true
     }
@@ -252,14 +259,14 @@ export class ArrangeTool extends Tool {
         // }
         // return undefined
     }
-    
+
     private moveHandle(event: EditorPointerEvent) {
         if (this.selectedHandle < 8)
             this.moveHandle2Scale(event)
         else
             this.moveHandle2Rotate(event)
     }
-    
+
     private moveHandle2Scale(event: EditorPointerEvent) {
         // console.log(`SelectTool.moveHandle2Scale()`)
 
@@ -279,7 +286,7 @@ export class ArrangeTool extends Tool {
         // console.log(`mouse up at screen ${event.x}, ${event.y}`)
         // console.log(`mouse up at boundary ${p.x}, ${p.y}`)
 
-        switch(this.selectedHandle) {
+        switch (this.selectedHandle) {
             case 0: [x0, y0] = [p.x, p.y]; break
             case 1: y0 = p.y; break
             case 2: [x1, y0] = [p.x, p.y]; break
@@ -290,8 +297,8 @@ export class ArrangeTool extends Tool {
             case 7: x0 = p.x; break
         }
 
-        let sx = (x1-x0) / (ox1 - ox0),
-            sy = (y1-y0) / (oy1 - oy0)
+        let sx = (x1 - x0) / (ox1 - ox0),
+            sy = (y1 - y0) / (oy1 - oy0)
 
         // console.log(`  handle ${this.selectedHandle}`)
         // console.log(`  ox0=${ox0}, oy0=${oy0}, ox1=${ox1}, oy1=${oy1}`)
@@ -300,34 +307,34 @@ export class ArrangeTool extends Tool {
 
         // let X0, OX0, Y0, OY0
         // if (this.boundaryTransformation) {
-            // let [X0, Y0]   = this.boundaryTransformation.transformArrayPoint([x0, y0])
-            // let [OX0, OY0] = this.boundaryTransformation.transformArrayPoint([ox0, oy0])
+        // let [X0, Y0]   = this.boundaryTransformation.transformArrayPoint([x0, y0])
+        // let [OX0, OY0] = this.boundaryTransformation.transformArrayPoint([ox0, oy0])
         // } else {
-            let [X0, Y0] = [x0, y0]
-            let [OX0, OY0] = [ox0, oy0]
+        let [X0, Y0] = [x0, y0]
+        let [OX0, OY0] = [ox0, oy0]
         // }
         // console.log(`  translate(${-OX0}, ${-OY0})`)
         // console.log(`  scale(${sx}, ${sy})`)
         // console.log(`  translate(${X0}, ${Y0})`)
         this.transformation.identity()
         this.transformation.append(m)
-        this.transformation.translate({x: -OX0, y: -OY0})
+        this.transformation.translate({ x: -OX0, y: -OY0 })
         this.transformation.scale(sx, sy)
-        this.transformation.translate({x: X0, y: Y0})
-        
+        this.transformation.translate({ x: X0, y: Y0 })
+
         this.transformation.prepend(this.boundaryTransformation)
 
         // up to here the math for m2 is correct
 
         //m2.prepend(this.boundaryTransformation)
-        
+
         // this.boundaryTransformation = m2
         //this.boundaryTransformation.identity()
         // this.transformation = m2
-        
+
         this.updateOutlineAndDecorationOfSelection(event.editor)
     }
-    
+
     private moveHandle2Rotate(event: EditorPointerEvent) {
         // console.log(`moveHandle2Rotate`)
         let rotd = Math.atan2(event.y - this.rotationCenter.y, event.x - this.rotationCenter.x)
@@ -343,10 +350,10 @@ export class ArrangeTool extends Tool {
         this.transformation.translate(pointMinus(center))
         this.transformation.rotate(rotd)
         this.transformation.translate(center)
-        
+
         this.updateOutlineAndDecorationOfSelection(event.editor)
     }
-    
+
     private stopHandle(event: EditorPointerEvent) {
         // console.log(`stopHandle`)
         this.state = ArrangeToolState.NONE
@@ -375,7 +382,7 @@ export class ArrangeTool extends Tool {
         this.removeMarqueeOutlines(event.editor)
         this.createMarqueeOutlines(event.editor)
     }
-  
+
     private stopMarquee(event: EditorPointerEvent) {
 
         Tool.selection.modified.lock()
@@ -392,36 +399,36 @@ export class ArrangeTool extends Tool {
             return
         this.svgMarquee = editor.decorations.marquee(new Rectangle(0, 0, 0, 0))
     }
-    
+
     private removeMarquee(editor: ShapeEditor) {
         if (this.svgMarquee === undefined)
             return
         this.svgMarquee.remove()
         this.svgMarquee = undefined
     }
-    
+
     private copyMarqueeToSelection() {
-        for(let pair of this.marqueeOutlines) {
+        for (let pair of this.marqueeOutlines) {
             Tool.selection.add(pair[0])
         }
     }
-  
+
     private updateMarquee(event: EditorPointerEvent) {
-        let x0=this.pointerDownAt!.x, y0=this.pointerDownAt!.y, x1=event.x, y1=event.y
-        if (x1<x0) [x0,x1] = [x1,x0]
-        if (y1<y0) [y0,y1] = [y1,y0]
-        this.marqueeRectangle = new Rectangle({origin: { x: x0, y: y0 }, size: { width: x1-x0, height: y1-y0 }})
+        let x0 = this.pointerDownAt!.x, y0 = this.pointerDownAt!.y, x1 = event.x, y1 = event.y
+        if (x1 < x0) [x0, x1] = [x1, x0]
+        if (y1 < y0) [y0, y1] = [y1, y0]
+        this.marqueeRectangle = new Rectangle({ origin: { x: x0, y: y0 }, size: { width: x1 - x0, height: y1 - y0 } })
         this.svgMarquee!.move(this.marqueeRectangle)
     }
 
     private createMarqueeOutlines(editor: ShapeEditor) {
-        for(let shape of editor.selectedLayer!.data) {
+        for (let shape of editor.selectedLayer!.data) {
             if (Tool.selection.has(shape))
                 continue
 
             let shapeInMarquee = true
             let bounds = shape.bounds()
-            bounds.forAllEdges( (edge)=> {
+            bounds.forAllEdges((edge) => {
                 if (!this.marqueeRectangle!.contains(edge))
                     shapeInMarquee = false
             }, shape.matrix)
@@ -436,7 +443,7 @@ export class ArrangeTool extends Tool {
     }
 
     private removeMarqueeOutlines(editor: ShapeEditor) {
-        for(let pair of this.marqueeOutlines) {
+        for (let pair of this.marqueeOutlines) {
             editor.decoration.removeChild(pair[1])
         }
         this.marqueeOutlines.clear()

@@ -43,6 +43,7 @@ import { PointLike } from "shared/geometry/Point"
 
 import { shape } from "shared/workflow"
 import { EditorKeyboardEvent } from "client/shapeeditor/EditorKeyboardEvent"
+import { IconMouseLeft, IconMouseLeftDrag, IconOption } from "client/view/InputIcons"
 
 // FIXME: cursor: remove white border from tip and set center one pixel above tip
 // FIXME: cursor: white surrounding for ready, edge, ...
@@ -111,7 +112,13 @@ export class PenTool extends Tool {
         this.editor = editor // FIXME: why not make this a property of Tool and set in in ShapeEditor before calling activate and unset after calling deactive?
         Tool.selection.clear() // FIXME: when a path is selected, we must be able to continue editing
         this.setCursor(editor, Cursor.READY)
-        Tool.setHint(`technical pen: <pointer>down</pointer>: add anchor, <pointer>drag</pointer>: smooth anchor, <alt/>+<pointer>drag</pointer>: sharp anchor`)
+        // Tool.setHint(`technical pen: <pointer>down</pointer>: add anchor, <pointer>drag</pointer>: smooth anchor, <alt/>+<pointer>drag</pointer>: sharp anchor`)
+        Tool.setHint(<>
+            Pen:
+            &nbsp;<IconMouseLeft /> Start path
+            &nbsp;<IconMouseLeftDrag /> Start path and curve
+            &nbsp;<IconOption/><IconMouseLeftDrag /> Sharp Anchor
+        </>)
     }
 
     override deactivate(editor: ShapeEditor) {
@@ -310,7 +317,7 @@ export class PenTool extends Tool {
                             operation: Operation.UPDATE_SHAPES,
                             shapes: [this.shape!]
                         })
-                    }break
+                    } break
                 } break
             case State.DOWN_CLOSE_EDGE:
                 switch (event.type) {
