@@ -276,6 +276,7 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         this.inputCatcher.contentEditable = "true"
         this.inputCatcher.addEventListener("keydown", this.inputCatcherKeyDown)
         this.inputCatcher.addEventListener("keyup", this.inputCatcherKeyUp)
+        this.inputCatcher.addEventListener("compositionend", this.inputCatcherCompositionEnd)
         this.inputCatcher.addEventListener("cut", this.clipboard)
         this.inputCatcher.addEventListener("copy", this.clipboard)
         this.inputCatcher.addEventListener("paste", this.clipboard)
@@ -859,11 +860,12 @@ export class ShapeEditor extends ScrollableVectorGraphics {
         if (e.metaKey !== true && e.key !== "Dead" && this.tool && this.selectedLayer) {
             this.tool.keyEvent(new EditorKeyboardEvent(this, e))
             // clear the input catcher so we do not accumulate data we do not need.
-            // NOTE: do not clear it when e.key === "Dead" because the input method
-            // uses the content to compose the character.
-            // NOTE: there are some situations where dead key suddenly stops working
-            //       the if statement might be wrong...?
-            this.inputCatcher.textContent = ""
+            // NOTE: do not clear it while composing because the input method uses the
+            // content to compose the character. Safari (unlike Chrome) breaks the
+            // composition of the following dead key when the content is cleared here.
+            // The content is cleared in compositionend instead.
+            if (!e.isComposing)
+                this.inputCatcher.textContent = ""
         }
         // TODO: we might want some deadkeys
     }
@@ -871,13 +873,14 @@ export class ShapeEditor extends ScrollableVectorGraphics {
     @bind inputCatcherKeyUp(e: KeyboardEvent) {
         if (e.metaKey !== true && e.key !== "Dead" && this.tool && this.selectedLayer) {
             this.tool.keyEvent(new EditorKeyboardEvent(this, e))
-            // clear the input catcher so we do not accumulate data we do not need.
-            // NOTE: do not clear it when e.key === "Dead" because the input method
-            // uses the content to compose the character.
-            // NOTE: there are some situations where dead key suddenly stops working
-            //       the if statement might be wrong...?
-            this.inputCatcher.textContent = ""
+            // see inputCatcherKeyDown
+            if (!e.isComposing)
+                this.inputCatcher.textContent = ""
         }
+    }
+
+    @bind inputCatcherCompositionEnd(e: CompositionEvent) {
+        this.inputCatcher.textContent = ""
     }
 
     //
